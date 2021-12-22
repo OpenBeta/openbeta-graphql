@@ -9,8 +9,8 @@ export interface IAreaProps {
 }
 
 export interface IAreaMetadata {
-  lat: number;
-  lng: number;
+  lat: number|null;
+  lng: number|null;
   left_right_index: number;
   mp_id?: string;
   area_id: string;

@@ -7,6 +7,19 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Load data to db",
+            "program": "${workspaceFolder}/src/db/DataLoader.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch Program",
             "skipFiles": [
                 "<node_internals>/**"

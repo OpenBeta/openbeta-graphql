@@ -29,8 +29,8 @@ export interface IClimbType {
 }
 
 export interface IClimbMetadata {
-  lat: number;
-  lng: number;
+  lat: number|null;
+  lng: number|null;
   left_right_index: number;
   mp_id?: string;
   climb_id: string;

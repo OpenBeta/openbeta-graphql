@@ -11,11 +11,7 @@ const resolvers = {
     },
 
     areas: async (parent, args, { dataSources: {areas} }) => {
-      console.log("#Resolvers.areas")
-      //return areas.all();
-      const rs = await areas.all();
-      console.log("### all areas ", rs)
-      return rs;
+      return await areas.all();
     },
 
     area: async (parent, { ID }, { dataSources:{areas} }) => {

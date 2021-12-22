@@ -1,12 +1,14 @@
 import { Schema, Model, connection } from "mongoose";
+import { v4 as uuidv4 } from 'uuid';
+
 import { IClimb, IClimbMetadata } from "./ClimbTypes";
 
 const MetadataSchema = new Schema<IClimbMetadata>({
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true },
+  lat: { type: Number, default: null },
+  lng: { type: Number, default: null },
   left_right_index: { type: Number, required: false },
   mp_id: { type: String, required: false },
-  climb_id: { type: String, required: true, unique: true }
+  climb_id: { type: String, required: true, unique: true, default: () => uuidv4()}
 });
 
 export const ClimbSchema = new Schema<IClimb>({
