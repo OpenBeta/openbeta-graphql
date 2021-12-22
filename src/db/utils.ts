@@ -1,38 +1,52 @@
 import * as fs from "fs";
 import globby from "globby";
-
-// import path from "path";
-// import { globby } from "globby";
 import fm from "front-matter";
 
-export const load_file = (filename: string) => {
+const load_md_file = (filename: string, xformer?: Function) => {
   const raw = fs.readFileSync(filename, {
     encoding: "utf8",
   });
   const content = fm(raw);
-  const { body, attributes }: { body: string; attributes: any } = content;
-  attributes.name = attributes.route_name;
-  delete attributes.route_name;
+  const { attributes }: { body: string; attributes: any } = content;
+  xformer && xformer(attributes);
+
   return {
     ...attributes,
   };
 };
 
-export const load_dir = async (contentDir: string) => {
-  const baseDir = contentDir.replace(/\/+$/g, "");
+const load_dir = async (files: string[], mapperFn?: Function) => {
+  if (files.length === 0) {
+    console.log("No files found");
+    return [];
+  }
 
-  // Get all leaf files, excluding dirs with only index.md
-  const leafFiles = await globby([
+  const data = files.map((file) => {
+    return load_md_file(file, mapperFn);
+  });
+  return data;
+};
+
+export const load_areas = async (contentDir: string) => {
+  const baseDir = contentDir.replace(/\/+$/g, "");
+  const areaFiles = await globby([`${baseDir}/**/index.md`]);
+  return load_dir(areaFiles, area_column_mapper);
+};
+
+export const load_climbs = async (contentDir: string) => {
+  const baseDir = contentDir.replace(/\/+$/g, "");
+  const climbFiles = await globby([
     `${baseDir}/**/*.md`,
     `!${baseDir}/**/index.md`,
   ]);
+  return load_dir(climbFiles, climb_column_mapper);
+};
 
-  if (leafFiles.length === 0) {
-    console.log("No files found");
-    process.exit(0);
-  }
-  const data = leafFiles.map((file) => {
-    return load_file(file);
-  });
-  return data;
+const climb_column_mapper = (attrs) => {
+  attrs.name = attrs.route_name;
+  delete attrs.route_name;
+};
+
+const area_column_mapper = (attrs) => {
+    attrs['children'] = []
 };

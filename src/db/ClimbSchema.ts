@@ -1,6 +1,5 @@
-import { Schema, model, Model, connection } from "mongoose";
-import { mongoose } from "./index";
-import { IClimb, IClimbMetadata } from "./Types";
+import { Schema, Model, connection } from "mongoose";
+import { IClimb, IClimbMetadata } from "./ClimbTypes";
 
 const MetadataSchema = new Schema<IClimbMetadata>({
   lat: { type: Number, required: true },
@@ -10,7 +9,7 @@ const MetadataSchema = new Schema<IClimbMetadata>({
   climb_id: { type: String, required: true, unique: true }
 });
 
-const ClimbSchema = new Schema<IClimb>({
+export const ClimbSchema = new Schema<IClimb>({
   name: { type: String, required: true },
   fa: { type: String, required: true },
   type: { type: Schema.Types.Mixed },
@@ -18,6 +17,6 @@ const ClimbSchema = new Schema<IClimb>({
   metadata: MetadataSchema,
 });
 
-export const create_model = (): Model<IClimb> => {
-  return connection.model("Climb", ClimbSchema);
+export const create_climb_model = (): Model<IClimb> => {
+  return connection.model("Climbs", ClimbSchema);
 };

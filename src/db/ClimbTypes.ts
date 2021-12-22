@@ -3,7 +3,6 @@ export type IClimb = IClimbProps & {
 };
 
 export interface IClimbProps {
-  id: string;
   name: string;
   fa: string;
   yds: string;
