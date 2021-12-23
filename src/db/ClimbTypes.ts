@@ -4,7 +4,7 @@ export type IClimb = IClimbProps & {
 
 export interface IClimbProps {
   name: string;
-  fa: string;
+  fa?: string;
   yds: string;
   type: IClimbType;
   safety: SafetyType;

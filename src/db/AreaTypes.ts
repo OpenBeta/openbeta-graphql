@@ -5,7 +5,10 @@ export type AreaType = IAreaProps & {
 
 export interface IAreaProps {
   area_name: string;
-  children: IClimb[];
+  climbs?: IClimb[];
+  children?: [string]
+  parentHashRef: string;
+  pathHash: string;
 }
 
 export interface IAreaMetadata {

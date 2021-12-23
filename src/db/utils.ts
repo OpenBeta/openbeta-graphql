@@ -2,6 +2,7 @@ import * as fs from "fs";
 import path from "path";
 import globby from "globby";
 import fm from "front-matter";
+import crypto from "crypto";
 
 const load_md_file = (filename: string, xformer?: Function) => {
   const raw = fs.readFileSync(filename, {
@@ -36,25 +37,27 @@ export const load_areas = async (
 
   const leafAreaPaths = await getLeafAreaPaths(baseDir);
 
-  leafAreaPaths.forEach(async (dir) => {
-    const areaIndexMd = path.posix.join(dir, "index.md");
-    const area = load_md_file(areaIndexMd, area_column_mapper);
-    const climbs = await load_all_climbs_in_dir(dir);
-    area.children = climbs;
-    onAreaLoaded(area)
-  });
+  await Promise.all(
+    leafAreaPaths.map(async (indexMd) => {
+      const area = load_md_file(indexMd, area_column_mapper);
+      const dir = path.posix.dirname(indexMd);
+      const climbs = await load_all_climbs_in_dir(baseDir, dir);
+      area.climbs = climbs;
+      onAreaLoaded({ ...area, ...parentRefs(baseDir, dir) });
+    })
+  );
 };
 
-const load_all_climbs_in_dir = async (currentDir: string) => {
+const load_all_climbs_in_dir = async (baseDir, currentDir: string) => {
   const climbFiles = await globby([
-    `${currentDir}/**/*.md`,
-    `!${currentDir}/**/index.md`,
+    `${currentDir}/*.md`,
+    `!${currentDir}/index.md`,
   ]);
 
-  const data = climbFiles.map((file) =>
-    load_md_file(file, climb_column_mapper)
-  );
-  return data;
+  return climbFiles.map((file) => {
+    const climb = load_md_file(file, climb_column_mapper);
+    return climb;
+  });
 };
 
 const climb_column_mapper = (attrs) => {
@@ -63,14 +66,12 @@ const climb_column_mapper = (attrs) => {
 };
 
 const area_column_mapper = (attrs) => {
-  attrs["children"] = [];
+  attrs["climbs"] = [];
 };
 
 const getLeafAreaPaths = async (baseDir: string): Promise<string[]> => {
-  // Get all leaf files, excluding dirs with only index.md
   const leafFiles = await globby([
-    `${baseDir}/**/*.md`,
-    `!${baseDir}/**/index.md`,
+    `${baseDir}/**/index.md`,
   ]);
 
   if (leafFiles.length === 0) {
@@ -81,15 +82,27 @@ const getLeafAreaPaths = async (baseDir: string): Promise<string[]> => {
   // Build a collection of leaf walls
   // 1. Remove file name from path
   // 2. Add to Set to remove duplicates
-  const dirs = leafFiles.reduce((acc, curr) => {
-    acc.add(path.dirname(curr));
-    return acc;
-  }, new Set<string>());
+  // const dirs = leafFiles.reduce((acc, curr) => {
+  //   acc.add(path.posix.dirname(curr));
+  //   return acc;
+  // }, new Set<string>());
 
   // de-dups
-  const leafAreaPaths = [...dirs];
+  //const leafAreaPaths = [...dirs];
 
   // to make test deterministic
-  leafAreaPaths.sort();
-  return leafAreaPaths;
+  leafFiles.sort();
+  return leafFiles;
 };
+
+const parentRefs = (baseDir: string, currentDir: string) => {
+  return {
+    parentHashRef: md5(
+      path.posix.relative(baseDir, path.posix.dirname(currentDir))
+    ),
+    pathHash: md5(path.posix.relative(baseDir, currentDir)),
+  };
+};
+
+const md5 = (data: string) =>
+  crypto.createHash("md5").update(data).digest("hex");

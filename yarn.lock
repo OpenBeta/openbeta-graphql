@@ -614,6 +614,11 @@ dir-glob@^3.0.1:
   dependencies:
     path-type "^4.0.0"
 
+directory-tree@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/directory-tree/-/directory-tree-3.0.1.tgz#ce7e087d7a9a58947ab802125b4c45481270db72"
+  integrity sha512-IJL5L/zd73xbchfsIKMrhaRJCt28ek1UsS6LNZ6b9r7m+VbU1fd7JZAypn6gl1g4hpxn21QF3/scAWKIOMk4Ug==
+
 dotenv@^10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-10.0.0.tgz#3d4227b8fb95f81096cdd2b66653fb2c7085ba81"

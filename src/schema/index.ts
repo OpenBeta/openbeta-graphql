@@ -6,7 +6,6 @@ const resolvers = {
   Query: {
     climb: async (parent, { ID }, { dataSources }) => {
       console.log(ID);
-      //console.log(dataSources.climb.)
       return dataSources.climbs.findOneById(ID);
     },
 

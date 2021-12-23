@@ -8,14 +8,14 @@ const MetadataSchema = new Schema<IClimbMetadata>({
   lng: { type: Number, default: null },
   left_right_index: { type: Number, required: false },
   mp_id: { type: String, required: false },
-  climb_id: { type: String, required: true, unique: true, default: () => uuidv4()}
+  climb_id: { type: String, required: true, default: () => uuidv4()}
 });
 
 export const ClimbSchema = new Schema<IClimb>({
-  name: { type: String, required: true },
-  fa: { type: String, required: true },
+  name: { type: Schema.Types.String, required: true },
+  fa: { type: Schema.Types.String, required: false },
   type: { type: Schema.Types.Mixed },
-  safety: { type: String, required: false },
+  safety: { type: Schema.Types.String, required: false },
   metadata: MetadataSchema,
 });
 
