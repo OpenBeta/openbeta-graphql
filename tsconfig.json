@@ -4,8 +4,9 @@
       "module": "commonjs",
       "esModuleInterop": true,
       "moduleResolution": "node",
+      "rootDir": "./src",
       "outDir": "build",
       "sourceMap": true
     },
-    "lib": ["es2015"]
+    "lib": ["es2015"],
   }

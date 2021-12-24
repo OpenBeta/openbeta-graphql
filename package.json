@@ -21,5 +21,10 @@
     "graphql": "^16.2.0",
     "mongoose": "^6.1.2",
     "uuid": "^8.3.2"
+  },
+  "scripts": {
+    "build": "tsc -b -v",
+    "clean": "tsc -b --clean",
+    "serve": "node build/index.js"
   }
 }
