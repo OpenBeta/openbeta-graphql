@@ -8,12 +8,6 @@ variables:
   IMAGE_LATEST:  $CI_REGISTRY_IMAGE:latest 
 
 docker-build:
-  only: # Only run for these branches
-  - initial
-  - develop
-  - main
-  - gitlab-debug
-
   stage: build
 
   tags:
