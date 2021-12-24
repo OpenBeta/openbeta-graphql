@@ -3,13 +3,19 @@ import { AreaType } from "../db/AreaTypes";
 
 // export type ClimbDatasourceType = MongoDataSource<IClimb>
 
-export default class Areas extends MongoDataSource<AreaType>{
+export default class Areas extends MongoDataSource<AreaType> {
   async all(props) {
-    const rs =this.collection.find({})
-    //console.log("#Area:all() ", await rs.toArray())
-    return rs.toArray()
+    const rs = this.collection.find({});
+    return rs.toArray();
   }
-  // climbClimbById(id: string) {
-  //   return this.findOneById(id);
-  // }
+
+  /**
+   * Wildcard, case-insensitive search for area(s). Similar SQL Like '%a%'.
+   * @param name area name
+   */
+  async findByName(name: string) {
+    return this.collection
+      .find({ area_name: new RegExp(name, "ig") })
+      .toArray();
+  }
 }

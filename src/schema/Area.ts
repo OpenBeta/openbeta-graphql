@@ -1,14 +1,16 @@
 import { gql } from "apollo-server";
+
 export const typeDef = gql`
   type Query {
-    area(ID: Int!): Area
-    areas: [Area]
+    area(id: ID!): Area
+    areas(name: String): [Area]
   }
 
   type Area {
     area_name: String!
     metadata: AreaMetadata!
-    children: [Climb]
+    climbs: [Climb]
+    children: [Area]
   }
 
   type AreaMetadata {

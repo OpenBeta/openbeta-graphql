@@ -7,8 +7,21 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Link Parent - Child areas",
+            "program": "${workspaceFolder}/src/db/import/LinkParent.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Load data to db",
-            "program": "${workspaceFolder}/src/db/DataLoader.ts",
+            "program": "${workspaceFolder}/src/db/import/DataLoader.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"

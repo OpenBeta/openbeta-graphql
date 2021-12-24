@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import { IClimb } from "./ClimbTypes";
 export type AreaType = IAreaProps & {
   metadata: IAreaMetadata;
@@ -6,7 +7,7 @@ export type AreaType = IAreaProps & {
 export interface IAreaProps {
   area_name: string;
   climbs?: IClimb[];
-  children?: [string]
+  children?: [ObjectId]
   parentHashRef: string;
   pathHash: string;
 }

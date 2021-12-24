@@ -1,4 +1,6 @@
 import { makeExecutableSchema } from "@graphql-tools/schema";
+import { Types } from "mongoose";
+
 import { typeDef as Climb } from "./Climb";
 import { typeDef as Area } from "./Area";
 
@@ -9,14 +11,24 @@ const resolvers = {
       return dataSources.climbs.findOneById(ID);
     },
 
-    areas: async (parent, args, { dataSources: {areas} }) => {
+    areas: async (parent, { name }, { dataSources: { areas } }) => {
+      if (name) return areas.findByName(name);
       return await areas.all();
     },
 
-    area: async (parent, { ID }, { dataSources:{areas} }) => {
-      console.log(ID);
+    area: async (parent, { id }, { dataSources: { areas } }) => {
+      console.log(id);
       //console.log(dataSources.climb.)
-      return areas.findOneById(ID);
+      if (id) return areas.findOneById(id);
+      return null;
+    },
+  },
+  Area: {
+    children: async (parent, args, { dataSources: { areas } }) => {
+      if (parent.children.length > 0) {
+        return areas.findManyByIds(parent.children);
+      }
+      return null;
     },
   },
 };
