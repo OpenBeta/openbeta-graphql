@@ -1,8 +1,8 @@
 import { get_area_model } from "../AreaSchema";
 
-export const link_areas = async () => {
+export const link_areas = async (collectionName:string) => {
   try {
-    const areasModel = get_area_model();
+    const areasModel = get_area_model(collectionName);
     for await (const area of areasModel.find()) {
       //console.log(area.get("area_name"))
       const pathHash = area.get("pathHash");

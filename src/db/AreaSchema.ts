@@ -31,5 +31,5 @@ export const create_area_model = (name: string): Model<AreaType> => {
   return connection.model(name, AreaSchema);
 };
 
-export const get_area_model = (): Model<AreaType> =>
-  connection.model("areas", AreaSchema);
+export const get_area_model = (name: string = "areas"): Model<AreaType> =>
+  connection.model(name, AreaSchema);

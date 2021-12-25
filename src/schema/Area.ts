@@ -3,7 +3,7 @@ import { gql } from "apollo-server";
 export const typeDef = gql`
   type Query {
     area(id: ID!): Area
-    areas(name: String): [Area]
+    areas(name: String, nameContains: String): [Area]
   }
 
   type Area {

@@ -29,7 +29,7 @@ const main = async () => {
   console.log("Content basedir: ", contentDir);
   console.log("Loaded ", i);
 
-  await link_areas();
+  await link_areas(tmpArea);
   console.log("Areas linked");
   console.log("Dropping old collection...");
   await _dropCollection("areas");

@@ -13,9 +13,8 @@ export default class Areas extends MongoDataSource<AreaType> {
    * Wildcard, case-insensitive search for area(s). Similar SQL Like '%a%'.
    * @param name area name
    */
-  async findByName(name: string) {
-    return this.collection
-      .find({ area_name: new RegExp(name, "ig") })
-      .toArray();
+  async findByName(name: string, wildcard: boolean = false) {
+    const param = wildcard ? new RegExp(name, "ig") : name;
+    return this.collection.find({ area_name: param }).toArray();
   }
 }
