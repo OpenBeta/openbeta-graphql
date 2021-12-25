@@ -5,7 +5,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: 0nBelay!
-      MONGO_INITDB_DATABASE: opentacos
     ports:
       - 27017:27017
     volumes:
