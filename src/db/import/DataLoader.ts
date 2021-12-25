@@ -5,7 +5,12 @@ import { load_areas } from "./utils";
 import { AreaType } from "../AreaTypes";
 import { link_areas } from "./LinkParent";
 
-const contentDir = "../opentacos-content/content/USA/Oregon";
+const contentDir = process.env.CONTENT_BASEDIR;
+
+if (!contentDir) {
+  console.log("Missing CONTENT_BASEDIR env")
+  process.exit(1)
+}
 
 const main = async () => {
   const mongoose = await connectDB();
