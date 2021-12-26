@@ -56,7 +56,7 @@ deploy:
   - chmod 644 ~/.ssh/known_hosts
 
   script:
-  - git clone --quiet --depth 1 --branch initial git@gitlab.com:openbeta/devops/graphql-api.git
+  - git clone --quiet --depth 1 --branch main git@gitlab.com:openbeta/devops/graphql-api.git
   - cd graphql-api
   - ~/.bin/kustomize edit set image $IMAGE_CURRENT
   - git diff
