@@ -1,0 +1,55 @@
+image: registry.gitlab.com/openbeta/openbeta-nodejs-docker:16.3
+
+variables:
+  GIT_DEPTH: 1
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+  IMAGE_LATEST:  $CI_REGISTRY_IMAGE:latest 
+
+docker-build:
+  stage: build
+
+  tags:
+  - docker
+
+  image: docker:20.10.10
+
+  services:
+  - docker:20.10.10-dind
+
+  before_script:
+  - export IMAGE_CURRENT=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+  script:
+  - docker pull $IMAGE_LATEST || true
+  - docker build --cache-from $IMAGE_LATEST --tag $IMAGE_CURRENT --tag $IMAGE_LATEST .
+  - docker push $IMAGE_CURRENT
+  - docker push $IMAGE_LATEST
+
+deploy:
+  stage: deploy
+  tags:
+    - docker
+  only: # Only run for these branches
+  - develop
+  - main
+  needs: 
+  - job: docker-build
+    artifacts: true
+  image:
+    name: bitnami/git:latest
+
+  before_script:
+  - mkdir -p ~/.bin
+  - curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"  | bash -s -- ~/.bin
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+
+  script:
+  - echo "Start deployment"

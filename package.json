@@ -1,0 +1,31 @@
+{
+  "name": "openbeta-graphql",
+  "version": "0.0.1",
+  "description": "OpenBeta GraphQL API",
+  "main": "build/index.js",
+  "repository": "https://github.com/OpenBeta/openbeta-graphql.git",
+  "author": "viet nguyen <vietnguyen@noreply>",
+  "license": "AGPL-3.0-or-later",
+  "devDependencies": {
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "@graphql-tools/schema": "^8.3.1",
+    "@types/uuid": "^8.3.3",
+    "apollo-datasource-mongodb": "^0.5.2",
+    "apollo-server": "^3.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "front-matter": "^4.0.2",
+    "globby": "11.0.4",
+    "graphql": "^16.2.0",
+    "mongoose": "^6.1.2",
+    "uuid": "^8.3.2"
+  },
+  "scripts": {
+    "build": "tsc -b -v",
+    "clean": "tsc -b --clean",
+    "serve": "node build/index.js",
+    "refresh-db": "./refresh-db.sh"
+  }
+}
