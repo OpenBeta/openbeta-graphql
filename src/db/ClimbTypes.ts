@@ -11,7 +11,7 @@ export interface IClimbProps {
 }
 
 export enum SafetyType {
-  UNSPECIFIED = "unspecified",
+  UNSPECIFIED = "UNSPECIFIED",
   PG = "PG",
   PG13 = "PG13",
   R = "R",
@@ -29,8 +29,8 @@ export interface IClimbType {
 }
 
 export interface IClimbMetadata {
-  lat: number|null;
-  lng: number|null;
+  lat: number | null;
+  lng: number | null;
   left_right_index: number;
   mp_id?: string;
   climb_id: string;

@@ -7,19 +7,6 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Link Parent - Child areas",
-            "program": "${workspaceFolder}/src/db/import/LinkParent.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
-            ],
-            "skipFiles": [
-                "<node_internals>/**"
-            ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
             "name": "Load data to db",
             "program": "${workspaceFolder}/src/db/import/DataLoader.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
@@ -28,12 +15,12 @@
             ],
             "skipFiles": [
                 "<node_internals>/**"
-            ]
+            ],
         },
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch API server",
             "skipFiles": [
                 "<node_internals>/**"
             ],
