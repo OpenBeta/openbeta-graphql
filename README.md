@@ -1,6 +1,8 @@
-[![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/graphql-api?style=flat-square)](./LICENSE)
+[![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 
-# What is this?
+# Climbing Route Catalog API 
+
+### What is this?
 
 OpenBeta GraphQL API allows other applications to access the [climbing route catalog](https://github.com/OpenBeta/opentacos-content) using any standard GraphQL clients.
  
@@ -10,7 +12,7 @@ You can use any online [playgrounds](https://graphiql-online.com) to explore the
 
 > [Learn more about GraphQL](https://graphql.org)
 
-# Queries
+### Queries
 
 Get all sub-areas of Smith Rock
 
@@ -56,6 +58,37 @@ query Example1 {
 }
 ```
 
-# License
+### Development
 
-AGPL
+
+
+#### Requirements:
+
+- [Docker](https://docs.docker.com/get-docker)
+- [Node.js](https://nodejs.org) (v16 or later)
+- [yarn](https://yarnpkg.com/getting-started/install)
+
+#### Seed the development database
+
+1.  Launch **mongodb** (the database) and **mongo-express** (the web-based admin console for mongo):
+
+```
+docker compose up -d
+```
+
+2.  Seed the database.  You should see "Done." without any errors.
+
+```
+yarn install
+yarn refresh-db
+```
+
+Browse the database: http://localhost:8081
+
+### Questions?
+
+This project is under active development.  Join us on [Discord](https://discord.gg/xcWha22BhT).
+
+### License
+
+The source code is licensed under the [Affero GPL v3.0 license](./LICENSE).
