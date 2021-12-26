@@ -64,4 +64,12 @@ deploy:
   - chmod 644 ~/.ssh/known_hosts
 
   script:
-  - echo "Start deployment"
+  - git clone --quiet --depth 1 --branch initial git@gitlab.com:openbeta/devops/graphql-api.git
+  - cd graphql-api
+  - ~/.bin/kustomize edit set image $IMAGE_CURRENT
+  - git diff
+  - if [[ ! -n $(git status --porcelain) ]]; then echo "No new changes. Skipping deployment.";  exit 0; fi
+  - git config --global user.name $GITLAB_USER_NAME
+  - git config --global user.email $GITLAB_USER_EMAIL
+  - git commit -am "Update deployment. Code=${CI_COMMIT_SHORT_SHA}"
+  - git push
