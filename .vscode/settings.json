@@ -1,0 +1,5 @@
+{
+    "standard.enable": true,
+    "standard.engine": "ts-standard",
+    "standard.treatErrorsAsWarnings": true
+}

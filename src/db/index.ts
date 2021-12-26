@@ -1,24 +1,42 @@
-import { connect, connection } from "mongoose";
-import { create_area_model } from "./AreaSchema";
-import { create_climb_model } from "./ClimbSchema";
+import { connect, Connection, connection } from 'mongoose'
+import { createAreaModel } from './AreaSchema'
+import { createClimbModel } from './ClimbSchema'
 
-require("dotenv").config();
+import { config } from 'dotenv'
 
-const connectDB = async () => {
-  console.log(`Connecting to database 'mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:****@${process.env.MONGO_SERVICE}'...`);
-  const mongoose = connect(
-    `mongodb://${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@${process.env.MONGO_SERVICE}:27017/opentacos?authSource=admin`
-  );
+config()
 
-  connection.once("open", function () {
-    console.log("DB connected successfully");
-  });
+const checkVar = (name: string): string => {
+  const value = process.env[name] ?? ''
+  if (value === '') {
+    console.log('Missing env ', name)
+    process.exit(1)
+  }
+  return value
+}
+
+const connectDB = async (): Promise<Connection> => {
+  const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
+  const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
+  const server = checkVar('MONGO_SERVICE')
+
+  console.log(
+    `Connecting to database 'mongodb://${user}:****@${server}'...`
+  )
+
+  await connect(
+    `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`
+  )
+
+  connection.on('open', function () {
+    console.log('DB connected successfully')
+  })
 
   connection.on(
-    "error",
-    console.error.bind(console, "MongoDB connection error:")
-  );
-  return mongoose;
-};
+    'error',
+    console.error.bind(console, 'MongoDB connection error:')
+  )
+  return connection
+}
 
-export { connectDB, create_area_model, create_climb_model };
+export { connectDB, createAreaModel, createClimbModel }
