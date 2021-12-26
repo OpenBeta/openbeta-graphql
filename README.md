@@ -1,12 +1,12 @@
-Build status: ![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg) [![License](https://img.shields.io/github/license/openbeta/graphql-api?style=flat-square)](./LICENSE)
+[![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/graphql-api?style=flat-square)](./LICENSE)
 
 # What is this?
 
-OpenBeta GraphQL API allows other applications to access the climbing route catalog using any standard GraphQL clients.
+OpenBeta GraphQL API allows other applications to access the [climbing route catalog](https://github.com/OpenBeta/opentacos-content) using any standard GraphQL clients.
  
 **Endpoint**: https://api.openbeta.io
 
-You can use any online GraphQL [playgrounds](https://graphiql-online.com) to explore the API.
+You can use any online [playgrounds](https://graphiql-online.com) to explore the API.
 
 > [Learn more about GraphQL](https://graphql.org)
 
