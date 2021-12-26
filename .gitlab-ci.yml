@@ -7,19 +7,11 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   IMAGE_LATEST:  $CI_REGISTRY_IMAGE:latest 
 
-build:
-  stage: build
-  script:
-  - yarn install
-  - yarn build
-
 docker-build:
   stage: build
-  needs: 
-  - job: build
-  only: # Only run for these branches
-  - develop
-  - main
+#  only: # Only run for these branches
+#  - develop
+#  - main
 
   tags:
   - docker
@@ -44,9 +36,9 @@ deploy:
   stage: deploy
   tags:
     - docker
-  only: # Only run for these branches
-  - develop
-  - main
+#  only: # Only run for these branches
+#  - develop
+#  - main
   needs: 
   - job: docker-build
     artifacts: true
