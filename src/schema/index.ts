@@ -29,7 +29,6 @@ const resolvers = {
   },
   Area: {
     children: async (parent, args, { dataSources: { areas } }) => {
-      console.log("#parent ", parent);
       if (parent.children.length > 0) {
         return areas.findManyByIds(parent.children);
       }

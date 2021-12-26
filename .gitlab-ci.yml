@@ -7,6 +7,7 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   IMAGE_LATEST:  $CI_REGISTRY_IMAGE:latest 
 
+
 build:
   stage: build
   only:
@@ -15,6 +16,7 @@ build:
   script:
   - yarn install
   - yarn build
+
 
 docker-build:
   stage: build
@@ -39,6 +41,7 @@ docker-build:
   - docker build --cache-from $IMAGE_LATEST --tag $IMAGE_CURRENT --tag $IMAGE_LATEST .
   - docker push $IMAGE_CURRENT
   - docker push $IMAGE_LATEST
+
 
 deploy:
   stage: deploy
