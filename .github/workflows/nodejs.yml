@@ -16,8 +16,8 @@ jobs:
         uses: 'borales/actions-yarn@v2.3.0'
         with:
           fetch-depth: 0
-          cmd: install
+      - name: Install Dependencies
+        run: yarn install
 
-      - uses: borales/actions-yarn@v2.3.0
-        with:
-          cmd: lint # will run `yarn build` command
+      - name: Lint and build
+        run: yarn build
