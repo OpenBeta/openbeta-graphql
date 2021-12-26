@@ -1,4 +1,4 @@
-import { gql } from "apollo-server";
+import { gql } from 'apollo-server'
 
 export const typeDef = gql`
   type Query {
@@ -20,4 +20,4 @@ export const typeDef = gql`
     mp_id: String
     area_id: String!
   }
-`;
+`
