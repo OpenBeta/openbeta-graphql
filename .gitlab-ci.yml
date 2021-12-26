@@ -6,17 +6,10 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_HOST: tcp://docker:2375
   IMAGE_LATEST:  $CI_REGISTRY_IMAGE:latest 
-
-build:
-  stage: build
-  script:
-  - yarn install
-  - yarn build
+  IMAGE_CURRENT: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
 
 docker-build:
   stage: build
-  needs: 
-  - job: build
   only: # Only run for these branches
   - develop
   - main
@@ -30,7 +23,6 @@ docker-build:
   - docker:20.10.10-dind
 
   before_script:
-  - export IMAGE_CURRENT=$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
   - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
   script:
@@ -64,4 +56,12 @@ deploy:
   - chmod 644 ~/.ssh/known_hosts
 
   script:
-  - echo "Start deployment"
+  - git clone --quiet --depth 1 --branch main git@gitlab.com:openbeta/devops/graphql-api.git
+  - cd graphql-api
+  - ~/.bin/kustomize edit set image $IMAGE_CURRENT
+  - git diff
+  - if [[ ! -n $(git status --porcelain) ]]; then echo "No new changes. Skipping deployment.";  exit 0; fi
+  - git config --global user.name $GITLAB_USER_NAME
+  - git config --global user.email $GITLAB_USER_EMAIL
+  - git commit -am "Update deployment. Code=${CI_COMMIT_SHORT_SHA}"
+  - git push
