@@ -10,9 +10,9 @@ variables:
 
 docker-build:
   stage: build
-#  only: # Only run for these branches
-#  - develop
-#  - main
+  only: # Only run for these branches
+  - develop
+  - main
 
   tags:
   - docker
@@ -36,9 +36,9 @@ deploy:
   stage: deploy
   tags:
     - docker
-#  only: # Only run for these branches
-#  - develop
-#  - main
+  only: # Only run for these branches
+  - develop
+  - main
   needs: 
   - job: docker-build
     artifacts: true

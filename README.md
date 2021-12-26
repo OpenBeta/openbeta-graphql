@@ -8,13 +8,13 @@ OpenBeta GraphQL API allows other applications to access the [climbing route cat
  
 **Endpoint**: https://api.openbeta.io
 
-You can use any online [playgrounds](https://graphiql-online.com) to explore the API.
+We recommend using an online [playground](https://graphiql-online.com) to explore the API.
 
 > [Learn more about GraphQL](https://graphql.org)
 
-### Queries
+### Example query
 
-Get all sub-areas of Smith Rock
+Get all sub-areas at Smith Rock
 
 ```graphql
 query Example1 {
@@ -59,9 +59,6 @@ query Example1 {
 ```
 
 ### Development
-
-
-
 #### Requirements:
 
 - [Docker](https://docs.docker.com/get-docker)
@@ -87,7 +84,7 @@ Browse the database: http://localhost:8081
 
 ### Questions?
 
-This project is under active development.  Join us on [Discord](https://discord.gg/xcWha22BhT).
+This project is under active development.  Join us on [Discord](https://discord.gg/xcWha22BhT)!
 
 ### License
 
