@@ -3,6 +3,10 @@ Build status: ![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/devel
 # What is this?
 
 OpenBeta GraphQL API allows other applications to access the climbing route catalog using any standard GraphQL clients.
+ 
+**Endpoint**: https://api.openbeta.io
+
+You can use any online GraphQL [playgrounds](https://graphiql-online.com) to explore the API.
 
 > [Learn more about GraphQL](https://graphql.org)
 
