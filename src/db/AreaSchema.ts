@@ -26,8 +26,9 @@ const AreaSchema = new Schema<AreaType>({
   pathHash: { type: String, required: true },
 });
 
+AreaSchema.index({ area_name: 1 });
+
 export const create_area_model = (name: string): Model<AreaType> => {
-  AreaSchema.index({ area_name: 1 });
   return connection.model(name, AreaSchema);
 };
 

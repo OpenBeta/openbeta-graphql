@@ -9,6 +9,7 @@ export const typeDef = gql`
     name: String!
     fa: String!
     yds: String!
+    type: ClimbType!
     safety: SafetyEnum!
     metadata: ClimbMetadata!
   }
@@ -33,7 +34,7 @@ export const typeDef = gql`
 
   enum SafetyEnum {
     UNSPECIFIED
-    PG
+    PG 
     PG13
     R
     X

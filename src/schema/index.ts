@@ -27,6 +27,11 @@ const resolvers = {
       return null;
     },
   },
+
+  Climb: {
+    //TODO: see if we need to create field resolvers
+  },
+
   Area: {
     children: async (parent, args, { dataSources: { areas } }) => {
       if (parent.children.length > 0) {

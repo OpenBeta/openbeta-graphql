@@ -61,6 +61,7 @@ const load_all_climbs_in_dir = async (baseDir, currentDir: string) => {
 };
 
 const climb_column_mapper = (attrs) => {
+  if (attrs.safety === "") attrs.safety = "UNSPECIFIED";
   attrs.name = attrs.route_name;
   delete attrs.route_name;
 };
@@ -70,28 +71,15 @@ const area_column_mapper = (attrs) => {
 };
 
 const getLeafAreaPaths = async (baseDir: string): Promise<string[]> => {
-  const leafFiles = await globby([
-    `${baseDir}/**/index.md`,
-  ]);
+  const leafFiles = await globby([`${baseDir}/**/index.md`]);
 
   if (leafFiles.length === 0) {
     console.log("No files found");
     process.exit(0);
   }
 
-  // Build a collection of leaf walls
-  // 1. Remove file name from path
-  // 2. Add to Set to remove duplicates
-  // const dirs = leafFiles.reduce((acc, curr) => {
-  //   acc.add(path.posix.dirname(curr));
-  //   return acc;
-  // }, new Set<string>());
-
-  // de-dups
-  //const leafAreaPaths = [...dirs];
-
   // to make test deterministic
-  leafFiles.sort();
+  //leafFiles.sort();
   return leafFiles;
 };
 
