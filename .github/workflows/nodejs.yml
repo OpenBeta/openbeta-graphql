@@ -1,0 +1,23 @@
+name: 'tests'
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+
+    steps:
+      - name: 'Checkout Project'
+        uses: 'actions/checkout@v2.3.4'
+        uses: 'borales/actions-yarn@v2.3.0'
+        with:
+          fetch-depth: 0
+          cmd: install
+
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: lint # will run `yarn build` command
