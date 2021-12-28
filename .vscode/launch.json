@@ -7,6 +7,19 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "MD parser",
+            "program": "${workspaceFolder}/src/db/import/ClimbMDTransformer.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Load data to db",
             "program": "${workspaceFolder}/src/db/import/DataLoader.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
@@ -24,7 +37,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/index.ts",
+            "program": "${workspaceFolder}/src/main.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"

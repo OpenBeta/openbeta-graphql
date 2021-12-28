@@ -1,5 +1,6 @@
 export type IClimb = IClimbProps & {
   metadata: IClimbMetadata
+  content: IClimbContent
 }
 
 export interface IClimbProps {
@@ -17,7 +18,6 @@ export enum SafetyType {
   R = 'R',
   X = 'X',
 }
-
 export interface IClimbType {
   trad: boolean
   sport: boolean
@@ -27,11 +27,15 @@ export interface IClimbType {
   aid: boolean
   tr: boolean
 }
-
 export interface IClimbMetadata {
   lat: number | null
   lng: number | null
   left_right_index: number
   mp_id?: string
   climb_id: string
+}
+export interface IClimbContent {
+  description?: string
+  protection?: string
+  location?: string
 }

@@ -1,8 +1,8 @@
-import { connectDB, createAreaModel } from '../index'
-import { Model, connection } from 'mongoose'
-import { loadAreas } from './utils'
-import { AreaType } from '../AreaTypes'
-import { linkAreas } from './LinkParent'
+import { connectDB, createAreaModel } from '../index.js'
+import mongoose from 'mongoose'
+import { loadAreas } from './utils.js'
+import { AreaType } from '../AreaTypes.js'
+import { linkAreas } from './LinkParent.js'
 
 const contentDir: string = process.env.CONTENT_BASEDIR ?? ''
 
@@ -17,7 +17,7 @@ const main = async (): Promise<void> => {
   const tmpArea = '_tmp_areas'
   await _dropCollection(tmpArea)
 
-  const areaModel: Model<AreaType> = createAreaModel(tmpArea)
+  const areaModel: mongoose.Model<AreaType> = createAreaModel(tmpArea)
 
   let i = 0
   await loadAreas(contentDir, async (area): Promise<void> => {
@@ -32,13 +32,13 @@ const main = async (): Promise<void> => {
   console.log('Areas linked')
   console.log('Dropping old collection...')
   await _dropCollection('areas')
-  await connection.db.renameCollection(tmpArea, 'areas')
+  await mongoose.connection.db.renameCollection(tmpArea, 'areas')
   console.log('Done.')
 }
 
 const _dropCollection = async (name: string): Promise<void> => {
   try {
-    await connection.db.dropCollection(name)
+    await mongoose.connection.db.dropCollection(name)
   } catch (e) { }
 };
 
