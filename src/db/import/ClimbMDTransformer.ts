@@ -23,9 +23,9 @@ export const transformClimb = (md: string): IClimbContent => {
   const mdLines = md.split('\n')
   const h1LineNumbers = h1Markers(md)
   return {
-    description: mdLines.slice(h1LineNumbers[0], h1LineNumbers[1] - 1).join('\n'),
-    location: mdLines.slice(h1LineNumbers[1], h1LineNumbers[2] - 1).join('\n'),
-    protection: mdLines.slice(h1LineNumbers[2], h1LineNumbers[3]).join('\n')
+    description: mdLines.slice(h1LineNumbers[0], h1LineNumbers[1] - 1).join('\n').trim(),
+    location: mdLines.slice(h1LineNumbers[1], h1LineNumbers[2] - 1).join('\n').trim(),
+    protection: mdLines.slice(h1LineNumbers[2], h1LineNumbers[3]).join('\n').trim()
   }
 }
 
@@ -33,6 +33,6 @@ export const transformArea = (md: string): IAreaContent => {
   const mdLines = md.split('\n')
   const h1LineNumbers = h1Markers(md)
   return {
-    description: mdLines.slice(h1LineNumbers[0], h1LineNumbers[1] - 1).join('\n')
+    description: mdLines.slice(h1LineNumbers[0], h1LineNumbers[1] - 1).join('\n').trim()
   }
 }

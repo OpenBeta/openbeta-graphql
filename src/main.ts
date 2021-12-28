@@ -1,9 +1,9 @@
 import { ApolloServer } from 'apollo-server'
-import { connection } from 'mongoose'
-import { schema as graphQLSchema } from './schema/GraphQLSchema'
-import Climbs from './model/Climbs'
-import { connectDB } from './db'
-import Areas from './model/Areas'
+import mongoose from 'mongoose'
+import { schema as graphQLSchema } from './schema/GraphQLSchema.js'
+import Climbs from './model/Climbs.js'
+import { connectDB } from './db/index.js'
+import Areas from './model/Areas.js'
 
 // eslint-disable-next-line
 (async function (): Promise<void> {
@@ -12,8 +12,8 @@ import Areas from './model/Areas'
     schema: graphQLSchema,
     dataSources: () => {
       return {
-        climbs: new Climbs(connection.db.collection('Climb')),
-        areas: new Areas(connection.db.collection('areas'))
+        climbs: new Climbs(mongoose.connection.db.collection('Climb')),
+        areas: new Areas(mongoose.connection.db.collection('areas'))
       }
     }
   })

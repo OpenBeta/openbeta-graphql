@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
-import { typeDef as Climb } from './ClimbTypeDef'
-import { typeDef as Area } from './AreaTypeDef'
+import { typeDef as Climb } from './ClimbTypeDef.js'
+import { typeDef as Area } from './AreaTypeDef.js'
 
 const resolvers = {
   Query: {

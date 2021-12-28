@@ -23,19 +23,24 @@ const connectDB = async (): Promise<mongoose.Connection> => {
   console.log(
     `Connecting to database 'mongodb://${user}:****@${server}'...`
   )
-
-  await mongoose.connect(
+  try {
+    /* eslint-disable @typescript-eslint/no-floating-promises */
+    mongoose.connect(
     `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`
-  )
+    )
 
-  mongoose.connection.on('open', function () {
-    console.log('DB connected successfully')
-  })
+    mongoose.connection.on('open', function () {
+      console.log('DB connected successfully')
+    })
 
-  mongoose.connection.on(
-    'error',
-    console.error.bind(console, 'MongoDB connection error:')
-  )
+    mongoose.connection.on(
+      'error',
+      console.error.bind(console, 'MongoDB connection error:')
+    )
+  } catch (e) {
+    console.error("Can't connect to db")
+    process.exit(1)
+  }
   return mongoose.connection
 }
 
