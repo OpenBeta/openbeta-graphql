@@ -1,4 +1,4 @@
-import { getAreaModel } from '../AreaSchema'
+import { getAreaModel } from '../AreaSchema.js'
 
 export const linkAreas = async (collectionName: string): Promise<void> => {
   try {

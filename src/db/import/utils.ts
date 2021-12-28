@@ -4,31 +4,22 @@ import globby from 'globby'
 import fm from 'front-matter'
 import crypto from 'crypto'
 
-const loadMdFile = (filename: string, xformer: Function): any => {
+import { transformArea as transformAreaMdFn, transformClimb as transformClimbMdFn } from './ClimbMDTransformer.js'
+
+export const loadMdFile = (filename: string, xformer: Function | null, contentTransformer: Function): any => {
   const raw = fs.readFileSync(filename, {
     encoding: 'utf8'
   })
   const content = fm(raw)
-  const { attributes }: { attributes: any } = content
+  const { attributes, body }: { attributes: any, body: string } = content
 
   if (xformer !== null) xformer(attributes)
 
   return {
-    ...attributes
+    ...attributes,
+    content: contentTransformer(body)
   }
 }
-
-// const loadDir = (files: string[], mapperFn?: Function) => {
-//   if (files.length === 0) {
-//     console.log('No files found')
-//     return []
-//   }
-
-//   const data = files.map((file) => {
-//     return loadMdFile(file, mapperFn)
-//   })
-//   return data
-// }
 
 export const loadAreas = async (
   contentDir: string,
@@ -40,7 +31,7 @@ export const loadAreas = async (
 
   await Promise.all(
     leafAreaPaths.map(async (indexMd) => {
-      const area = loadMdFile(indexMd, areaColumnMapper)
+      const area = loadMdFile(indexMd, areaColumnMapper, transformAreaMdFn)
       const dir = path.posix.dirname(indexMd)
       const climbs = await loadAllClimbsInDir(baseDir, dir)
       area.climbs = climbs
@@ -56,7 +47,7 @@ const loadAllClimbsInDir = async (baseDir, currentDir: string): Promise<any> => 
   ])
 
   return climbFiles.map((file) => {
-    const climb = loadMdFile(file, climbColumnMapper)
+    const climb = loadMdFile(file, climbColumnMapper, transformClimbMdFn)
     return climb
   })
 }

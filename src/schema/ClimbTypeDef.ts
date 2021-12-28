@@ -12,6 +12,7 @@ export const typeDef = gql`
     type: ClimbType!
     safety: SafetyEnum!
     metadata: ClimbMetadata!
+    content: Content!
   }
 
   type ClimbMetadata {
@@ -20,6 +21,12 @@ export const typeDef = gql`
     left_right_index: Int
     mp_id: String
     climb_id: String!
+  }
+
+  type Content {
+    description: String
+    location: String
+    protection: String
   }
 
   type ClimbType {

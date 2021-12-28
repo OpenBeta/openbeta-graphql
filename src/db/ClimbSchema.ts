@@ -1,7 +1,14 @@
-import { Schema, Model, connection } from 'mongoose'
+import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
+import { IClimb, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
 
-import { IClimb, IClimbMetadata, SafetyType } from './ClimbTypes'
+const { Schema, connection } = mongoose
+
+const ContentSchema = new Schema<IClimbContent>({
+  description: { type: Schema.Types.String },
+  protection: { type: Schema.Types.String },
+  location: { type: Schema.Types.String }
+})
 
 const MetadataSchema = new Schema<IClimbMetadata>({
   lat: { type: Number, default: null },
@@ -21,9 +28,10 @@ export const ClimbSchema = new Schema<IClimb>({
     enum: Object.values(SafetyType),
     required: true
   },
-  metadata: MetadataSchema
+  metadata: MetadataSchema,
+  content: ContentSchema
 })
 
-export const createClimbModel = (): Model<IClimb> => {
+export const createClimbModel = (): mongoose.Model<IClimb> => {
   return connection.model('Climbs', ClimbSchema)
 }
