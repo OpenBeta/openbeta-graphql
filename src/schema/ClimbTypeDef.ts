@@ -5,6 +5,7 @@ export const typeDef = gql`
     climb(ID: Int!): Climb
   }
 
+  "A climbing route or a boulder problem"
   type Climb {
     name: String!
     fa: String!

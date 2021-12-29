@@ -6,6 +6,7 @@ import { ClimbSchema } from './ClimbSchema.js'
 const { Schema, connection, Types } = mongoose
 
 const MetadataSchema = new Schema<IAreaMetadata>({
+  leaf: { type: Boolean, sparse: true },
   lat: { type: Number, required: true },
   lng: { type: Number, required: true },
   left_right_index: { type: Number, required: false },
@@ -23,7 +24,7 @@ const ContentSchema = new Schema<IAreaContent>({
 })
 
 const AreaSchema = new Schema<AreaType>({
-  area_name: { type: String, required: true },
+  area_name: { type: String, required: true, index: true },
   climbs: [{ type: ClimbSchema, required: true }],
   children: [{ type: Types.ObjectId, ref: 'areas', required: true }],
   metadata: MetadataSchema,
@@ -31,8 +32,6 @@ const AreaSchema = new Schema<AreaType>({
   parentHashRef: { type: String, required: true },
   pathHash: { type: String, required: true }
 })
-
-AreaSchema.index({ area_name: 1 })
 
 export const createAreaModel = (name: string): mongoose.Model<AreaType> => {
   return connection.model(name, AreaSchema)

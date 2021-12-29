@@ -3,9 +3,16 @@ import { gql } from 'apollo-server'
 export const typeDef = gql`
   type Query {
     area(id: ID!): Area
-    areas(name: String, nameContains: String): [Area]
+    """
+    Areas query. 
+    - isLeaf = true: only areas with climbs
+    - Multiple filters are not supported
+    """
+    areas(name: String, nameContains: String, 
+    isLeaf: Boolean): [Area]
   }
 
+  "A climbing area, wall or crag"
   type Area {
     area_name: String!
     metadata: AreaMetadata!
@@ -15,6 +22,7 @@ export const typeDef = gql`
   }
 
   type AreaMetadata {
+    isLeaf: Boolean
     lat: Float
     lng: Float
     left_right_index: Int
