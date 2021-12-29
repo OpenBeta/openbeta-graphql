@@ -13,4 +13,4 @@ COPY src ./src
 RUN yarn install --no-progress && \
     yarn build
 
-CMD node build/index.js
+CMD yarn serve
