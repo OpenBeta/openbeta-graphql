@@ -7,10 +7,11 @@ EXPOSE 4000
 
 RUN mkdir -p ${APP_DIR}
 
-COPY package.json yarn.lock tsconfig.json refresh-db.sh ./
+COPY package.json yarn.lock tsconfig.json tsconfig.build.json ./
 COPY src ./src
 
 RUN yarn install --no-progress && \
     yarn build
 
-CMD yarn serve
+CMD node build/main.js
+
