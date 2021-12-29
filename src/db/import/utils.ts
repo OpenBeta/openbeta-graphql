@@ -4,7 +4,7 @@ import globby from 'globby'
 import fm from 'front-matter'
 import crypto from 'crypto'
 
-import { transformArea as transformAreaMdFn, transformClimb as transformClimbMdFn } from './ClimbMDTransformer'
+import { transformArea as transformAreaMdFn, transformClimb as transformClimbMdFn } from './ClimbMDTransformer.js'
 
 export const loadMdFile = (filename: fs.PathOrFileDescriptor, xformer: Function | null, contentTransformer: Function): any => {
   const raw = fs.readFileSync(filename, {

@@ -1,4 +1,4 @@
-import { connectDB, createAreaModel } from '../index.js'
+import { connectDB, gracefulExit, createAreaModel } from '../index.js'
 import mongoose from 'mongoose'
 import { loadAreas } from './utils.js'
 import { AreaType } from '../AreaTypes.js'
@@ -12,8 +12,6 @@ if (contentDir === '') {
 }
 
 const main = async (): Promise<void> => {
-  await connectDB()
-
   const tmpArea = '_tmp_areas'
   await _dropCollection(tmpArea)
 
@@ -34,16 +32,13 @@ const main = async (): Promise<void> => {
   await _dropCollection('areas')
   await mongoose.connection.db.renameCollection(tmpArea, 'areas')
   console.log('Done.')
+  gracefulExit()
 }
 
 const _dropCollection = async (name: string): Promise<void> => {
   try {
     await mongoose.connection.db.dropCollection(name)
   } catch (e) { }
-};
+}
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-(async function (): Promise<void> {
-  await main()
-  process.exit(0)
-})()
+connectDB(main)

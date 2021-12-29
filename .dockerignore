@@ -1,0 +1,14 @@
+node_modules
+build
+docker-compose.yml
+Dockerfile
+jest.*
+README.md
+mongo-clean.sh
+*.log
+.*
+!src
+!package.json
+!tsconfig.*
+!refresh-db.sh
+!yarn.lock

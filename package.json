@@ -33,7 +33,7 @@
   "scripts": {
     "lint": "ts-standard",
     "fix": "ts-standard --fix",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "build": "tsc  -p tsconfig.build.json",
     "clean": "tsc -b --clean && rm -rf build/*",
     "serve": "node build/main.js",

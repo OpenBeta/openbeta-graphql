@@ -15,7 +15,9 @@ const checkVar = (name: string): string => {
   return value
 }
 
-const connectDB = async (): Promise<mongoose.Connection> => {
+const defaultFn = console.log.bind(console, 'DB connected successfully')
+
+export const connectDB = (onConnected: () => any = defaultFn): any => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
@@ -29,19 +31,27 @@ const connectDB = async (): Promise<mongoose.Connection> => {
     `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`
     )
 
-    mongoose.connection.on('open', function () {
-      console.log('DB connected successfully')
-    })
+    mongoose.connection.on('open', onConnected)
 
     mongoose.connection.on(
-      'error',
-      console.error.bind(console, 'MongoDB connection error:')
+      'error', (e) => {
+        console.error('MongoDB connection error', e)
+        process.exit(1)
+      }
     )
   } catch (e) {
     console.error("Can't connect to db")
     process.exit(1)
   }
-  return mongoose.connection
 }
 
-export { connectDB, createAreaModel, createClimbModel }
+export const gracefulExit = (): any => {
+  mongoose.connection.close(function () {
+    console.log('Gracefully exiting.')
+    process.exit(0)
+  })
+}
+
+process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
+
+export { createAreaModel, createClimbModel }
