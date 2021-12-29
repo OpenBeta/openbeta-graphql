@@ -7,7 +7,11 @@
   "author": "viet nguyen <vietnguyen@noreply>",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
+    "@types/jest": "^27.0.3",
     "@types/mdast": "^3.0.10",
+    "jest": "^27.4.5",
+    "ts-jest": "^27.1.2",
+    "ts-node": "^10.4.0",
     "ts-standard": "^11.0.0",
     "typescript": "^4.5.4"
   },
@@ -29,9 +33,10 @@
   "scripts": {
     "lint": "ts-standard",
     "fix": "ts-standard --fix",
-    "build": "tsc -b -v",
-    "clean": "tsc -b --clean",
-    "serve": "node build/index.js",
+    "test": "jest",
+    "build": "tsc  -p tsconfig.build.json",
+    "clean": "tsc -b --clean && rm -rf build/*",
+    "serve": "node build/main.js",
     "refresh-db": "./refresh-db.sh"
   },
   "standard": {

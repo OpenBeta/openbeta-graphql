@@ -11,7 +11,7 @@ export const typeDef = gql`
     metadata: AreaMetadata!
     climbs: [Climb]
     children: [Area]
-    content: Content
+    content: AreaContent
   }
 
   type AreaMetadata {
@@ -22,9 +22,7 @@ export const typeDef = gql`
     area_id: String!
   }
 
-  type Content {
+  type AreaContent {
     description: String
-    location: String
-    protection: String
   }
 `

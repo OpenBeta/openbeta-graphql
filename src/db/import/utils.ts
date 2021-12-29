@@ -1,12 +1,12 @@
-import * as fs from 'fs'
-import path from 'path'
+import * as fs from 'node:fs'
+import * as path from 'path'
 import globby from 'globby'
 import fm from 'front-matter'
 import crypto from 'crypto'
 
-import { transformArea as transformAreaMdFn, transformClimb as transformClimbMdFn } from './ClimbMDTransformer.js'
+import { transformArea as transformAreaMdFn, transformClimb as transformClimbMdFn } from './ClimbMDTransformer'
 
-export const loadMdFile = (filename: string, xformer: Function | null, contentTransformer: Function): any => {
+export const loadMdFile = (filename: fs.PathOrFileDescriptor, xformer: Function | null, contentTransformer: Function): any => {
   const raw = fs.readFileSync(filename, {
     encoding: 'utf8'
   })
