@@ -35,6 +35,9 @@ export const loadAreas = async (
       const dir = path.posix.dirname(indexMd)
       const climbs = await loadAllClimbsInDir(baseDir, dir)
       area.climbs = climbs
+      if (climbs.length > 0) {
+        area.metadata.leaf = true
+      }
       onAreaLoaded({ ...area, ...parentRefs(baseDir, dir) })
     })
   )

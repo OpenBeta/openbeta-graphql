@@ -14,6 +14,7 @@ export interface IAreaProps {
 }
 
 export interface IAreaMetadata {
+  leaf: boolean|null
   lat: number|null
   lng: number|null
   left_right_index: number

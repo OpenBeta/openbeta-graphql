@@ -11,9 +11,10 @@ const resolvers = {
 
     areas: async (
       _,
-      { name, nameContains }: { name: string, nameContains: string },
+      { name, nameContains, isLeaf }: { name: string, nameContains: string, isLeaf: boolean },
       { dataSources: { areas } }
     ) => {
+      if (isLeaf) return areas.findAreasWithClimbs()
       if (name !== '') return areas.findByName(name)
       if (nameContains !== '') return areas.findByName(nameContains, true)
 

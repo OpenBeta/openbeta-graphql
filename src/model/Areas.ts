@@ -15,4 +15,8 @@ export default class Areas extends MongoDataSource<AreaType> {
     const param = wildcard ? new RegExp(name, 'ig') : name
     return await this.collection.find({ area_name: param }).toArray()
   }
+
+  async findAreasWithClimbs (): Promise<any> {
+    return await this.collection.find({ 'metadata.leaf': true }).toArray()
+  }
 }
