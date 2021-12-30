@@ -8,8 +8,8 @@ export const typeDef = gql`
     - isLeaf = true: only areas with climbs
     - Multiple filters are not supported
     """
-    areas(name: String, nameContains: String, 
-    isLeaf: Boolean): [Area]
+    areas(filter: Filter
+    isLeaf: Boolean, sort: Sort): [Area]
   }
 
   "A climbing area, wall or crag"
@@ -19,6 +19,8 @@ export const typeDef = gql`
     climbs: [Climb]
     children: [Area]
     content: AreaContent
+    pathHash: String
+    id: String
   }
 
   type AreaMetadata {
@@ -32,5 +34,19 @@ export const typeDef = gql`
 
   type AreaContent {
     description: String
+  }
+  
+  input Sort {
+    area_name: Int
+  }
+
+  input Filter {
+    area_name: AreaFilter!
+
+  }
+
+  input AreaFilter {
+    match: String
+    exactMatch: Boolean!
   }
 `

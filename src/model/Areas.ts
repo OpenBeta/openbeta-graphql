@@ -13,7 +13,7 @@ export default class Areas extends MongoDataSource<AreaType> {
    */
   async findByName (name: string, wildcard: boolean = false): Promise<any> {
     const param = wildcard ? new RegExp(name, 'ig') : name
-    return await this.collection.find({ area_name: param }).toArray()
+    return this.collection.find({ area_name: param })
   }
 
   async findAreasWithClimbs (): Promise<any> {
