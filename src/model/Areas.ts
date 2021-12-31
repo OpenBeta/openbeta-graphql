@@ -19,4 +19,8 @@ export default class Areas extends MongoDataSource<AreaType> {
   async findAreasWithClimbs (): Promise<any> {
     return await this.collection.find({ 'metadata.leaf': true }).toArray()
   }
+
+  async findOneByAreaUUID (uuid: string): Promise<any> {
+    return await this.collection.findOne({ 'metadata.area_id': uuid })
+  }
 }
