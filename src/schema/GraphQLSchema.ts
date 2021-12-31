@@ -2,32 +2,11 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
-
-export enum SortDirection {
-  ASC = 1,
-  DESC = -1
-}
-
-type Sortable = 'area_name'
-export type Sort = Map<Sortable, SortDirection>
-
-type Filterable = 'area_name' | 'climb_count'
-
-interface AreaFilterParams {
-  match: string
-  exactMatch: boolean | undefined
-}
-
-interface ClimbCountParams {
-  compare: 'lt' | 'gt'
-  count: number
-}
-type FilterParams = AreaFilterParams | ClimbCountParams
-export type Filter = Record<Filterable, FilterParams>
+import { GQLFilter, Sort } from '../types'
 
 const resolvers = {
   Query: {
-    climb: async (parent, { ID }, { dataSources }) => {
+    climb: async (_, { ID }, { dataSources }) => {
       return dataSources.climbs.findOneById(ID)
     },
     // climbs: async (_, __, { dataSources: { climbs } }) => {
@@ -35,22 +14,10 @@ const resolvers = {
     // },
     areas: async (
       _,
-      { isLeaf, filter, sort }: { isLeaf: boolean, filter?: Filter, sort?: Sort},
+      { filter, sort }: { filter?: GQLFilter, sort?: Sort},
       { dataSources: { areas } }
     ) => {
-      if (isLeaf) return areas.findAreasWithClimbs()
-
-      let filtered = await areas.all()
-      if (filter?.area_name !== null) {
-        const fAreaName = Object.assign(
-          { exactMatch: false },
-          filter?.area_name as AreaFilterParams
-        )
-        filtered = fAreaName.match !== ''
-          ? await areas.findByName(fAreaName.match, !fAreaName.exactMatch)
-          : filtered
-      }
-
+      const filtered = await areas.findAreasByFilter(filter)
       return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
 

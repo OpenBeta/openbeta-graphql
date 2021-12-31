@@ -8,8 +8,7 @@ export const typeDef = gql`
     - isLeaf = true: only areas with climbs
     - Multiple filters are not supported
     """
-    areas(filter: Filter
-    isLeaf: Boolean, sort: Sort): [Area]
+    areas(filter: Filter, sort: Sort): [Area]
   }
 
   "A climbing area, wall or crag"
@@ -41,12 +40,17 @@ export const typeDef = gql`
   }
 
   input Filter {
-    area_name: AreaFilter!
-
+    area_name: AreaFilter
+    leaf_status: LeafFilter
   }
 
   input AreaFilter {
-    match: String
-    exactMatch: Boolean!
+    match: String!
+    exactMatch: Boolean
+  }
+
+
+  input LeafFilter {
+    isLeaf: Boolean!
   }
 `
