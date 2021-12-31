@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongoose'
+import { Types } from 'mongoose'
 import { IClimb } from './ClimbTypes'
 export type AreaType = IAreaProps & {
   metadata: IAreaMetadata
@@ -7,7 +7,7 @@ export type AreaType = IAreaProps & {
 export interface IAreaProps {
   area_name: string
   climbs?: IClimb[]
-  children?: [ObjectId]
+  children?: [Types.ObjectId]
   content: IAreaContent
   parentHashRef: string
   pathHash: string

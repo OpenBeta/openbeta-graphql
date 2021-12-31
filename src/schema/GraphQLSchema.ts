@@ -21,8 +21,13 @@ const resolvers = {
       return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
 
-    area: async (_, { id }: { id: string }, { dataSources: { areas } }) => {
-      if (id !== undefined && id !== '') return areas.findOneById(id)
+    area: async (_: any,
+      { id, uuid }: { id: string, uuid: string },
+      { dataSources: { areas } }) => {
+      if (id !== '' && id !== undefined) return areas.findOneById(id)
+      if (uuid !== '' && uuid !== undefined) {
+        return areas.findOneByAreaUUID(uuid)
+      }
       return null
     }
   },
