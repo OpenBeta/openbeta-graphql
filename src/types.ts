@@ -19,5 +19,10 @@ export interface LeafStatusParams {
   isLeaf: boolean
 }
 
-type FilterParams = AreaFilterParams | LeafStatusParams
+export interface PathTokenParams {
+  tokens: string[]
+  exactMatch: boolean | undefined
+}
+
+type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams
 export type GQLFilter = Record<Filterable, FilterParams>

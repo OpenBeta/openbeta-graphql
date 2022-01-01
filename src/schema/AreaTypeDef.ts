@@ -44,6 +44,12 @@ export const typeDef = gql`
   input Filter {
     area_name: AreaFilter
     leaf_status: LeafFilter
+    path_tokens: PathFilter
+  }
+
+  input PathFilter  { 
+    tokens: [String]!, 
+    exactMatch: Boolean 
   }
 
   input AreaFilter {

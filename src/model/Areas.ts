@@ -1,7 +1,7 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import { AreaType } from '../db/AreaTypes'
-import { GQLFilter, AreaFilterParams, LeafStatusParams } from '../types'
+import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams } from '../types'
 
 export default class Areas extends MongoDataSource<AreaType> {
   async all (): Promise<any> {
@@ -32,6 +32,13 @@ export default class Areas extends MongoDataSource<AreaType> {
           case 'leaf_status': {
             const leafFilter = filter as LeafStatusParams
             acc['metadata.leaf'] = leafFilter.isLeaf
+            break
+          }
+          case 'path_tokens': {
+            const pathFilter = filter as PathTokenParams
+            acc.pathTokens = pathFilter.exactMatch === true
+              ? pathFilter.tokens
+              : { $all: pathFilter.tokens }
             break
           }
           default:

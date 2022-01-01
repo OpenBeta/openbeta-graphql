@@ -40,7 +40,7 @@ export const loadAreas = async (
         area.metadata.leaf = true
       }
 
-      onAreaLoaded({ ...area, ... parentRefs(baseDir, dir) })
+      onAreaLoaded({ ...area, ...parentRefs(baseDir, dir) })
     })
   )
 }
