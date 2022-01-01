@@ -8,7 +8,7 @@ type Sortable = 'area_name'
 
 export type Sort = Map<Sortable, SortDirection>
 
-type Filterable = 'area_name' | 'leaf_status'
+type Filterable = 'area_name' | 'leaf_status' | 'path_tokens'
 
 export interface AreaFilterParams {
   match: string

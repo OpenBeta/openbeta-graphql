@@ -25,7 +25,7 @@ export const typeDef = gql`
   }
 
   type AreaMetadata {
-    isLeaf: Boolean
+    leaf: Boolean
     lat: Float
     lng: Float
     left_right_index: Int
