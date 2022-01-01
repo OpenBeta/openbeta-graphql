@@ -2,23 +2,23 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
+import { GQLFilter, Sort } from '../types'
 
 const resolvers = {
   Query: {
-    climb: async (parent, { ID }, { dataSources }) => {
+    climb: async (_, { ID }, { dataSources }) => {
       return dataSources.climbs.findOneById(ID)
     },
-
+    // climbs: async (_, __, { dataSources: { climbs } }) => {
+    //   return climbs.all()
+    // },
     areas: async (
       _,
-      { name, nameContains, isLeaf }: { name: string, nameContains: string, isLeaf: boolean },
+      { filter, sort }: { filter?: GQLFilter, sort?: Sort},
       { dataSources: { areas } }
     ) => {
-      if (isLeaf) return areas.findAreasWithClimbs()
-      if (name !== '') return areas.findByName(name)
-      if (nameContains !== '') return areas.findByName(nameContains, true)
-
-      return areas.all()
+      const filtered = await areas.findAreasByFilter(filter)
+      return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
 
     area: async (_: any,
@@ -41,7 +41,10 @@ const resolvers = {
       if (parent.children.length > 0) {
         return areas.findManyByIds(parent.children)
       }
-      return null
+      return []
+    },
+    id: async (parent, _, __) => {
+      return parent._id.toString()
     }
   }
 }

@@ -11,6 +11,7 @@ export interface IAreaProps {
   content: IAreaContent
   parentHashRef: string
   pathHash: string
+  pathTokens: string[]
 }
 
 export interface IAreaMetadata {

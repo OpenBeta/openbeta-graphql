@@ -33,11 +33,10 @@ export const loadAreas = async (
     leafAreaPaths.map(async (indexMd) => {
       const area = loadMdFile(indexMd, areaColumnMapper, transformAreaMdFn)
       const dir = path.posix.dirname(indexMd)
+
       const climbs = await loadAllClimbsInDir(baseDir, dir)
       area.climbs = climbs
-      if (climbs.length > 0) {
-        area.metadata.leaf = true
-      }
+      area.metadata.leaf = climbs.length > 0
       onAreaLoaded({ ...area, ...parentRefs(baseDir, dir) })
     })
   )
@@ -83,7 +82,8 @@ const parentRefs = (baseDir: string, currentDir: string): any => {
     parentHashRef: md5(
       path.posix.relative(baseDir, path.posix.dirname(currentDir))
     ),
-    pathHash: md5(path.posix.relative(baseDir, currentDir))
+    pathHash: md5(path.posix.relative(baseDir, currentDir)),
+    pathTokens: path.posix.relative(baseDir, currentDir).split('/')
   }
 }
 

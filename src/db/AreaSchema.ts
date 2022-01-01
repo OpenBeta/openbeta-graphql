@@ -30,7 +30,8 @@ const AreaSchema = new Schema<AreaType>({
   metadata: MetadataSchema,
   content: ContentSchema,
   parentHashRef: { type: String, required: true },
-  pathHash: { type: String, required: true }
+  pathHash: { type: String, required: true },
+  pathTokens: [{ type: String, required: true }]
 })
 
 export const createAreaModel = (name: string): mongoose.Model<AreaType> => {
