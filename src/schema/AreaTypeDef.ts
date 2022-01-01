@@ -20,6 +20,7 @@ export const typeDef = gql`
     children: [Area]
     content: AreaContent
     pathHash: String
+    pathTokens: [String]
     id: String
   }
 
@@ -49,7 +50,6 @@ export const typeDef = gql`
     match: String!
     exactMatch: Boolean
   }
-
 
   input LeafFilter {
     isLeaf: Boolean!
