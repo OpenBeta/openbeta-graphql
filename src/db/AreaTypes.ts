@@ -9,6 +9,7 @@ export interface IAreaProps {
   area_name: string
   climbs?: ClimbType[]
   children?: [Types.ObjectId]
+  ancestors: string[]
   content: IAreaContent
   parentHashRef: string
   pathHash: string

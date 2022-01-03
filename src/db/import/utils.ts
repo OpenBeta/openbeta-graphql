@@ -88,5 +88,5 @@ const parentRefs = (baseDir: string, currentDir: string): any => {
   }
 }
 
-const md5 = (data: string): string =>
+export const md5 = (data: string): string =>
   crypto.createHash('md5').update(data).digest('hex')
