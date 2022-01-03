@@ -18,6 +18,7 @@ export const typeDef = gql`
     metadata: AreaMetadata!
     climbs: [Climb]
     children: [Area]
+    ancestors: [String]
     content: AreaContent
     pathHash: String
     pathTokens: [String]

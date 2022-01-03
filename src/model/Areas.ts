@@ -9,15 +9,6 @@ export default class Areas extends MongoDataSource<AreaType> {
     return await rs.toArray()
   }
 
-  /**
-   * Wildcard, case-insensitive search for area(s). Similar SQL Like '%a%'.
-   * @param name area name
-   */
-  async findByName (name: string, wildcard: boolean = false): Promise<any> {
-    const param = wildcard ? new RegExp(name, 'ig') : name
-    return this.collection.find({ area_name: param })
-  }
-
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
     let mongoFilter = {}
     if (filters !== undefined) {
@@ -53,8 +44,12 @@ export default class Areas extends MongoDataSource<AreaType> {
     return result
   }
 
-  async findAreasWithClimbs (): Promise<any> {
-    return await this.collection.find({ 'metadata.leaf': true }).toArray()
+  async findManyByPathHash (pathHashes: string[]): Promise<any> {
+    return await this.collection.aggregate([
+      { $match: { pathHash: { $in: pathHashes } } },
+      { $addFields: { __order: { $indexOfArray: [pathHashes, '$pathHash'] } } },
+      { $sort: { __order: 1 } }
+    ]).toArray()
   }
 
   async findOneByAreaUUID (uuid: string): Promise<any> {

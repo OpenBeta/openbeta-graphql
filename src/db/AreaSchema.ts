@@ -27,6 +27,7 @@ const AreaSchema = new Schema<AreaType>({
   area_name: { type: String, required: true, index: true },
   climbs: [{ type: ClimbSchema, required: true }],
   children: [{ type: Types.ObjectId, ref: 'areas', required: true }],
+  ancestors: [{ type: String, required: true }],
   metadata: MetadataSchema,
   content: ContentSchema,
   parentHashRef: { type: String, required: true },
