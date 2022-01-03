@@ -52,10 +52,10 @@ const resolvers = {
       const tokens = parent.pathTokens
       for (let i = 0; i < tokens.length; i++) {
         const pathHash = md5(tokens.slice(0, i).join('/'))
-
         ancestors.push(pathHash)
       }
-      return areas.findManyByPathHash(ancestors)
+      const areaAncestors = await areas.findManyByPathHash(ancestors)
+      return areaAncestors.map(area => area.metadata.area_id)
     },
     id: async (parent, _, __) => {
       return parent._id.toString()

@@ -45,9 +45,11 @@ export default class Areas extends MongoDataSource<AreaType> {
   }
 
   async findManyByPathHash (pathHashes: string[]): Promise<any> {
-    const a = await this.collection.find({ pathHash: { $in: pathHashes } }).toArray()
-    console.log('Match', a)
-    return a.map(b => b.metadata.area_id)
+    return await this.collection.aggregate([
+      { $match: { pathHash: { $in: pathHashes } } },
+      { $addFields: { __order: { $indexOfArray: [pathHashes, '$pathHash'] } } },
+      { $sort: { __order: 1 } }
+    ]).toArray()
   }
 
   async findOneByAreaUUID (uuid: string): Promise<any> {
