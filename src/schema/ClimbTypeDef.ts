@@ -2,7 +2,8 @@ import { gql } from 'apollo-server'
 
 export const typeDef = gql`
   type Query {
-    climb(ID: Int!): Climb
+    climb(id: ID, uuid: String): Climb
+    climbs: [Climb]
   }
 
   "A climbing route or a boulder problem"

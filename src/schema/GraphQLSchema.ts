@@ -6,12 +6,15 @@ import { GQLFilter, Sort } from '../types'
 
 const resolvers = {
   Query: {
-    climb: async (_, { ID }, { dataSources }) => {
-      return dataSources.climbs.findOneById(ID)
+    climb: async (_, { id, uuid }: { id: string, uuid: string }, { dataSources }) => {
+      if (id !== '' && id !== undefined) return dataSources.climbs.findOneById(id)
+      if (uuid !== '' && uuid !== undefined) {
+        return dataSources.climbs.findOneByClimbUUID(uuid)
+      }
     },
-    // climbs: async (_, __, { dataSources: { climbs } }) => {
-    //   return climbs.all()
-    // },
+    climbs: async (_, __, { dataSources }) => {
+      return dataSources.climbs.collection.find({}).toArray()
+    },
     areas: async (
       _,
       { filter, sort }: { filter?: GQLFilter, sort?: Sort},

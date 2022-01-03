@@ -1,4 +1,5 @@
-export type IClimb = IClimbProps & {
+
+export type ClimbType = IClimbProps & {
   metadata: IClimbMetadata
   content: IClimbContent
 }

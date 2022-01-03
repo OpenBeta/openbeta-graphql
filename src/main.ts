@@ -12,7 +12,7 @@ import Areas from './model/Areas.js'
     schema: graphQLSchema,
     dataSources: () => {
       return {
-        climbs: new Climbs(mongoose.connection.db.collection('Climb')),
+        climbs: new Climbs(mongoose.connection.db.collection('climbs')),
         areas: new Areas(mongoose.connection.db.collection('areas'))
       }
     }

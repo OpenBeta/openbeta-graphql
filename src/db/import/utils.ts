@@ -23,7 +23,7 @@ export const loadMdFile = (filename: fs.PathOrFileDescriptor, xformer: Function 
 
 export const loadAreas = async (
   contentDir: string,
-  onAreaLoaded: (area) => any
+  onAreaLoaded: (area, climbs) => any
 ): Promise<void> => {
   const baseDir = contentDir.replace(/\/+$/g, '')
 
@@ -35,9 +35,10 @@ export const loadAreas = async (
       const dir = path.posix.dirname(indexMd)
 
       const climbs = await loadAllClimbsInDir(baseDir, dir)
+
       area.climbs = climbs
       area.metadata.leaf = climbs.length > 0
-      onAreaLoaded({ ...area, ...parentRefs(baseDir, dir) })
+      onAreaLoaded({ ...area, ...parentRefs(baseDir, dir) }, climbs)
     })
   )
 }
