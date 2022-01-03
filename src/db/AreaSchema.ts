@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { v4 as uuidv4 } from 'uuid'
+// import { v4 as uuidv4 } from 'uuid'
 import { AreaType, IAreaContent, IAreaMetadata } from './AreaTypes.js'
 import { ClimbSchema } from './ClimbSchema.js'
 
@@ -14,8 +14,8 @@ const MetadataSchema = new Schema<IAreaMetadata>({
   area_id: {
     type: String,
     required: true,
-    unique: true,
-    default: () => uuidv4()
+    unique: true
+    // default: () => uuidv4()
   }
 })
 
@@ -30,7 +30,8 @@ const AreaSchema = new Schema<AreaType>({
   metadata: MetadataSchema,
   content: ContentSchema,
   parentHashRef: { type: String, required: true },
-  pathHash: { type: String, required: true }
+  pathHash: { type: String, required: true },
+  pathTokens: [{ type: String, required: true }]
 })
 
 export const createAreaModel = (name: string): mongoose.Model<AreaType> => {
