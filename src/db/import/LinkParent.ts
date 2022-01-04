@@ -3,8 +3,8 @@ import { getAreaModel } from '../AreaSchema.js'
 export const linkAreas = async (collectionName: string): Promise<void> => {
   try {
     const areasModel = getAreaModel(collectionName)
+
     for await (const area of areasModel.find()) {
-      // console.log(area.get("area_name"))
       const pathHash = area.get('pathHash')
 
       // find all areas whose parent = my pathHash (aka subareas)

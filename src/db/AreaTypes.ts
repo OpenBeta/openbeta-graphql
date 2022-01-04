@@ -1,4 +1,5 @@
 import { Types } from 'mongoose'
+
 import { ClimbType } from './ClimbTypes'
 
 export type AreaType = IAreaProps & {
@@ -10,6 +11,7 @@ export interface IAreaProps {
   climbs?: ClimbType[]
   children?: [Types.ObjectId]
   ancestors: string[]
+  aggregate: AggregateType
   content: IAreaContent
   parentHashRef: string
   pathHash: string
@@ -26,4 +28,18 @@ export interface IAreaMetadata {
 }
 export interface IAreaContent {
   description?: string
+}
+
+export interface CountByGroupType {
+  count: number
+  label: string
+}
+export interface PointType { lat: number, lng: number}
+
+export interface AggregateType {
+  byGrade: [CountByGroupType]
+  byType: [CountByGroupType]
+  bounds: [PointType]
+  density: number
+  totalClimbs: number
 }

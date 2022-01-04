@@ -1,7 +1,7 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import { AreaType } from '../db/AreaTypes'
-import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams } from '../types'
+import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, DensityParams } from '../types'
 
 export default class Areas extends MongoDataSource<AreaType> {
   async all (): Promise<any> {
@@ -25,11 +25,25 @@ export default class Areas extends MongoDataSource<AreaType> {
             acc['metadata.leaf'] = leafFilter.isLeaf
             break
           }
+
+          // Add score conversion to climbs
           case 'path_tokens': {
             const pathFilter = filter as PathTokenParams
-            acc.pathTokens = pathFilter.exactMatch === true
-              ? pathFilter.tokens
-              : { $all: pathFilter.tokens }
+            if (pathFilter.exactMatch === true) {
+              acc.pathTokens = pathFilter.tokens
+            } else {
+              const filter: Record<string, any> = {}
+              filter.$all = pathFilter.tokens
+              if (pathFilter.size !== undefined) {
+                filter.$size = pathFilter.size
+              }
+              acc.pathTokens = filter
+            }
+            break
+          }
+          case 'density': {
+            const { density } = filter as DensityParams
+            acc['aggregate.density'] = { gte: density }
             break
           }
           default:
