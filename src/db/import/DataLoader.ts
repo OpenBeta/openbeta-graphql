@@ -14,13 +14,13 @@ if (contentDir === '') {
 }
 
 const main = async (): Promise<void> => {
-  const climb = 'climbs'
-  const tmpArea = '_tmp_areas'
-  await _dropCollection(tmpArea)
-  await _dropCollection(climb)
+  const tmpClimbs = '_tmp_climbs'
+  const tmpAreas = '_tmp_areas'
+  await _dropCollection(tmpAreas)
+  await _dropCollection(tmpClimbs)
 
-  const areaModel: mongoose.Model<AreaType> = createAreaModel(tmpArea)
-  const climbModel: mongoose.Model<ClimbType> = createClimbModel(climb)
+  const areaModel: mongoose.Model<AreaType> = createAreaModel(tmpAreas)
+  const climbModel: mongoose.Model<ClimbType> = createClimbModel(tmpClimbs)
   let areaCount = 0
   let climbCount = 0
 
@@ -36,13 +36,13 @@ const main = async (): Promise<void> => {
   console.log('Areas Loaded ', areaCount)
   console.log('Climbs Loaded ', climbCount)
 
-  await linkAreas(tmpArea)
+  await linkAreas(tmpAreas)
   console.log('Areas linked')
-  console.log('Dropping old collection...')
+  console.log('Dropping old collections...')
   await _dropCollection('areas')
-
-  await mongoose.connection.db.renameCollection(tmpArea, 'areas')
-  // await mongoose.connection.db.renameCollection(tmpClimb, 'climbs')
+  await mongoose.connection.db.renameCollection(tmpAreas, 'areas')
+  await _dropCollection('climbs')
+  await mongoose.connection.db.renameCollection(tmpClimbs, 'climbs')
   console.log('Done.')
   gracefulExit()
 }
