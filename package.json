@@ -38,7 +38,8 @@
     "build": "tsc  -p tsconfig.build.json",
     "clean": "tsc -b --clean && rm -rf build/*",
     "serve": "node build/main.js",
-    "refresh-db": "./refresh-db.sh"
+    "refresh-db": "./refresh-db.sh",
+    "update-search": "yarn build && node build/db/import/Algolia.js"
   },
   "standard": {
     "plugins": [

@@ -45,10 +45,10 @@ export const connectDB = (onConnected: () => any = defaultFn): any => {
   }
 }
 
-export const gracefulExit = (): any => {
+export const gracefulExit = (exitCode: number = 0): void => {
   mongoose.connection.close(function () {
     console.log('Gracefully exiting.')
-    process.exit(0)
+    process.exit(exitCode)
   })
 }
 
