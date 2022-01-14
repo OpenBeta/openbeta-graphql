@@ -4,11 +4,22 @@ export enum SortDirection {
   DESC = -1
 }
 
-type Sortable = 'area_name'
+export type Sortable = 'area_name'
 
-export type Sort = Map<Sortable, SortDirection>
+export type Sort = Record<Sortable, SortDirection>
 
 type Filterable = 'area_name' | 'leaf_status' | 'path_tokens'
+
+interface Compare { num: number, comparison: 'lt' | 'gt' | 'eq' }
+
+export interface ComparisonFilterParams {
+  field: 'totalClimbs'
+  comparisons: Compare[]
+}
+
+export interface DensityParams {
+  density: number // 0 = low, 1 = moderate, 2 = medium, 3 = high
+}
 
 export interface AreaFilterParams {
   match: string
@@ -22,7 +33,8 @@ export interface LeafStatusParams {
 export interface PathTokenParams {
   tokens: string[]
   exactMatch: boolean | undefined
+  size: number
 }
 
-type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams
+type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams | DensityParams
 export type GQLFilter = Record<Filterable, FilterParams>
