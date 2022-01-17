@@ -23,7 +23,9 @@ export const typeDef = gql`
     content: AreaContent
     pathHash: String
     pathTokens: [String]
-    id: String
+    density: Float
+    totalClimbs: Int
+    bounds: [Point]
   }
 
   type AreaMetadata {
@@ -38,9 +40,6 @@ export const typeDef = gql`
   type AggregateType {
     byGrade: [CountByGroupType]
     byType: [CountByGroupType]
-    bounds: [Point]
-    density: Float
-    totalClimbs: Int
   }
   
   type Point {
@@ -68,11 +67,24 @@ export const typeDef = gql`
     area_name: AreaFilter
     leaf_status: LeafFilter
     path_tokens: PathFilter
-    density: DensityFilter
+    field_compare: [ComparisonFilter]
   }
 
-  input DensityFilter  { 
-    density: Float
+  enum Field {
+    density
+    totalClimbs
+  } 
+
+  enum CompareType {
+    lt
+    gt
+    eq
+  }
+
+  input ComparisonFilter  { 
+    field: Field
+    num: Float 
+    comparison: CompareType
   }
 
   input PathFilter  { 

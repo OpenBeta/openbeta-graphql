@@ -8,17 +8,12 @@ export type Sortable = 'area_name'
 
 export type Sort = Record<Sortable, SortDirection>
 
-type Filterable = 'area_name' | 'leaf_status' | 'path_tokens'
-
-interface Compare { num: number, comparison: 'lt' | 'gt' | 'eq' }
+type Filterable = 'area_name' | 'leaf_status' | 'path_tokens' | 'field_compare'
 
 export interface ComparisonFilterParams {
-  field: 'totalClimbs'
-  comparisons: Compare[]
-}
-
-export interface DensityParams {
-  density: number // 0 = low, 1 = moderate, 2 = medium, 3 = high
+  field: 'totalClimbs' | 'density'
+  num: number
+  comparison: 'lt' | 'gt' | 'eq'
 }
 
 export interface AreaFilterParams {
@@ -36,5 +31,5 @@ export interface PathTokenParams {
   size: number
 }
 
-type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams | DensityParams
+type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams | ComparisonFilterParams[]
 export type GQLFilter = Record<Filterable, FilterParams>
