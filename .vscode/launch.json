@@ -21,7 +21,7 @@
             "type": "node",
             "request": "launch",
             "name": "Load data to db",
-            "program": "${workspaceFolder}/src/db/import/DataLoader.ts",
+            "program": "${workspaceFolder}/src/db/import/DataLoader2.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"

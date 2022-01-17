@@ -1,0 +1,74 @@
+[
+    {
+        "route_name": "Orange Crush",
+        "grade": {
+            "YDS": "5.11b/c",
+            "French": "6c+",
+            "Ewbanks": "23",
+            "UIAA": "VIII-",
+            "ZA": "24",
+            "British": "E4 6a"
+        },
+        "safety": "",
+        "type": {
+            "sport": true
+        },
+        "fa": "Wade Griffith, Sterling Killion, Scott Williams",
+        "description": [
+            "Pretty cool orange arete that sports some interesting climbing.  Crimpy edges start you off climbing either side of the arete till you can climb out left to a small shelf that affords a great rest.  Climb back out right to the arete and up some powerful moves through the crux and up to some easier 5.10 terrain."
+        ],
+        "location": [
+            "The route is located on the far southern shoulder of Yeti dome which is actually located on the Southeastern side of Musick Mountain.  Follow the dirt road from the Big Creek turnoff to the lookout tower/repeater station then follow the rounded ridge down to the cliffs.  The base of the route requires scrambling down a slab a little bit to approach.  It is easy to scramble up and around to the top of the route to set a TR off bolts as well."
+        ],
+        "protection": [
+            "7 QD's"
+        ],
+        "metadata": {
+            "left_right_seq": "0",
+            "parent_lnglat": [
+                -119.3094,
+                37.1667
+            ],
+            "parent_sector": "Yeti Dome (aka Musick Mountain)",
+            "mp_route_id": "105817201",
+            "mp_sector_id": "105817198",
+            "mp_path": "Western Sierra|Yeti Dome (aka Musick Mountain)"
+        }
+    },
+    {
+        "route_name": "Random Impulse",
+        "grade": {
+            "YDS": "5.7",
+            "French": "5a",
+            "Ewbanks": "15",
+            "UIAA": "V+",
+            "ZA": "13",
+            "British": "MVS 4b"
+        },
+        "safety": "",
+        "type": {
+            "trad": true
+        },
+        "fa": "\"Unknown\" or",
+        "description": [
+            "Some fun moves broken up by a few scree filled ledges and a big bush. Crux comes half way up where there is a nice corner finger crack for 10-15 feet. Either climb the finger crack or do some stem moves with the corner on the right and a boulder feature on the left. Continue up wandering terrain and build an anchor, or walk off."
+        ],
+        "location": [
+            "25 feet to the right of Deep Springs Education."
+        ],
+        "protection": [
+            "A small assortment of cams and maybe a nut or two"
+        ],
+        "metadata": {
+            "left_right_seq": "1",
+            "parent_lnglat": [
+                -118.13831,
+                37.3129
+            ],
+            "parent_sector": "Westgard Pass East Side (Hwy 168)",
+            "mp_route_id": "119101118",
+            "mp_sector_id": "119100232",
+            "mp_path": "Sierra Eastside|Westgard Pass East Side (Hwy 168)"
+        }
+    }
+]
