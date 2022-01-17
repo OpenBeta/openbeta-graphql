@@ -8,7 +8,7 @@ const ContentSchema = new Schema<IClimbContent>({
   description: { type: Schema.Types.String },
   protection: { type: Schema.Types.String },
   location: { type: Schema.Types.String }
-})
+}, { _id : false })
 
 const MetadataSchema = new Schema<IClimbMetadata>({
   lat: { type: Number, default: null },
@@ -16,7 +16,7 @@ const MetadataSchema = new Schema<IClimbMetadata>({
   left_right_index: { type: Number, required: false },
   mp_id: { type: String, required: false },
   climb_id: { type: String, required: true, default: () => uuidv4() }
-})
+}, { _id: false })
 
 export const ClimbSchema = new Schema<ClimbType>({
   name: { type: Schema.Types.String, required: true },
@@ -30,6 +30,11 @@ export const ClimbSchema = new Schema<ClimbType>({
   },
   metadata: MetadataSchema,
   content: ContentSchema
+})
+
+ClimbSchema.pre('validate', function (next) {
+  if (this.safety === '') { this.safety = SafetyType.UNSPECIFIED }
+  next()
 })
 
 export const createClimbModel = (name: string): mongoose.Model<ClimbType> => {
