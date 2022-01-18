@@ -21,7 +21,44 @@ export const loadMdFile = (filename: fs.PathOrFileDescriptor, xformer: Function 
   }
 }
 
+export const loadJsonFile = (filename: fs.PathOrFileDescriptor, xformer: Function | null, contentTransformer: Function): any => {
+  const raw = fs.readFileSync(filename, {
+    encoding: 'utf8'
+  })
+  const content = fm(raw)
+  const { attributes, body }: { attributes: any, body: string } = content
+
+  if (xformer !== null) xformer(attributes)
+
+  return {
+    ...attributes,
+    content: contentTransformer(body)
+  }
+}
+
 export const loadAreas = async (
+  contentDir: string,
+  onAreaLoaded: (area, climbs) => any
+): Promise<void> => {
+  const baseDir = contentDir.replace(/\/+$/g, '')
+
+  const leafAreaPaths = await getLeafAreaPaths(baseDir)
+
+  await Promise.all(
+    leafAreaPaths.map(async (indexMd) => {
+      const area = loadMdFile(indexMd, areaColumnMapper, transformAreaMdFn)
+      const dir = path.posix.dirname(indexMd)
+
+      const climbs = await loadAllClimbsInDir(baseDir, dir)
+
+      area.climbs = climbs
+      area.metadata.leaf = climbs.length > 0
+      onAreaLoaded({ ...area, ...parentRefs(baseDir, dir) }, climbs)
+    })
+  )
+}
+
+export const calculateData = async (
   contentDir: string,
   onAreaLoaded: (area, climbs) => any
 ): Promise<void> => {

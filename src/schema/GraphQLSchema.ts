@@ -4,7 +4,7 @@ import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { GQLFilter, Sort } from '../types'
 import { md5 } from '../db/import/utils.js'
-import { AreaType, CountByGroupType, PointType } from '../db/AreaTypes.js'
+import { AreaType, CountByGroupType } from '../db/AreaTypes.js'
 
 const resolvers = {
   Query: {
@@ -50,50 +50,34 @@ const resolvers = {
     aggregate: async (parent, _, { dataSources: { areas } }) => {
       // get all leafs under this parent
       const allChildAreas: AreaType[] = await getAllLeafs(areas, parent.pathTokens)
-      const bounds: [PointType, PointType] = [
-        { lat: Number.POSITIVE_INFINITY, lng: Number.POSITIVE_INFINITY },
-        { lat: Number.NEGATIVE_INFINITY, lng: Number.NEGATIVE_INFINITY }]
       const byGrade = {}
       const byType = {}
 
-      let totalClimbs = 0
-
       allChildAreas.forEach(area => {
-        if (area.climbs === undefined) { // shouldn't exist in our set, but handle anyway
+        // exit early if there are no climbs
+        if (area.climbs === undefined) {
           return
         }
 
-        if (area.metadata.lat !== null && area.metadata.lng !== null) {
-          updateBounds(area.metadata.lat, area.metadata.lng, bounds)
-        }
-
         area.climbs.forEach((climb) => {
-          const { yds, type, metadata: { lat, lng } } = climb
+          const { yds, type } = climb
           // Grade
           const entry: CountByGroupType = byGrade[yds] === undefined ? { label: yds, count: 0 } : byGrade[yds]
           entry.count = entry.count + 1
           byGrade[yds] = entry
-          if (lat !== null && lng !== null) {
-            updateBounds(lat, lng, bounds)
-          }
+
           for (const t in type) {
             if (type[t] !== false) {
               const entry: CountByGroupType = byType[t] !== undefined ? byType[t] : { label: t, count: 0 }
               byType[t] = Object.assign(entry, { count: entry.count + 1 })
             }
           }
-          totalClimbs += 1
         })
       })
 
-      const density = getAreaDensity(bounds, totalClimbs)
-
       return {
         byGrade: Object.values(byGrade),
-        byType: Object.values(byType),
-        bounds,
-        density,
-        totalClimbs
+        byType: Object.values(byType)
       }
     },
     ancestors: async (parent, _, { dataSources: { areas } }) => {
@@ -110,23 +94,8 @@ const resolvers = {
 }
 
 const getAllLeafs = async (areas, parentTokens): Promise<AreaType[]> => {
-  const childAreasCollection = await areas.findAreasByFilter({ leaf_status: { isLeaf: true }, path_tokens: { tokens: parentTokens, exactMatch: false } })
+  const childAreasCollection = await areas.findAreasByFilter({ path_tokens: { tokens: parentTokens, exactMatch: false } })
   return childAreasCollection.toArray()
-}
-
-const getAreaDensity = (bounds: [PointType, PointType], totalClimbs: number): number => {
-  const areaInKm = (bounds[1].lat - bounds[0].lat) * (bounds[1].lng - bounds[0].lng) * 111 * 111
-  const minArea = areaInKm === 0 ? 5 : areaInKm
-  return totalClimbs / minArea
-}
-
-const updateBounds = (lat: number, lng: number, bound: [PointType, PointType]): void => {
-  // Bottom left of bounding box
-  bound[0].lat = Math.min(bound[0].lat, lat)
-  bound[0].lng = Math.min(bound[0].lng, lng)
-  // Top Right of bounding box
-  bound[1].lat = Math.max(bound[1].lat, lat)
-  bound[1].lng = Math.max(bound[1].lng, lng)
 }
 
 export const schema = makeExecutableSchema({

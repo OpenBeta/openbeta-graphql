@@ -16,6 +16,9 @@ export interface IAreaProps {
   parentHashRef: string
   pathHash: string
   pathTokens: string[]
+  density: number
+  totalClimbs: number
+  bounds: [PointType]
 }
 
 export interface IAreaMetadata {
@@ -39,7 +42,4 @@ export interface PointType { lat: number, lng: number}
 export interface AggregateType {
   byGrade: [CountByGroupType]
   byType: [CountByGroupType]
-  bounds: [PointType]
-  density: number
-  totalClimbs: number
 }

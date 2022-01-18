@@ -34,10 +34,8 @@ export const Point = new Schema<PointType>({
 })
 const AggregateSchema = new Schema<AggregateType>({
   byGrade: [{ type: CountByGroup, required: true }],
-  byType: [{ type: CountByGroup, required: true }],
-  bounds: [{ type: Point, required: true }],
-  density: { type: Number, required: true },
-  totalClimbs: { type: Number }
+  byType: [{ type: CountByGroup, required: true }]
+
 })
 
 const AreaSchema = new Schema<AreaType>({
@@ -50,7 +48,10 @@ const AreaSchema = new Schema<AreaType>({
   content: ContentSchema,
   parentHashRef: { type: String, required: true },
   pathHash: { type: String, required: true },
-  pathTokens: [{ type: String, required: true }]
+  pathTokens: [{ type: String, required: true }],
+  density: { type: Number },
+  totalClimbs: { type: Number },
+  bounds: [{ type: Point }]
 })
 
 export const createAreaModel = (name: string): mongoose.Model<AreaType> => {

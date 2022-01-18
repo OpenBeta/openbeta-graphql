@@ -1,7 +1,7 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import { AreaType } from '../db/AreaTypes'
-import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, DensityParams } from '../types'
+import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams } from '../types'
 
 export default class Areas extends MongoDataSource<AreaType> {
   async all (): Promise<any> {
@@ -41,9 +41,18 @@ export default class Areas extends MongoDataSource<AreaType> {
             }
             break
           }
-          case 'density': {
-            const { density } = filter as DensityParams
-            acc['aggregate.density'] = { gte: density }
+          case 'field_compare': {
+            const comparisons = {}
+            for (const f of filter as ComparisonFilterParams[]) {
+              const { field, num, comparison } = f
+              const currFiled = comparisons[field]
+              if (currFiled === undefined) {
+                comparisons[field] = { [`$${comparison}`]: num }
+              } else {
+                comparisons[field] = { ...currFiled, [`$${comparison}`]: num }
+              }
+              acc = { ...acc, ...comparisons }
+            }
             break
           }
           default:
