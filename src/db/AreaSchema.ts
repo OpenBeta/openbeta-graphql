@@ -15,28 +15,26 @@ const MetadataSchema = new Schema<IAreaMetadata>({
     type: String,
     required: true,
     unique: true
-    // default: () => uuidv4()
   }
-})
+}, { _id: false })
 
 const ContentSchema = new Schema<IAreaContent>({
   description: { type: Schema.Types.String }
-})
+}, { _id: false })
 
 export const CountByGroup = new Schema<CountByGroupType>({
   count: { type: Number, required: true },
   label: { type: String, required: true }
-})
+}, { _id: false })
 
 export const Point = new Schema<PointType>({
   lat: { type: Number, required: true },
   lng: { type: Number, required: true }
-})
+}, { _id: false })
 const AggregateSchema = new Schema<AggregateType>({
   byGrade: [{ type: CountByGroup, required: true }],
   byType: [{ type: CountByGroup, required: true }]
-
-})
+}, { _id: false })
 
 const AreaSchema = new Schema<AreaType>({
   area_name: { type: String, required: true, index: true },

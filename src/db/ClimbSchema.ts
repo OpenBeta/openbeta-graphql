@@ -8,7 +8,7 @@ const ContentSchema = new Schema<IClimbContent>({
   description: { type: Schema.Types.String },
   protection: { type: Schema.Types.String },
   location: { type: Schema.Types.String }
-}, { _id : false })
+}, { _id: false })
 
 const MetadataSchema = new Schema<IClimbMetadata>({
   lat: { type: Number, default: null },

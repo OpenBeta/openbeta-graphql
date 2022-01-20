@@ -1,5 +1,3 @@
-import { pipeline } from 'stream/promises'
-
 import { connectDB, gracefulExit, createAreaModel } from '../index.js'
 import mongoose from 'mongoose'
 import { AreaType } from '../AreaTypes.js'
@@ -8,7 +6,6 @@ import { createClimbModel } from '../ClimbSchema.js'
 import { ClimbType } from '../ClimbTypes.js'
 import transformClimbRecord from './ClimbTransformer.js'
 import transformAreaRecord from './AreaTransformer.js'
-
 
 import readline from 'node:readline'
 import fs from 'node:fs'
@@ -31,7 +28,7 @@ const main = async (): Promise<void> => {
 
   const foos = await Promise.all([
     load<ClimbType>(contentDir + '/climbs/or-routes.jsonlines', transformClimbRecord, climbModel),
-    load<AreaType>(contentDir + '/climbs/or-areas.jsonlines', transformAreaRecord, areaModel),
+    load<AreaType>(contentDir + '/climbs/or-areas.jsonlines', transformAreaRecord, areaModel)
   ])
 
   console.log('Content basedir: ', contentDir)
@@ -55,7 +52,7 @@ const _dropCollection = async (name: string): Promise<void> => {
   } catch (e) { }
 }
 
-const load = async<T extends ClimbType|AreaType>(fileName: string, transformer: (row: any) => T, model: mongoose.Model<T>): Promise<number> => {
+const load = async<T extends ClimbType|AreaType>(fileName: string, transformer: (row: any) => T[], model: mongoose.Model<T>): Promise<number> => {
   let count = 0
   const chunkSize = 100
   let chunk: T[] = []
@@ -66,9 +63,9 @@ const load = async<T extends ClimbType|AreaType>(fileName: string, transformer: 
   })
 
   for await (const line of rl) {
-    count = count + 1
-    const record = transformer(JSON.parse(line))
-    chunk.push(record)
+    const records = transformer(JSON.parse(line))
+    count = count + records.length
+    chunk = chunk.concat(records)
     if (chunk.length >= chunkSize) {
       await model.insertMany(chunk, { ordered: false })
       chunk = []
