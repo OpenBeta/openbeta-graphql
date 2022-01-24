@@ -79,7 +79,7 @@ const makeDBArea = (node: AreaNode): AreaType => {
       lng: isLeaf ? node.jsonLine.lnglat[0] : 0,
       lat: isLeaf ? node.jsonLine.lnglat[1] : 0,
       left_right_index: -1,
-      mp_id: 'TBD' // TODO extract id from url
+      mp_id: isLeaf ? extractMpId(node.jsonLine.url) : ''
     },
     ancestors: [],
     parentHashRef: 'TBD',
