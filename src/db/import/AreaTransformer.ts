@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 import { AreaType } from '../AreaTypes'
-import { Tree, AreaNodeType, AreaTreeType } from './AreaTree'
+import { Tree, AreaNode } from './AreaTree.js'
 export interface AccummulatorType<T> {
   line: any
   record: T
@@ -50,28 +50,54 @@ export const createNonLeafAreas = async (areas: Array<AccummulatorType<AreaType>
     const { line } = entry
     const { path }: {path: string} = line
     /* eslint-disable-next-line */
-    const fullPath = `${line.us_state}|${path}` // 'path' doesn't have a parent, which is the US state
-    tree.insertMany(fullPath)
+    const fullPath = `${line.us_state}|${path}` // 'path' doesn't have a parent, which is a US state
+    tree.insertMany(fullPath, line)
   })
+  const chunkSize = 100
+  let chunk: AreaType[] = []
+  for await (const node of tree.map.values()) {
+    const area = makeDBArea(node)
+    chunk.push(area)
+    if (chunk.length % chunkSize === 0) {
+      await areaModel.insertMany(chunk, { ordered: false })
+      chunk = []
+    }
+  }
+  if (chunk.length > 0) {
+    await areaModel.insertMany(chunk, { ordered: false })
+  }
   return await Promise.resolve()
 }
 
-export const createAncestorsFromLeaf = (leafArea: AreaType, leafRow: any): AreaType[] => {
-  const pathTokens: string[] = leafRow.path.split('|')
-  pathTokens.pop() // last element is leaf, which we already have
-  return pathTokens.reduce<any>((acc, current) => {
-    const area = {
-      ...leafArea,
-      area_name: current,
-      metadata: {
-        ...leafArea.metadata,
-        leaf: false,
-        area_id: uuidv4()
-      }
+const makeDBArea = (node: AreaNode): AreaType => {
+  const { key, isLeaf } = node
+  return {
+    area_name: isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1),
+    metadata: {
+      leaf: isLeaf,
+      area_id: uuidv4(),
+      lng: isLeaf ? node.jsonLine.lnglat[0] : 0,
+      lat: isLeaf ? node.jsonLine.lnglat[1] : 0,
+      left_right_index: -1,
+      mp_id: 'TBD' // TODO extract id from url
+    },
+    ancestors: [],
+    parentHashRef: 'TBD',
+    pathHash: 'TBD',
+    pathTokens: [],
+    aggregate: {
+      byGrade: [],
+      byType: []
+    },
+    density: 0,
+    bounds: undefined,
+    totalClimbs: 0,
+    content: {
+      description: isLeaf ? (Array.isArray(node.jsonLine.description) ? node.jsonLine.description.join('\n\n') : '') : ''
     }
-    acc.push(area)
-    return acc
-  }, [])
+  }
 }
+const URL_REGEX = /area\/(?<id>\d+)\//
+export const extractMpId = (url: string): string | undefined => URL_REGEX.exec(url)?.groups?.id
 
 export default transformAreaRecord

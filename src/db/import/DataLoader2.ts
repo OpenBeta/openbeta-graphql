@@ -71,13 +71,13 @@ const load = async<T extends ClimbType|AreaType>(fileName: string, transformer: 
     count = count + 1
     chunk.push(record)
     if (chunk.length >= chunkSize) {
-      await model.insertMany(chunk, { ordered: false })
+      // await model.insertMany(chunk, { ordered: false })
       chunk = []
     }
   }
 
   if (chunk.length > 0) {
-    await model.insertMany(chunk, { ordered: false })
+    // await model.insertMany(chunk, { ordered: false })
   }
   return count
 }

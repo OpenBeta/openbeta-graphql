@@ -1,4 +1,4 @@
-import { Tree, AreaNodeType, AreaTreeType } from '../AreaTree'
+import { Tree } from '../AreaTree'
 
 test('load climb markdown with extra H1s', () => {
   const path1 = 'Oregon|Central Oregon|Paulina Peak|Vigilantes de Obsidiana|Roca Rhodales'
