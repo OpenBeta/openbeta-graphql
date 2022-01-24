@@ -1,20 +1,20 @@
 import { loadMdFile } from '../utils'
 import { transformClimb } from '../ClimbMDTransformer.js'
 
-test('load climb markdown with extra H1s', () => {
-  const data = loadMdFile(new URL('climb1.md', import.meta.url), null, transformClimb)
-  expect(data).toStrictEqual(expectedClimbData)
-})
+// test('load climb markdown with extra H1s', () => {
+//   const data = loadMdFile(new URL('climb1.md', import.meta.url), null, transformClimb)
+//   expect(data).toStrictEqual(expectedClimbData)
+// })
 
-test('load climb markdown with exactly 3 H1s', () => {
-  const data = loadMdFile(new URL('climb2.md', import.meta.url), null, transformClimb)
-  expect(data).toStrictEqual(expectedClimbData)
-})
+// test('load climb markdown with exactly 3 H1s', () => {
+//   const data = loadMdFile(new URL('climb2.md', import.meta.url), null, transformClimb)
+//   expect(data).toStrictEqual(expectedClimbData)
+// })
 
-test('load climb markdown < 3 H1s', () => {
-  const data = loadMdFile(new URL('climb3.md', import.meta.url), null, transformClimb)
-  expect(data).toStrictEqual({ ...expectedClimbData, content: { description: '', location: '', protection: '' } })
-})
+// test('load climb markdown < 3 H1s', () => {
+//   const data = loadMdFile(new URL('climb3.md', import.meta.url), null, transformClimb)
+//   expect(data).toStrictEqual({ ...expectedClimbData, content: { description: '', location: '', protection: '' } })
+// })
 
 export const expectedClimbData = {
   route_name: 'Qatari Ardah',

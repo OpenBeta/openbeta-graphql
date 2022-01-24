@@ -1,7 +1,13 @@
-import { AreaType } from '../AreaTypes'
+import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
+import { AreaType } from '../AreaTypes'
+import { Tree, AreaNodeType, AreaTreeType } from './AreaTree'
+export interface AccummulatorType<T> {
+  line: any
+  record: T
+}
 
-const transformAreaRecord = (row: any): AreaType[] => {
+const transformAreaRecord = (row: any): AreaType => {
   /* eslint-disable-next-line */
   const { area_name, metadata, description, url, lnglat } = row
   /* eslint-disable-next-line */
@@ -31,9 +37,23 @@ const transformAreaRecord = (row: any): AreaType[] => {
       description: Array.isArray(description) ? description.join('\n\n') : ''
     }
   }
+  return leafArea
+}
 
-  const ancestors = createAncestorsFromLeaf(leafArea, row)
-  return [leafArea].concat(ancestors)
+// const areaComparator = (a: AccummulatorType<AreaType>, b: AccummulatorType<AreaType>): number => {
+//   return a.line.path?.localeCompare(b.line.path)
+// }
+
+export const createNonLeafAreas = async (areas: Array<AccummulatorType<AreaType>>, areaModel: mongoose.Model<AreaType>): Promise<void> => {
+  const tree = new Tree()
+  areas.forEach(entry => {
+    const { line } = entry
+    const { path }: {path: string} = line
+    /* eslint-disable-next-line */
+    const fullPath = `${line.us_state}|${path}` // 'path' doesn't have a parent, which is the US state
+    tree.insertMany(fullPath)
+  })
+  return await Promise.resolve()
 }
 
 export const createAncestorsFromLeaf = (leafArea: AreaType, leafRow: any): AreaType[] => {
