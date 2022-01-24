@@ -10,6 +10,12 @@ export class AreaNode {
       this.jsonLine = jsonLine
     }
   }
+
+  linkChild (child: AreaNode): AreaNode {
+    const { key } = child
+    this.children.add(key)
+    return this
+  }
 }
 
 export class Tree {
@@ -18,11 +24,12 @@ export class Tree {
 
   insert (key: string, isLeaf: boolean = false, jsonLine = undefined): Tree {
     if (this.map.has(key)) return this
+    const newNode = new AreaNode(key, isLeaf, jsonLine)
+    // find this new node's parent
     const parentPath = key.slice(0, key.lastIndexOf('|'))
     const parent = this.map.get(parentPath)
-    parent?.children.add(key)
-    const node = new AreaNode(key, isLeaf, jsonLine)
-    this.map.set(key, node)
+    parent?.linkChild(newNode)
+    this.map.set(key, newNode)
     return this
   }
 
@@ -44,9 +51,4 @@ export class Tree {
   atPath (path: string): AreaNode | undefined {
     return this.map.get(path)
   }
-
-  // forEach (nodeCallback: (node: AreaNode) => any): void {
-  //   this.map.
-  //   this.map.forEach(nodeCallback)
-  // }
 }

@@ -1,5 +1,3 @@
-import { Types } from 'mongoose'
-
 import { ClimbType } from './ClimbTypes'
 
 export type AreaType = IAreaProps & {
@@ -7,9 +5,10 @@ export type AreaType = IAreaProps & {
 }
 
 export interface IAreaProps {
+  _id: string
   area_name: string
   climbs?: ClimbType[]
-  children?: [Types.ObjectId]
+  children?: string[]
   ancestors: string[]
   aggregate: AggregateType
   content: IAreaContent

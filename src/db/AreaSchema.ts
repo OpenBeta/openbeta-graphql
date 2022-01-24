@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, PointType } from './AreaTypes.js'
 import { ClimbSchema } from './ClimbSchema.js'
 
-const { Schema, connection, Types } = mongoose
+const { Schema, connection } = mongoose
 
 const MetadataSchema = new Schema<IAreaMetadata>({
   leaf: { type: Boolean, sparse: true },
@@ -37,9 +37,10 @@ const AggregateSchema = new Schema<AggregateType>({
 }, { _id: false })
 
 const AreaSchema = new Schema<AreaType>({
+  _id: { type: String, required: true },
   area_name: { type: String, required: true, index: true },
   climbs: [{ type: ClimbSchema, required: true }],
-  children: [{ type: Types.ObjectId, ref: 'areas', required: true }],
+  children: [{ type: String, ref: 'areas', required: true }],
   ancestors: [{ type: String, required: true }],
   aggregate: AggregateSchema,
   metadata: MetadataSchema,

@@ -5,7 +5,7 @@ import { AreaType } from '../AreaTypes.js'
 import { createClimbModel } from '../ClimbSchema.js'
 import { ClimbType } from '../ClimbTypes.js'
 import transformClimbRecord from './ClimbTransformer.js'
-import transformAreaRecord, { createNonLeafAreas, AccummulatorType } from './AreaTransformer.js'
+import { createAreas } from './AreaTransformer.js'
 
 import readline from 'node:readline'
 import fs from 'node:fs'
@@ -25,17 +25,12 @@ const main = async (): Promise<void> => {
 
   const areaModel: mongoose.Model<AreaType> = createAreaModel(tmpAreas)
   const climbModel: mongoose.Model<ClimbType> = createClimbModel(tmpClimbs)
-
-  const areas: Array<AccummulatorType<AreaType>> = []
-  const foos = await Promise.all([
-    load<ClimbType>(contentDir + '/climbs/or-routes.jsonlines', transformClimbRecord, climbModel),
-    load<AreaType>(contentDir + '/climbs/or-areas.jsonlines', transformAreaRecord, areaModel, areas)
+  console.log('Loading beginning...')
+  const stats = await Promise.all([
+    loadClimbs(contentDir + '/climbs/or-routes.jsonlines', climbModel),
+    loadAreas(contentDir + '/climbs/or-areas.jsonlines', areaModel)
   ])
-
-  await createNonLeafAreas(areas, areaModel)
-
-  console.log('Content basedir: ', contentDir)
-  console.log('Document loaded ', foos)
+  console.log('Document loaded ', stats)
 
   // await linkAreas(tmpAreas)
   console.log('Areas linked')
@@ -54,10 +49,10 @@ const _dropCollection = async (name: string): Promise<void> => {
   } catch (e) { }
 }
 
-const load = async<T extends ClimbType|AreaType>(fileName: string, transformer: (row: any) => T, model: mongoose.Model<T>, accumulator?: Array<AccummulatorType<T>>): Promise<number> => {
+const loadClimbs = async (fileName: string, model: mongoose.Model<ClimbType>): Promise<number> => {
   let count = 0
   const chunkSize = 100
-  let chunk: T[] = []
+  let chunk: ClimbType[] = []
 
   const rl = readline.createInterface({
     input: fs.createReadStream(fileName),
@@ -66,20 +61,35 @@ const load = async<T extends ClimbType|AreaType>(fileName: string, transformer: 
 
   for await (const line of rl) {
     const jsonLine = JSON.parse(line)
-    const record = transformer(jsonLine)
-    accumulator?.push({ line: jsonLine, record })
-    count = count + 1
+    const record = transformClimbRecord(jsonLine)
     chunk.push(record)
-    if (chunk.length >= chunkSize) {
-      // await model.insertMany(chunk, { ordered: false })
+    if (chunk.length % chunkSize === 0) {
+      count = count + chunk.length
+      await model.insertMany(chunk, { ordered: false })
       chunk = []
     }
   }
 
   if (chunk.length > 0) {
-    // await model.insertMany(chunk, { ordered: false })
+    count = count + chunk.length
+    await model.insertMany(chunk, { ordered: false })
   }
   return count
+}
+
+const loadAreas = async (fileName: string, model: mongoose.Model<AreaType>): Promise<number> => {
+  const buffer: any[] = []
+
+  const rl = readline.createInterface({
+    input: fs.createReadStream(fileName),
+    terminal: false
+  })
+
+  for await (const line of rl) {
+    buffer.push(JSON.parse(line))
+  }
+
+  return await createAreas(buffer, model)
 }
 
 connectDB(main)
