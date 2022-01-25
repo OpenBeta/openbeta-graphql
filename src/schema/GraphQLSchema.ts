@@ -3,7 +3,6 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { GQLFilter, Sort } from '../types'
-import { md5 } from '../db/import/utils.js'
 import { AreaType, CountByGroupType } from '../db/AreaTypes.js'
 
 const resolvers = {
@@ -81,14 +80,15 @@ const resolvers = {
       }
     },
     ancestors: async (parent, _, { dataSources: { areas } }) => {
-      const ancestors: string[] = []
-      const tokens = parent.pathTokens
-      for (let i = 0; i < tokens.length; i++) {
-        const pathHash = md5(tokens.slice(0, i).join('/'))
-        ancestors.push(pathHash)
-      }
-      const areaAncestors = await areas.findManyByPathHash(ancestors)
-      return areaAncestors.map(area => area.metadata.area_id)
+      return parent.ancestors.map(entry => entry.toString())
+      // const ancestors: string[] = []
+      // const tokens = parent.pathTokens
+      // for (let i = 0; i < tokens.length; i++) {
+      //   const pathHash = md5(tokens.slice(0, i).join('/'))
+      //   ancestors.push(pathHash)
+      // }
+      // const areaAncestors = await areas.findManyByPathHash(ancestors)
+      // return areaAncestors.map(area => area.metadata.area_id)
     }
   }
 }

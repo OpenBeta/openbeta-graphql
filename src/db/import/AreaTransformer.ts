@@ -1,6 +1,5 @@
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
-import { md5 } from './utils.js'
 import { AreaType } from '../AreaTypes'
 import { Tree, AreaNode } from './AreaTree.js'
 
@@ -40,11 +39,11 @@ export const createAreas = async (areas: any[], areaModel: mongoose.Model<AreaTy
  * @returns
  */
 const makeDBArea = (node: AreaNode): AreaType => {
-  const { key, isLeaf, children } = node
+  const { key, isLeaf, children, _id } = node
   return {
-    _id: md5(key),
+    _id,
     area_name: isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1),
-    children: toMongoRefs(children),
+    children: Array.from(children),
     metadata: {
       leaf: isLeaf,
       area_id: uuidv4(),
@@ -53,7 +52,7 @@ const makeDBArea = (node: AreaNode): AreaType => {
       left_right_index: -1,
       mp_id: isLeaf ? extractMpId(node.jsonLine.url) : ''
     },
-    ancestors: [],
+    ancestors: node.getAncestors().reverse().join(','),
     parentHashRef: 'TBD',
     pathHash: 'TBD',
     pathTokens: [],
@@ -72,10 +71,3 @@ const makeDBArea = (node: AreaNode): AreaType => {
 
 const URL_REGEX = /area\/(?<id>\d+)\//
 export const extractMpId = (url: string): string | undefined => URL_REGEX.exec(url)?.groups?.id
-
-/**
- * Convert area refs e.g., `Oregon|Central Oregon|Smith Rock` to mongo refs
- * @param children
- * @returns array of mongodb ObjectIDs
- */
-const toMongoRefs = (children: Set<string>): string[] => Array.from(children).map(md5)
