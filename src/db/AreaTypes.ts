@@ -11,11 +11,9 @@ export interface IAreaProps {
   climbs?: ClimbType[]
   children?: mongose.Types.ObjectId[]
   ancestors: string
+  pathTokens: string[]
   aggregate: AggregateType
   content: IAreaContent
-  parentHashRef: string
-  pathHash: string
-  pathTokens: string[]
   density: number
   totalClimbs: number
   bounds?: [PointType]
@@ -26,7 +24,7 @@ export interface IAreaMetadata {
   lat: number|null
   lng: number|null
   left_right_index: number
-  mp_id?: string
+  ext_id?: string
   area_id: string
 }
 export interface IAreaContent {

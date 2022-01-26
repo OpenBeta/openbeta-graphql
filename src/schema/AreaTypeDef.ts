@@ -3,17 +3,12 @@ import { gql } from 'apollo-server'
 export const typeDef = gql`
   type Query {
     area(id: ID, uuid: String): Area
-
-    """
-    Areas query. 
-    - isLeaf = true: only areas with climbs
-    - Multiple filters are not supported
-    """
     areas(filter: Filter, sort: Sort): [Area]
   }
 
   "A climbing area, wall or crag"
   type Area {
+    id: ID!
     area_name: String
     metadata: AreaMetadata!
     climbs: [Climb]

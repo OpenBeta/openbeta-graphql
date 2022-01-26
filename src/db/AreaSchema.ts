@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-// import { v4 as uuidv4 } from 'uuid'
 import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, PointType } from './AreaTypes.js'
 import { ClimbSchema } from './ClimbSchema.js'
 
@@ -10,7 +9,7 @@ const MetadataSchema = new Schema<IAreaMetadata>({
   lat: { type: Number, required: true },
   lng: { type: Number, required: true },
   left_right_index: { type: Number, required: false },
-  mp_id: { type: String, required: false },
+  ext_id: { type: String, required: false, index: true },
   area_id: {
     type: String,
     required: true,
@@ -37,17 +36,14 @@ const AggregateSchema = new Schema<AggregateType>({
 }, { _id: false })
 
 const AreaSchema = new Schema<AreaType>({
-  _id: { type: Schema.Types.ObjectId, required: true },
   area_name: { type: String, required: true, index: true },
   climbs: [{ type: ClimbSchema, required: true }],
   children: [{ type: Schema.Types.ObjectId, ref: 'areas', required: true }],
-  ancestors: { type: String, required: true },
+  ancestors: { type: String, required: true, index: true },
+  pathTokens: [{ type: String, required: true, index: true }],
   aggregate: AggregateSchema,
   metadata: MetadataSchema,
   content: ContentSchema,
-  parentHashRef: { type: String, required: true },
-  pathHash: { type: String, required: true },
-  pathTokens: [{ type: String, required: true }],
   density: { type: Number },
   totalClimbs: { type: Number },
   bounds: [{ type: Point }]

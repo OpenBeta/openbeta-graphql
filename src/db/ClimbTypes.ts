@@ -33,6 +33,7 @@ export interface IClimbMetadata {
   lng: number | null
   left_right_index: number
   mp_id?: string
+  mp_crag_id: string
   climb_id: string
 }
 export interface IClimbContent {

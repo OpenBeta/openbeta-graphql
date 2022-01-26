@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
-import { AreaType } from '../AreaTypes'
+import { AreaType } from '../../AreaTypes'
 import { Tree, AreaNode } from './AreaTree.js'
 
 export const createAreas = async (areas: any[], areaModel: mongoose.Model<AreaType>): Promise<number> => {
@@ -8,7 +8,7 @@ export const createAreas = async (areas: any[], areaModel: mongoose.Model<AreaTy
   areas.forEach(record => {
     const { path }: {path: string} = record
     /* eslint-disable-next-line */
-    const fullPath = `${record.us_state}|${path}` // 'path' doesn't have a parent, which is a US state
+    const fullPath = `USA|${record.us_state}|${path}` // 'path' doesn't have a parent, which is a US state
     tree.insertMany(fullPath, record)
   })
 
@@ -34,7 +34,7 @@ export const createAreas = async (areas: any[], areaModel: mongoose.Model<AreaTy
 }
 
 /**
- * Convert simple Area node to complete Mongo Area
+ * Convert simple Area tree node to Mongo Area
  * @param node
  * @returns
  */
@@ -50,12 +50,10 @@ const makeDBArea = (node: AreaNode): AreaType => {
       lng: isLeaf ? node.jsonLine.lnglat[0] : 0,
       lat: isLeaf ? node.jsonLine.lnglat[1] : 0,
       left_right_index: -1,
-      mp_id: isLeaf ? extractMpId(node.jsonLine.url) : ''
+      ext_id: isLeaf ? extractMpId(node.jsonLine.url) : ''
     },
-    ancestors: node.getAncestors().reverse().join(','),
-    parentHashRef: 'TBD',
-    pathHash: 'TBD',
-    pathTokens: [],
+    ancestors: node.getAncestors().join(','),
+    pathTokens: `${key}`.split('|'),
     aggregate: {
       byGrade: [],
       byType: []

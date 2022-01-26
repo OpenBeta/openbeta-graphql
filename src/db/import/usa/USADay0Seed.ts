@@ -1,12 +1,12 @@
-import { connectDB, gracefulExit, createAreaModel } from '../index.js'
+import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
 import mongoose from 'mongoose'
-import { AreaType } from '../AreaTypes.js'
-// import { linkAreas } from './LinkParent.js'
-import { createClimbModel } from '../ClimbSchema.js'
-import { ClimbType } from '../ClimbTypes.js'
-import transformClimbRecord from './ClimbTransformer.js'
+import { AreaType } from '../../AreaTypes.js'
+import { addClimbsToAreas } from './AddClimbsToCrags.js'
+import { createClimbModel } from '../../ClimbSchema.js'
+import { ClimbType } from '../../ClimbTypes.js'
+import transformClimbRecord from '../ClimbTransformer.js'
 import { createAreas } from './AreaTransformer.js'
-
+import US_STATES from './us-states.js'
 import readline from 'node:readline'
 import fs from 'node:fs'
 
@@ -18,35 +18,50 @@ if (contentDir === '') {
 }
 
 const main = async (): Promise<void> => {
-  const tmpClimbs = '_tmp_climbs'
-  const tmpAreas = '_tmp_areas'
-  await _dropCollection(tmpAreas)
+  await _dropCollection('areas')
+  // [{ code: 'OR' }])
+  for await (const state of US_STATES) {
+    const code = state.code.toLowerCase()
+    const fRoutes = `${contentDir}/${code}-routes.jsonlines`
+    const fAreas = `${contentDir}/${code}-areas.jsonlines`
+    if (fs.existsSync(fRoutes) && fs.existsSync(fAreas)) {
+      console.log('Loading beginning: ', code)
+      await seedState(code, fRoutes, fAreas)
+    }
+  }
+  gracefulExit()
+  return await Promise.resolve()
+}
+const seedState = async (code: string, fileClimbs: string, fileAreas: string): Promise<void> => {
+  const tmpClimbs = `_${code}_tmp_climbs`
+  // const tmpAreas = '_tmp_areas'
+  // await _dropCollection('areas')
   await _dropCollection(tmpClimbs)
 
-  const areaModel: mongoose.Model<AreaType> = createAreaModel(tmpAreas)
+  const areaModel: mongoose.Model<AreaType> = createAreaModel('areas')
   const climbModel: mongoose.Model<ClimbType> = createClimbModel(tmpClimbs)
-  console.log('Loading beginning...')
   const stats = await Promise.all([
-    loadClimbs(contentDir + '/climbs/or-routes.jsonlines', climbModel),
-    loadAreas(contentDir + '/climbs/or-areas.jsonlines', areaModel)
+    loadClimbs(fileClimbs, climbModel),
+    loadAreas(fileAreas, areaModel)
   ])
-  console.log('Document loaded ', stats)
+  console.log('Document loaded ', code, stats)
 
-  // await linkAreas(tmpAreas)
-  console.log('Areas linked')
-  console.log('Dropping old collections...')
-  await _dropCollection('areas')
-  await mongoose.connection.db.renameCollection(tmpAreas, 'areas')
-  await _dropCollection('climbs')
-  await mongoose.connection.db.renameCollection(tmpClimbs, 'climbs')
-  console.log('Done.')
-  gracefulExit()
+  await addClimbsToAreas(climbModel, areaModel)
+  console.log('Added climbs to crags', code)
+  console.log('Dropping temp collections ', code)
+  // await _dropCollection('areas')
+  // await mongoose.connection.db.renameCollection(tmpAreas, 'areas')
+  await _dropCollection(tmpClimbs)
+  // await mongoose.connection.db.renameCollection(tmpClimbs, 'climbs')
+  console.log('Completed', code)
 }
 
 const _dropCollection = async (name: string): Promise<void> => {
   try {
     await mongoose.connection.db.dropCollection(name)
-  } catch (e) { }
+  } catch (e) {
+    console.log(name, e)
+  }
 }
 
 const loadClimbs = async (fileName: string, model: mongoose.Model<ClimbType>): Promise<number> => {

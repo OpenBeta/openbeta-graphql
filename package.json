@@ -27,7 +27,7 @@
     "globby": "11.0.4",
     "graphql": "^16.2.0",
     "mdast-util-from-markdown": "^1.2.0",
-    "mongoose": "^6.1.2",
+    "mongoose": "^6.1.8",
     "unist-util-is": "^5.1.1",
     "uuid": "^8.3.2"
   },
@@ -39,6 +39,7 @@
     "clean": "tsc -b --clean && rm -rf build/*",
     "serve": "node build/main.js",
     "refresh-db": "./refresh-db.sh",
+    "seed-usa": "yarn build && node build/db/import/usa/USADay0Seed.js",
     "update-search": "yarn build && node build/db/import/Algolia.js"
   },
   "standard": {

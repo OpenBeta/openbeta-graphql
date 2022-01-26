@@ -31,7 +31,7 @@ test('get ancestors', () => {
   if (leaf !== undefined) {
     const ancestors = leaf.getAncestors()
     console.log(ancestors)
-    expect(ancestors.length).toEqual(4)
-    expect(ancestors[ancestors.length - 1]).toEqual(root?._id)
+    expect(ancestors.length).toEqual(5)
+    expect(ancestors[0]).toEqual(root?._id)
   }
 })

@@ -24,11 +24,11 @@ const resolvers = {
       const filtered = await areas.findAreasByFilter(filter)
       return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
-
     area: async (_: any,
       { id, uuid }: { id: string, uuid: string },
-      { dataSources: { areas } }) => {
-      if (id !== '' && id !== undefined) return areas.findOneById(id)
+      { dataSources }) => {
+      const { areas } = dataSources
+      if (id !== '' && id !== undefined) return dataSources.areas.findOneById(id)
       if (uuid !== '' && uuid !== undefined) {
         return areas.findOneByAreaUUID(uuid)
       }
@@ -40,15 +40,18 @@ const resolvers = {
     // TODO: let's see if we need to create any field resolvers
   },
   Area: {
+    id: async (parent, _, { dataSources: { areas } }) => parent._id,
+
     children: async (parent, _, { dataSources: { areas } }) => {
       if (parent.children.length > 0) {
         return areas.findManyByIds(parent.children)
       }
       return []
     },
+
     aggregate: async (parent, _, { dataSources: { areas } }) => {
       // get all leafs under this parent
-      const allChildAreas: AreaType[] = await getAllLeafs(areas, parent.pathTokens)
+      const allChildAreas: AreaType[] = await areas.findDescendantsByPath(parent.ancestors, true)
       const byGrade = {}
       const byType = {}
 
@@ -79,23 +82,9 @@ const resolvers = {
         byType: Object.values(byType)
       }
     },
-    ancestors: async (parent, _, { dataSources: { areas } }) => {
-      return parent.ancestors.map(entry => entry.toString())
-      // const ancestors: string[] = []
-      // const tokens = parent.pathTokens
-      // for (let i = 0; i < tokens.length; i++) {
-      //   const pathHash = md5(tokens.slice(0, i).join('/'))
-      //   ancestors.push(pathHash)
-      // }
-      // const areaAncestors = await areas.findManyByPathHash(ancestors)
-      // return areaAncestors.map(area => area.metadata.area_id)
-    }
-  }
-}
 
-const getAllLeafs = async (areas, parentTokens): Promise<AreaType[]> => {
-  const childAreasCollection = await areas.findAreasByFilter({ path_tokens: { tokens: parentTokens, exactMatch: false } })
-  return childAreasCollection.toArray()
+    ancestors: async (parent, _, { dataSources: { areas } }) => parent.ancestors.split(',')
+  }
 }
 
 export const schema = makeExecutableSchema({

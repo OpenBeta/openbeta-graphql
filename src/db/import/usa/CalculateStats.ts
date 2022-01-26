@@ -1,55 +1,20 @@
-import mongoose from 'mongoose'
-import { getAreaModel } from '../AreaSchema.js'
-import { AreaType, PointType } from '../AreaTypes.js'
-import { ClimbType } from '../ClimbTypes.js'
+import { AreaType, PointType } from '../../AreaTypes.js'
+import { ClimbType } from '../../ClimbTypes.js'
+
 interface CalculatedValues {
   density: number
   totalClimbs: number
   bounds: [PointType, PointType]
 }
-export const linkAreas = async (collectionName: string): Promise<void> => {
-  try {
-    const areasModel = getAreaModel(collectionName)
 
-    for await (const area of areasModel.find()) {
-      const pathHash = area.get('pathHash')
-      const pathTokens = area.get('pathTokens')
-
-      // find all areas whose parent = my pathHash (aka subareas)
-      const subareas = await areasModel.find({ parentHashRef: pathHash })
-      const climbs = await areasModel.find({ pathTokens: { $all: pathTokens } })
-
-      if (climbs.length > 0) {
-        const { density, bounds, totalClimbs } = getCalcuatedValues(climbs)
-        area.set('bounds', bounds)
-        area.set('density', density)
-        area.set('totalClimbs', totalClimbs)
-      }
-
-      if (subareas.length > 0) {
-        const refs = subareas.reduce((acc: string[], curr) => {
-          acc.push(curr.get('_id'))
-          return acc
-        }, [])
-
-        area.set('children', refs)
-      }
-      console.log('Saving id: ', area._id)
-      await area.save()
-    }
-  } catch (e) {
-    console.log(e)
-  }
-}
-
-function getCalcuatedValues (climbs): CalculatedValues {
+function getCalcuatedValues (areas): CalculatedValues {
   const bounds: [PointType, PointType] = [
     { lat: Number.POSITIVE_INFINITY, lng: Number.POSITIVE_INFINITY },
     { lat: Number.NEGATIVE_INFINITY, lng: Number.NEGATIVE_INFINITY }]
 
   let totalClimbs = 0
 
-  climbs.forEach(area => {
+  areas.forEach(area => {
     if (area.metadata.lat !== null && area.metadata.lng !== null) {
       updateBounds(area.metadata.lat, area.metadata.lng, bounds)
     }
@@ -93,5 +58,3 @@ const updateBounds = (lat: number, lng: number, bound: [PointType, PointType]): 
   bound[1].lat = Math.max(bound[1].lat, lat)
   bound[1].lng = Math.max(bound[1].lng, lng)
 }
-
-export default linkAreas

@@ -20,8 +20,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Load data to db",
-            "program": "${workspaceFolder}/src/db/import/DataLoader2.ts",
+            "name": "Seed USA",
+            "program": "${workspaceFolder}/src/db/import/usa/USADay0Seed.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"

@@ -78,4 +78,16 @@ export default class Areas extends MongoDataSource<AreaType> {
   async findOneByAreaUUID (uuid: string): Promise<any> {
     return await this.collection.findOne({ 'metadata.area_id': uuid })
   }
+
+  /**
+   * Find all descendants (inclusive) starting from path
+   * @param path comma-separated _id's of area
+   * @param isLeaf
+   * @returns array of areas
+   */
+  async findDescendantsByPath (path: string, isLeaf: boolean = false): Promise<AreaType[]> {
+    const regex = new RegExp(`^${path}`)
+    const data = this.collection.find({ ancestors: regex, 'metadata.leaf': isLeaf })
+    return await data.toArray()
+  }
 }
