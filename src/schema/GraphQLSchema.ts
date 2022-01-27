@@ -1,17 +1,22 @@
+import mongoose from 'mongoose'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { GQLFilter, Sort } from '../types'
 import { AreaType, CountByGroupType } from '../db/AreaTypes.js'
+import { ClimbType } from '../db/ClimbTypes.js'
 
 const resolvers = {
   Query: {
-    climb: async (_, { id, uuid }: { id: string, uuid: string }, { dataSources }) => {
-      if (id !== '' && id !== undefined) return dataSources.climbs.findOneById(id)
-      if (uuid !== '' && uuid !== undefined) {
-        return dataSources.climbs.findOneByClimbUUID(uuid)
+    climb: async (_, { id, uuid }: { id: string, uuid: string }, { dataSources: { areas } }) => {
+      if (id !== '' && id !== undefined) {
+        /* eslint-disable-next-line */
+        return await areas.findOneClimbById(id)
       }
+      // if (uuid !== '' && uuid !== undefined) {
+      //   return dataSources.climbs.findOneByClimbUUID(uuid)
+      // }
     },
     climbs: async (_, __, { dataSources }) => {
       return dataSources.climbs.collection.find({}).toArray()
@@ -28,7 +33,10 @@ const resolvers = {
       { id, uuid }: { id: string, uuid: string },
       { dataSources }) => {
       const { areas } = dataSources
-      if (id !== '' && id !== undefined) return dataSources.areas.findOneById(id)
+      if (id !== '' && id !== undefined) {
+        const area = await areas.findOneById(id)
+        return area
+      }
       if (uuid !== '' && uuid !== undefined) {
         return areas.findOneByAreaUUID(uuid)
       }
@@ -37,12 +45,13 @@ const resolvers = {
   },
 
   Climb: {
-    // TODO: let's see if we need to create any field resolvers
+    id: async (parent: ClimbType) => parent._id
   },
-  Area: {
-    id: async (parent, _, { dataSources: { areas } }) => parent._id,
 
-    children: async (parent, _, { dataSources: { areas } }) => {
+  Area: {
+    id: async (parent: AreaType) => parent._id,
+
+    children: async (parent: AreaType, _, { dataSources: { areas } }) => {
       if (parent.children.length > 0) {
         return areas.findManyByIds(parent.children)
       }

@@ -1,13 +1,18 @@
+import mongoose from 'mongoose'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
+import { createAreaModel } from '../db/index.js'
+
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams } from '../types'
+import { ClimbType } from '../db/ClimbTypes.js'
 
 export default class Areas extends MongoDataSource<AreaType> {
-  async all (): Promise<any> {
-    const rs = this.collection.find({})
-    return await rs.toArray()
-  }
+  areaModel = createAreaModel('areas')
+  // async all (): Promise<any> {
+  //   const rs = this.collection.find({})
+  //   return await rs.toArray()
+  // }
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
     let mongoFilter = {}
@@ -77,6 +82,14 @@ export default class Areas extends MongoDataSource<AreaType> {
 
   async findOneByAreaUUID (uuid: string): Promise<any> {
     return await this.collection.findOne({ 'metadata.area_id': uuid })
+  }
+
+  async findOneClimbById (id: string): Promise<ClimbType|null> {
+    const rs = await this.areaModel
+      .findOne({ 'metadata.leaf': true })
+      .where({ 'climbs._id': new mongoose.Types.ObjectId(id) })
+      .select({ 'climbs.$': 1 })
+    return rs !== null && rs.climbs.length === 1 ? rs.climbs[0] : await Promise.resolve(null)
   }
 
   /**

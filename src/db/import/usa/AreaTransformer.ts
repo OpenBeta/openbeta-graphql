@@ -53,6 +53,7 @@ const makeDBArea = (node: AreaNode): AreaType => {
       ext_id: isLeaf ? extractMpId(node.jsonLine.url) : ''
     },
     ancestors: node.getAncestors().join(','),
+    climbs: [],
     pathTokens: `${key}`.split('|'),
     aggregate: {
       byGrade: [],

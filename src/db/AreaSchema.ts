@@ -37,8 +37,8 @@ const AggregateSchema = new Schema<AggregateType>({
 
 const AreaSchema = new Schema<AreaType>({
   area_name: { type: String, required: true, index: true },
-  climbs: [{ type: ClimbSchema, required: true }],
-  children: [{ type: Schema.Types.ObjectId, ref: 'areas', required: true }],
+  climbs: [{ type: ClimbSchema, required: false }],
+  children: [{ type: Schema.Types.ObjectId, ref: 'areas', required: false }],
   ancestors: { type: String, required: true, index: true },
   pathTokens: [{ type: String, required: true, index: true }],
   aggregate: AggregateSchema,

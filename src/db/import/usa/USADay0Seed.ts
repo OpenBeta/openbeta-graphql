@@ -60,7 +60,6 @@ const _dropCollection = async (name: string): Promise<void> => {
   try {
     await mongoose.connection.db.dropCollection(name)
   } catch (e) {
-    console.log(name, e)
   }
 }
 

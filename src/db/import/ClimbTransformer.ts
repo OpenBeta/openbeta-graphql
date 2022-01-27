@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import { ClimbType } from '../ClimbTypes.js'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -7,6 +8,7 @@ const transformClimbRecord = (row: any): ClimbType => {
   /* eslint-disable-next-line */
   const { parent_lnglat, left_right_seq, mp_route_id, mp_sector_id } = metadata
   return {
+    _id: new mongoose.Types.ObjectId(),
     name: route_name,
     yds: grade.YDS,
     safety: safety,
