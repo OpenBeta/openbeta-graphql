@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 import { schema as graphQLSchema } from './schema/GraphQLSchema.js'
 import { connectDB } from './db/index.js'
 import Areas from './model/Areas.js'
-import { updateSum } from './model/UpdateClimbTotals.js'
+import { visitAll } from './model/UpdateClimbTotals.js'
 
 // eslint-disable-next-line
 (async function (): Promise<void> {
@@ -19,7 +19,7 @@ import { updateSum } from './model/UpdateClimbTotals.js'
 
   await connectDB(async () => {
     console.log('Updating climb count for all areas...')
-    await updateSum()
+    // await visitAll()
     console.log('Done.')
   })
   await server.listen().then((): void => {

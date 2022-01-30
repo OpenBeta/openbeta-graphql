@@ -17,6 +17,10 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "^8.3.1",
+    "@turf/bbox": "^6.5.0",
+    "@turf/bbox-polygon": "^6.5.0",
+    "@turf/circle": "^6.5.0",
+    "@types/geojson": "^7946.0.8",
     "@types/uuid": "^8.3.3",
     "algoliasearch": "^4.11.0",
     "apollo-datasource-mongodb": "^0.5.2",

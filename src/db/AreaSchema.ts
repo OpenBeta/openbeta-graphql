@@ -8,6 +8,7 @@ const MetadataSchema = new Schema<IAreaMetadata>({
   leaf: { type: Boolean, sparse: true },
   lat: { type: Number, required: true },
   lng: { type: Number, required: true },
+  bbox: [{ type: Number, required: true }],
   left_right_index: { type: Number, required: false },
   ext_id: { type: String, required: false, index: true },
   area_id: {
@@ -30,6 +31,7 @@ export const Point = new Schema<PointType>({
   lat: { type: Number, required: true },
   lng: { type: Number, required: true }
 }, { _id: false })
+
 const AggregateSchema = new Schema<AggregateType>({
   byGrade: [{ type: CountByGroup, required: true }],
   byType: [{ type: CountByGroup, required: true }]
@@ -45,8 +47,7 @@ const AreaSchema = new Schema<AreaType>({
   metadata: MetadataSchema,
   content: ContentSchema,
   density: { type: Number },
-  totalClimbs: { type: Number },
-  bounds: [{ type: Point }]
+  totalClimbs: { type: Number }
 })
 
 export const createAreaModel = (name: string): mongoose.Model<AreaType> => {

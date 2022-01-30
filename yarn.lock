@@ -807,6 +807,56 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.2.tgz#423c77877d0569db20e1fc80885ac4118314010e"
   integrity sha512-eZxlbI8GZscaGS7kkc/trHTT5xgrjH3/1n2JDwusC9iahPKWMRvRjJSAN5mCXviuTGQ/lHnhvv8Q1YTpnfz9gA==
 
+"@turf/bbox-polygon@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@turf/bbox-polygon/-/bbox-polygon-6.5.0.tgz#f18128b012eedfa860a521d8f2b3779cc0801032"
+  integrity sha512-+/r0NyL1lOG3zKZmmf6L8ommU07HliP4dgYToMoTxqzsWzyLjaj/OzgQ8rBmv703WJX+aS6yCmLuIhYqyufyuw==
+  dependencies:
+    "@turf/helpers" "^6.5.0"
+
+"@turf/bbox@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@turf/bbox/-/bbox-6.5.0.tgz#bec30a744019eae420dac9ea46fb75caa44d8dc5"
+  integrity sha512-RBbLaao5hXTYyyg577iuMtDB8ehxMlUqHEJiMs8jT1GHkFhr6sYre3lmLsPeYEi/ZKj5TP5tt7fkzNdJ4GIVyw==
+  dependencies:
+    "@turf/helpers" "^6.5.0"
+    "@turf/meta" "^6.5.0"
+
+"@turf/circle@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@turf/circle/-/circle-6.5.0.tgz#dc017d8c0131d1d212b7c06f76510c22bbeb093c"
+  integrity sha512-oU1+Kq9DgRnoSbWFHKnnUdTmtcRUMmHoV9DjTXu9vOLNV5OWtAAh1VZ+mzsioGGzoDNT/V5igbFOkMfBQc0B6A==
+  dependencies:
+    "@turf/destination" "^6.5.0"
+    "@turf/helpers" "^6.5.0"
+
+"@turf/destination@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@turf/destination/-/destination-6.5.0.tgz#30a84702f9677d076130e0440d3223ae503fdae1"
+  integrity sha512-4cnWQlNC8d1tItOz9B4pmJdWpXqS0vEvv65bI/Pj/genJnsL7evI0/Xw42RvEGROS481MPiU80xzvwxEvhQiMQ==
+  dependencies:
+    "@turf/helpers" "^6.5.0"
+    "@turf/invariant" "^6.5.0"
+
+"@turf/helpers@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-6.5.0.tgz#f79af094bd6b8ce7ed2bd3e089a8493ee6cae82e"
+  integrity sha512-VbI1dV5bLFzohYYdgqwikdMVpe7pJ9X3E+dlr425wa2/sMJqYDhTO++ec38/pcPvPE6oD9WEEeU3Xu3gza+VPw==
+
+"@turf/invariant@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@turf/invariant/-/invariant-6.5.0.tgz#970afc988023e39c7ccab2341bd06979ddc7463f"
+  integrity sha512-Wv8PRNCtPD31UVbdJE/KVAWKe7l6US+lJItRR/HOEW3eh+U/JwRCSUl/KZ7bmjM/C+zLNoreM2TU6OoLACs4eg==
+  dependencies:
+    "@turf/helpers" "^6.5.0"
+
+"@turf/meta@^6.5.0":
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/@turf/meta/-/meta-6.5.0.tgz#b725c3653c9f432133eaa04d3421f7e51e0418ca"
+  integrity sha512-RrArvtsV0vdsCBegoBtOalgdSOfkBrTJ07VkpiCnq/491W67hnMWmDu7e6Ztw0C3WldRYTXkg3SumfdzZxLBHA==
+  dependencies:
+    "@turf/helpers" "^6.5.0"
+
 "@types/accepts@^1.3.5":
   version "1.3.5"
   resolved "https://registry.yarnpkg.com/@types/accepts/-/accepts-1.3.5.tgz#c34bec115cfc746e04fe5a059df4ce7e7b391575"
@@ -899,6 +949,11 @@
     "@types/express-serve-static-core" "^4.17.18"
     "@types/qs" "*"
     "@types/serve-static" "*"
+
+"@types/geojson@^7946.0.8":
+  version "7946.0.8"
+  resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.8.tgz#30744afdb385e2945e22f3b033f897f76b1f12ca"
+  integrity sha512-1rkryxURpr6aWP7R786/UQOkJ3PcpQiWkAXBmdWc7ryFWqN6a4xfK7BtjXvFBKO9LjQ+MWQSWxYeZX1OApnArA==
 
 "@types/graceful-fs@^4.1.2":
   version "4.1.5"

@@ -26,7 +26,7 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
   await areaModel.findOneAndUpdate({ _id: root._id }, { $push: { children: tree.subRoot._id } })
 
   let count = 0
-  const chunkSize = 100
+  const chunkSize = 50
   let chunk: AreaType[] = []
   for await (const node of tree.map.values()) {
     const area = makeDBArea(node)
@@ -62,6 +62,7 @@ const makeDBArea = (node: AreaNode): AreaType => {
       area_id: uuidv4(),
       lng: isLeaf ? node.jsonLine.lnglat[0] : 0,
       lat: isLeaf ? node.jsonLine.lnglat[1] : 0,
+      bbox: [-180, -90, 180, 90],
       left_right_index: -1,
       ext_id: isLeaf ? extractMpId(node.jsonLine.url) : ''
     },
@@ -73,7 +74,6 @@ const makeDBArea = (node: AreaNode): AreaType => {
       byType: []
     },
     density: 0,
-    bounds: undefined,
     totalClimbs: 0,
     content: {
       description: isLeaf ? (Array.isArray(node.jsonLine.description) ? node.jsonLine.description.join('\n\n') : '') : ''

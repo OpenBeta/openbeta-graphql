@@ -21,7 +21,7 @@ const MetadataSchema = new Schema<IClimbMetadata>({
 
 export const ClimbSchema = new Schema<ClimbType>({
   name: { type: Schema.Types.String, required: true, index: true },
-  yds: { type: Schema.Types.String, required: false },
+  yds: { type: Schema.Types.String, required: true },
   fa: { type: Schema.Types.String, required: false },
   type: { type: Schema.Types.Mixed },
   safety: {
@@ -35,6 +35,7 @@ export const ClimbSchema = new Schema<ClimbType>({
 
 ClimbSchema.pre('validate', function (next) {
   if (this.safety === '') { this.safety = SafetyType.UNSPECIFIED }
+  if (this.yds === '') { this.yds = 'UNKNOWN' }
   next()
 })
 

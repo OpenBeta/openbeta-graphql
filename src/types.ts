@@ -33,3 +33,5 @@ export interface PathTokenParams {
 
 type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams | ComparisonFilterParams[]
 export type GQLFilter = Record<Filterable, FilterParams>
+
+export type LNGLAT = [number, number]

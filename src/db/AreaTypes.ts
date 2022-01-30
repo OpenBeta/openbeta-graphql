@@ -1,4 +1,5 @@
 import mongose from 'mongoose'
+import { BBox } from '@turf/helpers'
 import { ClimbType } from './ClimbTypes'
 
 export type AreaType = IAreaProps & {
@@ -16,13 +17,13 @@ export interface IAreaProps {
   content: IAreaContent
   density: number
   totalClimbs: number
-  bounds?: [PointType]
 }
 
 export interface IAreaMetadata {
   leaf: boolean
-  lat: number|null
-  lng: number|null
+  lat: number
+  lng: number
+  bbox: BBox
   left_right_index: number
   ext_id?: string
   area_id: string

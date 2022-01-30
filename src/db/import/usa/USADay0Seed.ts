@@ -1,5 +1,8 @@
-import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
 import mongoose from 'mongoose'
+import fs from 'node:fs'
+import readline from 'node:readline'
+
+import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
 import { AreaType } from '../../AreaTypes.js'
 import { addClimbsToAreas } from './AddClimbsToCrags.js'
 import { createClimbModel } from '../../ClimbSchema.js'
@@ -7,9 +10,8 @@ import { ClimbType } from '../../ClimbTypes.js'
 import transformClimbRecord from '../ClimbTransformer.js'
 import { createAreas, createRoot } from './AreaTransformer.js'
 import US_STATES from './us-states.js'
-import readline from 'node:readline'
-import fs from 'node:fs'
 import { AreaNode } from './AreaTree.js'
+import { visitAll } from '../../../model/UpdateClimbTotals.js'
 
 const contentDir: string = process.env.CONTENT_BASEDIR ?? ''
 
@@ -32,6 +34,10 @@ const main = async (): Promise<void> => {
     }
     return await Promise.resolve()
   }))
+
+  console.log('Calculating stats and geo data...')
+  await visitAll()
+  console.log('Done.')
 
   gracefulExit()
   return await Promise.resolve()

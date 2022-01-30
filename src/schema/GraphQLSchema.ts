@@ -1,4 +1,3 @@
-import mongoose from 'mongoose'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 
 import { typeDef as Climb } from './ClimbTypeDef.js'
@@ -92,7 +91,7 @@ const resolvers = {
       }
     },
 
-    ancestors: async (parent, _, { dataSources: { areas } }) => parent.ancestors.split(',')
+    ancestors: async (parent) => parent.ancestors.split(',')
   }
 }
 
