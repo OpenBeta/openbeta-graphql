@@ -103,4 +103,8 @@ export default class Areas extends MongoDataSource<AreaType> {
     const data = this.collection.find({ ancestors: regex, 'metadata.leaf': isLeaf })
     return await data.toArray()
   }
+
+  findRootsIterator (): any {
+    return this.collection.find({ pathTokens: { $size: 1 } })
+  }
 }

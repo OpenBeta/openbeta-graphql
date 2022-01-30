@@ -1,20 +1,43 @@
+import assert from 'node:assert'
 import mongoose from 'mongoose'
 
 /**
  * A tree-like data structure for storing area hierarchy during raw json files progressing.
  */
 export class Tree {
-  root: AreaNode
+  root?: AreaNode
+  subRoot: AreaNode
   map = new Map<string, AreaNode>()
 
-  insert (key: string, isLeaf: boolean = false, jsonLine = undefined): Tree {
+  constructor (root?: AreaNode) {
+    this.root = root
+  }
+
+  prefixRoot (key: string): string {
+    if (this.root === undefined) {
+      return key
+    }
+    return `${this.root.key}|${key}`
+  }
+
+  private insert (key: string, isSubRoot: boolean, isLeaf: boolean = false, jsonLine = undefined): Tree {
     if (this.map.has(key)) return this
+
     const newNode = new AreaNode(key, isLeaf, jsonLine, this)
-    // find this new node's parent
-    const parentPath = key.slice(0, key.lastIndexOf('|'))
-    const parent = this.map.get(parentPath)
-    parent?.linkChild(newNode)
-    newNode.setParent(parent)
+
+    // Special case at the root node
+    if (isSubRoot && this.root !== undefined) {
+      this.root.children.add(newNode._id)
+      this.subRoot = newNode
+    } else {
+      // find this new node's parent
+      const parentPath = key.substring(0, key.lastIndexOf('|'))
+      const parent = this.map.get(parentPath)
+      if (parent === undefined) assert(false, 'Parent path exists but parent node doesn\'t')
+      parent?.linkChild(newNode)
+      newNode.setParent(parent)
+    }
+
     this.map.set(key, newNode)
     return this
   }
@@ -28,7 +51,8 @@ export class Tree {
         acc = acc + '|' + curr
       }
       const isLeaf = index === tokens.length - 1
-      this.insert(acc, isLeaf, jsonLine)
+      const isSubRoot = index === 0
+      this.insert(acc, isSubRoot, isLeaf, jsonLine)
       return acc
     }, '')
     return this
@@ -39,15 +63,18 @@ export class Tree {
   }
 
   getAncestors (node: AreaNode): mongoose.Types.ObjectId[] {
+    if (this.root === undefined) {
+      // Country root shouldn't have an ancestor so return itself
+      return [node._id]
+    }
+    const pathArray: mongoose.Types.ObjectId[] = [this.root._id]
     const { key } = node
-    const ancestors: mongoose.Types.ObjectId[] = []
     const tokens: string[] = key.split('|')
-    // tokens.unshift('USA')
 
-    // path = 'Oregon|Central Oregon|Paulina Peak|Vigilantes de Obsidiana|Roca Rhodales'
-    // 0. Split path into array
-    // 1. Build path by concatenating each element. Add first child ('Oregon')
-    // 2. Look up node.  Add node._id to ancestors
+    // Example node.key = 'Oregon|Central Oregon|Paulina Peak|Vigilantes de Obsidiana|Roca Rhodales'
+    // 0. Split key into array
+    // 1. Reconstruct key str by concatenating each array element. Oregon, Oregon|Central Oregon, Oregon|Central Oregon|Paulina Peak
+    // 2. In each iteration, look up node by key.  Add node._id to pathArray[]
     tokens.reduce<string>((path, curr) => {
       if (path.length === 0) {
         path = curr
@@ -55,27 +82,22 @@ export class Tree {
         path = path + '|' + curr
       }
       const parent = this.map.get(path)
-      if (parent !== undefined) {
-        ancestors.push(parent._id)
-      } else {
-        console.log('Corrupted data')
-        return path
-      }
+      assert(parent !== undefined, 'Parent should exist')
+      pathArray.push(parent._id)
       return path
     }, '')
+    return pathArray
+  }
 
-    // let currentPath = key
-    // for (let i = currentPath.length; i > 0; i = currentPath.lastIndexOf('|')) {
-    //   currentPath = currentPath.substring(0, i)
-    //   const parent = this.map.get(currentPath)
-    //   if (parent !== undefined) {
-    //     ancestors.push(parent._id)
-    //   } else {
-    //     console.log('Corrupted data')
-    //     break
-    //   }
-    // }
-    return ancestors
+  getPathTokens (node: AreaNode): string[] {
+    const { key } = node
+    const tokens: string[] = key.split('|')
+    if (this.root === undefined) {
+      assert(tokens.length === 1, 'Country root node should not have a parent')
+      return tokens
+    }
+    tokens.unshift(this.root.key)
+    return tokens
   }
 }
 
@@ -106,16 +128,29 @@ export class AreaNode {
     return this
   }
 
-  // add this node to parent's children got for downward traversal
+  // add a child node to this node
   linkChild (child: AreaNode): AreaNode {
     const { _id } = child
     this.children.add(_id)
     return this
   }
 
-  // return an array of ancestor refs
+  /**
+   * Return an array of ancestor refs of this node (inclusive)
+   */
   getAncestors (): mongoose.Types.ObjectId[] {
     const a = this.treeRef.getAncestors(this)
     return a
   }
+
+  /**
+   * Return an array of ancenstor area name of this node (inclusive)
+   */
+  getPathTokens (): string[] {
+    return this.treeRef.getPathTokens(this)
+  }
+}
+
+export const createRootNode = (countryCode: string): AreaNode => {
+  return new AreaNode(countryCode, false, undefined, new Tree())
 }

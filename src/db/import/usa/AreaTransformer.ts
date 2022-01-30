@@ -1,16 +1,29 @@
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
+import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes'
-import { Tree, AreaNode } from './AreaTree.js'
+import { Tree, AreaNode, createRootNode } from './AreaTree.js'
 
-export const createAreas = async (areas: any[], areaModel: mongoose.Model<AreaType>): Promise<number> => {
-  const tree = new Tree()
+export const createRoot = async (countryCode: string): Promise<AreaNode> => {
+  const areaModel = getAreaModel('areas')
+  const countryNode = createRootNode(countryCode)
+  const doc = makeDBArea(countryNode)
+  await areaModel.insertMany(doc, { ordered: false })
+  return countryNode
+}
+
+export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongoose.Model<AreaType>): Promise<number> => {
+  const tree = new Tree(root) // todo: needs to receive a common root
   areas.forEach(record => {
     const { path }: {path: string} = record
     /* eslint-disable-next-line */
-    const fullPath = `USA|${record.us_state}|${path}` // 'path' doesn't have a parent, which is a US state
+    const fullPath = `${record.us_state}|${path}` // 'path' doesn't have a parent, which is a US state
     tree.insertMany(fullPath, record)
   })
+
+  // todo update root children in db
+
+  await areaModel.findOneAndUpdate({ _id: root._id }, { $push: { children: tree.subRoot._id } })
 
   let count = 0
   const chunkSize = 100
@@ -54,7 +67,7 @@ const makeDBArea = (node: AreaNode): AreaType => {
     },
     ancestors: node.getAncestors().join(','),
     climbs: [],
-    pathTokens: `${key}`.split('|'),
+    pathTokens: node.getPathTokens(),
     aggregate: {
       byGrade: [],
       byType: []
