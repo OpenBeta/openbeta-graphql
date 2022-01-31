@@ -9,10 +9,6 @@ import { ClimbType } from '../db/ClimbTypes.js'
 
 export default class Areas extends MongoDataSource<AreaType> {
   areaModel = createAreaModel('areas')
-  // async all (): Promise<any> {
-  //   const rs = this.collection.find({})
-  //   return await rs.toArray()
-  // }
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
     let mongoFilter = {}

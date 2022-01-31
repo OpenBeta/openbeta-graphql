@@ -1,5 +1,5 @@
 import algoliasearch from 'algoliasearch'
-import { connectDB, gracefulExit, createClimbModel } from '../index.js'
+import { connectDB, gracefulExit, createAreaModel } from '../index.js'
 
 const chunkSize = 1000
 
@@ -16,6 +16,8 @@ const onDBConnected = async (): Promise<void> => {
   const algoliaClient = algoliasearch(appID, apiKey)
   const index = algoliaClient.initIndex('climbs')
 
+  await index.delete()
+
   await index.setSettings({
     searchableAttributes: [
       'name',
@@ -24,26 +26,34 @@ const onDBConnected = async (): Promise<void> => {
     ]
   })
 
-  const climbs = createClimbModel('climbs')
-  let chunks: any[] = []
-  const cursor = climbs.find({}).cursor()
+  const areaModel = createAreaModel()
+  const agg = areaModel.aggregate([{ $match: { 'metadata.leaf': true } }]).unwind('climbs').replaceRoot('climbs')
+
   let count: number = 0
-  await cursor.eachAsync(async (doc) => {
+  let chunks: any[] = []
+
+  for await (const doc of agg) {
     if (chunks.length < chunkSize) {
-      doc.set('objectID', doc.get('metadata.climb_id'))
+      doc.objectID = doc._id.toString()
       chunks.push(doc)
     } else {
       console.log('Pushing batch...')
       count = count + chunkSize
-      await index.saveObjects(chunks, { autoGenerateObjectIDIfNotExist: true })
+      try {
+        await index.saveObjects(chunks, { autoGenerateObjectIDIfNotExist: true })
+      } catch (e) {
+        console.log(e)
+      }
       chunks = []
     }
-  })
+  }
+
   if (chunks.length > 0) {
     // push remaining
     count = count + chunks.length
     await index.saveObjects(chunks, { autoGenerateObjectIDIfNotExist: true })
   }
+
   console.log('Record uploaded: ', count)
   gracefulExit()
 }
