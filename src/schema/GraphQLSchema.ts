@@ -17,9 +17,6 @@ const resolvers = {
       //   return dataSources.climbs.findOneByClimbUUID(uuid)
       // }
     },
-    climbs: async (_, __, { dataSources }) => {
-      return dataSources.climbs.collection.find({}).toArray()
-    },
     areas: async (
       _,
       { filter, sort }: { filter?: GQLFilter, sort?: Sort },
