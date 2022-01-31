@@ -50,7 +50,7 @@ const AreaSchema = new Schema<AreaType>({
   totalClimbs: { type: Number }
 })
 
-export const createAreaModel = (name: string): mongoose.Model<AreaType> => {
+export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> => {
   return connection.model(name, AreaSchema)
 }
 
