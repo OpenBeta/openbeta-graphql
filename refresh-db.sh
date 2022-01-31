@@ -1,10 +1,18 @@
 #!/bin/bash
-git clone --depth 1 --branch develop \
-    https://github.com/OpenBeta/opentacos-content.git
+rm -rf tmp
+mkdir tmp
+cd tmp
 
-rm -rf opentacos-content/content/USA/Nevada
-rm -rf opentacos-content/content/USA/Washington
+GITHUB="https://raw.githubusercontent.com/OpenBeta/climbing-data/next"
 
-export CONTENT_BASEDIR=./opentacos-content/content/
+wget --content-disposition \
+  ${GITHUB}/openbeta-routes-northwest.zip
+wget --content-disposition \
+  ${GITHUB}/openbeta-routes-mountain2.zip
 
-node build/db/import/DataLoader.js
+unzip '*.zip'
+
+cd ..
+export CONTENT_BASEDIR=./tmp
+
+yarn seed-usa

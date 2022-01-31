@@ -11,10 +11,10 @@ import transformClimbRecord from '../ClimbTransformer.js'
 import { createAreas, createRoot } from './AreaTransformer.js'
 import US_STATES from './us-states.js'
 import { AreaNode } from './AreaTree.js'
-import { visitAll } from '../../../model/UpdateClimbTotals.js'
+import { visitAll } from '../../utils/AreaUpdates.js'
 
 const contentDir: string = process.env.CONTENT_BASEDIR ?? ''
-
+console.log('Data dir', contentDir)
 if (contentDir === '') {
   console.log('Missing CONTENT_BASEDIR env')
   process.exit(1)
@@ -22,7 +22,6 @@ if (contentDir === '') {
 
 const main = async (): Promise<void> => {
   await _dropCollection('areas')
-  // [{ code: 'OR' }])
   const rootNode = await createRoot('US')
   await Promise.all(US_STATES.map(async state => {
     const code = state.code.toLowerCase()
@@ -59,6 +58,7 @@ const seedState = async (root: AreaNode, stateCode: string, fileClimbs: string, 
   console.log('Dropping temp collections ', stateCode)
   await _dropCollection(tmpClimbs)
   console.log('Completed', stateCode)
+  return await Promise.resolve()
 }
 
 const _dropCollection = async (name: string): Promise<void> => {

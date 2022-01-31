@@ -1,3 +1,4 @@
+import { BBox } from '@turf/helpers'
 
 export enum SortDirection {
   ASC = 1,
@@ -35,3 +36,4 @@ type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams | Comp
 export type GQLFilter = Record<Filterable, FilterParams>
 
 export type LNGLAT = [number, number]
+export type BBoxType = BBox

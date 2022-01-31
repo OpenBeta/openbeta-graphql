@@ -1,20 +1,26 @@
 import mongoose from 'mongoose'
 import { BBox } from '@turf/helpers'
-import { getAreaModel } from '../db/AreaSchema.js'
-import { AreaType } from '../db/AreaTypes.js'
-import { bboxFrom, bboxFromList } from '../geo-utils.js'
+import { getAreaModel } from '../AreaSchema.js'
+import { AreaType } from '../AreaTypes.js'
+import { bboxFrom, bboxFromList } from '../../geo-utils.js'
 
 type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
+
 /**
- * Visit all nodes
- * @param pathRoot
+ * Visit all nodes using post-order traversal and perform graph reduction.
+ * Conceptually, it's similar to Array.reduce():
+ * 1. From root node, recursively visit all children until arrive at leaf nodes (crags).
+ * 2. Reduce each leaf node into a single object. Return to parent.
+ * 3. Reduce all children results.  Repeat.
  */
 export const visitAll = async (): Promise<void> => {
   const areaModel = getAreaModel('areas')
 
-  // get all top-level country nodes
+  // Get all top-level country nodes.
   const iterator = areaModel.find({ pathTokens: { $size: 1 } })
 
+  // We only have 1  root (US) right now, but code should run asynchronously
+  // for each country
   for await (const root of iterator) {
     await postOrderVisit(root, areaModel)
   }
@@ -67,22 +73,3 @@ const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<R
   await node.save()
   return z
 }
-
-// async function visitNode (node: AreaMongoType, areaModel: mongoose.Model<AreaType>): Promise<number> {
-//   if (node.metadata.leaf) {
-//     return node.totalClimbs
-//   }
-
-//   // populate children IDs with actual areas
-//   const nodeWithSubAreas = await node.populate('children')
-
-//   const z = await Promise.all(
-//     nodeWithSubAreas.children.map(async child => {
-//       const area: any = child // do this to avoid TS casting error
-//       return await visitNode(area as AreaMongoType, areaModel)
-//     }))
-//   const sum = z.reduce((acc, curr) => acc + curr, 0)
-//   node.totalClimbs = sum
-//   await node.save()
-//   return sum
-// }
