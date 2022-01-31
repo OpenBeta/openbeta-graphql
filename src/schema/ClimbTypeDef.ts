@@ -3,7 +3,6 @@ import { gql } from 'apollo-server'
 export const typeDef = gql`
   type Query {
     climb(id: ID, uuid: String): Climb
-    climbs: [Climb]
   }
 
   "A climbing route or a boulder problem"
@@ -16,6 +15,8 @@ export const typeDef = gql`
     safety: SafetyEnum!
     metadata: ClimbMetadata!
     content: Content!
+    pathTokens: [String!]!
+    ancestors: [String!]!
   }
 
   type ClimbMetadata {

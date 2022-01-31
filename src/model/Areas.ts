@@ -81,11 +81,20 @@ export default class Areas extends MongoDataSource<AreaType> {
   }
 
   async findOneClimbById (id: string): Promise<ClimbType|null> {
-    const rs = await this.areaModel
-      .findOne({ 'metadata.leaf': true })
-      .where({ 'climbs._id': new mongoose.Types.ObjectId(id) })
-      .select({ 'climbs.$': 1 })
-    return rs !== null && rs.climbs.length === 1 ? rs.climbs[0] : await Promise.resolve(null)
+    // Whoa this query is a bit crazy. I'm trying to combine
+    // area.ancestors and area.pathTokens with matching nested climb document
+    const rs = await this.areaModel.aggregate([{ $match: { 'metadata.leaf': true } }])
+      .project({ ancestors: 1, pathTokens: 1, climbs: { $filter: { input: '$climbs', as: 'climb', cond: { $eq: ['$$climb._id', new mongoose.Types.ObjectId(id)] } } } })
+      .unwind('climbs')
+      .replaceRoot({ $mergeObjects: ['$$ROOT', '$climbs'] })
+
+    if (rs !== null && rs.length === 1) {
+      const obj = rs[0]
+      delete obj.climbs // because 'climbs' has already been merged by $replaceRoot
+      obj.ancestors = obj.ancestors.split(',')
+      return obj
+    }
+    return null
   }
 
   /**
@@ -98,9 +107,5 @@ export default class Areas extends MongoDataSource<AreaType> {
     const regex = new RegExp(`^${path}`)
     const data = this.collection.find({ ancestors: regex, 'metadata.leaf': isLeaf })
     return await data.toArray()
-  }
-
-  findRootsIterator (): any {
-    return this.collection.find({ pathTokens: { $size: 1 } })
   }
 }
