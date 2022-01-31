@@ -1,3 +1,4 @@
+import mongose from 'mongoose'
 
 export type ClimbType = IClimbProps & {
   metadata: IClimbMetadata
@@ -5,6 +6,7 @@ export type ClimbType = IClimbProps & {
 }
 
 export interface IClimbProps {
+  _id: mongose.Types.ObjectId
   name: string
   fa?: string
   yds: string
@@ -33,6 +35,7 @@ export interface IClimbMetadata {
   lng: number | null
   left_right_index: number
   mp_id?: string
+  mp_crag_id: string
   climb_id: string
 }
 export interface IClimbContent {

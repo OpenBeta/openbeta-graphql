@@ -20,8 +20,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Load data to db",
-            "program": "${workspaceFolder}/src/db/import/DataLoader.ts",
+            "name": "Seed USA",
+            "program": "${workspaceFolder}/src/db/import/usa/USADay0Seed.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
@@ -42,6 +42,22 @@
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ]
+        },
+        {
+            "name": "Debug Jest Tests",
+            "type": "node",
+            "request": "launch",
+            "env": {
+                "NODE_OPTIONS": "--experimental-vm-modules"
+            },
+            "runtimeArgs": [
+                "--inspect-brk",
+                "${workspaceRoot}/node_modules/.bin/jest",
+                "--runInBand"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "port": 9229
         }
     ]
 }

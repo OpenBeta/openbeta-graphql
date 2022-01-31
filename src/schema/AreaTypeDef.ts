@@ -3,37 +3,32 @@ import { gql } from 'apollo-server'
 export const typeDef = gql`
   type Query {
     area(id: ID, uuid: String): Area
-
-    """
-    Areas query. 
-    - isLeaf = true: only areas with climbs
-    - Multiple filters are not supported
-    """
     areas(filter: Filter, sort: Sort): [Area]
   }
 
   "A climbing area, wall or crag"
   type Area {
-    area_name: String
+    id: ID!
+    area_name: String!
     metadata: AreaMetadata!
     climbs: [Climb]
     children: [Area]
-    ancestors: [String]
+    ancestors: [String]!
     aggregate: AggregateType
     content: AreaContent
-    pathHash: String
-    pathTokens: [String]
-    density: Float
-    totalClimbs: Int
-    bounds: [Point]
+    pathHash: String!
+    pathTokens: [String]!
+    density: Float!
+    totalClimbs: Int!
   }
 
   type AreaMetadata {
-    leaf: Boolean
-    lat: Float
-    lng: Float
-    left_right_index: Int
-    mp_id: String
+    leaf: Boolean!
+    lat: Float!
+    lng: Float!
+    bbox: [Float]!
+    left_right_index: Int!
+    mp_id: String!
     area_id: String!
   }
 

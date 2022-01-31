@@ -1,5 +1,5 @@
-import { Types } from 'mongoose'
-
+import mongose from 'mongoose'
+import { BBox } from '@turf/helpers'
 import { ClimbType } from './ClimbTypes'
 
 export type AreaType = IAreaProps & {
@@ -7,26 +7,25 @@ export type AreaType = IAreaProps & {
 }
 
 export interface IAreaProps {
+  _id: mongose.Types.ObjectId
   area_name: string
-  climbs?: ClimbType[]
-  children?: [Types.ObjectId]
-  ancestors: string[]
+  climbs: ClimbType[]
+  children: mongose.Types.ObjectId[]
+  ancestors: string
+  pathTokens: string[]
   aggregate: AggregateType
   content: IAreaContent
-  parentHashRef: string
-  pathHash: string
-  pathTokens: string[]
   density: number
   totalClimbs: number
-  bounds: [PointType]
 }
 
 export interface IAreaMetadata {
-  leaf: boolean|null
-  lat: number|null
-  lng: number|null
+  leaf: boolean
+  lat: number
+  lng: number
+  bbox: BBox
   left_right_index: number
-  mp_id?: string
+  ext_id?: string
   area_id: string
 }
 export interface IAreaContent {
@@ -40,6 +39,6 @@ export interface CountByGroupType {
 export interface PointType { lat: number, lng: number}
 
 export interface AggregateType {
-  byGrade: [CountByGroupType]
-  byType: [CountByGroupType]
+  byGrade: [CountByGroupType] | []
+  byType: [CountByGroupType] | []
 }

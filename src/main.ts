@@ -1,7 +1,6 @@
 import { ApolloServer } from 'apollo-server'
 import mongoose from 'mongoose'
 import { schema as graphQLSchema } from './schema/GraphQLSchema.js'
-import Climbs from './model/Climbs.js'
 import { connectDB } from './db/index.js'
 import Areas from './model/Areas.js'
 
@@ -12,13 +11,14 @@ import Areas from './model/Areas.js'
     schema: graphQLSchema,
     dataSources: () => {
       return {
-        climbs: new Climbs(mongoose.connection.db.collection('climbs')),
         areas: new Areas(mongoose.connection.db.collection('areas'))
       }
     }
   })
 
-  await connectDB()
+  await connectDB(async () => {
+    // additional initializing code here
+  })
   await server.listen().then((): void => {
     console.log('🚀 Server ready!')
   })
