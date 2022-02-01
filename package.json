@@ -8,7 +8,6 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@types/jest": "^27.0.3",
-    "@types/mdast": "^3.0.10",
     "jest": "^27.4.5",
     "ts-jest": "^27.1.2",
     "ts-node": "^10.4.0",
@@ -21,19 +20,14 @@
     "@turf/bbox": "^6.5.0",
     "@turf/bbox-polygon": "^6.5.0",
     "@turf/circle": "^6.5.0",
-    "@types/geojson": "^7946.0.8",
     "@types/uuid": "^8.3.3",
     "algoliasearch": "^4.11.0",
     "apollo-datasource-mongodb": "^0.5.2",
     "apollo-server": "^3.5.0",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
-    "front-matter": "^4.0.2",
-    "globby": "11.0.4",
     "graphql": "^16.2.0",
-    "mdast-util-from-markdown": "^1.2.0",
     "mongoose": "^6.1.8",
-    "unist-util-is": "^5.1.1",
     "uuid": "^8.3.2"
   },
   "scripts": {
