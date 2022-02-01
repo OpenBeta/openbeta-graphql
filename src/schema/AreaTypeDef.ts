@@ -4,6 +4,7 @@ export const typeDef = gql`
   type Query {
     area(id: ID, uuid: String): Area
     areas(filter: Filter, sort: Sort): [Area]
+    stats: Stats
   }
 
   "A climbing area, wall or crag"
@@ -95,5 +96,10 @@ export const typeDef = gql`
 
   input LeafFilter {
     isLeaf: Boolean!
+  }
+
+  type Stats {
+    totalClimbs: Int!
+    totalCrags: Int!
   }
 `
