@@ -1,4 +1,4 @@
-import { feature, featureCollection } from '@turf/helpers'
+import { featureCollection } from '@turf/helpers'
 import bbox from '@turf/bbox'
 import bboxPolygon from '@turf/bbox-polygon'
 import area from '@turf/area'
@@ -33,8 +33,8 @@ export const bboxFromList = (bboxList: BBoxType[]): any => {
  * @param totalClimbs
  * @returns total climbs per km sq
  */
-export const getAreaDensity = (bbox: BBoxType, totalClimbs: number): number => {
-  const areaInKm = area(feature(bboxPolygon(bbox))) / 1000000
+export const areaDensity = (bbox: BBoxType, totalClimbs: number): number => {
+  const areaInKm = area(bboxPolygon(bbox)) / 1000000
   const minArea = areaInKm < 5 ? 5 : areaInKm
   return totalClimbs / minArea
 }

@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import { BBox } from '@turf/helpers'
 import { getAreaModel } from '../AreaSchema.js'
 import { AreaType } from '../AreaTypes.js'
-import { bboxFrom, bboxFromList } from '../../geo-utils.js'
+import { bboxFrom, bboxFromList, areaDensity } from '../../geo-utils.js'
 
 type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
 
@@ -27,6 +27,7 @@ export const visitAll = async (): Promise<void> => {
 }
 
 interface ResultType {
+  density: number
   totalClimbs: number
   bbox: BBox
 }
@@ -50,26 +51,30 @@ async function postOrderVisit (node: AreaMongoType, areaModel: mongoose.Model<Ar
 
 const leafReducer = (node: AreaMongoType): ResultType => ({
   totalClimbs: node.totalClimbs,
-  bbox: bboxFrom([node.metadata.lng, node.metadata.lat])
+  bbox: bboxFrom([node.metadata.lng, node.metadata.lat]),
+  density: 0
 })
 
 const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<ResultType> => {
   const initial: ResultType = {
     totalClimbs: 0,
-    bbox: [-180, -90, 180, 90]
+    bbox: [-180, -90, 180, 90],
+    density: 0
   }
   const z = result.reduce((acc, curr, index) => {
     const { totalClimbs, bbox: _bbox } = curr
     const bbox = index === 0 ? _bbox : bboxFromList([_bbox, acc.bbox])
     return {
       totalClimbs: acc.totalClimbs + totalClimbs,
-      bbox
+      bbox,
+      density: areaDensity(bbox, totalClimbs)
     }
   }, initial)
 
-  const { totalClimbs, bbox } = z
+  const { totalClimbs, bbox, density } = z
   node.totalClimbs = totalClimbs
   node.metadata.bbox = bbox
+  node.density = density
   await node.save()
   return z
 }
