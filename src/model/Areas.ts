@@ -4,7 +4,7 @@ import { Filter } from 'mongodb'
 import { createAreaModel } from '../db/index.js'
 
 import { AreaType } from '../db/AreaTypes'
-import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams } from '../types'
+import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType } from '../types'
 import { ClimbType } from '../db/ClimbTypes.js'
 
 export default class Areas extends MongoDataSource<AreaType> {
@@ -107,5 +107,28 @@ export default class Areas extends MongoDataSource<AreaType> {
     const regex = new RegExp(`^${path}`)
     const data = this.collection.find({ ancestors: regex, 'metadata.leaf': isLeaf })
     return await data.toArray()
+  }
+
+  async getStats (): Promise<StatisticsType> {
+    const stats = {
+      totalClimbs: 0,
+      totalCrags: 0
+    }
+    const agg1 = await this.areaModel.aggregate([{ $match: { pathTokens: { $size: 1 } } }])
+      .project({ totalClimbs: { $sum: '$totalClimbs' }, _id: 0 })
+
+    const agg2 = await this.areaModel.aggregate([{ $match: { 'metadata.leaf': true } }])
+      .count('totalCrags')
+
+    if (agg1.length === 1 && agg2.length === 1) {
+      const totalClimbs = agg1[0].totalClimbs
+      const totalCrags = agg2[0].totalCrags
+      return {
+        totalClimbs,
+        totalCrags
+      }
+    }
+
+    return stats
   }
 }

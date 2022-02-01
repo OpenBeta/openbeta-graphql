@@ -25,6 +25,7 @@ const resolvers = {
       const filtered = await areas.findAreasByFilter(filter)
       return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
+
     area: async (_: any,
       { id, uuid }: { id: string, uuid: string },
       { dataSources }) => {
@@ -37,6 +38,10 @@ const resolvers = {
         return areas.findOneByAreaUUID(uuid)
       }
       return null
+    },
+
+    stats: async (parent: any, args: any, { dataSources }) => {
+      return dataSources.areas.getStats()
     }
   },
 

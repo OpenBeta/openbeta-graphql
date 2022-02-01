@@ -37,3 +37,8 @@ export type GQLFilter = Record<Filterable, FilterParams>
 
 export type LNGLAT = [number, number]
 export type BBoxType = BBox
+
+export interface StatisticsType {
+  totalClimbs: number
+  totalCrags: number
+}
