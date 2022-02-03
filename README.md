@@ -89,6 +89,10 @@ Browse the database: http://localhost:8081
 
 This project is under active development.  Join us on [Discord](https://discord.gg/xcWha22BhT)!
 
+### Code Contributions
+
+If you'd like to fix bugs or add a new feature to OpenBeta GraphQL API, please make sure you consult the [Contribution Guidelines](./CONTRIBUTING.md).
+
 ### License
 
 The source code is licensed under the [Affero GPL v3.0 license](./LICENSE).
