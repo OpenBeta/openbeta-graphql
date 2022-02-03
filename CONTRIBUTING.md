@@ -4,7 +4,7 @@ We're glad you want to contribute to an OpenBeta project! This document will hel
 
 * [Code of Conduct](#code-of-conduct)
 * [Getting Started](#getting-started)
-* [Ready to write some code?](ready-to-write-some-code)
+* [Ready to write some code?](#ready-to-write-some-code)
 * [Legal](#legal)
 
 ## Code of Conduct
@@ -38,6 +38,6 @@ We ask new contributors to first fork the repo and submit pull request from your
 
 ## Legal
 
-OpenBeta GraphQL API source code is available under [the GNU Affero General Public License v3.0](https://github.com/OpenBeta/openbeta-graphql/blob/main/LICENSE).  The source code also includes scripts that load rock climbing data ('content') that are available under a variety of licenses. See <explaination docs> for the full license text.
+OpenBeta GraphQL API source code is available under [the GNU Affero General Public License v3.0](https://github.com/OpenBeta/openbeta-graphql/blob/main/LICENSE).  The source code also includes scripts that load rock climbing data ('content') that are available under a variety of licenses. See 'explaination docs' for the full license text.
 
 If you are contributing code and documentation to OpenBeta projects, you agree to license your contributions under the open source license indicated in the [LICENSE](./LICENSE) file.
