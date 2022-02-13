@@ -28,7 +28,7 @@ const main = async (): Promise<void> => {
     const fRoutes = `${contentDir}/${code}-routes.jsonlines`
     const fAreas = `${contentDir}/${code}-areas.jsonlines`
     if (fs.existsSync(fRoutes) && fs.existsSync(fAreas)) {
-      console.log('Loading beginning: ', code)
+      console.log('Loading: ', code)
       return await seedState(rootNode, code, fRoutes, fAreas)
     }
     return await Promise.resolve()
