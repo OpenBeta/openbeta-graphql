@@ -7,8 +7,18 @@ GITHUB="https://raw.githubusercontent.com/OpenBeta/climbing-data/next"
 
 wget --content-disposition \
   ${GITHUB}/openbeta-routes-northwest.zip
+
 wget --content-disposition \
   ${GITHUB}/openbeta-routes-mountain2.zip
+
+wget --content-disposition \
+  ${GITHUB}/openbeta-routes-ca.zip
+
+wget --content-disposition \
+  ${GITHUB}/openbeta-routes-mountain1-co-ut.zip
+
+wget --content-disposition \
+  ${GITHUB}/openbeta-routes-eastcoast.zip
 
 unzip '*.zip'
 
