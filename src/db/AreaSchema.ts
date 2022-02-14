@@ -48,6 +48,12 @@ const AreaSchema = new Schema<AreaType>({
   content: ContentSchema,
   density: { type: Number },
   totalClimbs: { type: Number }
+}, {
+  writeConcern: {
+    w: 'majority',
+    j: true,
+    wtimeout: 5000
+  }
 })
 
 export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> => {

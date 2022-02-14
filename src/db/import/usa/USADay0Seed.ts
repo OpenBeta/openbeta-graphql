@@ -34,10 +34,9 @@ const main = async (): Promise<void> => {
     return await Promise.resolve()
   }))
 
-  console.log('Calculating stats and geo data...')
+  console.time('Calculating stats and geo data')
   await visitAll()
-  console.log('Done.')
-
+  console.timeEnd('Calculating stats and geo data')
   gracefulExit()
   return await Promise.resolve()
 }
