@@ -6,7 +6,7 @@ cd tmp
 GITHUB="https://raw.githubusercontent.com/OpenBeta/climbing-data/next"
 
 wget --content-disposition \
-  ${GITHUB}/openbeta-routes-northwest.zip
+  ${GITHUB}/openbeta-routes-westcoast.zip
 
 wget --content-disposition \
   ${GITHUB}/openbeta-routes-mountain2.zip
@@ -15,10 +15,16 @@ wget --content-disposition \
   ${GITHUB}/openbeta-routes-ca.zip
 
 wget --content-disposition \
-  ${GITHUB}/openbeta-routes-mountain1-co-ut.zip
+  ${GITHUB}/openbeta-routes-mountain1.zip
 
 wget --content-disposition \
-  ${GITHUB}/openbeta-routes-eastcoast.zip
+  ${GITHUB}/openbeta-routes-northeast.zip
+
+wget --content-disposition \
+  ${GITHUB}/openbeta-routes-southeast.zip
+
+wget --content-disposition \
+  ${GITHUB}/openbeta-routes-midwest.zip
 
 unzip '*.zip'
 
