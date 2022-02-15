@@ -51,9 +51,18 @@ const main = async (): Promise<void> => {
 
 const printStats = (stats: Array<JobStats|any>): void => {
   console.log('------------------ Summary -------------------')
+  const sums = { states: 0, climbs: 0, areas: 0 }
   for (const entry of stats) {
-    if (entry !== undefined) { console.log(entry) }
+    if (entry !== undefined) {
+      console.log(entry)
+      const e = entry as JobStats
+      sums.climbs += e.climbCount
+      sums.areas += e.climbCount
+      sums.states += 1
+    }
   }
+  console.log('---------------------------------------------')
+  console.log('Total: ', sums)
 }
 
 connectDB(main)
