@@ -1,38 +1,46 @@
-import mongoose from 'mongoose'
 import fs from 'node:fs'
-import readline from 'node:readline'
+import pLimit from 'p-limit'
 
-import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
-import { AreaType } from '../../AreaTypes.js'
-import { addClimbsToAreas } from './AddClimbsToCrags.js'
-import { createClimbModel } from '../../ClimbSchema.js'
-import { ClimbType } from '../../ClimbTypes.js'
-import transformClimbRecord from '../ClimbTransformer.js'
-import { createAreas, createRoot } from './AreaTransformer.js'
+import { connectDB, gracefulExit } from '../../index.js'
+import { createRoot } from './AreaTransformer.js'
 import US_STATES from './us-states.js'
-import { AreaNode } from './AreaTree.js'
 import { visitAll } from '../../utils/AreaUpdates.js'
+import { seedState, dropCollection, JobStats } from './SeedState.js'
 
 const contentDir: string = process.env.CONTENT_BASEDIR ?? ''
+
+const DEFAULT_CONCURRENT_JOBS = 4
+const concurrentJobs: number = process.env.OB_SEED_JOBS !== undefined ? parseInt(process.env.OB_SEED_JOBS) : DEFAULT_CONCURRENT_JOBS
+
 console.log('Data dir', contentDir)
+console.log('Max concurrent jobs: ', concurrentJobs)
+
 if (contentDir === '') {
   console.log('Missing CONTENT_BASEDIR env')
   process.exit(1)
 }
 
 const main = async (): Promise<void> => {
-  await _dropCollection('areas')
+  const limiter = pLimit(concurrentJobs > 0 ? concurrentJobs : DEFAULT_CONCURRENT_JOBS)
+
+  // TODO: Allow update.  Right now we drop the entire collection on each run.
+  await dropCollection('areas')
+
   const rootNode = await createRoot('US')
-  await Promise.all(US_STATES.map(async state => {
+
+  const stats: Array<JobStats|any> = await Promise.all<Array<JobStats|any>>(US_STATES.map(async state => {
     const code = state.code.toLowerCase()
     const fRoutes = `${contentDir}/${code}-routes.jsonlines`
     const fAreas = `${contentDir}/${code}-areas.jsonlines`
+
     if (fs.existsSync(fRoutes) && fs.existsSync(fAreas)) {
-      console.log('Loading: ', code)
-      return await seedState(rootNode, code, fRoutes, fAreas)
+      /* eslint-disable-next-line */
+      return limiter(async () => seedState(rootNode, code, fRoutes, fAreas))
     }
     return await Promise.resolve()
   }))
+
+  printStats(stats)
 
   console.time('Calculating stats and geo data')
   await visitAll()
@@ -40,74 +48,12 @@ const main = async (): Promise<void> => {
   gracefulExit()
   return await Promise.resolve()
 }
-const seedState = async (root: AreaNode, stateCode: string, fileClimbs: string, fileAreas: string): Promise<void> => {
-  const tmpClimbs = `_${stateCode}_tmp_climbs`
-  await _dropCollection(tmpClimbs)
 
-  const areaModel: mongoose.Model<AreaType> = createAreaModel('areas')
-  const climbModel: mongoose.Model<ClimbType> = createClimbModel(tmpClimbs)
-  const stats = await Promise.all([
-    loadClimbs(fileClimbs, climbModel),
-    loadAreas(root, fileAreas, areaModel)
-  ])
-  console.log('Document loaded ', stateCode, stats)
-
-  await addClimbsToAreas(climbModel, areaModel)
-  console.log('Added climbs to crags', stateCode)
-  console.log('Dropping temp collections ', stateCode)
-  await _dropCollection(tmpClimbs)
-  console.log('Completed', stateCode)
-  return await Promise.resolve()
-}
-
-const _dropCollection = async (name: string): Promise<void> => {
-  try {
-    await mongoose.connection.db.dropCollection(name)
-  } catch (e) {
+const printStats = (stats: Array<JobStats|any>): void => {
+  console.log('------------------ Summary -------------------')
+  for (const entry of stats) {
+    if (entry !== undefined) { console.log(entry) }
   }
-}
-
-const loadClimbs = async (fileName: string, model: mongoose.Model<ClimbType>): Promise<number> => {
-  let count = 0
-  const chunkSize = 100
-  let chunk: ClimbType[] = []
-
-  const rl = readline.createInterface({
-    input: fs.createReadStream(fileName),
-    terminal: false
-  })
-
-  for await (const line of rl) {
-    const jsonLine = JSON.parse(line)
-    const record = transformClimbRecord(jsonLine)
-    chunk.push(record)
-    if (chunk.length % chunkSize === 0) {
-      count = count + chunk.length
-      await model.insertMany(chunk, { ordered: false })
-      chunk = []
-    }
-  }
-
-  if (chunk.length > 0) {
-    count = count + chunk.length
-    await model.insertMany(chunk, { ordered: false })
-  }
-  return count
-}
-
-const loadAreas = async (root: AreaNode, fileName: string, model: mongoose.Model<AreaType>): Promise<number> => {
-  const buffer: any[] = []
-
-  const rl = readline.createInterface({
-    input: fs.createReadStream(fileName),
-    terminal: false
-  })
-
-  for await (const line of rl) {
-    buffer.push(JSON.parse(line))
-  }
-
-  return await createAreas(root, buffer, model)
 }
 
 connectDB(main)
