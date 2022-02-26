@@ -1,4 +1,4 @@
-import Typesense from 'Typesense'
+import Typesense from 'typesense'
 import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
 import { flattenDisciplines } from './Utils.js'
 const chunkSize = 5000
