@@ -1,12 +1,18 @@
 import Typesense from 'typesense'
 import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
-import { flattenDisciplines } from './Utils.js'
+import { disciplinesToEnums } from './Utils.js'
 const chunkSize = 5000
 
 const schema = {
   name: 'climbs',
   num_documents: 0,
   fields: [
+    {
+      name: 'climbId',
+      type: 'string' as const,
+      index: false,
+      optional: true
+    },
     {
       name: 'climb_name',
       type: 'string' as const,
@@ -23,40 +29,45 @@ const schema = {
       facet: false
     },
     {
-      name: 'typeSport',
-      type: 'bool' as const,
-      facet: true
-    },
-    {
-      name: 'typeTrad',
-      type: 'bool' as const,
-      facet: true
-    },
-    {
-      name: 'typeBouldering',
-      type: 'bool' as const,
-      facet: true
-    },
-    {
-      name: 'typeAlpine',
-      type: 'bool' as const,
-      facet: true
-    },
-    {
-      name: 'typeMixed',
-      type: 'bool' as const,
-      facet: true
-    },
-    {
-      name: 'typeAid',
-      type: 'bool' as const,
-      facet: true
-    },
-    {
-      name: 'typeTR',
-      type: 'bool' as const,
+      name: 'disciplines',
+      type: 'string' as const,
       facet: true
     }
+    // {
+    //   name: 'typeSport',
+    //   type: 'bool' as const,
+    //   facet: true
+    // },
+    // {
+    //   name: 'typeTrad',
+    //   type: 'bool' as const,
+    //   facet: true
+    // },
+    // {
+    //   name: 'typeBouldering',
+    //   type: 'bool' as const,
+    //   facet: true
+    // },
+    // {
+    //   name: 'typeAlpine',
+    //   type: 'bool' as const,
+    //   facet: true
+    // },
+    // {
+    //   name: 'typeMixed',
+    //   type: 'bool' as const,
+    //   facet: true
+    // },
+    // {
+    //   name: 'typeAid',
+    //   type: 'bool' as const,
+    //   facet: true
+    // },
+    // {
+    //   name: 'typeTR',
+    //   type: 'bool' as const,
+    //   facet: true
+    // }
   ]
 //   default_sorting_field: 'climb_name'
 }
@@ -109,10 +120,11 @@ const onDBConnected = async (): Promise<void> => {
     if (chunks.length < chunkSize) {
       doc.id = doc._id.toString()
       chunks.push({
+        climbId: doc.id,
         climb_name: doc.name,
         climb_desc: doc.description ?? '',
         fa: doc.fa ?? '',
-        ...flattenDisciplines(doc.type)
+        disciplines: disciplinesToEnums(doc.type)
       })
     } else {
       count = count + chunkSize

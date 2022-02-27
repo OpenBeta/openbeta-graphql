@@ -23,13 +23,6 @@ export const flattenDisciplines = (type: IClimbType): IFlatClimbTypes => {
 }
 
 export const disciplinesToEnums = (type: IClimbType): any => {
-  return {
-    typeSport: type?.sport ? 'sport' : '',
-    typeTrad: type?.trad ?? false,
-    typeTR: type?.tr ?? false,
-    typeBouldering: type?.bouldering ?? false,
-    typeMixed: type?.mixed ?? false,
-    typeAlpine: type?.alpine ?? false,
-    typeAid: type?.aid ?? false
-  }
+  const s = `${type?.sport ? 'sport' : ''} ${type?.trad ? 'trad' : ''} ${type?.tr ? 'tr' : ''} ${type?.bouldering ? 'bouldering' : ''} ${type?.mixed ? 'mixed' : ''} ${type?.alpine ? 'alpine' : ''} ${type?.aid ? 'aid' : ''}`
+  return s
 }
