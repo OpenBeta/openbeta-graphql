@@ -1,6 +1,6 @@
 import Typesense from 'typesense'
 import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
-import { disciplinesToEnums } from './Utils.js'
+import { disciplinesToArray } from './Utils.js'
 const chunkSize = 5000
 
 const schema = {
@@ -30,46 +30,17 @@ const schema = {
     },
     {
       name: 'disciplines',
-      type: 'string' as const,
+      type: 'string[]' as const,
       facet: true
+    },
+    {
+      name: 'areaNames',
+      type: 'string[]' as const,
+      facet: false
     }
-    // {
-    //   name: 'typeSport',
-    //   type: 'bool' as const,
-    //   facet: true
-    // },
-    // {
-    //   name: 'typeTrad',
-    //   type: 'bool' as const,
-    //   facet: true
-    // },
-    // {
-    //   name: 'typeBouldering',
-    //   type: 'bool' as const,
-    //   facet: true
-    // },
-    // {
-    //   name: 'typeAlpine',
-    //   type: 'bool' as const,
-    //   facet: true
-    // },
-    // {
-    //   name: 'typeMixed',
-    //   type: 'bool' as const,
-    //   facet: true
-    // },
-    // {
-    //   name: 'typeAid',
-    //   type: 'bool' as const,
-    //   facet: true
-    // },
-    // {
-    //   name: 'typeTR',
-    //   type: 'bool' as const,
-    //   facet: true
-    // }
   ]
-//   default_sorting_field: 'climb_name'
+  // TBD: need to have better tie-breakers (star/popularity ratings)
+  //   default_sorting_field: 'climb_name'
 }
 
 const onDBConnected = async (): Promise<void> => {
@@ -101,17 +72,17 @@ const onDBConnected = async (): Promise<void> => {
     await typesense.collections('climbs').delete()
   } catch (error) {
     console.log(error)
-    // do nothing
   }
 
   try {
     await typesense.collections().create(schema)
   } catch (error) {
     console.log(error)
+    gracefulExit()
   }
 
   const areaModel = createAreaModel()
-  const agg = areaModel.aggregate([{ $match: { 'metadata.leaf': true } }]).unwind('climbs').replaceRoot('climbs')
+  const agg = areaModel.aggregate([{ $match: { 'metadata.leaf': true } }, { $unwind: '$climbs' }, { $addFields: { 'climbs.pathTokens': '$pathTokens' } }]).replaceRoot('climbs')
 
   let count: number = 0
   let chunks: any[] = []
@@ -122,9 +93,10 @@ const onDBConnected = async (): Promise<void> => {
       chunks.push({
         climbId: doc.id,
         climb_name: doc.name,
-        climb_desc: doc.description ?? '',
+        climb_desc: doc.content.description ?? '',
         fa: doc.fa ?? '',
-        disciplines: disciplinesToEnums(doc.type)
+        areaNames: doc.pathTokens,
+        disciplines: disciplinesToArray(doc.type)
       })
     } else {
       count = count + chunkSize
@@ -142,8 +114,11 @@ const onDBConnected = async (): Promise<void> => {
   if (chunks.length > 0) {
     // push remaining
     count = count + chunks.length
-    await typesense.collections('climbs').documents().import(chunks)
-    // await index.saveObjects(chunks, { autoGenerateObjectIDIfNotExist: true })
+    try {
+      await typesense.collections('climbs').documents().import(chunks)
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   console.log('Record uploaded: ', count)
