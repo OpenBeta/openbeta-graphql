@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Algolia push",
-            "program": "${workspaceFolder}/src/db/import/Algolia.ts",
+            "name": "Typesense push",
+            "program": "${workspaceFolder}/src/db/export/Typesense/Typesense.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"

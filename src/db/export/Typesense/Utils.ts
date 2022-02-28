@@ -22,7 +22,12 @@ export const flattenDisciplines = (type: IClimbType): IFlatClimbTypes => {
   }
 }
 
-export const disciplinesToEnums = (type: IClimbType): any => {
-  const s = `${type?.sport ? 'sport' : ''} ${type?.trad ? 'trad' : ''} ${type?.tr ? 'tr' : ''} ${type?.bouldering ? 'bouldering' : ''} ${type?.mixed ? 'mixed' : ''} ${type?.alpine ? 'alpine' : ''} ${type?.aid ? 'aid' : ''}`
-  return s
+export const disciplinesToArray = (type: IClimbType): any => {
+  const z: string[] = []
+  for (const property in type) {
+    if (type[property] as boolean) {
+      z.push(property)
+    }
+  }
+  return z
 }
