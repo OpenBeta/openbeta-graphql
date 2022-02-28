@@ -8,18 +8,12 @@ const schema = {
   num_documents: 0,
   fields: [
     {
-      name: 'climbId',
-      type: 'string' as const,
-      index: false,
-      optional: true
-    },
-    {
-      name: 'climb_name',
+      name: 'climbName',
       type: 'string' as const,
       facet: false
     },
     {
-      name: 'climb_desc',
+      name: 'climbDesc',
       type: 'string' as const,
       facet: false
     },
@@ -37,6 +31,24 @@ const schema = {
       name: 'areaNames',
       type: 'string[]' as const,
       facet: false
+    },
+    {
+      name: 'climbId',
+      type: 'string' as const,
+      index: false,
+      optional: true
+    },
+    {
+      name: 'grade',
+      type: 'string' as const,
+      index: false,
+      optional: true
+    },
+    {
+      name: 'safety',
+      type: 'string' as const,
+      index: false,
+      optional: true
     }
   ]
   // TBD: need to have better tie-breakers (star/popularity ratings)
@@ -92,11 +104,13 @@ const onDBConnected = async (): Promise<void> => {
       doc.id = doc._id.toString()
       chunks.push({
         climbId: doc.id,
-        climb_name: doc.name,
-        climb_desc: doc.content.description ?? '',
+        climbName: doc.name,
+        climbDesc: doc.content.description ?? '',
         fa: doc.fa ?? '',
         areaNames: doc.pathTokens,
-        disciplines: disciplinesToArray(doc.type)
+        disciplines: disciplinesToArray(doc.type),
+        grade: doc.yds,
+        safety: doc.safety
       })
     } else {
       count = count + chunkSize
