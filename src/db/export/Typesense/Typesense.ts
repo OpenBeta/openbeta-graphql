@@ -49,6 +49,11 @@ const schema = {
       type: 'string' as const,
       index: false,
       optional: true
+    },
+    {
+      name: 'cragLatLng',
+      type: 'geopoint' as const,
+      index: true
     }
   ]
   // TBD: need to have better tie-breakers (star/popularity ratings)
@@ -110,7 +115,8 @@ const onDBConnected = async (): Promise<void> => {
         areaNames: doc.pathTokens,
         disciplines: disciplinesToArray(doc.type),
         grade: doc.yds,
-        safety: doc.safety
+        safety: doc.safety,
+        cragLatLng: [doc.metadata.lat, doc.metadata.lng]
       })
     } else {
       count = count + chunkSize
