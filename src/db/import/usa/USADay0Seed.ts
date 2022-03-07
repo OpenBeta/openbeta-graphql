@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import pLimit from 'p-limit'
 
-import { connectDB, gracefulExit } from '../../index.js'
+import { connectDB, gracefulExit, createIndexes } from '../../index.js'
 import { createRoot } from './AreaTransformer.js'
 import US_STATES from './us-states.js'
 import { visitAll } from '../../utils/AreaUpdates.js'
@@ -41,6 +41,10 @@ const main = async (): Promise<void> => {
   }))
 
   printStats(stats)
+
+  console.time('Creating indexes')
+  await createIndexes()
+  console.timeEnd('Creating indexes')
 
   console.time('Calculating stats and geo data')
   await visitAll()

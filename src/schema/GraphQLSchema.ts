@@ -64,39 +64,42 @@ const resolvers = {
       return []
     },
 
-    aggregate: async (parent, _, { dataSources: { areas } }) => {
-      // get all leafs under this parent
-      const allChildAreas: AreaType[] = await areas.findDescendantsByPath(parent.ancestors, true)
-      const byGrade = {}
-      const byType = {}
-
-      allChildAreas.forEach(area => {
-        // exit early if there are no climbs
-        if (area.climbs === undefined) {
-          return
-        }
-
-        area.climbs.forEach((climb) => {
-          const { yds, type } = climb
-          // Grade
-          const entry: CountByGroupType = byGrade[yds] === undefined ? { label: yds, count: 0 } : byGrade[yds]
-          entry.count = entry.count + 1
-          byGrade[yds] = entry
-
-          for (const t in type) {
-            if (type[t] !== false) {
-              const entry: CountByGroupType = byType[t] !== undefined ? byType[t] : { label: t, count: 0 }
-              byType[t] = Object.assign(entry, { count: entry.count + 1 })
-            }
-          }
-        })
-      })
-
-      return {
-        byGrade: Object.values(byGrade),
-        byType: Object.values(byType)
-      }
+    aggregate: async (node: AreaType, _, { dataSources: { areas } }) => {
+      return node.aggregate
     },
+    // aggregate: async (parent, _, { dataSources: { areas } }) => {
+    //   // get all leafs under this parent
+    //   const allChildAreas: AreaType[] = await areas.findDescendantsByPath(parent.ancestors, true)
+    //   const byGrade = {}
+    //   const byType = {}
+
+    //   allChildAreas.forEach(area => {
+    //     // exit early if there are no climbs
+    //     if (area.climbs === undefined) {
+    //       return
+    //     }
+
+    //     area.climbs.forEach((climb) => {
+    //       const { yds, type } = climb
+    //       // Grade
+    //       const entry: CountByGroupType = byGrade[yds] === undefined ? { label: yds, count: 0 } : byGrade[yds]
+    //       entry.count = entry.count + 1
+    //       byGrade[yds] = entry
+
+    //       for (const t in type) {
+    //         if (type[t] !== false) {
+    //           const entry: CountByGroupType = byType[t] !== undefined ? byType[t] : { label: t, count: 0 }
+    //           byType[t] = Object.assign(entry, { count: entry.count + 1 })
+    //         }
+    //       }
+    //     })
+    //   })
+
+    //   return {
+    //     byGrade: Object.values(byGrade),
+    //     byType: Object.values(byType)
+    //   }
+    // },
 
     ancestors: async (parent) => parent.ancestors.split(','),
 

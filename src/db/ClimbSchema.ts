@@ -24,7 +24,11 @@ const ContentSchema = new Schema<IClimbContent>({
 }, { _id: false })
 
 const MetadataSchema = new Schema<IClimbMetadata>({
-  lnglat: PointSchema,
+  lnglat: {
+    type: PointSchema,
+    required: true,
+    index: true
+  },
   left_right_index: { type: Number, required: false },
   mp_id: { type: String, required: false },
   mp_crag_id: { type: String, required: true },

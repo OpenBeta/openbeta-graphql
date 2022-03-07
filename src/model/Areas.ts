@@ -109,6 +109,10 @@ export default class Areas extends MongoDataSource<AreaType> {
     return await data.toArray()
   }
 
+  /**
+   * Get whole db stats
+   * @returns
+   */
   async getStats (): Promise<StatisticsType> {
     const stats = {
       totalClimbs: 0,

@@ -5,6 +5,7 @@ export const typeDef = gql`
     area(id: ID, uuid: String): Area
     areas(filter: Filter, sort: Sort): [Area]
     stats: Stats
+    
   }
 
   "A climbing area, wall or crag"
