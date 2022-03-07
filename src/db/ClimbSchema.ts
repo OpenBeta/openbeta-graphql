@@ -26,8 +26,7 @@ const ContentSchema = new Schema<IClimbContent>({
 const MetadataSchema = new Schema<IClimbMetadata>({
   lnglat: {
     type: PointSchema,
-    required: true,
-    index: true
+    index: '2dsphere'
   },
   left_right_index: { type: Number, required: false },
   mp_id: { type: String, required: false },

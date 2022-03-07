@@ -1,11 +1,12 @@
 import mongoose from 'mongoose'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
+import { geometry } from '@turf/helpers'
 import { createAreaModel } from '../db/index.js'
 
 import { AreaType } from '../db/AreaTypes'
-import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType } from '../types'
 import { ClimbType } from '../db/ClimbTypes.js'
+import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType } from '../types'
 
 export default class Areas extends MongoDataSource<AreaType> {
   areaModel = createAreaModel('areas')
@@ -134,5 +135,12 @@ export default class Areas extends MongoDataSource<AreaType> {
     }
 
     return stats
+  }
+
+  async getCragsNear (lnglat: [number, number], maxDistance: number): Promise<AreaType[]> {
+    const rs = await this.areaModel.find({ 'metadata.leaf': true })
+      .where('metadata.lnglat')
+      .near({ center: geometry('Point', lnglat), maxDistance, spherical: true })
+    return rs
   }
 }

@@ -56,12 +56,17 @@ async function postOrderVisit (node: AreaMongoType, areaModel: mongoose.Model<Ar
  * @param node leaf area/crag
  * @returns aggregate type
  */
-const leafReducer = (node: AreaMongoType): ResultType => ({
-  totalClimbs: node.totalClimbs,
-  bbox: bboxFrom(node.metadata.lnglat),
-  density: 0,
-  aggregate: aggregateCragStats(node)
-})
+const leafReducer = (node: AreaMongoType): ResultType => {
+  const agg = aggregateCragStats(node)
+  node.aggregate = agg
+  node.save()
+  return {
+    totalClimbs: node.totalClimbs,
+    bbox: bboxFrom(node.metadata.lnglat),
+    density: 0,
+    aggregate: agg
+  }
+}
 
 const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<ResultType> => {
   const initial: ResultType = {

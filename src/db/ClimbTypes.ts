@@ -25,7 +25,7 @@ export enum SafetyType {
 export interface IClimbType {
   trad: boolean
   sport: boolean
-  bouldering: boolean
+  boulder: boolean
   alpine: boolean
   mixed: boolean
   aid: boolean

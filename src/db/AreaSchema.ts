@@ -8,8 +8,7 @@ const MetadataSchema = new Schema<IAreaMetadata>({
   leaf: { type: Boolean, sparse: true },
   lnglat: {
     type: PointSchema,
-    required: true,
-    index: true
+    index: '2dsphere'
   },
   bbox: [{ type: Number, required: true }],
   left_right_index: { type: Number, required: false },
