@@ -42,7 +42,6 @@
     "serve": "node build/main.js",
     "refresh-db": "./refresh-db.sh",
     "seed-usa": "yarn build && node build/db/import/usa/USADay0Seed.js",
-    "update-search-zzzzzzz": "yarn build && node build/db/import/Algolia.js",
     "update-search": "yarn build && node build/db/export/Typesense/Typesense.js"
   },
   "standard": {

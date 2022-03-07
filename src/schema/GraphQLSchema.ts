@@ -46,7 +46,12 @@ const resolvers = {
   },
 
   Climb: {
-    id: async (parent: ClimbType) => parent._id
+    id: async (parent: ClimbType) => parent._id,
+    metadata: (parent: ClimbType) => ({
+      ...parent.metadata,
+      lng: parent.metadata.lnglat.coordinates[0],
+      lat: parent.metadata.lnglat.coordinates[1]
+    })
   },
 
   Area: {
@@ -93,7 +98,13 @@ const resolvers = {
       }
     },
 
-    ancestors: async (parent) => parent.ancestors.split(',')
+    ancestors: async (parent) => parent.ancestors.split(','),
+
+    metadata: (parent: AreaType) => ({
+      ...parent.metadata,
+      lng: parent.metadata.lnglat.coordinates[0],
+      lat: parent.metadata.lnglat.coordinates[1]
+    })
   }
 }
 

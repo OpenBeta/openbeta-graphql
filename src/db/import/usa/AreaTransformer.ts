@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
+import { geometry, Point } from '@turf/helpers'
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes'
 import { Tree, AreaNode, createRootNode } from './AreaTree.js'
@@ -60,8 +61,7 @@ const makeDBArea = (node: AreaNode): AreaType => {
     metadata: {
       leaf: isLeaf,
       area_id: uuidv4(),
-      lng: isLeaf ? node.jsonLine.lnglat[0] : 0,
-      lat: isLeaf ? node.jsonLine.lnglat[1] : 0,
+      lnglat: geometry('Point', isLeaf ? node.jsonLine.lnglat : [0, 0]) as Point,
       bbox: [-180, -90, 180, 90],
       left_right_index: -1,
       ext_id: isLeaf ? extractMpId(node.jsonLine.url) : ''

@@ -1,5 +1,5 @@
 import mongose from 'mongoose'
-import { BBox } from '@turf/helpers'
+import { BBox, Point } from '@turf/helpers'
 import { ClimbType } from './ClimbTypes'
 
 export type AreaType = IAreaProps & {
@@ -21,8 +21,7 @@ export interface IAreaProps {
 
 export interface IAreaMetadata {
   leaf: boolean
-  lat: number
-  lng: number
+  lnglat: Point
   bbox: BBox
   left_right_index: number
   ext_id?: string

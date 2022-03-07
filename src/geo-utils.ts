@@ -1,16 +1,16 @@
-import { featureCollection } from '@turf/helpers'
+import { featureCollection, Point } from '@turf/helpers'
 import bbox from '@turf/bbox'
 import bboxPolygon from '@turf/bbox-polygon'
 import area from '@turf/area'
 import circle from '@turf/circle'
-import { LNGLAT, BBoxType } from './types'
+import { BBoxType } from './types'
 
 /**
  * Turn a single point (crag's GPS) into a circle then create a bbox.
  * @param point
  * @returns
  */
-export const bboxFrom = (point: LNGLAT): BBoxType => {
+export const bboxFrom = (point: Point): BBoxType => {
   const options = { steps: 8 }
   const r = 0.25 // unit=km. Hopefully this is a large enough area (but not too large) for a crag
   const cir = circle(point, r, options)

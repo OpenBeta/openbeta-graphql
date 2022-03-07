@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { geometry, Point } from '@turf/helpers'
 import { ClimbType } from '../ClimbTypes.js'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -16,8 +17,7 @@ const transformClimbRecord = (row: any): ClimbType => {
     fa: fa,
     metadata: {
       climb_id: uuidv4(),
-      lng: parent_lnglat[0],
-      lat: parent_lnglat[1],
+      lnglat: geometry('Point', parent_lnglat) as Point,
       left_right_index: left_right_seq,
       mp_id: mp_route_id,
       mp_crag_id: mp_sector_id

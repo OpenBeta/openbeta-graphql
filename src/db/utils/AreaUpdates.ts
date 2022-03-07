@@ -51,7 +51,7 @@ async function postOrderVisit (node: AreaMongoType, areaModel: mongoose.Model<Ar
 
 const leafReducer = (node: AreaMongoType): ResultType => ({
   totalClimbs: node.totalClimbs,
-  bbox: bboxFrom([node.metadata.lng, node.metadata.lat]),
+  bbox: bboxFrom(node.metadata.lnglat),
   density: 0
 })
 

@@ -1,4 +1,5 @@
 import mongose from 'mongoose'
+import { Point } from '@turf/helpers'
 
 export type ClimbType = IClimbProps & {
   metadata: IClimbMetadata
@@ -31,8 +32,7 @@ export interface IClimbType {
   tr: boolean
 }
 export interface IClimbMetadata {
-  lat: number | null
-  lng: number | null
+  lnglat: Point
   left_right_index: number
   mp_id?: string
   mp_crag_id: string

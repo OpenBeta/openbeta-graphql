@@ -1,8 +1,21 @@
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
+import { Point } from '@turf/helpers'
 import { ClimbType, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
 
 const { Schema, connection } = mongoose
+
+export const PointSchema = new mongoose.Schema<Point>({
+  type: {
+    type: String,
+    enum: ['Point'],
+    required: true
+  },
+  coordinates: {
+    type: [Number],
+    required: true
+  }
+}, { _id: false })
 
 const ContentSchema = new Schema<IClimbContent>({
   description: { type: Schema.Types.String },
@@ -11,8 +24,7 @@ const ContentSchema = new Schema<IClimbContent>({
 }, { _id: false })
 
 const MetadataSchema = new Schema<IClimbMetadata>({
-  lat: { type: Number, default: null },
-  lng: { type: Number, default: null },
+  lnglat: PointSchema,
   left_right_index: { type: Number, required: false },
   mp_id: { type: String, required: false },
   mp_crag_id: { type: String, required: true },

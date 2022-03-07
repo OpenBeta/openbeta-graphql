@@ -1,13 +1,15 @@
 import mongoose from 'mongoose'
-import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, PointType } from './AreaTypes.js'
-import { ClimbSchema } from './ClimbSchema.js'
+import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType } from './AreaTypes.js'
+import { ClimbSchema, PointSchema } from './ClimbSchema.js'
 
 const { Schema, connection } = mongoose
 
 const MetadataSchema = new Schema<IAreaMetadata>({
   leaf: { type: Boolean, sparse: true },
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true },
+  lnglat: {
+    type: PointSchema,
+    required: true
+  },
   bbox: [{ type: Number, required: true }],
   left_right_index: { type: Number, required: false },
   ext_id: { type: String, required: false, index: true },
@@ -25,11 +27,6 @@ const ContentSchema = new Schema<IAreaContent>({
 export const CountByGroup = new Schema<CountByGroupType>({
   count: { type: Number, required: true },
   label: { type: String, required: true }
-}, { _id: false })
-
-export const Point = new Schema<PointType>({
-  lat: { type: Number, required: true },
-  lng: { type: Number, required: true }
 }, { _id: false })
 
 const AggregateSchema = new Schema<AggregateType>({
