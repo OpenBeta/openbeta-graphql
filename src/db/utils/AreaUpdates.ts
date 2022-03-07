@@ -36,7 +36,7 @@ interface ResultType {
 
 async function postOrderVisit (node: AreaMongoType, areaModel: mongoose.Model<AreaType>): Promise<ResultType> {
   if (node.metadata.leaf) {
-    return leafReducer(node)
+    return await leafReducer(node)
   }
 
   // populate children IDs with actual areas
@@ -56,10 +56,10 @@ async function postOrderVisit (node: AreaMongoType, areaModel: mongoose.Model<Ar
  * @param node leaf area/crag
  * @returns aggregate type
  */
-const leafReducer = (node: AreaMongoType): ResultType => {
+const leafReducer = async (node: AreaMongoType): Promise<ResultType> => {
   const agg = aggregateCragStats(node)
   node.aggregate = agg
-  node.save()
+  await node.save()
   return {
     totalClimbs: node.totalClimbs,
     bbox: bboxFrom(node.metadata.lnglat),

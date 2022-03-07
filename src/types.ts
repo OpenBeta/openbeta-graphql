@@ -1,4 +1,5 @@
 import { BBox } from '@turf/helpers'
+import { AreaType } from './db/AreaTypes'
 
 export enum SortDirection {
   ASC = 1,
@@ -37,8 +38,13 @@ export type GQLFilter = Record<Filterable, FilterParams>
 
 export type LNGLAT = [number, number]
 export type BBoxType = BBox
-
 export interface StatisticsType {
   totalClimbs: number
   totalCrags: number
+}
+
+export interface CragsNear {
+  _id: string
+  count: number
+  crags: AreaType
 }
