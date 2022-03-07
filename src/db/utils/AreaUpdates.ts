@@ -1,8 +1,9 @@
 import mongoose from 'mongoose'
 import { BBox } from '@turf/helpers'
 import { getAreaModel } from '../AreaSchema.js'
-import { AreaType } from '../AreaTypes.js'
+import { AreaType, AggregateType } from '../AreaTypes.js'
 import { bboxFrom, bboxFromList, areaDensity } from '../../geo-utils.js'
+import { aggregateCragStats, mergeAggregates } from './Aggregate.js'
 
 type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
 
@@ -30,11 +31,12 @@ interface ResultType {
   density: number
   totalClimbs: number
   bbox: BBox
+  aggregate: AggregateType
 }
 
 async function postOrderVisit (node: AreaMongoType, areaModel: mongoose.Model<AreaType>): Promise<ResultType> {
   if (node.metadata.leaf) {
-    return leafReducer(node)
+    return await leafReducer(node)
   }
 
   // populate children IDs with actual areas
@@ -49,32 +51,50 @@ async function postOrderVisit (node: AreaMongoType, areaModel: mongoose.Model<Ar
   return await nodeReducer(results, node)
 }
 
-const leafReducer = (node: AreaMongoType): ResultType => ({
-  totalClimbs: node.totalClimbs,
-  bbox: bboxFrom([node.metadata.lng, node.metadata.lat]),
-  density: 0
-})
+/**
+ * Calculate stats for leaf node (crag)
+ * @param node leaf area/crag
+ * @returns aggregate type
+ */
+const leafReducer = async (node: AreaMongoType): Promise<ResultType> => {
+  const agg = aggregateCragStats(node)
+  node.aggregate = agg
+  await node.save()
+  return {
+    totalClimbs: node.totalClimbs,
+    bbox: bboxFrom(node.metadata.lnglat),
+    density: 0,
+    aggregate: agg
+  }
+}
 
 const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<ResultType> => {
   const initial: ResultType = {
     totalClimbs: 0,
     bbox: [-180, -90, 180, 90],
-    density: 0
+    density: 0,
+    aggregate: {
+      byGrade: [],
+      byType: []
+    }
   }
+
   const z = result.reduce((acc, curr, index) => {
-    const { totalClimbs, bbox: _bbox } = curr
+    const { totalClimbs, bbox: _bbox, aggregate } = curr
     const bbox = index === 0 ? _bbox : bboxFromList([_bbox, acc.bbox])
     return {
       totalClimbs: acc.totalClimbs + totalClimbs,
       bbox,
-      density: areaDensity(bbox, totalClimbs)
+      density: areaDensity(bbox, totalClimbs),
+      aggregate: mergeAggregates(acc.aggregate, aggregate)
     }
   }, initial)
 
-  const { totalClimbs, bbox, density } = z
+  const { totalClimbs, bbox, density, aggregate } = z
   node.totalClimbs = totalClimbs
   node.metadata.bbox = bbox
   node.density = density
+  node.aggregate = aggregate
   await node.save()
   return z
 }

@@ -3,7 +3,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { GQLFilter, Sort } from '../types'
-import { AreaType, CountByGroupType } from '../db/AreaTypes.js'
+import { AreaType } from '../db/AreaTypes.js'
 import { ClimbType } from '../db/ClimbTypes.js'
 
 const resolvers = {
@@ -13,10 +13,8 @@ const resolvers = {
         /* eslint-disable-next-line */
         return await areas.findOneClimbById(id)
       }
-      // if (uuid !== '' && uuid !== undefined) {
-      //   return dataSources.climbs.findOneByClimbUUID(uuid)
-      // }
     },
+
     areas: async (
       _,
       { filter, sort }: { filter?: GQLFilter, sort?: Sort },
@@ -42,15 +40,37 @@ const resolvers = {
 
     stats: async (parent: any, args: any, { dataSources }) => {
       return dataSources.areas.getStats()
+    },
+
+    cragsNear: async (
+      node: any,
+      args,
+      { dataSources }) => {
+      const { lnglat, maxDistance } = args
+      return dataSources.areas.getCragsNear([lnglat.lng, lnglat.lat], maxDistance > 325000 ? 325000 : maxDistance)
     }
   },
 
   Climb: {
-    id: async (parent: ClimbType) => parent._id
+    id: async (node: ClimbType) => node._id,
+
+    // a hack to return 'bouldering' field instead of boulder bc
+    // the client is hard-coded to use 'bouldering'
+    type: async (node: ClimbType) => ({
+      ...node.type,
+      bouldering: node.type.boulder || null
+    }),
+
+    // convert internal Geo type to simple lng,lat
+    metadata: (node: ClimbType) => ({
+      ...node.metadata,
+      lng: node.metadata.lnglat.coordinates[0],
+      lat: node.metadata.lnglat.coordinates[1]
+    })
   },
 
   Area: {
-    id: async (parent: AreaType) => parent._id,
+    id: async (node: AreaType) => node._id,
 
     children: async (parent: AreaType, _, { dataSources: { areas } }) => {
       if (parent.children.length > 0) {
@@ -59,41 +79,18 @@ const resolvers = {
       return []
     },
 
-    aggregate: async (parent, _, { dataSources: { areas } }) => {
-      // get all leafs under this parent
-      const allChildAreas: AreaType[] = await areas.findDescendantsByPath(parent.ancestors, true)
-      const byGrade = {}
-      const byType = {}
-
-      allChildAreas.forEach(area => {
-        // exit early if there are no climbs
-        if (area.climbs === undefined) {
-          return
-        }
-
-        area.climbs.forEach((climb) => {
-          const { yds, type } = climb
-          // Grade
-          const entry: CountByGroupType = byGrade[yds] === undefined ? { label: yds, count: 0 } : byGrade[yds]
-          entry.count = entry.count + 1
-          byGrade[yds] = entry
-
-          for (const t in type) {
-            if (type[t] !== false) {
-              const entry: CountByGroupType = byType[t] !== undefined ? byType[t] : { label: t, count: 0 }
-              byType[t] = Object.assign(entry, { count: entry.count + 1 })
-            }
-          }
-        })
-      })
-
-      return {
-        byGrade: Object.values(byGrade),
-        byType: Object.values(byType)
-      }
+    aggregate: async (node: AreaType) => {
+      return node.aggregate
     },
 
-    ancestors: async (parent) => parent.ancestors.split(',')
+    ancestors: async (parent) => parent.ancestors.split(','),
+
+    // convert internal Geo type to simple lng,lat
+    metadata: (node: AreaType) => ({
+      ...node.metadata,
+      lng: node.metadata.lnglat.coordinates[0],
+      lat: node.metadata.lnglat.coordinates[1]
+    })
   }
 }
 

@@ -8,6 +8,7 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@types/jest": "^27.0.3",
+    "@types/underscore": "^1.11.4",
     "jest": "^27.4.5",
     "ts-jest": "^27.1.2",
     "ts-node": "^10.4.0",
@@ -31,6 +32,7 @@
     "mongoose": "^6.1.8",
     "p-limit": "^4.0.0",
     "typesense": "^1.2.1",
+    "underscore": "^1.13.2",
     "uuid": "^8.3.2"
   },
   "scripts": {
@@ -42,7 +44,6 @@
     "serve": "node build/main.js",
     "refresh-db": "./refresh-db.sh",
     "seed-usa": "yarn build && node build/db/import/usa/USADay0Seed.js",
-    "update-search-zzzzzzz": "yarn build && node build/db/import/Algolia.js",
     "update-search": "yarn build && node build/db/export/Typesense/Typesense.js"
   },
   "standard": {

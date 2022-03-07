@@ -5,6 +5,7 @@ export const typeDef = gql`
     area(id: ID, uuid: String): Area
     areas(filter: Filter, sort: Sort): [Area]
     stats: Stats
+    cragsNear(lnglat: Point, maxDistance: Int): [CragsNear]
   }
 
   "A climbing area, wall or crag"
@@ -38,12 +39,6 @@ export const typeDef = gql`
     byType: [CountByGroupType]
   }
   
-  type Point {
-    lat: Float,
-    lng: Float
-  }
-  
-  
   type CountByGroupType {
     count: Int
     label: String
@@ -52,7 +47,12 @@ export const typeDef = gql`
   type AreaContent {
     description: String
   }
-  
+
+  input Point {
+    lat: Float,
+    lng: Float
+  }
+
   input Sort {
     area_name: Int
     density: Int
@@ -101,5 +101,11 @@ export const typeDef = gql`
   type Stats {
     totalClimbs: Int!
     totalCrags: Int!
+  }
+
+  type CragsNear {
+    _id: ID!
+    count: Int!
+    crags: [Area]
   }
 `

@@ -28,7 +28,8 @@ export const connectDB = (onConnected: () => any = defaultFn): any => {
   try {
     /* eslint-disable @typescript-eslint/no-floating-promises */
     mongoose.connect(
-    `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`
+    `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`,
+    { autoIndex: false }
     )
 
     mongoose.connection.on('open', onConnected)
@@ -44,6 +45,8 @@ export const connectDB = (onConnected: () => any = defaultFn): any => {
     process.exit(1)
   }
 }
+
+export const createIndexes = async (): Promise<void> => await createAreaModel().ensureIndexes()
 
 export const gracefulExit = (exitCode: number = 0): void => {
   mongoose.connection.close(function () {

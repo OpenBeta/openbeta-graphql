@@ -1,11 +1,12 @@
 import mongoose from 'mongoose'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
+// import { geometry } from '@turf/helpers'
 import { createAreaModel } from '../db/index.js'
 
 import { AreaType } from '../db/AreaTypes'
-import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType } from '../types'
 import { ClimbType } from '../db/ClimbTypes.js'
+import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear } from '../types'
 
 export default class Areas extends MongoDataSource<AreaType> {
   areaModel = createAreaModel('areas')
@@ -109,6 +110,10 @@ export default class Areas extends MongoDataSource<AreaType> {
     return await data.toArray()
   }
 
+  /**
+   * Get whole db stats
+   * @returns
+   */
   async getStats (): Promise<StatisticsType> {
     const stats = {
       totalClimbs: 0,
@@ -130,5 +135,43 @@ export default class Areas extends MongoDataSource<AreaType> {
     }
 
     return stats
+  }
+
+  async getCragsNear (lnglat: [number, number], maxDistance: number): Promise<CragsNear[]> {
+    const rs = await this.areaModel.aggregate([
+      {
+        $geoNear: {
+          near: { type: 'Point', coordinates: lnglat },
+          key: 'metadata.lnglat',
+          distanceField: 'distance',
+          distanceMultiplier: 0.001,
+          maxDistance,
+          query: { 'metadata.leaf': true },
+          spherical: true
+        }
+      },
+      {
+        $bucket: {
+          groupBy: '$distance',
+          boundaries: [
+            0, 48, 96, 160
+          ],
+          default: 'theRest',
+          output: {
+            count: {
+              $sum: 1
+            },
+            crags: {
+              $push: '$$ROOT'
+            }
+          }
+        }
+      },
+      { $unset: 'crags.distance' }])
+
+    // const rs = await this.areaModel.find({ 'metadata.leaf': true })
+    //   .where('metadata.lnglat')
+    //   .near({ center: geometry('Point', lnglat), maxDistance, spherical: true })
+    return rs
   }
 }
