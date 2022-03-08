@@ -31,4 +31,5 @@ unzip '*.zip'
 cd ..
 export CONTENT_BASEDIR=./tmp
 
+echo "NODE_OPTIONS=${NODE_OPTIONS}"
 yarn seed-usa

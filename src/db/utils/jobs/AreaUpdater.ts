@@ -1,12 +1,15 @@
 import mongoose from 'mongoose'
 import { BBox } from '@turf/helpers'
-import { getAreaModel } from '../AreaSchema.js'
-import { AreaType, AggregateType } from '../AreaTypes.js'
-import { bboxFrom, bboxFromList, areaDensity } from '../../geo-utils.js'
-import { aggregateCragStats, mergeAggregates } from './Aggregate.js'
+import pLimit from 'p-limit'
+
+import { getAreaModel } from '../../AreaSchema.js'
+import { AreaType, AggregateType } from '../../AreaTypes.js'
+import { bboxFromList, areaDensity } from '../../../geo-utils.js'
+import { mergeAggregates } from '../Aggregate.js'
+
+const limiter = pLimit(1000)
 
 type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
-
 /**
  * Visit all nodes using post-order traversal and perform graph reduction.
  * Conceptually, it's similar to Array.reduce():
@@ -14,16 +17,29 @@ type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
  * 2. Reduce each leaf node into a single object. Return to parent.
  * 3. Reduce all children results.  Repeat.
  */
-export const visitAll = async (): Promise<void> => {
+export const visitAllAreas = async (): Promise<void> => {
   const areaModel = getAreaModel('areas')
 
-  // Get all top-level country nodes.
-  const iterator = areaModel.find({ pathTokens: { $size: 1 } })
+  // Start with 2nd level of tree
+  let iterator = areaModel.find({ pathTokens: { $size: 2 } }).allowDiskUse(true)
 
-  // We only have 1  root (US) right now, but code should run asynchronously
-  // for each country
   for await (const root of iterator) {
-    await postOrderVisit(root, areaModel)
+    await postOrderVisit(root)
+  }
+
+  // Get all top-level country nodes.
+  // We only have 1  root (US) right now, but code runs asynchronously
+  // for each country
+  iterator = areaModel.find({ pathTokens: { $size: 1 } })
+  for await (const root of iterator) {
+    const stateNodes = await root.populate('children')
+    const results = await Promise.all(
+      stateNodes.children.map(async entry => {
+        const area: any = entry
+        return leafReducer(area)
+      })
+    )
+    await nodeReducer(results, root)
   }
 }
 
@@ -34,37 +50,37 @@ interface ResultType {
   aggregate: AggregateType
 }
 
-async function postOrderVisit (node: AreaMongoType, areaModel: mongoose.Model<AreaType>): Promise<ResultType> {
+async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
   if (node.metadata.leaf) {
-    return await leafReducer(node)
+    return leafReducer(node)
   }
 
   // populate children IDs with actual areas
   const nodeWithSubAreas = await node.populate('children')
 
   const results = await Promise.all(
-    nodeWithSubAreas.children.map(async child => {
-      const area: any = child // do this to avoid TS casting error
-      return await postOrderVisit(area as AreaMongoType, areaModel)
-    })
-  )
+    nodeWithSubAreas.children.map(async entry => {
+      const area: any = entry
+      /* eslint-disable-next-line */
+      return limiter(postOrderVisit, (area as AreaMongoType))
+    }
+    ))
+
   return await nodeReducer(results, node)
 }
 
 /**
- * Calculate stats for leaf node (crag)
+ * Calculate stats for leaf node (crag).  Can also be used
+ * to collect stats for an area.
  * @param node leaf area/crag
  * @returns aggregate type
  */
-const leafReducer = async (node: AreaMongoType): Promise<ResultType> => {
-  const agg = aggregateCragStats(node)
-  node.aggregate = agg
-  await node.save()
+const leafReducer = (node: AreaMongoType): ResultType => {
   return {
     totalClimbs: node.totalClimbs,
-    bbox: bboxFrom(node.metadata.lnglat),
-    density: 0,
-    aggregate: agg
+    bbox: node.metadata.bbox,
+    density: node.density,
+    aggregate: node.aggregate
   }
 }
 
