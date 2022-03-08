@@ -153,7 +153,7 @@ const onDBConnected = async (): Promise<void> => {
  * @returns
  */
 const geoToLatLng = (geoPoint: Point): [number, number] => {
-  const coordinates = { geoPoint }
+  const { coordinates } = geoPoint
   return [coordinates[1], coordinates[0]]
 }
 
