@@ -17,7 +17,7 @@ export const merge = (lhs: CountByGroupType[], rhs: CountByGroupType[]): CountBy
       // no - assign to LHS
       lhsDict[rhsEntry.label] = rhsEntry
     } else {
-      // yes - add 2 counts
+      // yes - add lhs and rhs counts
       lhsDict[rhsEntry.label].count = (lhsDict[rhsEntry.label].count) + rhsEntry.count
     }
   })

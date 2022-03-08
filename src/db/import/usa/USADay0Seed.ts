@@ -4,7 +4,6 @@ import pLimit from 'p-limit'
 import { connectDB, gracefulExit, createIndexes } from '../../index.js'
 import { createRoot } from './AreaTransformer.js'
 import US_STATES from './us-states.js'
-import { visitAll } from '../../utils/AreaUpdates.js'
 import { seedState, dropCollection, JobStats } from './SeedState.js'
 
 const contentDir: string = process.env.CONTENT_BASEDIR ?? ''
@@ -35,7 +34,7 @@ const main = async (): Promise<void> => {
 
     if (fs.existsSync(fRoutes) && fs.existsSync(fAreas)) {
       /* eslint-disable-next-line */
-      return limiter(async () => seedState(rootNode, code, fRoutes, fAreas))
+      return limiter(seedState, rootNode, code, fRoutes, fAreas)
     }
     return await Promise.resolve()
   }))
@@ -46,9 +45,6 @@ const main = async (): Promise<void> => {
   await createIndexes()
   console.timeEnd('Creating indexes')
 
-  console.time('Calculating stats and geo data')
-  await visitAll()
-  console.timeEnd('Calculating stats and geo data')
   gracefulExit()
   return await Promise.resolve()
 }

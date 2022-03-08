@@ -1,4 +1,5 @@
 import Typesense from 'typesense'
+import { Point } from '@turf/helpers'
 import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
 import { disciplinesToArray } from './Utils.js'
 const chunkSize = 5000
@@ -107,6 +108,7 @@ const onDBConnected = async (): Promise<void> => {
   for await (const doc of agg) {
     if (chunks.length < chunkSize) {
       doc.id = doc._id.toString()
+
       chunks.push({
         climbId: doc.id,
         climbName: doc.name,
@@ -116,7 +118,7 @@ const onDBConnected = async (): Promise<void> => {
         disciplines: disciplinesToArray(doc.type),
         grade: doc.yds,
         safety: doc.safety,
-        cragLatLng: [doc.metadata.lat, doc.metadata.lng]
+        cragLatLng: geoToLatLng(doc.metadata.lnglat)
       })
     } else {
       count = count + chunkSize
@@ -143,6 +145,16 @@ const onDBConnected = async (): Promise<void> => {
 
   console.log('Record uploaded: ', count)
   gracefulExit()
+}
+
+/**
+ * Convert mongo db geo point type to [lat,lng] for typesense geo search
+ * @param geoPoint
+ * @returns
+ */
+const geoToLatLng = (geoPoint: Point): [number, number] => {
+  const coordinates = { geoPoint }
+  return [coordinates[1], coordinates[0]]
 }
 
 connectDB(onDBConnected)
