@@ -137,7 +137,7 @@ export default class Areas extends MongoDataSource<AreaType> {
     return stats
   }
 
-  async getCragsNear (lnglat: [number, number], maxDistance: number): Promise<CragsNear[]> {
+  async getCragsNear (placeId: string, lnglat: [number, number], maxDistance: number): Promise<CragsNear[]> {
     const rs = await this.areaModel.aggregate([
       {
         $geoNear: {
@@ -167,11 +167,8 @@ export default class Areas extends MongoDataSource<AreaType> {
           }
         }
       },
-      { $unset: 'crags.distance' }])
-
-    // const rs = await this.areaModel.find({ 'metadata.leaf': true })
-    //   .where('metadata.lnglat')
-    //   .near({ center: geometry('Point', lnglat), maxDistance, spherical: true })
+      { $unset: 'crags.distance' },
+      { $addFields: { placeId: placeId } }]).limit(2000)
     return rs
   }
 }

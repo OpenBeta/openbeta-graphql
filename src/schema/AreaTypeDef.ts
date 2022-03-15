@@ -5,7 +5,7 @@ export const typeDef = gql`
     area(id: ID, uuid: String): Area
     areas(filter: Filter, sort: Sort): [Area]
     stats: Stats
-    cragsNear(lnglat: Point, maxDistance: Int): [CragsNear]
+    cragsNear(placeId: String, lnglat: Point, maxDistance: Int): [CragsNear]
   }
 
   "A climbing area, wall or crag"
@@ -105,6 +105,7 @@ export const typeDef = gql`
 
   type CragsNear {
     _id: ID!
+    placeId: String!
     count: Int!
     crags: [Area]
   }

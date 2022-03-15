@@ -46,8 +46,8 @@ const resolvers = {
       node: any,
       args,
       { dataSources }) => {
-      const { lnglat, maxDistance } = args
-      return dataSources.areas.getCragsNear([lnglat.lng, lnglat.lat], maxDistance > 325000 ? 325000 : maxDistance)
+      const { placeId, lnglat, maxDistance } = args
+      return dataSources.areas.getCragsNear(placeId, [lnglat.lng, lnglat.lat], maxDistance > 325000 ? 325000 : maxDistance)
     }
   },
 
@@ -56,10 +56,17 @@ const resolvers = {
 
     // a hack to return 'bouldering' field instead of boulder bc
     // the client is hard-coded to use 'bouldering'
-    type: async (node: ClimbType) => ({
-      ...node.type,
-      bouldering: node.type.boulder || null
-    }),
+    type: async (node: ClimbType) => {
+      if (node.type === undefined) {
+        return {
+          trad: true
+        }
+      }
+      return {
+        ...node.type,
+        bouldering: node.type.boulder || null
+      }
+    },
 
     // convert internal Geo type to simple lng,lat
     metadata: (node: ClimbType) => ({
