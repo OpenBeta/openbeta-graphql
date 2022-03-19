@@ -1,10 +1,10 @@
 import _ from 'underscore'
-import { AreaType, CountByGroupType, AggregateType } from '../AreaTypes.js'
+import { AreaType, CountByGroupType, CountByDisciplineType, AggregateType } from '../AreaTypes.js'
 
 export const mergeAggregates = (lhs: AggregateType, rhs: AggregateType): AggregateType => {
   return {
     byGrade: merge(lhs.byGrade, rhs.byGrade),
-    byType: merge(lhs.byType, rhs.byType)
+    byDiscipline: mergeDisciplines(lhs.byDiscipline, rhs.byDiscipline)
   }
 }
 
@@ -24,11 +24,21 @@ export const merge = (lhs: CountByGroupType[], rhs: CountByGroupType[]): CountBy
   return _.values(lhsDict)
 }
 
+export const mergeDisciplines =
+  (lhs: CountByDisciplineType, rhs: CountByDisciplineType): CountByDisciplineType => {
+    for (const t in rhs) {
+      if (typeof lhs[t] === 'undefined') lhs[t] = rhs[t]
+      else lhs[t] = (lhs[t] as number) + (rhs[t] as number)
+    }
+    return lhs
+  }
+
 export const aggregateCragStats = (crag: AreaType): AggregateType => {
   const byGrade: Record<string, number> | {} = {}
   const byType: Record<string, number> | {} = {}
 
-  crag.climbs.forEach((climb) => {
+  const { climbs } = crag
+  climbs.forEach((climb) => {
     const { yds, type } = climb
 
     // Grade
@@ -39,14 +49,13 @@ export const aggregateCragStats = (crag: AreaType): AggregateType => {
     // Disciplines
     for (const t in type) {
       if (type[t] === true) {
-        const entry: CountByGroupType = byType[t] !== undefined ? byType[t] : { label: t, count: 0 }
-        byType[t] = Object.assign(entry, { count: entry.count + 1 })
+        byType[t] = byType[t] === 'undefined' ? 1 : (byType[t] as number) + 1
       }
     }
   })
 
   return {
     byGrade: Object.values(byGrade) as [CountByGroupType] | [],
-    byType: Object.values(byType) as [CountByGroupType] | []
+    byDiscipline: byType
   }
 }

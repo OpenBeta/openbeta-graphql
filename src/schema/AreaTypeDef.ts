@@ -36,9 +36,19 @@ export const typeDef = gql`
 
   type AggregateType {
     byGrade: [CountByGroupType]
-    byType: [CountByGroupType]
+    byDiscipline: CountByDisciplineType
   }
-  
+
+  type CountByDisciplineType {
+    trad: Int
+    sport: Int
+    boulder: Int
+    alpine: Int
+    mixed: Int
+    aid: Int
+    tr: Int
+  }
+
   type CountByGroupType {
     count: Int
     label: String

@@ -10,6 +10,7 @@ import { mergeAggregates } from '../Aggregate.js'
 const limiter = pLimit(1000)
 
 type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
+
 /**
  * Visit all nodes using post-order traversal and perform graph reduction.
  * Conceptually, it's similar to Array.reduce():
@@ -52,7 +53,7 @@ interface ResultType {
 
 async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
   if (node.metadata.leaf) {
-    return leafReducer(node)
+    return leafReducer((node.toObject() as AreaType))
   }
 
   // populate children IDs with actual areas
@@ -75,7 +76,7 @@ async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
  * @param node leaf area/crag
  * @returns aggregate type
  */
-const leafReducer = (node: AreaMongoType): ResultType => {
+const leafReducer = (node: AreaType): ResultType => {
   return {
     totalClimbs: node.totalClimbs,
     bbox: node.metadata.bbox,
@@ -91,7 +92,7 @@ const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<R
     density: 0,
     aggregate: {
       byGrade: [],
-      byType: []
+      byDiscipline: {}
     }
   }
 
@@ -99,7 +100,7 @@ const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<R
     const { totalClimbs, bbox: _bbox, aggregate } = curr
     const bbox = index === 0 ? _bbox : bboxFromList([_bbox, acc.bbox])
     return {
-      totalClimbs: acc.totalClimbs + totalClimbs,
+      totalClimbs: (acc.totalClimbs as number) + (totalClimbs as number),
       bbox,
       density: areaDensity(bbox, totalClimbs),
       aggregate: mergeAggregates(acc.aggregate, aggregate)

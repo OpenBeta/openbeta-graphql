@@ -71,7 +71,7 @@ const makeDBArea = (node: AreaNode): AreaType => {
     pathTokens: node.getPathTokens(),
     aggregate: {
       byGrade: [],
-      byType: []
+      byDiscipline: {}
     },
     density: 0,
     totalClimbs: 0,

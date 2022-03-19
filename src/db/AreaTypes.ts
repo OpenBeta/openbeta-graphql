@@ -39,5 +39,14 @@ export interface PointType { lat: number, lng: number}
 
 export interface AggregateType {
   byGrade: CountByGroupType[]
-  byType: CountByGroupType[]
+  byDiscipline: CountByDisciplineType
+}
+export interface CountByDisciplineType {
+  trad?: number
+  sport?: number
+  boulder?: number
+  alpine?: number
+  mixed?: number
+  aid?: number
+  tr?: number
 }
