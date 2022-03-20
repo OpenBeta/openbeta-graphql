@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType } from './AreaTypes.js'
+import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType } from './AreaTypes.js'
 import { ClimbSchema, PointSchema } from './ClimbSchema.js'
 
 const { Schema, connection } = mongoose
@@ -29,27 +29,34 @@ export const CountByGroup = new Schema<CountByGroupType>({
   label: { type: String, required: true }
 }, { _id: false })
 
+export const CountByGradeBandSchema = new Schema<CountByGradeBandType>({
+  beginner: { type: Number, required: true },
+  intermediate: { type: Number, required: true },
+  advance: { type: Number, required: true },
+  expert: { type: Number, required: true }
+}, {
+  _id: false
+})
+
+export const DisciplineStatsSchema = new Schema<DisciplineStatsType>({
+  total: { type: Number, required: true },
+  bands: { type: CountByGradeBandSchema, required: true }
+}, { _id: false })
+
 export const CountByDisciplineSchema = new Schema<CountByDisciplineType>({
-  trad: { type: Number, required: false },
-  sport: { type: Number, required: false },
-  boulder: { type: Number, required: false },
-  alpine: { type: Number, required: false },
-  mixed: { type: Number, required: false },
-  aid: { type: Number, required: false },
-  tr: { type: Number, required: false }
+  trad: { type: DisciplineStatsSchema, required: false },
+  sport: { type: DisciplineStatsSchema, required: false },
+  boulder: { type: DisciplineStatsSchema, required: false },
+  alpine: { type: DisciplineStatsSchema, required: false },
+  mixed: { type: DisciplineStatsSchema, required: false },
+  aid: { type: DisciplineStatsSchema, required: false },
+  tr: { type: DisciplineStatsSchema, required: false }
 }, { _id: false })
 
 const AggregateSchema = new Schema<AggregateType>({
   byGrade: [{ type: CountByGroup, required: true }],
-  byDiscipline: {
-    trad: { type: Number, required: false },
-    sport: { type: Number, required: false },
-    boulder: { type: Number, required: false },
-    alpine: { type: Number, required: false },
-    mixed: { type: Number, required: false },
-    aid: { type: Number, required: false },
-    tr: { type: Number, required: false }
-  }
+  byDiscipline: CountByDisciplineSchema,
+  byGradeBand: CountByGradeBandSchema
 }, { _id: false })
 
 const AreaSchema = new Schema<AreaType>({

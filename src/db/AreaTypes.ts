@@ -40,13 +40,26 @@ export interface PointType { lat: number, lng: number}
 export interface AggregateType {
   byGrade: CountByGroupType[]
   byDiscipline: CountByDisciplineType
+  byGradeBand: CountByGradeBandType
 }
 export interface CountByDisciplineType {
-  trad?: number
-  sport?: number
-  boulder?: number
-  alpine?: number
-  mixed?: number
-  aid?: number
-  tr?: number
+  trad?: DisciplineStatsType
+  sport?: DisciplineStatsType
+  boulder?: DisciplineStatsType
+  alpine?: DisciplineStatsType
+  mixed?: DisciplineStatsType
+  aid?: DisciplineStatsType
+  tr?: DisciplineStatsType
+}
+
+export interface DisciplineStatsType {
+  total: number
+  bands: CountByGradeBandType
+}
+
+export interface CountByGradeBandType {
+  beginner: number
+  intermediate: number
+  advance: number
+  expert: number
 }

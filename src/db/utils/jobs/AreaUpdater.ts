@@ -37,7 +37,7 @@ export const visitAllAreas = async (): Promise<void> => {
     const results = await Promise.all(
       stateNodes.children.map(async entry => {
         const area: any = entry
-        return leafReducer(area)
+        return leafReducer((area.toObject() as AreaType))
       })
     )
     await nodeReducer(results, root)
@@ -92,7 +92,13 @@ const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<R
     density: 0,
     aggregate: {
       byGrade: [],
-      byDiscipline: {}
+      byDiscipline: {},
+      byGradeBand: {
+        beginner: 0,
+        intermediate: 0,
+        advance: 0,
+        expert: 0
+      }
     }
   }
 
@@ -100,7 +106,7 @@ const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<R
     const { totalClimbs, bbox: _bbox, aggregate } = curr
     const bbox = index === 0 ? _bbox : bboxFromList([_bbox, acc.bbox])
     return {
-      totalClimbs: (acc.totalClimbs as number) + (totalClimbs as number),
+      totalClimbs: acc.totalClimbs + totalClimbs,
       bbox,
       density: areaDensity(bbox, totalClimbs),
       aggregate: mergeAggregates(acc.aggregate, aggregate)

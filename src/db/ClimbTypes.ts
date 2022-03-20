@@ -43,3 +43,10 @@ export interface IClimbContent {
   protection?: string
   location?: string
 }
+
+export enum GradeBand {
+  BEGINNER = 'beginner',
+  INTERMEDIATE = 'intermediate',
+  ADVANCE = 'advance',
+  EXPERT = 'expert'
+}
