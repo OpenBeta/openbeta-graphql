@@ -20,6 +20,19 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Initialize DB",
+            "program": "${workspaceFolder}/src/db/utils/jobs/UpdateAllRunner.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Seed USA",
             "program": "${workspaceFolder}/src/db/import/usa/USADay0Seed.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",

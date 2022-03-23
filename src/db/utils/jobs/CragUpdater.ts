@@ -17,7 +17,7 @@ export const visitAllCrags = async (): Promise<void> => {
 
   for await (const crag of iterator) {
     const node: AreaMongoType = crag
-    node.aggregate = aggregateCragStats(crag)
+    node.aggregate = aggregateCragStats(crag.toObject())
     node.metadata.bbox = bboxFrom(node.metadata.lnglat)
     await node.save()
   }

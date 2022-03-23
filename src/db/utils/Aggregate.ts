@@ -1,10 +1,12 @@
 import _ from 'underscore'
-import { AreaType, CountByGroupType, AggregateType } from '../AreaTypes.js'
+import { AreaType, CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType } from '../AreaTypes.js'
+import { getBand } from '../../grade-utils.js'
 
 export const mergeAggregates = (lhs: AggregateType, rhs: AggregateType): AggregateType => {
   return {
     byGrade: merge(lhs.byGrade, rhs.byGrade),
-    byType: merge(lhs.byType, rhs.byType)
+    byDiscipline: mergeDisciplines(lhs.byDiscipline, rhs.byDiscipline),
+    byGradeBand: mergeBands(lhs.byGradeBand, rhs.byGradeBand)
   }
 }
 
@@ -13,7 +15,7 @@ export const merge = (lhs: CountByGroupType[], rhs: CountByGroupType[]): CountBy
   // for each RHS entry
   rhs.forEach(rhsEntry => {
     // does it exist in LHS?
-    if (lhsDict[rhsEntry.label] === undefined) {
+    if (typeof lhsDict[rhsEntry.label] === 'undefined') {
       // no - assign to LHS
       lhsDict[rhsEntry.label] = rhsEntry
     } else {
@@ -24,29 +26,91 @@ export const merge = (lhs: CountByGroupType[], rhs: CountByGroupType[]): CountBy
   return _.values(lhsDict)
 }
 
+export const mergeDisciplines =
+  (lhs: CountByDisciplineType, rhs: CountByDisciplineType): CountByDisciplineType => {
+    for (const t in rhs) {
+      if (typeof lhs[t] === 'undefined') lhs[t] = rhs[t]
+      else {
+        const _l: DisciplineStatsType = lhs[t]
+        const _r: DisciplineStatsType = rhs[t]
+        _l.total = _l.total + _r.total
+        _l.bands = mergeBands(_l.bands, _r.bands)
+      }
+    }
+    return lhs
+  }
+
+const mergeBands = (lhs: CountByGradeBandType, rhs: CountByGradeBandType): CountByGradeBandType => {
+  const _l = lhs === undefined ? { ...INIT_GRANDEBAND } : lhs
+  const _r = rhs === undefined ? { ...INIT_GRANDEBAND } : rhs
+  return {
+    beginner: _l.beginner + _r.beginner,
+    intermediate: _l.intermediate + _r.intermediate,
+    advance: _l.advance + _r.advance,
+    expert: _l.expert + _r.expert
+  }
+}
+
 export const aggregateCragStats = (crag: AreaType): AggregateType => {
   const byGrade: Record<string, number> | {} = {}
-  const byType: Record<string, number> | {} = {}
+  const disciplines: CountByDisciplineType = {}
 
-  crag.climbs.forEach((climb) => {
+  const { climbs } = crag
+  climbs.forEach((climb) => {
     const { yds, type } = climb
 
     // Grade
-    const entry: CountByGroupType = byGrade[yds] === undefined ? { label: yds, count: 0 } : byGrade[yds]
+    const entry: CountByGroupType = typeof byGrade[yds] === 'undefined' ? { label: yds, count: 0 } : byGrade[yds]
     entry.count = entry.count + 1
     byGrade[yds] = entry
 
     // Disciplines
     for (const t in type) {
       if (type[t] === true) {
-        const entry: CountByGroupType = byType[t] !== undefined ? byType[t] : { label: t, count: 0 }
-        byType[t] = Object.assign(entry, { count: entry.count + 1 })
+        if (disciplines?.[t] === undefined) {
+          disciplines[t] = { ...INIT_DISCIPLINE_STATS }
+          disciplines[t].total = 1
+        } else {
+          disciplines[t].total = (disciplines[t].total as number) + 1
+        }
       }
     }
   })
 
+  for (const d in disciplines) {
+    const climbsByDisciplines = climbs.filter(c => c?.type?.[d] ?? false)
+    const _byGradeBand: Record<string, number> = _.countBy(climbsByDisciplines, x => getBand(x.yds))
+
+    disciplines[d].bands = { ...INIT_GRANDEBAND, ..._byGradeBand }
+  }
+
+  const _byGradBand: Record<string, number> = _.countBy(climbs, (x) => getBand(x.yds))
+  const z = { ...INIT_GRANDEBAND, ..._byGradBand }
   return {
     byGrade: Object.values(byGrade) as [CountByGroupType] | [],
-    byType: Object.values(byType) as [CountByGroupType] | []
+    byDiscipline: disciplines,
+    byGradeBand: z
   }
 }
+
+const INIT_GRANDEBAND: CountByGradeBandType = {
+  beginner: 0,
+  intermediate: 0,
+  advance: 0,
+  expert: 0
+}
+
+const INIT_DISCIPLINE_STATS: DisciplineStatsType = {
+  total: 0,
+  bands: { ...INIT_GRANDEBAND }
+}
+
+// const INIT_COUNT_BY_DISCIPLINE: CountByDisciplineType = {
+//   trad: INIT_DISCIPLINE_STATS
+//   sport: INIT_DISCIPLINE_STATS
+//   boulder: INIT_DISCIPLINE_STATS
+//   alpine?: DisciplineStatsType
+//   mixed?: DisciplineStatsType
+//   aid?: DisciplineStatsType
+//   tr?: DisciplineStatsType
+// }

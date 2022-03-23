@@ -36,12 +36,35 @@ export const typeDef = gql`
 
   type AggregateType {
     byGrade: [CountByGroupType]
-    byType: [CountByGroupType]
+    byDiscipline: CountByDisciplineType
+    byGradeBand: CountByGradeBand
   }
-  
+
+  type CountByDisciplineType {
+    trad: DisciplineStatsType
+    sport: DisciplineStatsType
+    boulder: DisciplineStatsType
+    alpine: DisciplineStatsType
+    mixed: DisciplineStatsType
+    aid: DisciplineStatsType
+    tr: DisciplineStatsType
+  }
+
+  type DisciplineStatsType {
+    total: Int!
+    bands: CountByGradeBand!
+  }
+
   type CountByGroupType {
     count: Int
     label: String
+  }
+
+  type CountByGradeBand {
+    beginner: Int
+    intermediate: Int
+    advance: Int
+    expert: Int
   }
 
   type AreaContent {

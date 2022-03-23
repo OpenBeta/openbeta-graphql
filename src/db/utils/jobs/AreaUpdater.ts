@@ -10,6 +10,7 @@ import { mergeAggregates } from '../Aggregate.js'
 const limiter = pLimit(1000)
 
 type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
+
 /**
  * Visit all nodes using post-order traversal and perform graph reduction.
  * Conceptually, it's similar to Array.reduce():
@@ -36,7 +37,7 @@ export const visitAllAreas = async (): Promise<void> => {
     const results = await Promise.all(
       stateNodes.children.map(async entry => {
         const area: any = entry
-        return leafReducer(area)
+        return leafReducer((area.toObject() as AreaType))
       })
     )
     await nodeReducer(results, root)
@@ -52,7 +53,7 @@ interface ResultType {
 
 async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
   if (node.metadata.leaf) {
-    return leafReducer(node)
+    return leafReducer((node.toObject() as AreaType))
   }
 
   // populate children IDs with actual areas
@@ -75,7 +76,7 @@ async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
  * @param node leaf area/crag
  * @returns aggregate type
  */
-const leafReducer = (node: AreaMongoType): ResultType => {
+const leafReducer = (node: AreaType): ResultType => {
   return {
     totalClimbs: node.totalClimbs,
     bbox: node.metadata.bbox,
@@ -91,7 +92,13 @@ const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<R
     density: 0,
     aggregate: {
       byGrade: [],
-      byType: []
+      byDiscipline: {},
+      byGradeBand: {
+        beginner: 0,
+        intermediate: 0,
+        advance: 0,
+        expert: 0
+      }
     }
   }
 
