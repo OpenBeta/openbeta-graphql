@@ -53,7 +53,6 @@ const mergeBands = (lhs: CountByGradeBandType, rhs: CountByGradeBandType): Count
 
 export const aggregateCragStats = (crag: AreaType): AggregateType => {
   const byGrade: Record<string, number> | {} = {}
-  const byType: Record<string, number> | {} = {}
   const disciplines: CountByDisciplineType = {}
 
   const { climbs } = crag
