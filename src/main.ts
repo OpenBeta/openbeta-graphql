@@ -1,17 +1,18 @@
 import { ApolloServer } from 'apollo-server'
+import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import mongoose from 'mongoose'
 import { schema as graphQLSchema } from './schema/GraphQLSchema.js'
 import { connectDB } from './db/index.js'
-import Areas from './model/Areas.js'
+import AreaDataSource from './model/AreaDataSource.js'
 
 // eslint-disable-next-line
 (async function (): Promise<void> {
   const server = new ApolloServer({
     introspection: true,
     schema: graphQLSchema,
-    dataSources: () => {
+    dataSources: (): DataSources<AreaDataSource> => {
       return {
-        areas: new Areas(mongoose.connection.db.collection('areas'))
+        areas: new AreaDataSource(mongoose.connection.db.collection('areas'))
       }
     }
   })
