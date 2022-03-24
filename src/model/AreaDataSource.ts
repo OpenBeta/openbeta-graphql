@@ -1,14 +1,13 @@
 import mongoose from 'mongoose'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
-// import { geometry } from '@turf/helpers'
 import { createAreaModel } from '../db/index.js'
 
 import { AreaType } from '../db/AreaTypes'
 import { ClimbType } from '../db/ClimbTypes.js'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear } from '../types'
 
-export default class Areas extends MongoDataSource<AreaType> {
+export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = createAreaModel('areas')
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
@@ -137,7 +136,12 @@ export default class Areas extends MongoDataSource<AreaType> {
     return stats
   }
 
-  async getCragsNear (placeId: string, lnglat: [number, number], maxDistance: number): Promise<CragsNear[]> {
+  async getCragsNear (
+    placeId: string,
+    lnglat: [number, number],
+    minDistance: number,
+    maxDistance: number,
+    includeCrags: boolean = false): Promise<CragsNear[]> {
     const rs = await this.areaModel.aggregate([
       {
         $geoNear: {
@@ -145,30 +149,41 @@ export default class Areas extends MongoDataSource<AreaType> {
           key: 'metadata.lnglat',
           distanceField: 'distance',
           distanceMultiplier: 0.001,
+          minDistance,
           maxDistance,
           query: { 'metadata.leaf': true },
           spherical: true
         }
       },
       {
+        // Exclude climbs in this crag to reduce result size.
+        // This will result in climbs: null
+        // We'll set them to [] in the end to avoid potential unexpected null problems.
+        $unset: ['climbs']
+      },
+      {
+        // group result by 'distance' from center
         $bucket: {
           groupBy: '$distance',
           boundaries: [
-            0, 48, 96, 160
+            0, 48, 96, 160, 240
           ],
           default: 'theRest',
           output: {
             count: {
               $sum: 1
             },
+            // Only include crags data (a lot) if needed
             crags: {
-              $push: '$$ROOT'
+              $push: includeCrags ? '$$ROOT' : ''
             }
           }
         }
       },
-      { $unset: 'crags.distance' },
-      { $addFields: { placeId: placeId } }]).limit(2000)
+      { $unset: 'crags.distance' }, // remove 'distance' field
+      { $set: { 'crags.climbs': [] } }, // set to empty []
+      // this is a hack to add an arbitrary token to make the graphql result uniquely identifiable for Apollo client-side cache.  Todo: look for a better way as this could be potential injection.
+      { $addFields: { placeId: placeId } }])
     return rs
   }
 }

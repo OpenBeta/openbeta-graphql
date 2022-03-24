@@ -1,10 +1,12 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
+import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
 import { ClimbType } from '../db/ClimbTypes.js'
+import AreaDataSource from '../model/AreaDataSource.js'
 
 const resolvers = {
   Query: {
@@ -45,9 +47,15 @@ const resolvers = {
     cragsNear: async (
       node: any,
       args,
-      { dataSources }) => {
-      const { placeId, lnglat, maxDistance } = args
-      return dataSources.areas.getCragsNear(placeId, [lnglat.lng, lnglat.lat], maxDistance > 325000 ? 325000 : maxDistance)
+      { dataSources }: {dataSources: DataSources<AreaDataSource>}) => {
+      const { placeId, lnglat, minDistance, maxDistance, includeCrags } = args
+      const areas = dataSources.areas as AreaDataSource
+      return await areas.getCragsNear(
+        placeId,
+        [lnglat.lng, lnglat.lat],
+        minDistance < 0 ? 0 : minDistance,
+        maxDistance > 325000 ? 325000 : maxDistance,
+        includeCrags)
     }
   },
 
