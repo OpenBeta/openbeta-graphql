@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import * as muuid from 'uuid-mongodb'
 import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType } from './AreaTypes.js'
 import { ClimbSchema, PointSchema } from './ClimbSchema.js'
 
@@ -14,9 +15,12 @@ const MetadataSchema = new Schema<IAreaMetadata>({
   left_right_index: { type: Number, required: false },
   ext_id: { type: String, required: false, index: true },
   area_id: {
-    type: String,
+    type: 'object',
+    value: { type: 'Buffer' },
+    default: () => muuid.v4(),
     required: true,
-    unique: true
+    unique: true,
+    index: true
   }
 }, { _id: false })
 

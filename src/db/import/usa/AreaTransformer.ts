@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-import { v4 as uuidv4 } from 'uuid'
+import muuid from 'uuid-mongodb'
+import { v5 as uuidv5, NIL } from 'uuid'
 import { geometry, Point } from '@turf/helpers'
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes'
@@ -54,13 +55,22 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
  */
 const makeDBArea = (node: AreaNode): AreaType => {
   const { key, isLeaf, children, _id } = node
+  let idStr = node.getPathTokens().join()
+
+  if (isLeaf) {
+    const extId = extractMpId(node.jsonLine.url)
+    if (extId !== undefined) {
+      idStr = extId
+    }
+  }
+  const areaId = muuid.from(uuidv5(idStr, NIL))
   return {
     _id,
     area_name: isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1),
     children: Array.from(children),
     metadata: {
       leaf: isLeaf,
-      area_id: uuidv4(),
+      area_id: areaId,
       lnglat: geometry('Point', isLeaf ? node.jsonLine.lnglat : [0, 0]) as Point,
       bbox: [-180, -90, 180, 90],
       left_right_index: -1,

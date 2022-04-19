@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { v4 as uuidv4 } from 'uuid'
+import * as muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import { ClimbType, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
 
@@ -31,7 +31,14 @@ const MetadataSchema = new Schema<IClimbMetadata>({
   left_right_index: { type: Number, required: false },
   mp_id: { type: String, required: false },
   mp_crag_id: { type: String, required: true },
-  climb_id: { type: String, required: true, default: () => uuidv4() }
+  climb_id: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    default: () => muuid.v4(),
+    required: true,
+    unique: false, // unfortunately can't enforce uniqueness here due to limitation of embeded docs
+    index: true
+  }
 }, { _id: false })
 
 export const ClimbSchema = new Schema<ClimbType>({

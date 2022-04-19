@@ -1,4 +1,5 @@
 import mongose from 'mongoose'
+import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 
 export type ClimbType = IClimbProps & {
@@ -36,7 +37,7 @@ export interface IClimbMetadata {
   left_right_index: number
   mp_id?: string
   mp_crag_id: string
-  climb_id: string
+  climb_id: MUUID
 }
 export interface IClimbContent {
   description?: string
