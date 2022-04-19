@@ -1,7 +1,16 @@
 import mongose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
+import type { WithId, Document } from 'mongodb'
 
+// For search climb by id queries
+// Additional fields allow client to build breadcrumbs
+export type ClimbExtType = ClimbType & WithId<Document> & {
+  ancestors: string
+  pathTokens: string[]
+}
+
+// For mongo schema
 export type ClimbType = IClimbProps & {
   metadata: IClimbMetadata
   content: IClimbContent

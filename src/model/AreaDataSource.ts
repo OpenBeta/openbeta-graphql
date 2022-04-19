@@ -1,14 +1,17 @@
 import mongoose from 'mongoose'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
-import { createAreaModel } from '../db/index.js'
+import muuid from 'uuid-mongodb'
 
+import { createAreaModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
-import { ClimbType } from '../db/ClimbTypes.js'
+import { ClimbExtType } from '../db/ClimbTypes.js'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear } from '../types'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = createAreaModel('areas')
+
+  climbsView = mongoose.connection.collection('climbsView')
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
     let mongoFilter = {}
@@ -76,25 +79,16 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     ]).toArray()
   }
 
-  async findOneByAreaUUID (uuid: string): Promise<any> {
-    return await this.collection.findOne({ 'metadata.area_id': uuid })
+  async findOneAreaByUUID (uuid: muuid.MUUID): Promise<AreaType> {
+    return (await this.collection.findOne({ 'metadata.area_id': uuid }) as AreaType)
   }
 
-  async findOneClimbById (id: string): Promise<ClimbType|null> {
-    // Whoa this query is a bit crazy. I'm trying to combine
-    // area.ancestors and area.pathTokens with matching nested climb document
-    const rs = await this.areaModel.aggregate([{ $match: { 'metadata.leaf': true } }])
-      .project({ ancestors: 1, pathTokens: 1, climbs: { $filter: { input: '$climbs', as: 'climb', cond: { $eq: ['$$climb._id', new mongoose.Types.ObjectId(id)] } } } })
-      .unwind('climbs')
-      .replaceRoot({ $mergeObjects: ['$$ROOT', '$climbs'] })
+  async findOneClimbByUUID (uuid: muuid.MUUID): Promise<ClimbExtType | null> {
+    return (await this.climbsView.findOne({ 'metadata.climb_id': uuid })) as ClimbExtType
+  }
 
-    if (rs !== null && rs.length === 1) {
-      const obj = rs[0]
-      delete obj.climbs // because 'climbs' has already been merged by $replaceRoot
-      obj.ancestors = obj.ancestors.split(',')
-      return obj
-    }
-    return null
+  async findOneClimbById (id: string): Promise<ClimbExtType | null> {
+    return (await this.climbsView.findOne({ _id: new mongoose.Types.ObjectId(id) })) as ClimbExtType
   }
 
   /**

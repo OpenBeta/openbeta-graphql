@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import * as muuid from 'uuid-mongodb'
+import muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import { ClimbType, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
 

@@ -1,7 +1,11 @@
 import Typesense from 'typesense'
 import { Point } from '@turf/helpers'
-import { connectDB, gracefulExit, createAreaModel } from '../../index.js'
+import { FindCursor } from 'mongodb'
+
+import { connectDB, gracefulExit, createAreaModel, createClimbsView } from '../../index.js'
 import { disciplinesToArray } from './Utils.js'
+import { ClimbExtType } from '../../ClimbTypes.js'
+
 const chunkSize = 5000
 
 const schema = {
@@ -35,6 +39,12 @@ const schema = {
     },
     {
       name: 'climbId',
+      type: 'string' as const,
+      index: false,
+      optional: true
+    },
+    {
+      name: 'climbUUID',
       type: 'string' as const,
       index: false,
       optional: true
@@ -99,18 +109,18 @@ const onDBConnected = async (): Promise<void> => {
     gracefulExit()
   }
 
-  const areaModel = createAreaModel()
-  const agg = areaModel.aggregate([{ $match: { 'metadata.leaf': true } }, { $unwind: '$climbs' }, { $addFields: { 'climbs.pathTokens': '$pathTokens' } }]).replaceRoot('climbs')
+  createAreaModel()
+  const climbsView = await createClimbsView()
+  const allClimbs = climbsView.find() as FindCursor<ClimbExtType>
 
   let count: number = 0
   let chunks: any[] = []
 
-  for await (const doc of agg) {
+  for await (const doc of allClimbs) {
     if (chunks.length < chunkSize) {
-      doc.id = doc._id.toString()
-
       chunks.push({
-        climbId: doc.id,
+        climbId: doc._id.toString(),
+        climbUUID: doc.metadata.climb_id.toUUID().toString(),
         climbName: doc.name,
         climbDesc: doc.content.description ?? '',
         fa: doc.fa ?? '',
