@@ -4830,6 +4830,13 @@ utils-merge@1.0.1:
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
+uuid-mongodb@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/uuid-mongodb/-/uuid-mongodb-2.5.1.tgz#1dad30efff2c8b5e700a7f939b8b6d587e5279d6"
+  integrity sha512-tBwfgdcouglRlwu8JmTCZ1uBA3YDF3xQPwprhSU5d0Anfl95jM6oKS8HM6tb0yUrLiX1+5Cmob88Y4nOHLyM5g==
+  dependencies:
+    uuid "^8.3.2"
+
 uuid@^8.0.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"

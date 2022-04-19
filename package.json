@@ -34,7 +34,8 @@
     "p-limit": "^4.0.0",
     "typesense": "^1.2.1",
     "underscore": "^1.13.2",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "uuid-mongodb": "^2.5.1"
   },
   "scripts": {
     "lint": "ts-standard",

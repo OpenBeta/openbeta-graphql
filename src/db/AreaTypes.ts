@@ -1,4 +1,6 @@
 import mongose from 'mongoose'
+import { MUUID } from 'uuid-mongodb'
+
 import { BBox, Point } from '@turf/helpers'
 import { ClimbType } from './ClimbTypes'
 
@@ -25,7 +27,7 @@ export interface IAreaMetadata {
   bbox: BBox
   left_right_index: number
   ext_id?: string
-  area_id: string
+  area_id: MUUID
 }
 export interface IAreaContent {
   description?: string

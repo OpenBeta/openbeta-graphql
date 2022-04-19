@@ -2,7 +2,7 @@ import { gql } from 'apollo-server'
 
 export const typeDef = gql`
   type Query {
-    climb(id: ID, uuid: String): Climb
+    climb(id: ID, uuid: ID): Climb
   }
 
   "A climbing route or a boulder problem"
@@ -24,7 +24,8 @@ export const typeDef = gql`
     lng: Float
     left_right_index: Int
     mp_id: String
-    climb_id: String!
+    climb_id: ID!
+    climbId: ID!
   }
 
   type Content {
