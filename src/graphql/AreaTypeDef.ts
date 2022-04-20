@@ -31,9 +31,10 @@ export const typeDef = gql`
     lng: Float!
     bbox: [Float]!
     left_right_index: Int!
+    leftRightIndex: Int!
     mp_id: String!
     area_id: ID!
-    areaID: ID!
+    areaId: ID!
   }
 
   type AggregateType {
