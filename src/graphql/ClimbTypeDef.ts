@@ -23,6 +23,7 @@ export const typeDef = gql`
     lat: Float
     lng: Float
     left_right_index: Int
+    leftRightIndex: Int
     mp_id: String
     climb_id: ID!
     climbId: ID!

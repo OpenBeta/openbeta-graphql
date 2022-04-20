@@ -1,7 +1,7 @@
 import { ApolloServer } from 'apollo-server'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import mongoose from 'mongoose'
-import { schema as graphQLSchema } from './schema/GraphQLSchema.js'
+import { graphqlSchema } from './graphql/resolvers.js'
 import { connectDB, createClimbsView } from './db/index.js'
 import AreaDataSource from './model/AreaDataSource.js'
 
@@ -9,7 +9,7 @@ import AreaDataSource from './model/AreaDataSource.js'
 (async function (): Promise<void> {
   const server = new ApolloServer({
     introspection: true,
-    schema: graphQLSchema,
+    schema: graphqlSchema,
     dataSources: (): DataSources<AreaDataSource> => {
       return {
         areas: new AreaDataSource(mongoose.connection.db.collection('areas'))

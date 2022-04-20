@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import muid from 'uuid-mongodb'
+
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { GQLFilter, Sort } from '../types'
@@ -95,6 +96,7 @@ const resolvers = {
 
     metadata: (node: ClimbExtType) => ({
       ...node.metadata,
+      leftRightIndex: node.metadata.left_right_index,
       climb_id: node.metadata.climb_id.toUUID().toString(),
       climbId: node.metadata.climb_id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
@@ -126,8 +128,9 @@ const resolvers = {
 
     metadata: (node: AreaType) => ({
       ...node.metadata,
+      leftRightIndex: node.metadata.left_right_index,
       area_id: node.metadata.area_id.toUUID().toString(),
-      areaID: node.metadata.area_id.toUUID().toString(),
+      areaId: node.metadata.area_id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
       lng: node.metadata.lnglat.coordinates[0],
       lat: node.metadata.lnglat.coordinates[1]
@@ -135,7 +138,7 @@ const resolvers = {
   }
 }
 
-export const schema = makeExecutableSchema({
+export const graphqlSchema = makeExecutableSchema({
   typeDefs: [Climb, Area],
   resolvers
 })
