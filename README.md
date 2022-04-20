@@ -68,22 +68,29 @@ query Example1 {
 - [Node.js](https://nodejs.org) (v16 or later)
 - [yarn](https://yarnpkg.com/getting-started/install)
 
-#### Seed the development database
 
-1.  Launch **mongodb** (the database) and **mongo-express** (the web-based admin console for mongo):
+1.  Launch **mongodb** dev stack (the database server, and mongo-express, the web-based admin console for mongo):
 
 ```
 docker compose up -d
 ```
 
-2.  Seed the database.  You should see "Done." without any errors.
+2. Seed the development database
 
-```
+```bash
 yarn install
-yarn refresh-db
+yarn refresh-db   # download data files locally and import
+yarn init-db      # update statistics
 ```
 
-Browse the database: http://localhost:8081
+3. Start the GraphQL server
+```bash
+yarn serve
+```
+
+#### Tips
+
+- Browse the database: http://localhost:8081
 
 ### Questions?
 
