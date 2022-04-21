@@ -1,10 +1,9 @@
 import mongoose from 'mongoose'
-import muuid from 'uuid-mongodb'
-import { v5 as uuidv5, NIL } from 'uuid'
 import { geometry, Point } from '@turf/helpers'
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes'
 import { Tree, AreaNode, createRootNode } from './AreaTree.js'
+import { MUUID } from 'uuid-mongodb'
 
 export const createRoot = async (countryCode: string): Promise<AreaNode> => {
   const areaModel = getAreaModel('areas')
@@ -15,18 +14,20 @@ export const createRoot = async (countryCode: string): Promise<AreaNode> => {
 }
 
 export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongoose.Model<AreaType>): Promise<number> => {
-  const tree = new Tree(root) // todo: needs to receive a common root
+  // Build a tree from each record in the state data file
+  const tree = new Tree(root)
   areas.forEach(record => {
     const { path }: {path: string} = record
     /* eslint-disable-next-line */
-    const fullPath = `${record.us_state}|${path}` // 'path' doesn't have a parent, which is a US state
+    const fullPath = `${record.us_state}|${path}` // 'path' doesn't have a parent (a US state)
     tree.insertMany(fullPath, record)
   })
 
-  // todo update root children in db
-
+  // Find the USA node in the db and add USA.children[]
+  // $push is used here because children[] may already have other states
   await areaModel.findOneAndUpdate({ _id: root._id }, { $push: { children: tree.subRoot._id } })
 
+  // For each node in the tree, insert it to the database
   let count = 0
   const chunkSize = 50
   let chunk: AreaType[] = []
@@ -54,29 +55,21 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
  * @returns
  */
 const makeDBArea = (node: AreaNode): AreaType => {
-  const { key, isLeaf, children, _id } = node
-  let idStr = node.getPathTokens().join()
+  const { key, isLeaf, children, _id, uuid } = node
 
-  if (isLeaf) {
-    const extId = extractMpId(node.jsonLine.url)
-    if (extId !== undefined) {
-      idStr = extId
-    }
-  }
-  const areaId = muuid.from(uuidv5(idStr, NIL))
   return {
     _id,
     area_name: isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1),
     children: Array.from(children),
     metadata: {
       leaf: isLeaf,
-      area_id: areaId,
+      area_id: uuid,
       lnglat: geometry('Point', isLeaf ? node.jsonLine.lnglat : [0, 0]) as Point,
       bbox: [-180, -90, 180, 90],
       left_right_index: -1,
       ext_id: isLeaf ? extractMpId(node.jsonLine.url) : ''
     },
-    ancestors: node.getAncestors().join(','),
+    ancestors: uuidArrayToString(node.getAncestors()),
     climbs: [],
     pathTokens: node.getPathTokens(),
     aggregate: {
@@ -99,3 +92,11 @@ const makeDBArea = (node: AreaNode): AreaType => {
 
 const URL_REGEX = /area\/(?<id>\d+)\//
 export const extractMpId = (url: string): string | undefined => URL_REGEX.exec(url)?.groups?.id
+
+const uuidArrayToString = (a: MUUID[]): string => {
+  return a.reduce((acc: string, curr: MUUID, index) => {
+    acc = acc + curr.toUUID().toString()
+    if (index < a.length - 1) acc = acc + ','
+    return acc
+  }, '')
+}

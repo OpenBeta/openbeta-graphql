@@ -1,5 +1,7 @@
 import assert from 'node:assert'
 import mongoose from 'mongoose'
+import muuid, { MUUID } from 'uuid-mongodb'
+import { v5 as uuidv5, NIL } from 'uuid'
 
 /**
  * A tree-like data structure for storing area hierarchy during raw json files progressing.
@@ -62,12 +64,12 @@ export class Tree {
     return this.map.get(path)
   }
 
-  getAncestors (node: AreaNode): mongoose.Types.ObjectId[] {
+  getAncestors (node: AreaNode): MUUID[] {
     if (this.root === undefined) {
       // Country root shouldn't have an ancestor so return itself
-      return [node._id]
+      return [node.uuid]
     }
-    const pathArray: mongoose.Types.ObjectId[] = [this.root._id]
+    const pathArray: MUUID[] = [this.root.uuid]
     const { key } = node
     const tokens: string[] = key.split('|')
 
@@ -83,7 +85,7 @@ export class Tree {
       }
       const parent = this.map.get(path)
       assert(parent !== undefined, 'Parent should exist')
-      pathArray.push(parent._id)
+      pathArray.push(parent.uuid)
       return path
     }, '')
     return pathArray
@@ -104,6 +106,7 @@ export class Tree {
 export class AreaNode {
   key: string
   _id = new mongoose.Types.ObjectId()
+  uuid: MUUID
   isLeaf: boolean
   jsonLine: any = undefined
   parentRef: mongoose.Types.ObjectId | null = null
@@ -111,6 +114,7 @@ export class AreaNode {
   treeRef: Tree
 
   constructor (key: string, isLeaf: boolean, jsonLine = undefined, treeRef: Tree) {
+    this.uuid = getUUID(key, isLeaf, jsonLine)
     this.key = key
     this.isLeaf = isLeaf
     if (isLeaf) { // because our data files contain only leaf area data
@@ -138,7 +142,7 @@ export class AreaNode {
   /**
    * Return an array of ancestor refs of this node (inclusive)
    */
-  getAncestors (): mongoose.Types.ObjectId[] {
+  getAncestors (): MUUID[] {
     const a = this.treeRef.getAncestors(this)
     return a
   }
@@ -154,3 +158,25 @@ export class AreaNode {
 export const createRootNode = (countryCode: string): AreaNode => {
   return new AreaNode(countryCode, false, undefined, new Tree())
 }
+
+/**
+ * Generate MUUID from path  or mp id
+ * @param key path (US|Oregon|Smith Rock)
+ * @param isLeaf leaf node
+ * @param jsonLine raw data
+ * @returns MUUID
+ */
+const getUUID = (key, isLeaf: boolean, jsonLine: any): MUUID => {
+  let idStr = key
+  if (isLeaf) {
+    assert(jsonLine !== undefined)
+    const extId = extractMpId(jsonLine.url)
+    if (extId !== undefined) {
+      idStr = extId
+    }
+  }
+  return muuid.from(uuidv5(idStr, NIL))
+}
+
+const URL_REGEX = /area\/(?<id>\d+)\//
+export const extractMpId = (url: string): string | undefined => URL_REGEX.exec(url)?.groups?.id
