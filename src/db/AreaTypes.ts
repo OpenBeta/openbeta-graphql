@@ -37,8 +37,6 @@ export interface CountByGroupType {
   count: number
   label: string
 }
-export interface PointType { lat: number, lng: number}
-
 export interface AggregateType {
   byGrade: CountByGroupType[]
   byDiscipline: CountByDisciplineType
