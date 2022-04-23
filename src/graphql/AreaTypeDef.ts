@@ -11,6 +11,7 @@ export const typeDef = gql`
   "A climbing area, wall or crag"
   type Area {
     id: ID!
+    uuid: ID!
     area_name: String!
     areaName: String!
     metadata: AreaMetadata!

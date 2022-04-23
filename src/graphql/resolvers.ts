@@ -78,7 +78,8 @@ const resolvers = {
   },
 
   Climb: {
-    id: async (node: ClimbExtType) => node._id,
+    id: (node: ClimbExtType) => node._id,
+    uuid: (node: ClimbExtType) => node.metadata.climb_id.toUUID().toString(),
 
     type: async (node: ClimbExtType) => {
       if (node.type === undefined) {
@@ -108,7 +109,8 @@ const resolvers = {
   },
 
   Area: {
-    id: async (node: AreaType) => node._id,
+    id: (node: AreaType) => node._id,
+    uuid: (node: AreaType) => node.metadata.area_id.toUUID().toString(),
 
     // New camel case field
     areaName: async (node: AreaType) => node.area_name,
