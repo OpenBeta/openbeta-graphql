@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
-import { BBox } from '@turf/helpers'
+import { BBox, Point, feature, featureCollection } from '@turf/helpers'
+import centroid from '@turf/centroid'
 import pLimit from 'p-limit'
 
 import { getAreaModel } from '../../AreaSchema.js'
@@ -14,7 +15,7 @@ type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
 /**
  * Visit all nodes using post-order traversal and perform graph reduction.
  * Conceptually, it's similar to Array.reduce():
- * 1. From root node, recursively visit all children until arrive at leaf nodes (crags).
+ * 1. From the root node, recursively visit all children until arrive at leaf nodes (crags).
  * 2. Reduce each leaf node into a single object. Return to parent.
  * 3. Reduce all children results.  Repeat.
  */
@@ -40,7 +41,7 @@ export const visitAllAreas = async (): Promise<void> => {
         return leafReducer((area.toObject() as AreaType))
       })
     )
-    await nodeReducer(results, root)
+    await nodesReducer(results, root)
   }
 }
 
@@ -48,6 +49,7 @@ interface ResultType {
   density: number
   totalClimbs: number
   bbox: BBox
+  lnglat: Point
   aggregate: AggregateType
 }
 
@@ -67,7 +69,7 @@ async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
     }
     ))
 
-  return await nodeReducer(results, node)
+  return await nodesReducer(results, node)
 }
 
 /**
@@ -80,15 +82,26 @@ const leafReducer = (node: AreaType): ResultType => {
   return {
     totalClimbs: node.totalClimbs,
     bbox: node.metadata.bbox,
+    lnglat: node.metadata.lnglat,
     density: node.density,
     aggregate: node.aggregate
   }
 }
 
-const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<ResultType> => {
+/**
+ * Calculate stats from a list of nodes
+ * @param result nodes
+ * @param parent parent node to save stats to
+ * @returns Calculated stats
+ */
+const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promise<ResultType> => {
   const initial: ResultType = {
     totalClimbs: 0,
     bbox: [-180, -90, 180, 90],
+    lnglat: {
+      type: 'Point',
+      coordinates: [0, 0]
+    },
     density: 0,
     aggregate: {
       byGrade: [],
@@ -103,21 +116,28 @@ const nodeReducer = async (result: ResultType[], node: AreaMongoType): Promise<R
   }
 
   const z = result.reduce((acc, curr, index) => {
-    const { totalClimbs, bbox: _bbox, aggregate } = curr
+    const { totalClimbs, bbox: _bbox, aggregate, lnglat } = curr
     const bbox = index === 0 ? _bbox : bboxFromList([_bbox, acc.bbox])
     return {
       totalClimbs: acc.totalClimbs + totalClimbs,
       bbox,
+      lnglat, // we'll calculate a new center point later
       density: areaDensity(bbox, totalClimbs),
       aggregate: mergeAggregates(acc.aggregate, aggregate)
     }
   }, initial)
 
-  const { totalClimbs, bbox, density, aggregate } = z
-  node.totalClimbs = totalClimbs
-  node.metadata.bbox = bbox
-  node.density = density
-  node.aggregate = aggregate
-  await node.save()
+  // Calculate a center for all crags
+  const collectionOfAreas = featureCollection(result.map(item => feature(item.lnglat)))
+  const calculatedParentCenter = centroid(collectionOfAreas).geometry
+  z.lnglat = calculatedParentCenter
+
+  const { totalClimbs, bbox, density, aggregate, lnglat } = z
+  parent.metadata.lnglat = lnglat
+  parent.totalClimbs = totalClimbs
+  parent.metadata.bbox = bbox
+  parent.density = density
+  parent.aggregate = aggregate
+  await parent.save()
   return z
 }
