@@ -1,13 +1,17 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import muid from 'uuid-mongodb'
+import mongoose from 'mongoose'
 
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
+import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
 import { GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
+import { MediaType } from '../db/MediaTypes.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
+import { getMediaModel } from '../db/index.js'
 
 interface IdQueryType {
   id?: string
@@ -19,15 +23,36 @@ interface DataSourcesType {
 }
 
 const resolvers = {
+  Mutation: {
+    setTags: async (
+      _,
+      { input },
+      { dataSources }) => {
+      console.log('#mutation setMedia', input)
+      const { mediaId, mediaType, mediaUrl, lng, lat, sources } = input
+
+      console.log('#lat,lng', lng, lat)
+      const doc: MediaType = {
+        mediaId,
+        lnglat: lng != null && lat != null ? { type: 'Point', coordinates: [lng, lat] } : undefined,
+        mediaType,
+        mediaUrl,
+        sources
+      }
+      // const point = { type: 'Point', coordinates: [lng, lat] }
+
+      const media = getMediaModel()
+      const newDoc = await media.findOneAndUpdate({ mediaId: mediaId }, doc, { new: true, upsert: true })
+      console.log('#post update', newDoc)
+      return newDoc
+    }
+  },
   Query: {
     climb: async (
       _,
       { id, uuid }: IdQueryType,
       { dataSources }) => {
       const { areas }: DataSourcesType = dataSources
-      if (id !== undefined && id !== '') {
-        return await areas.findOneClimbById(id)
-      }
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
       }
@@ -74,6 +99,20 @@ const resolvers = {
         minDistance < 0 ? 0 : minDistance,
         maxDistance > 325000 ? 325000 : maxDistance,
         includeCrags)
+    },
+
+    getTags: async (
+      _,
+      { uuid }: IdQueryType,
+      { dataSources }) => {
+      // const { areas }: DataSourcesType = dataSources
+      if (uuid !== undefined && uuid !== '') {
+        const media = getMediaModel()
+        const rs = await media.findOne({ srcUuid: uuid }).lean()
+        console.log('#DB rs', rs)
+        return rs
+      }
+      return null
     }
   },
 
@@ -141,6 +180,6 @@ const resolvers = {
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [Climb, Area],
+  typeDefs: [Climb, Area, MediaTypeDef],
   resolvers
 })
