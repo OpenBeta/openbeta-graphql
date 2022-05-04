@@ -3,7 +3,7 @@ import type { Collection, Document } from 'mongodb'
 import muuid from 'uuid-mongodb'
 
 import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType } from './AreaTypes.js'
-import { ClimbSchema, PointSchema } from './ClimbSchema.js'
+import { PointSchema } from './ClimbSchema.js'
 
 const { Schema, connection } = mongoose
 
@@ -67,7 +67,11 @@ const AggregateSchema = new Schema<AggregateType>({
 
 const AreaSchema = new Schema<AreaType>({
   area_name: { type: String, required: true, index: true },
-  climbs: [{ type: ClimbSchema, required: false }],
+  climbs: [{
+    type: Schema.Types.Mixed,
+    ref: 'climbs',
+    required: false
+  }],
   children: [{ type: Schema.Types.ObjectId, ref: 'areas', required: false }],
   ancestors: { type: String, required: true, index: true },
   pathTokens: [{ type: String, required: true, index: true }],

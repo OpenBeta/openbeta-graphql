@@ -2,10 +2,10 @@ import mongoose from 'mongoose'
 import readline from 'node:readline'
 import fs from 'node:fs'
 
-import { createAreaModel } from '../../index.js'
+import { getAreaModel } from '../../index.js'
 import { AreaType } from '../../AreaTypes.js'
-import { addClimbsToAreas } from './AddClimbsToCrags.js'
-import { createClimbModel } from '../../ClimbSchema.js'
+import { linkClimbsWithAreas } from './LinkClimbsWithCrags.js'
+import { getClimbModel } from '../../ClimbSchema.js'
 import { ClimbType } from '../../ClimbTypes.js'
 import transformClimbRecord from '../ClimbTransformer.js'
 import { createAreas } from './AreaTransformer.js'
@@ -20,20 +20,15 @@ export interface JobStats {
 export const seedState = async (root: AreaNode, stateCode: string, fileClimbs: string, fileAreas: string): Promise<JobStats> => {
   console.time('Loaded ' + stateCode)
 
-  const tmpClimbs = `_${stateCode}_tmp_climbs`
-  await dropCollection(tmpClimbs)
-
-  const areaModel: mongoose.Model<AreaType> = createAreaModel('areas')
-  const climbModel: mongoose.Model<ClimbType> = createClimbModel(tmpClimbs)
+  const areaModel: mongoose.Model<AreaType> = getAreaModel('areas')
+  const climbModel: mongoose.Model<ClimbType> = getClimbModel('climbs')
 
   const stats = await Promise.all([
     loadClimbs(fileClimbs, climbModel),
     loadAreas(root, fileAreas, areaModel)
   ])
 
-  await addClimbsToAreas(climbModel, areaModel)
-
-  await dropCollection(tmpClimbs)
+  await linkClimbsWithAreas(climbModel, areaModel)
 
   console.timeEnd('Loaded ' + stateCode)
 

@@ -6,35 +6,45 @@ export const typeDef = gql`
   }
 
   type Query {
-    getTags(uuid: ID): MediaType
+    getTagsByMediaId(uuid: ID): MediaType
+  }
+
+  type Query {
+    getTagsByMediaIdList(uuidList: [ID]): [TagType]
+  }
+
+  type TagType {
+    areaUuid: ID!
+    areaName: String!
+    climb: ClimbType!
+    mediaList: [MediaType!]!
   }
 
   "A climbing route or a boulder problem"
   type MediaType {
-    id: ID!
     lat: Float
     lng: Float
-    mediaId: ID!
+    mediaUuid: ID!
     mediaUrl: String!
     mediaType: Int!
-    sources: [SourceType]
-  }
-
-  type SourceType {
     srcUuid: ID! 
     srcType: Int!
   }
 
-  input MediaInput {
-    lat: Float
-    lng: Float
-    mediaId: ID!
-    mediaUrl: String!
-    mediaType: Int!
-    sources: [SourceInputType]
+  type ClimbType {
+    uuid: ID!
+    name: String!
+    yds: String!
+    type: ClimbType!
+    safety: SafetyEnum!
+    metadata: ClimbMetadata!
+    ancestors: [String!]!
   }
 
-  input SourceInputType {
+  input MediaInput {
+    mediaUuid: ID!
+    mediaUrl: String!
+    mediaType: Int!
     srcUuid: ID! 
     srcType: Int!
   }

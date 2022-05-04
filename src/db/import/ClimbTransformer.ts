@@ -1,4 +1,3 @@
-import mongoose from 'mongoose'
 import { geometry, Point } from '@turf/helpers'
 import { ClimbType } from '../ClimbTypes.js'
 import muuid from 'uuid-mongodb'
@@ -9,10 +8,12 @@ const transformClimbRecord = (row: any): ClimbType => {
   const { route_name, grade, safety, type, fa, metadata, description, protection, location } = row
   /* eslint-disable-next-line */
   const { parent_lnglat, left_right_seq, mp_route_id, mp_sector_id } = metadata
-  const uuid = muuid.from(uuidv5(mp_route_id, NIL))
-  if (uuid === undefined || uuid === null) console.log('# ', row)
+
+  // in case mp_route_id is empty
+  const pkeyStr = mp_route_id === '' ? `${mp_sector_id as string}.${left_right_seq as string}` : mp_route_id
+  const uuid = muuid.from(uuidv5(pkeyStr, NIL))
   return {
-    _id: new mongoose.Types.ObjectId(),
+    _id: uuid,
     name: route_name,
     yds: grade.YDS,
     safety: safety,
@@ -23,7 +24,8 @@ const transformClimbRecord = (row: any): ClimbType => {
       lnglat: geometry('Point', parent_lnglat) as Point,
       left_right_index: left_right_seq,
       mp_id: mp_route_id,
-      mp_crag_id: mp_sector_id
+      mp_crag_id: mp_sector_id,
+      areaRef: muuid.from(uuidv5(mp_sector_id, NIL))
     },
     content: {
       description: Array.isArray(description) ? description.join('\n\n') : '',

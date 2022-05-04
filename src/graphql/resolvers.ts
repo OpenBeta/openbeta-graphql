@@ -1,58 +1,27 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
-import muid from 'uuid-mongodb'
-import mongoose from 'mongoose'
+import muid, { MUUID } from 'uuid-mongodb'
 
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
-import { GQLFilter, Sort } from '../types'
+import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
-import { MediaType } from '../db/MediaTypes.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
-import { getMediaModel } from '../db/index.js'
-
-interface IdQueryType {
-  id?: string
-  uuid?: string
-}
-
-interface DataSourcesType {
-  areas: AreaDataSource
-}
+import { MediaMutations, MediaQueries, MediaResolver } from './media/index.js'
 
 const resolvers = {
   Mutation: {
-    setTags: async (
-      _,
-      { input },
-      { dataSources }) => {
-      console.log('#mutation setMedia', input)
-      const { mediaId, mediaType, mediaUrl, lng, lat, sources } = input
-
-      console.log('#lat,lng', lng, lat)
-      const doc: MediaType = {
-        mediaId,
-        lnglat: lng != null && lat != null ? { type: 'Point', coordinates: [lng, lat] } : undefined,
-        mediaType,
-        mediaUrl,
-        sources
-      }
-      // const point = { type: 'Point', coordinates: [lng, lat] }
-
-      const media = getMediaModel()
-      const newDoc = await media.findOneAndUpdate({ mediaId: mediaId }, doc, { new: true, upsert: true })
-      console.log('#post update', newDoc)
-      return newDoc
-    }
+    ...MediaMutations
   },
   Query: {
+    ...MediaQueries,
     climb: async (
       _,
-      { id, uuid }: IdQueryType,
+      { id, uuid }: QueryByIdType,
       { dataSources }) => {
-      const { areas }: DataSourcesType = dataSources
+      const { areas }: {areas: AreaDataSource} = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
       }
@@ -70,7 +39,7 @@ const resolvers = {
     },
 
     area: async (_: any,
-      { id, uuid }: IdQueryType,
+      { id, uuid }: QueryByIdType,
       { dataSources }) => {
       const { areas }: {areas: AreaDataSource} = dataSources
       if (id !== undefined && id !== '') {
@@ -99,25 +68,17 @@ const resolvers = {
         minDistance < 0 ? 0 : minDistance,
         maxDistance > 325000 ? 325000 : maxDistance,
         includeCrags)
-    },
-
-    getTags: async (
-      _,
-      { uuid }: IdQueryType,
-      { dataSources }) => {
-      // const { areas }: DataSourcesType = dataSources
-      if (uuid !== undefined && uuid !== '') {
-        const media = getMediaModel()
-        const rs = await media.findOne({ srcUuid: uuid }).lean()
-        console.log('#DB rs', rs)
-        return rs
-      }
-      return null
     }
   },
-
+  MediaType: MediaResolver,
+  TagType: {
+    mediaList: (node: any) => {
+      console.log('#resolver', node)
+      return node.mediaList
+    }
+  },
   Climb: {
-    id: (node: ClimbExtType) => node._id,
+    id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
     uuid: (node: ClimbExtType) => node.metadata.climb_id.toUUID().toString(),
 
     type: async (node: ClimbExtType) => {

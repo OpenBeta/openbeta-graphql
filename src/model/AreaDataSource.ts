@@ -1,17 +1,16 @@
-import mongoose from 'mongoose'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import muuid from 'uuid-mongodb'
 
-import { createAreaModel } from '../db/index.js'
+import { getAreaModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
-import { ClimbExtType } from '../db/ClimbTypes.js'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear } from '../types'
+import { getClimbModel } from '../db/ClimbSchema.js'
+import { ClimbExtType } from '../db/ClimbTypes.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
-  areaModel = createAreaModel('areas')
-
-  climbsView = mongoose.connection.collection('climbsView')
+  areaModel = getAreaModel()
+  climbModel = getClimbModel()
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
     let mongoFilter = {}
@@ -66,7 +65,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       }, {})
     }
 
-    const result = await this.collection.find(mongoFilter)
+    const result = await this.areaModel.find(mongoFilter).populate({ path: 'climbs', model: this.climbModel })
 
     return result
   }
@@ -79,16 +78,63 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     ]).toArray()
   }
 
-  async findOneAreaByUUID (uuid: muuid.MUUID): Promise<AreaType> {
-    return (await this.collection.findOne({ 'metadata.area_id': uuid }) as AreaType)
+  async findOneAreaByUUID (uuid: muuid.MUUID): Promise<any> {
+    const rs = await this.areaModel
+      .aggregate([
+        { $match: { 'metadata.area_id': uuid } },
+        {
+          $lookup: {
+            from: 'climbs', // other collection name
+            localField: 'climbs',
+            foreignField: '_id',
+            as: 'climbs' // clobber array of climb IDs with climb objects
+          }
+        }
+      ])
+
+    if (rs != null && rs.length === 1) {
+      return rs[0]
+    }
+    return null
   }
 
-  async findOneClimbByUUID (uuid: muuid.MUUID): Promise<ClimbExtType | null> {
-    return (await this.climbsView.findOne({ 'metadata.climb_id': uuid })) as ClimbExtType
-  }
+  /**
+   * Find a climb by uuid.  Also return some info from the parent area (crag).
+   * @param uuid
+   * @returns
+   */
+  async findOneClimbByUUID (uuid: muuid.MUUID): Promise<ClimbExtType|null> {
+    const rs = await this.climbModel
+      .aggregate([
+        { $match: { _id: uuid } },
+        {
+          $lookup: {
+            from: 'areas', // other collection name
+            localField: 'metadata.areaUuid',
+            foreignField: 'metadata.area_id',
+            as: 'area', // clobber array of climb IDs with climb objects
+            pipeline: [
+              {
+                $project: { // only include specific fields
+                  _id: 0,
+                  ancestors: 1,
+                  pathTokens: 1
+                }
+              }
+            ]
+          }
+        },
+        { $unwind: '$area' }, // Previous stage returns as an array of 1 element. 'unwind' turn it into an object.
+        {
+          $replaceWith: { // Merge area.* with top-level object
+            $mergeObjects: ['$$ROOT', '$area']
+          }
+        }])
 
-  async findOneClimbById (id: string): Promise<ClimbExtType | null> {
-    return (await this.climbsView.findOne({ _id: new mongoose.Types.ObjectId(id) })) as ClimbExtType
+    if (rs != null && rs?.length === 1) {
+      return rs[0]
+    }
+    return null
   }
 
   /**

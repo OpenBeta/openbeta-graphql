@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 import { config } from 'dotenv'
 
-import { createAreaModel, createClimbsView } from './AreaSchema.js'
-import { createClimbModel } from './ClimbSchema.js'
+import { getAreaModel, createClimbsView } from './AreaSchema.js'
+import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
 
 config()
@@ -47,8 +47,10 @@ export const connectDB = (onConnected: () => any = defaultFn): any => {
   }
 }
 
-export const createIndexes = async (): Promise<void> => await createAreaModel().ensureIndexes()
-
+export const createIndexes = async (): Promise<void> => {
+  await getClimbModel().ensureIndexes()
+  await getAreaModel().ensureIndexes()
+}
 export const gracefulExit = (exitCode: number = 0): void => {
   mongoose.connection.close(function () {
     console.log('Gracefully exiting.')
@@ -58,4 +60,4 @@ export const gracefulExit = (exitCode: number = 0): void => {
 
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, createAreaModel, createClimbsView, createClimbModel }
+export { getMediaModel, getAreaModel, createClimbsView, getClimbModel as createClimbModel }

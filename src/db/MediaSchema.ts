@@ -1,12 +1,22 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { MediaType, SourceType } from './MediaTypes'
+import { MediaType } from './MediaTypes'
 import { PointSchema } from './ClimbSchema.js'
 
 const { Schema, connection } = mongoose
 
-const SourceSchema = new Schema<SourceType>({
+const MediaSchema = new Schema<MediaType>({
+  mediaUuid: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    default: () => muuid.v4(),
+    required: true,
+    unique: false,
+    index: true
+  },
+  mediaUrl: { type: String, required: true },
+  mediaType: { type: Number, required: true },
   srcType: { type: Number, required: true },
   srcUuid: {
     type: 'object',
@@ -15,19 +25,27 @@ const SourceSchema = new Schema<SourceType>({
     required: true,
     unique: true,
     index: true
-  }
-}, { _id: false })
-
-const MediaSchema = new Schema<MediaType>({
-  mediaId: { type: String, required: true, unique: true },
-  mediaUrl: { type: String, required: true },
-  mediaType: { type: Number, required: true },
-  sources: [{ type: SourceSchema, required: false }],
+  },
   lnglat: {
     type: PointSchema,
     index: '2dsphere'
   }
-}, { _id: true })
+}, {
+  toObject: {
+    virtuals: true
+  },
+  toJSON: { virtuals: true },
+  _id: false
+})
+
+MediaSchema.virtual('climb', {
+  ref: 'areas',
+  localField: 'srcUuid',
+  foreignField: 'climbs.metadata.climb_id',
+  justOne: true
+})
+
+MediaSchema.index({ mediaUuid: 1, srcUuid: 1 }, { unique: true })
 
 export const getMediaModel = (name: string = 'media'): mongoose.Model<typeof MediaSchema> => {
   return connection.model(name, MediaSchema)

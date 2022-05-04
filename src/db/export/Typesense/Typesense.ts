@@ -2,7 +2,7 @@ import Typesense from 'typesense'
 import { Point } from '@turf/helpers'
 import { FindCursor } from 'mongodb'
 
-import { connectDB, gracefulExit, createAreaModel, createClimbsView } from '../../index.js'
+import { connectDB, gracefulExit, getAreaModel, createClimbsView } from '../../index.js'
 import { disciplinesToArray } from './Utils.js'
 import { ClimbExtType } from '../../ClimbTypes.js'
 
@@ -36,12 +36,6 @@ const schema = {
       name: 'areaNames',
       type: 'string[]' as const,
       facet: false
-    },
-    {
-      name: 'climbId',
-      type: 'string' as const,
-      index: false,
-      optional: true
     },
     {
       name: 'climbUUID',
@@ -109,7 +103,7 @@ const onDBConnected = async (): Promise<void> => {
     gracefulExit()
   }
 
-  createAreaModel()
+  getAreaModel()
   const climbsView = await createClimbsView()
   const allClimbs = climbsView.find() as FindCursor<ClimbExtType>
 
@@ -119,7 +113,6 @@ const onDBConnected = async (): Promise<void> => {
   for await (const doc of allClimbs) {
     if (chunks.length < chunkSize) {
       chunks.push({
-        climbId: doc._id.toString(),
         climbUUID: doc.metadata.climb_id.toUUID().toString(),
         climbName: doc.name,
         climbDesc: doc.content.description ?? '',
