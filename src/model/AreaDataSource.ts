@@ -64,10 +64,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         return acc
       }, {})
     }
-
-    const result = await this.areaModel.find(mongoFilter).populate({ path: 'climbs', model: this.climbModel })
-
-    return result
+    // Todo: figure whether we need to populate 'climbs' array
+    return this.collection.find(mongoFilter)
   }
 
   async findManyByPathHash (pathHashes: string[]): Promise<any> {
@@ -158,14 +156,13 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       totalClimbs: 0,
       totalCrags: 0
     }
-    const agg1 = await this.areaModel.aggregate([{ $match: { pathTokens: { $size: 1 } } }])
-      .project({ totalClimbs: { $sum: '$totalClimbs' }, _id: 0 })
+    const agg1 = await this.climbModel.countDocuments()
 
     const agg2 = await this.areaModel.aggregate([{ $match: { 'metadata.leaf': true } }])
       .count('totalCrags')
 
-    if (agg1.length === 1 && agg2.length === 1) {
-      const totalClimbs = agg1[0].totalClimbs
+    if (agg2.length === 1) {
+      const totalClimbs = agg1
       const totalCrags = agg2[0].totalCrags
       return {
         totalClimbs,
