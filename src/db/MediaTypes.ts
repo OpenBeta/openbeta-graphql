@@ -1,15 +1,14 @@
 import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
-import { Point } from '@turf/helpers'
 
 export interface MediaType {
   _id?: mongoose.Types.ObjectId
   mediaUuid: MUUID
   mediaUrl: string
   mediaType: number
-  lnglat?: Point
-  srcUuid: MUUID // reference to OpenBeta climb or area
-  srcType: number // 0: climb, 1: area
+  destinationId: MUUID // reference to a climb or area
+  destType: number // 0: climb, 1: area
+  onModel: RefModelType
 }
 
 export interface MediaTagType {
@@ -17,4 +16,9 @@ export interface MediaTagType {
   areaUuid: MUUID
   climb: any
   media: MediaType[]
+}
+
+export enum RefModelType {
+  climbs = 'climbs',
+  areas = 'areas'
 }

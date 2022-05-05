@@ -9,7 +9,7 @@ import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
-import { MediaMutations, MediaQueries, MediaResolver } from './media/index.js'
+import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 
 const resolvers = {
   Mutation: {
@@ -70,13 +70,13 @@ const resolvers = {
         includeCrags)
     }
   },
-  MediaType: MediaResolver,
-  TagType: {
-    mediaList: (node: any) => {
-      console.log('#resolver', node)
-      return node.mediaList
-    }
-  },
+  ...MediaResolvers,
+  // TagType: {
+  //   mediaList: (node: any) => {
+  //     console.log('#resolver', node)
+  //     return node.mediaList
+  //   }
+  // },
   Climb: {
     id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
     uuid: (node: ClimbExtType) => node.metadata.climb_id.toUUID().toString(),

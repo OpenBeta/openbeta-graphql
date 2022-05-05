@@ -2,50 +2,58 @@ import { gql } from 'apollo-server'
 
 export const typeDef = gql`
   type Mutation {
-    setTags(input: MediaInput): MediaType
+    setTags(input: MediaInput): MediaTagType
   }
 
   type Query {
-    getTagsByMediaId(uuid: ID): MediaType
+    getTagsByMediaIdList(uuidList: [ID]): [TagEntryResult]
   }
 
-  type Query {
-    getTagsByMediaIdList(uuidList: [ID]): [TagType]
-  }
 
-  type TagType {
-    areaUuid: ID!
-    areaName: String!
-    climb: ClimbType!
-    mediaList: [MediaType!]!
-  }
-
-  "A climbing route or a boulder problem"
-  type MediaType {
-    lat: Float
-    lng: Float
+  "A tag linking the media with a climb or an area"
+  type MediaTagType {
     mediaUuid: ID!
     mediaUrl: String!
     mediaType: Int!
-    srcUuid: ID! 
-    srcType: Int!
+    destination: ID!
+    destType: Int!
   }
 
-  type ClimbType {
-    uuid: ID!
-    name: String!
-    yds: String!
-    type: ClimbType!
-    safety: SafetyEnum!
-    metadata: ClimbMetadata!
-    ancestors: [String!]!
+  "A tag linking the media with a climb"
+  type ClimbTag {
+    mediaUuid: ID!
+    mediaUrl: String!
+    mediaType: Int!
+    climb: Climb!
+    destType: Int!
   }
+
+  "A tag linking the media with an area"
+  type AreaTag {
+    mediaUuid: ID!
+    mediaUrl: String!
+    mediaType: Int!
+    area: Area!
+    destType: Int!
+  }
+
+  union TagEntryResult = ClimbTag | AreaTag
 
   input MediaInput {
     mediaUuid: ID!
     mediaUrl: String!
     mediaType: Int!
-    srcUuid: ID! 
-    srcType: Int!
+    destinationId: ID! 
+    destType: Int!
   }
 `
+
+// type ClimbType {
+//   uuid: ID!
+//   name: String!
+//   yds: String!
+//   type: ClimbType!
+//   safety: SafetyEnum!
+//   metadata: ClimbMetadata!
+//   ancestors: [String!]!
+// }

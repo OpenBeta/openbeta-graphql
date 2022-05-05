@@ -1,5 +1,5 @@
 import MediaQueries from './queries.js'
 import MediaMutations from './mutations.js'
-import MediaResolver from './MediaResolver.js'
+import MediaResolvers from './MediaResolvers.js'
 
-export { MediaQueries, MediaMutations, MediaResolver }
+export { MediaQueries, MediaMutations, MediaResolvers }

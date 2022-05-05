@@ -1,8 +1,7 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { MediaType } from './MediaTypes'
-import { PointSchema } from './ClimbSchema.js'
+import { MediaType, RefModelType } from './MediaTypes.js'
 
 const { Schema, connection } = mongoose
 
@@ -17,18 +16,17 @@ const MediaSchema = new Schema<MediaType>({
   },
   mediaUrl: { type: String, required: true },
   mediaType: { type: Number, required: true },
-  srcType: { type: Number, required: true },
-  srcUuid: {
-    type: 'object',
+  destType: { type: Number, required: true },
+  destinationId: {
+    type: Schema.Types.Mixed,
     value: { type: 'Buffer' },
-    default: () => muuid.v4(),
     required: true,
-    unique: true,
-    index: true
+    refPath: 'onModel'
   },
-  lnglat: {
-    type: PointSchema,
-    index: '2dsphere'
+  onModel: {
+    type: String,
+    required: true,
+    enum: Object.values(RefModelType)
   }
 }, {
   toObject: {
@@ -36,13 +34,6 @@ const MediaSchema = new Schema<MediaType>({
   },
   toJSON: { virtuals: true },
   _id: false
-})
-
-MediaSchema.virtual('climb', {
-  ref: 'areas',
-  localField: 'srcUuid',
-  foreignField: 'climbs.metadata.climb_id',
-  justOne: true
 })
 
 MediaSchema.index({ mediaUuid: 1, srcUuid: 1 }, { unique: true })

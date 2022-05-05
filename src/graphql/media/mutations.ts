@@ -1,24 +1,31 @@
 import muid from 'uuid-mongodb'
 
-import { MediaType } from '../../db/MediaTypes.js'
+import { MediaType, RefModelType } from '../../db/MediaTypes.js'
 import { getMediaModel } from '../../db/index.js'
 
 const MediaMutations = {
-  setTags: async (
-    _,
-    { input },
-    { dataSources }) => {
-    const { mediaUuid, mediaType, mediaUrl, srcType, srcUuid }: MediaType = input
+  setTags: async (_, { input }) => {
+    const { mediaUuid, mediaType, mediaUrl, destType, destinationId }: MediaType = input
+
+    let modelType: RefModelType
+    switch (destType) {
+      case 0: modelType = RefModelType.climbs
+        break
+      case 1: modelType = RefModelType.areas
+        break
+      default: modelType = RefModelType.climbs
+    }
+
     const doc: MediaType = {
       mediaUuid: muid.from(mediaUuid),
       mediaType,
       mediaUrl,
-      srcType,
-      srcUuid: muid.from(srcUuid)
+      destType: destType,
+      destinationId: muid.from(destinationId),
+      onModel: modelType
     }
     const media = getMediaModel()
-    const newDoc = await media.findOneAndUpdate({ mediaUuid: doc.mediaUuid }, doc, { new: true, upsert: true })
-    return newDoc
+    return await media.findOneAndUpdate({ mediaUuid: doc.mediaUuid, destinationId }, doc, { new: true, upsert: true })
   }
 }
 
