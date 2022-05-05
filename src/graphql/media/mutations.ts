@@ -26,6 +26,12 @@ const MediaMutations = {
     }
     const media = getMediaModel()
     return await media.findOneAndUpdate({ mediaUuid: doc.mediaUuid, destinationId }, doc, { new: true, upsert: true })
+  },
+
+  removeTag: async (_, { mediaUuid, destinationId }) => {
+    const rs = await getMediaModel().deleteOne({ mediaUuid: muid.from(mediaUuid), destinationId: muid.from(destinationId) })
+    if (rs?.deletedCount === 1) return true
+    return false
   }
 }
 

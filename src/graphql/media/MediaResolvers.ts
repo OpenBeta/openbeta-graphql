@@ -7,7 +7,6 @@ const MediaResolvers = {
 
   TagEntryResult: {
     __resolveType (obj) {
-      console.log('#obj type', obj)
       if (obj.onModel === RefModelType.climbs) {
         return 'ClimbTag'
       }
@@ -19,11 +18,13 @@ const MediaResolvers = {
   },
 
   ClimbTag: {
+    mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
     // destinationId now contains the actual climb object. See Mongoose 'populate()'.
     climb: (node: any) => node.destinationId
   },
 
   AreaTag: {
+    mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
     // destinationId now contains the actual area object. See Mongoose 'populate()'.
     area: (node: any) => node.destinationId
   }

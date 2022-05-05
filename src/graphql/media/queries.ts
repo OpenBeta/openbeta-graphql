@@ -9,7 +9,6 @@ const MediaQueries = {
       const rs = await getMediaModel()
         .find({ mediaUuid: { $in: muidList } })
         .populate('destinationId').lean()
-      console.log('#rs', rs)
       return rs
     }
     return []

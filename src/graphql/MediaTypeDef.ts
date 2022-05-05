@@ -5,6 +5,10 @@ export const typeDef = gql`
     setTags(input: MediaInput): MediaTagType
   }
 
+  type Mutation {
+    removeTag(mediaUuid: ID!, destinationId: ID!): Boolean
+  }
+
   type Query {
     getTagsByMediaIdList(uuidList: [ID]): [TagEntryResult]
   }

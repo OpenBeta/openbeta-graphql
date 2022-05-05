@@ -70,13 +70,9 @@ const resolvers = {
         includeCrags)
     }
   },
+
   ...MediaResolvers,
-  // TagType: {
-  //   mediaList: (node: any) => {
-  //     console.log('#resolver', node)
-  //     return node.mediaList
-  //   }
-  // },
+
   Climb: {
     id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
     uuid: (node: ClimbExtType) => node.metadata.climb_id.toUUID().toString(),

@@ -11,13 +11,6 @@ export interface MediaType {
   onModel: RefModelType
 }
 
-export interface MediaTagType {
-  areaName: string
-  areaUuid: MUUID
-  climb: any
-  media: MediaType[]
-}
-
 export enum RefModelType {
   climbs = 'climbs',
   areas = 'areas'
