@@ -23,7 +23,7 @@ export const visitAllAreas = async (): Promise<void> => {
   const areaModel = getAreaModel('areas')
 
   // Start with 2nd level of tree
-  let iterator = areaModel.find({ pathTokens: { $size: 2 } }).allowDiskUse(true)
+  let iterator = areaModel.find({ pathTokens: { $size: 2 } }).batchSize(10).allowDiskUse(true)
 
   for await (const root of iterator) {
     await postOrderVisit(root)
@@ -32,7 +32,7 @@ export const visitAllAreas = async (): Promise<void> => {
   // Get all top-level country nodes.
   // We only have 1  root (US) right now, but code runs asynchronously
   // for each country
-  iterator = areaModel.find({ pathTokens: { $size: 1 } })
+  iterator = areaModel.find({ pathTokens: { $size: 1 } }).batchSize(10)
   for await (const root of iterator) {
     const stateNodes = await root.populate('children')
     const results = await Promise.all(

@@ -1,7 +1,6 @@
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import type { WithId, Document } from 'mongodb'
-import { AreaType } from './AreaTypes'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
@@ -47,7 +46,6 @@ export interface IClimbMetadata {
   mp_id?: string
   mp_crag_id: string
   climb_id: MUUID
-  areaRef: MUUID | Partial<AreaType>
 }
 export interface IClimbContent {
   description?: string

@@ -16,7 +16,7 @@ export const visitAllCrags = async (): Promise<void> => {
 
   // Get all crags
   const iterator = areaModel
-    .find({ 'metadata.leaf': true })
+    .find({ 'metadata.leaf': true }).batchSize(10)
     .populate<{climbs: ClimbType[]}>({ path: 'climbs', model: getClimbModel() })
     .allowDiskUse(true)
 

@@ -31,7 +31,7 @@
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "graphql": "^16.2.0",
-    "mongoose": "^6.1.8",
+    "mongoose": "^6.3.2",
     "p-limit": "^4.0.0",
     "typesense": "^1.2.1",
     "underscore": "^1.13.2",

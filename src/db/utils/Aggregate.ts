@@ -57,7 +57,6 @@ export const aggregateCragStats = (crag: any): AggregateType => {
   const disciplines: CountByDisciplineType = {}
 
   const climbs = crag.climbs as ClimbType[]
-  // const climbs = ((crag.climbs as unknown) as ClimbType[])
   climbs.forEach((climb: unknown) => {
     const { yds, type } = (climb as ClimbType)
 
