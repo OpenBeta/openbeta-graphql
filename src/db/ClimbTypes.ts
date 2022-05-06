@@ -47,7 +47,6 @@ export interface IClimbMetadata {
   mp_id?: string
   mp_crag_id: string
   climb_id: MUUID
-  areaRef: MUUID | Partial<AreaType>
 }
 export interface IClimbContent {
   description?: string

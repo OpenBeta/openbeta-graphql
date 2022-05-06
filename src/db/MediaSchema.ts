@@ -3,7 +3,7 @@ import muuid from 'uuid-mongodb'
 
 import { MediaType, RefModelType } from './MediaTypes.js'
 
-const { Schema, connection } = mongoose
+const { Schema } = mongoose
 
 const MediaSchema = new Schema<MediaType>({
   mediaUuid: {
@@ -38,6 +38,6 @@ const MediaSchema = new Schema<MediaType>({
 
 MediaSchema.index({ mediaUuid: 1, srcUuid: 1 }, { unique: true })
 
-export const getMediaModel = (name: string = 'media'): mongoose.Model<typeof MediaSchema> => {
-  return connection.model(name, MediaSchema)
+export const getMediaModel = (name: string = 'media'): mongoose.Model<MediaType> => {
+  return mongoose.model(name, MediaSchema)
 }

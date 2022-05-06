@@ -3,7 +3,7 @@ import muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import { ClimbType, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
 
-const { Schema, connection } = mongoose
+const { Schema } = mongoose
 
 export const PointSchema = new mongoose.Schema<Point>({
   type: {
@@ -38,11 +38,6 @@ const MetadataSchema = new Schema<IClimbMetadata>({
     required: true,
     unique: false, // unfortunately can't enforce uniqueness here due to limitation of embeded docs
     index: true
-  },
-  areaRef: {
-    type: Schema.Types.Mixed,
-    ref: 'climbs',
-    required: false
   }
 }, { _id: false })
 
@@ -73,11 +68,11 @@ export const ClimbSchema = new Schema<ClimbType>({
 })
 
 ClimbSchema.pre('validate', function (next) {
-  if (this.safety === '') { this.safety = SafetyType.UNSPECIFIED }
+  if (this.safety as string === '') { this.safety = SafetyType.UNSPECIFIED }
   if (this.yds === '') { this.yds = 'UNKNOWN' }
   next()
 })
 
 export const getClimbModel = (name: string = 'climbs'): mongoose.Model<ClimbType> => {
-  return connection.model(name, ClimbSchema)
+  return mongoose.model(name, ClimbSchema)
 }
