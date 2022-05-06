@@ -1,5 +1,5 @@
 import _ from 'underscore'
-import { AreaType, CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType } from '../AreaTypes.js'
+import { CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType } from '../AreaTypes.js'
 import { getBand } from '../../grade-utils.js'
 import { ClimbType } from '../ClimbTypes.js'
 
@@ -106,13 +106,3 @@ const INIT_DISCIPLINE_STATS: DisciplineStatsType = {
   total: 0,
   bands: { ...INIT_GRANDEBAND }
 }
-
-// const INIT_COUNT_BY_DISCIPLINE: CountByDisciplineType = {
-//   trad: INIT_DISCIPLINE_STATS
-//   sport: INIT_DISCIPLINE_STATS
-//   boulder: INIT_DISCIPLINE_STATS
-//   alpine?: DisciplineStatsType
-//   mixed?: DisciplineStatsType
-//   aid?: DisciplineStatsType
-//   tr?: DisciplineStatsType
-// }
