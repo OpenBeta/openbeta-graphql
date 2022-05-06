@@ -11,7 +11,7 @@ export type AreaType = IAreaProps & {
 export interface IAreaProps {
   _id: mongose.Types.ObjectId
   area_name: string
-  climbs: ClimbType[]
+  climbs: Array<MUUID | ClimbType>
   children: mongose.Types.ObjectId[]
   ancestors: string
   pathTokens: string[]

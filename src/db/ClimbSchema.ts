@@ -38,10 +38,20 @@ const MetadataSchema = new Schema<IClimbMetadata>({
     required: true,
     unique: false, // unfortunately can't enforce uniqueness here due to limitation of embeded docs
     index: true
+  },
+  areaRef: {
+    type: Schema.Types.Mixed,
+    ref: 'climbs',
+    required: false
   }
 }, { _id: false })
 
 export const ClimbSchema = new Schema<ClimbType>({
+  _id: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    default: () => muuid.v4()
+  },
   name: { type: Schema.Types.String, required: true, index: true },
   yds: { type: Schema.Types.String, required: true },
   fa: { type: Schema.Types.String, required: false },
@@ -54,6 +64,7 @@ export const ClimbSchema = new Schema<ClimbType>({
   metadata: MetadataSchema,
   content: ContentSchema
 }, {
+  _id: false,
   writeConcern: {
     w: 'majority',
     j: true,
@@ -67,6 +78,6 @@ ClimbSchema.pre('validate', function (next) {
   next()
 })
 
-export const createClimbModel = (name: string): mongoose.Model<ClimbType> => {
+export const getClimbModel = (name: string = 'climbs'): mongoose.Model<ClimbType> => {
   return connection.model(name, ClimbSchema)
 }

@@ -48,3 +48,8 @@ export interface CragsNear {
   count: number
   crags: AreaType
 }
+
+export interface QueryByIdType {
+  id?: string
+  uuid?: string
+}

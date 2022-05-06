@@ -2,7 +2,7 @@ import { ApolloServer } from 'apollo-server'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import mongoose from 'mongoose'
 import { graphqlSchema } from './graphql/resolvers.js'
-import { connectDB, createClimbsView } from './db/index.js'
+import { connectDB, createClimbsView, getMediaModel } from './db/index.js'
 import AreaDataSource from './model/AreaDataSource.js'
 
 // eslint-disable-next-line
@@ -19,6 +19,7 @@ import AreaDataSource from './model/AreaDataSource.js'
 
   await connectDB(async () => {
     await createClimbsView()
+    getMediaModel()
     // additional initializing code here
   })
   await server.listen().then((): void => {

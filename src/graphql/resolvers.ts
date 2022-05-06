@@ -1,33 +1,27 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
-import muid from 'uuid-mongodb'
+import muid, { MUUID } from 'uuid-mongodb'
 
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
-import { GQLFilter, Sort } from '../types'
+import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
+import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
-
-interface IdQueryType {
-  id?: string
-  uuid?: string
-}
-
-interface DataSourcesType {
-  areas: AreaDataSource
-}
+import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 
 const resolvers = {
+  Mutation: {
+    ...MediaMutations
+  },
   Query: {
+    ...MediaQueries,
     climb: async (
       _,
-      { id, uuid }: IdQueryType,
+      { id, uuid }: QueryByIdType,
       { dataSources }) => {
-      const { areas }: DataSourcesType = dataSources
-      if (id !== undefined && id !== '') {
-        return await areas.findOneClimbById(id)
-      }
+      const { areas }: {areas: AreaDataSource} = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
       }
@@ -45,7 +39,7 @@ const resolvers = {
     },
 
     area: async (_: any,
-      { id, uuid }: IdQueryType,
+      { id, uuid }: QueryByIdType,
       { dataSources }) => {
       const { areas }: {areas: AreaDataSource} = dataSources
       if (id !== undefined && id !== '') {
@@ -77,8 +71,10 @@ const resolvers = {
     }
   },
 
+  ...MediaResolvers,
+
   Climb: {
-    id: (node: ClimbExtType) => node._id,
+    id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
     uuid: (node: ClimbExtType) => node.metadata.climb_id.toUUID().toString(),
 
     type: async (node: ClimbExtType) => {
@@ -141,6 +137,6 @@ const resolvers = {
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [Climb, Area],
+  typeDefs: [Climb, Area, MediaTypeDef],
   resolvers
 })

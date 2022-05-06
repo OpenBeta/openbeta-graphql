@@ -24,6 +24,7 @@ const main = async (): Promise<void> => {
 
   // TODO: Allow update.  Right now we drop the entire collection on each run.
   await dropCollection('areas')
+  await dropCollection('climbs')
 
   const rootNode = await createRoot('US')
 

@@ -1,6 +1,7 @@
 import _ from 'underscore'
-import { AreaType, CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType } from '../AreaTypes.js'
+import { CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType } from '../AreaTypes.js'
 import { getBand } from '../../grade-utils.js'
+import { ClimbType } from '../ClimbTypes.js'
 
 export const mergeAggregates = (lhs: AggregateType, rhs: AggregateType): AggregateType => {
   return {
@@ -51,13 +52,14 @@ const mergeBands = (lhs: CountByGradeBandType, rhs: CountByGradeBandType): Count
   }
 }
 
-export const aggregateCragStats = (crag: AreaType): AggregateType => {
+export const aggregateCragStats = (crag: any): AggregateType => {
   const byGrade: Record<string, number> | {} = {}
   const disciplines: CountByDisciplineType = {}
 
-  const { climbs } = crag
-  climbs.forEach((climb) => {
-    const { yds, type } = climb
+  const climbs = crag.climbs as ClimbType[]
+  // const climbs = ((crag.climbs as unknown) as ClimbType[])
+  climbs.forEach((climb: unknown) => {
+    const { yds, type } = (climb as ClimbType)
 
     // Grade
     const entry: CountByGroupType = typeof byGrade[yds] === 'undefined' ? { label: yds, count: 0 } : byGrade[yds]
@@ -104,13 +106,3 @@ const INIT_DISCIPLINE_STATS: DisciplineStatsType = {
   total: 0,
   bands: { ...INIT_GRANDEBAND }
 }
-
-// const INIT_COUNT_BY_DISCIPLINE: CountByDisciplineType = {
-//   trad: INIT_DISCIPLINE_STATS
-//   sport: INIT_DISCIPLINE_STATS
-//   boulder: INIT_DISCIPLINE_STATS
-//   alpine?: DisciplineStatsType
-//   mixed?: DisciplineStatsType
-//   aid?: DisciplineStatsType
-//   tr?: DisciplineStatsType
-// }

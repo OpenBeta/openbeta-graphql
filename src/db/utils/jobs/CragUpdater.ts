@@ -1,6 +1,8 @@
 import mongoose from 'mongoose'
 import { getAreaModel } from '../../AreaSchema.js'
+import { getClimbModel } from '../../ClimbSchema.js'
 import { AreaType } from '../../AreaTypes.js'
+import { ClimbType } from '../../ClimbTypes.js'
 import { aggregateCragStats } from '../Aggregate.js'
 import { bboxFrom } from '../../../geo-utils.js'
 
@@ -13,7 +15,10 @@ export const visitAllCrags = async (): Promise<void> => {
   const areaModel = getAreaModel('areas')
 
   // Get all crags
-  const iterator = areaModel.find({ 'metadata.leaf': true }).allowDiskUse(true)
+  const iterator = areaModel
+    .find({ 'metadata.leaf': true })
+    .populate<{climbs: ClimbType[]}>({ path: 'climbs', model: getClimbModel() })
+    .allowDiskUse(true)
 
   for await (const crag of iterator) {
     const node: AreaMongoType = crag
