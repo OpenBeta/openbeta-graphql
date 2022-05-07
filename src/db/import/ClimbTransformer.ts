@@ -24,7 +24,8 @@ const transformClimbRecord = (row: any): ClimbType => {
       lnglat: geometry('Point', parent_lnglat) as Point,
       left_right_index: left_right_seq,
       mp_id: mp_route_id,
-      mp_crag_id: mp_sector_id
+      mp_crag_id: mp_sector_id,
+      areaRef: muuid.from(uuidv5(mp_sector_id, NIL))
     },
     content: {
       description: Array.isArray(description) ? description.join('\n\n') : '',

@@ -108,7 +108,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         {
           $lookup: {
             from: 'areas', // other collection name
-            localField: 'metadata.areaUuid',
+            localField: 'metadata.areaRef',
             foreignField: 'metadata.area_id',
             as: 'area', // clobber array of climb IDs with climb objects
             pipeline: [
@@ -127,7 +127,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
           $replaceWith: { // Merge area.* with top-level object
             $mergeObjects: ['$$ROOT', '$area']
           }
-        }])
+        }
+      ])
 
     if (rs != null && rs?.length === 1) {
       return rs[0]

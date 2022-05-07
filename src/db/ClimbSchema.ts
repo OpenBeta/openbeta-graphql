@@ -38,6 +38,12 @@ const MetadataSchema = new Schema<IClimbMetadata>({
     required: true,
     unique: false, // unfortunately can't enforce uniqueness here due to limitation of embeded docs
     index: true
+  },
+  areaRef: {
+    type: Schema.Types.Mixed,
+    value: { type: 'Buffer' },
+    required: true,
+    ref: 'areas'
   }
 }, { _id: false })
 

@@ -26,6 +26,10 @@ const main = async (): Promise<void> => {
   await dropCollection('areas')
   await dropCollection('climbs')
 
+  console.time('Creating indexes')
+  await createIndexes()
+  console.timeEnd('Creating indexes')
+
   const rootNode = await createRoot('US')
 
   const stats: Array<JobStats|any> = await Promise.all<Array<JobStats|any>>(US_STATES.map(async state => {
@@ -41,10 +45,6 @@ const main = async (): Promise<void> => {
   }))
 
   printStats(stats)
-
-  console.time('Creating indexes')
-  await createIndexes()
-  console.timeEnd('Creating indexes')
 
   gracefulExit()
   return await Promise.resolve()

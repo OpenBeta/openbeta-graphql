@@ -19,7 +19,7 @@ const resolvers = {
     ...MediaQueries,
     climb: async (
       _,
-      { id, uuid }: QueryByIdType,
+      { uuid }: QueryByIdType,
       { dataSources }) => {
       const { areas }: {areas: AreaDataSource} = dataSources
       if (uuid !== undefined && uuid !== '') {
@@ -39,12 +39,9 @@ const resolvers = {
     },
 
     area: async (_: any,
-      { id, uuid }: QueryByIdType,
+      { uuid }: QueryByIdType,
       { dataSources }) => {
       const { areas }: {areas: AreaDataSource} = dataSources
-      if (id !== undefined && id !== '') {
-        return await areas.findOneById(id)
-      }
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneAreaByUUID(muid.from(uuid))
       }

@@ -22,12 +22,12 @@ export const seedState = async (root: AreaNode, stateCode: string, fileClimbs: s
 
   const areaModel: mongoose.Model<AreaType> = getAreaModel('areas')
   const climbModel: mongoose.Model<ClimbType> = getClimbModel('climbs')
-
+  console.log('start', stateCode)
   const stats = await Promise.all([
     loadClimbs(fileClimbs, climbModel),
     loadAreas(root, fileAreas, areaModel)
   ])
-
+  console.log('link', stateCode)
   await linkClimbsWithAreas(climbModel, areaModel)
 
   console.timeEnd('Loaded ' + stateCode)
