@@ -83,7 +83,7 @@ const AreaSchema = new Schema<AreaType>({
 }, {
   writeConcern: {
     w: 'majority',
-    j: true,
+    j: false,
     wtimeout: 5000
   }
 })

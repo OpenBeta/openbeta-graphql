@@ -2,7 +2,7 @@ import { gql } from 'apollo-server'
 
 export const typeDef = gql`
   type Query {
-    area(id: ID, uuid: ID): Area
+    area(uuid: ID): Area
     areas(filter: Filter, sort: Sort): [Area]
     stats: Stats
     cragsNear(placeId: String, lnglat: Point, minDistance: Int = 0, maxDistance: Int = 48000, includeCrags: Boolean = false): [CragsNear]
