@@ -27,7 +27,7 @@ const MediaMutations = {
     }
     const media = getMediaModel()
     try {
-      // Check whether the climb referenced this tag exists before we allow 
+      // Check whether the climb referenced this tag exists before we allow
       // the tag to be added
       const climb = await getClimbModel().exists({ _id: doc.destinationId })
       if (climb == null) {
