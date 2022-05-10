@@ -50,6 +50,7 @@ export const connectDB = (onConnected: () => any = defaultFn): any => {
 export const createIndexes = async (): Promise<void> => {
   await getClimbModel().ensureIndexes()
   await getAreaModel().ensureIndexes()
+  await getMediaModel().ensureIndexes()
 }
 export const gracefulExit = (exitCode: number = 0): void => {
   mongoose.connection.close(function () {
@@ -60,4 +61,4 @@ export const gracefulExit = (exitCode: number = 0): void => {
 
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, createClimbsView, getClimbModel as createClimbModel }
+export { getMediaModel, getAreaModel, createClimbsView, getClimbModel }

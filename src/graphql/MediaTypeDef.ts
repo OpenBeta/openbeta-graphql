@@ -2,17 +2,16 @@ import { gql } from 'apollo-server'
 
 export const typeDef = gql`
   type Mutation {
-    setTags(input: MediaInput): MediaTagType
+    setTag(input: MediaInput): TagEntryResult
   }
 
   type Mutation {
-    removeTag(mediaUuid: ID!, destinationId: ID!): Boolean
+    removeTag(mediaUuid: ID!, destinationId: ID!): DeleteTagResult
   }
 
   type Query {
     getTagsByMediaIdList(uuidList: [ID]): [TagEntryResult]
   }
-
 
   "A tag linking the media with a climb or an area"
   type MediaTagType {
@@ -42,6 +41,12 @@ export const typeDef = gql`
   }
 
   union TagEntryResult = ClimbTag | AreaTag
+
+  type DeleteTagResult {
+    mediaUuid: ID!
+    destinationId: ID!
+    removed: Boolean!
+  }
 
   input MediaInput {
     mediaUuid: ID!

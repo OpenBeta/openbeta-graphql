@@ -1,10 +1,11 @@
 import muid from 'uuid-mongodb'
+import { UserInputError } from 'apollo-server'
 
 import { MediaType, RefModelType } from '../../db/MediaTypes.js'
-import { getMediaModel } from '../../db/index.js'
+import { getMediaModel, getClimbModel } from '../../db/index.js'
 
 const MediaMutations = {
-  setTags: async (_, { input }) => {
+  setTag: async (_, { input }) => {
     const { mediaUuid, mediaType, mediaUrl, destType, destinationId }: MediaType = input
 
     let modelType: RefModelType
@@ -25,13 +26,28 @@ const MediaMutations = {
       onModel: modelType
     }
     const media = getMediaModel()
-    return await media.findOneAndUpdate({ mediaUuid: doc.mediaUuid, destinationId }, doc, { new: true, upsert: true })
+    try {
+      // Check whether the climb referenced this tag exists before we allow 
+      // the tag to be added
+      const climb = await getClimbModel().exists({ _id: doc.destinationId })
+      if (climb == null) {
+        throw new UserInputError(`Climb with id: ${destinationId.toString()} doesn't exist`)
+      }
+      return await media
+        .findOneAndUpdate({ mediaUuid: doc.mediaUuid, destinationId }, doc, { new: true, upsert: true })
+        .populate('destinationId').lean()
+    } catch (e) {
+      if (e.code === 11000) {
+        throw new UserInputError('Duplicated mediaUuid and destinationId')
+      }
+      throw e
+    }
   },
 
   removeTag: async (_, { mediaUuid, destinationId }) => {
     const rs = await getMediaModel().deleteOne({ mediaUuid: muid.from(mediaUuid), destinationId: muid.from(destinationId) })
-    if (rs?.deletedCount === 1) return true
-    return false
+    if (rs?.deletedCount === 1) return { mediaUuid, destinationId, removed: true }
+    return { mediaUuid, destinationId, removed: false }
   }
 }
 
