@@ -36,7 +36,7 @@ const MediaSchema = new Schema<MediaType>({
   _id: false
 })
 
-MediaSchema.index({ mediaUuid: 1, srcUuid: 1 }, { unique: true })
+MediaSchema.index({ mediaUuid: 1, destinationId: 1 }, { unique: true })
 
 export const getMediaModel = (name: string = 'media'): mongoose.Model<MediaType> => {
   return mongoose.model(name, MediaSchema)
