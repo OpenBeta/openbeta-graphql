@@ -1,12 +1,14 @@
 import mongoose from 'mongoose'
 import { BBox, Point, feature, featureCollection } from '@turf/helpers'
 import centroid from '@turf/centroid'
+import bbox from '@turf/bbox'
 import pLimit from 'p-limit'
 
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType, AggregateType } from '../../AreaTypes.js'
 import { bboxFromList, areaDensity } from '../../../geo-utils.js'
 import { mergeAggregates } from '../Aggregate.js'
+import bboxPolygon from '@turf/bbox-polygon'
 
 const limiter = pLimit(1000)
 
@@ -122,7 +124,8 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
       totalClimbs: acc.totalClimbs + totalClimbs,
       bbox,
       lnglat, // we'll calculate a new center point later
-      density: areaDensity(bbox, totalClimbs),
+      density: -1,
+      // density: areaDensity(bbox, totalClimbs),
       aggregate: mergeAggregates(acc.aggregate, aggregate)
     }
   }, initial)
@@ -132,10 +135,16 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
   const calculatedParentCenter = centroid(collectionOfAreas).geometry
   z.lnglat = calculatedParentCenter
 
-  const { totalClimbs, bbox, density, aggregate, lnglat } = z
+  // Calculate bbox
+  // z.bbox = bbox(result.map(item => bboxPolygon(item.bbox)))
+
+  // Density
+  z.density = areaDensity(z.bbox, z.totalClimbs)
+
+  const { totalClimbs, bbox: _bbox, density, aggregate, lnglat } = z
   parent.metadata.lnglat = lnglat
   parent.totalClimbs = totalClimbs
-  parent.metadata.bbox = bbox
+  parent.metadata.bbox = _bbox
   parent.density = density
   parent.aggregate = aggregate
   await parent.save()

@@ -40,10 +40,15 @@ const resolvers = {
 
     area: async (_: any,
       { uuid }: QueryByIdType,
-      { dataSources }) => {
+      context, info) => {
+      // console.log('#ctx', context, info)
+      const { dataSources } = context
       const { areas }: {areas: AreaDataSource} = dataSources
       if (uuid !== undefined && uuid !== '') {
-        return await areas.findOneAreaByUUID(muid.from(uuid))
+        console.time('getArea')
+        const ret = await areas.findOneAreaByUUID(muid.from(uuid))
+        console.timeEnd('getArea')
+        return ret
       }
       return null
     },
@@ -129,7 +134,12 @@ const resolvers = {
       // convert internal Geo type to simple lng,lat
       lng: node.metadata.lnglat.coordinates[0],
       lat: node.metadata.lnglat.coordinates[1]
-    })
+    }),
+
+    media: async (node: any, args: any, { dataSources }) => {
+      const { areas }: {areas: AreaDataSource} = dataSources
+      return await areas.findMediaByBbox(node.metadata.area_id)
+    }
   }
 }
 
