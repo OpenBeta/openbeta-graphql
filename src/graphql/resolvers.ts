@@ -40,7 +40,9 @@ const resolvers = {
 
     area: async (_: any,
       { uuid }: QueryByIdType,
-      { dataSources }) => {
+      context, info) => {
+      // console.log('#ctx', context, info)
+      const { dataSources } = context
       const { areas }: {areas: AreaDataSource} = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneAreaByUUID(muid.from(uuid))
@@ -98,7 +100,12 @@ const resolvers = {
       lat: node.metadata.lnglat.coordinates[1]
     }),
 
-    ancestors: (node: ClimbExtType) => node.ancestors.split(',')
+    ancestors: (node: ClimbExtType) => node.ancestors.split(','),
+
+    media: async (node: any, args: any, { dataSources }) => {
+      const { areas }: {areas: AreaDataSource} = dataSources
+      return await areas.findMediaByClimbId(node._id)
+    }
   },
 
   Area: {
@@ -128,8 +135,14 @@ const resolvers = {
       areaId: node.metadata.area_id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
       lng: node.metadata.lnglat.coordinates[0],
-      lat: node.metadata.lnglat.coordinates[1]
-    })
+      lat: node.metadata.lnglat.coordinates[1],
+      mp_id: node.metadata.ext_id ?? ''
+    }),
+
+    media: async (node: any, args: any, { dataSources }) => {
+      const { areas }: {areas: AreaDataSource} = dataSources
+      return await areas.findMediaByAreaId(node.metadata.area_id)
+    }
   }
 }
 

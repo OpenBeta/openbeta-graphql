@@ -24,6 +24,7 @@ export const typeDef = gql`
     pathTokens: [String]!
     density: Float!
     totalClimbs: Int!
+    media: [MediaTagType]
   }
 
   type AreaMetadata {

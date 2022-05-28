@@ -56,13 +56,3 @@ export const typeDef = gql`
     destType: Int!
   }
 `
-
-// type ClimbType {
-//   uuid: ID!
-//   name: String!
-//   yds: String!
-//   type: ClimbType!
-//   safety: SafetyEnum!
-//   metadata: ClimbMetadata!
-//   ancestors: [String!]!
-// }

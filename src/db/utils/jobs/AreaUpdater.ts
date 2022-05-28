@@ -122,7 +122,7 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
       totalClimbs: acc.totalClimbs + totalClimbs,
       bbox,
       lnglat, // we'll calculate a new center point later
-      density: areaDensity(bbox, totalClimbs),
+      density: -1,
       aggregate: mergeAggregates(acc.aggregate, aggregate)
     }
   }, initial)
@@ -131,6 +131,7 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
   const collectionOfAreas = featureCollection(result.map(item => feature(item.lnglat)))
   const calculatedParentCenter = centroid(collectionOfAreas).geometry
   z.lnglat = calculatedParentCenter
+  z.density = areaDensity(z.bbox, z.totalClimbs)
 
   const { totalClimbs, bbox, density, aggregate, lnglat } = z
   parent.metadata.lnglat = lnglat

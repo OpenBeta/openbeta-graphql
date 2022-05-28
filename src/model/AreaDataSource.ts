@@ -1,8 +1,8 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
-import muuid from 'uuid-mongodb'
+import muuid, { MUUID } from 'uuid-mongodb'
 
-import { getAreaModel } from '../db/index.js'
+import { getAreaModel, getMediaModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
@@ -11,6 +11,7 @@ import { ClimbExtType } from '../db/ClimbTypes.js'
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
   climbModel = getClimbModel()
+  mediaModel = getMediaModel()
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
     let mongoFilter = {}
@@ -96,6 +97,45 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return null
   }
 
+  async findMediaByAreaId (areaId: MUUID): Promise<any> {
+    const rs = await getMediaModel()
+      .aggregate([
+        {
+          $lookup: {
+            from: 'climbs', // other collection name
+            localField: 'destinationId',
+            foreignField: '_id',
+            as: 'climb',
+            pipeline: [{
+              $lookup: {
+                from: 'areas', // other collection name
+                localField: 'metadata.areaRef',
+                foreignField: 'metadata.area_id',
+                as: 'area'
+              }
+            },
+            {
+              $match: {
+                'area.ancestors': { $regex: areaId.toUUID().toString() }
+              }
+            },
+            {
+              $unwind: '$area'
+            }
+            ]
+          }
+        },
+        {
+          $unwind: '$climb'
+        }
+      ])
+
+    if (rs != null) {
+      return rs
+    }
+    return null
+  }
+
   /**
    * Find a climb by uuid.  Also return some info from the parent area (crag).
    * @param uuid
@@ -132,6 +172,14 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
 
     if (rs != null && rs?.length === 1) {
       return rs[0]
+    }
+    return null
+  }
+
+  async findMediaByClimbId (climbId: MUUID): Promise<any> {
+    const rs = await getMediaModel().find({ destinationId: climbId }).lean()
+    if (rs != null) {
+      return rs
     }
     return null
   }

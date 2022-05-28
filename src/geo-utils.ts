@@ -12,7 +12,7 @@ import { BBoxType } from './types'
  */
 export const bboxFrom = (point: Point): BBoxType => {
   const options = { steps: 8 }
-  const r = 0.25 // unit=km. Hopefully this is a large enough area (but not too large) for a crag
+  const r = 0.05 // unit=km. Hopefully this is a large enough area (but not too large) for a crag
   const cir = circle(point, r, options)
   return bbox(cir)
 }
