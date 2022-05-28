@@ -1,11 +1,10 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import muuid, { MUUID } from 'uuid-mongodb'
-import bboxPolygon from '@turf/bbox-polygon'
 
 import { getAreaModel, getMediaModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
-import { BBoxType, GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear } from '../types'
+import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
 
@@ -97,8 +96,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     }
     return null
   }
-  // eslint-disable-next-line
-  async findMediaByBbox (area_id: MUUID): Promise<any> {
+
+  async findMediaByAreaId (areaId: MUUID): Promise<any> {
     const rs = await getMediaModel()
       .aggregate([
         {
@@ -117,7 +116,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             },
             {
               $match: {
-                'area.ancestors': { $regex: area_id.toUUID().toString() }
+                'area.ancestors': { $regex: areaId.toUUID().toString() }
               }
             },
             {
@@ -173,6 +172,14 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
 
     if (rs != null && rs?.length === 1) {
       return rs[0]
+    }
+    return null
+  }
+
+  async findMediaByClimbId (climbId: MUUID): Promise<any> {
+    const rs = await getMediaModel().find({ destinationId: climbId }).lean()
+    if (rs != null) {
+      return rs
     }
     return null
   }
