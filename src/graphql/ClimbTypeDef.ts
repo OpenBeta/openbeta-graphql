@@ -18,7 +18,7 @@ export const typeDef = gql`
     content: Content!
     pathTokens: [String!]!
     ancestors: [String!]!
-    media: [MediaTagType]!
+    media: [MediaTagType]
   }
 
   type ClimbMetadata {
