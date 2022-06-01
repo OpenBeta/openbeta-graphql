@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-import type { Collection, Document } from 'mongodb'
 import muuid from 'uuid-mongodb'
 
 import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType } from './AreaTypes.js'
@@ -94,33 +93,3 @@ export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType
 
 export const getAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> =>
   connection.model(name, AreaSchema)
-
-/**
- * Since climbs are an embedded field of leaf Areas, we create
- * a db view to make it easier to write climb search queries.
- */
-export const createClimbsView = async (): Promise<Collection<Document>> => {
-  try {
-    await connection.dropCollection('climbsView')
-  } catch (e) {
-
-  }
-  return await connection.createCollection('climbsView',
-    {
-      viewOn: 'areas',
-      pipeline: [
-        { $match: { 'metadata.leaf': true } }, // get all leaf areas
-        { $unwind: '$climbs' }, // 'unwind' aka flatten nested climbs array
-        {
-          $replaceRoot: // promote climbs.* to parent's level
-            {
-              newRoot: {
-                $mergeObjects: [
-                  // keep some of parent's fields
-                  { ancestors: '$ancestors', pathTokens: '$pathTokens' }, '$climbs']
-              }
-            }
-        }
-      ]
-    })
-}

@@ -1,8 +1,7 @@
 import Typesense from 'typesense'
 import { Point } from '@turf/helpers'
-import { FindCursor } from 'mongodb'
 
-import { connectDB, gracefulExit, getAreaModel, createClimbsView } from '../../index.js'
+import { connectDB, gracefulExit, getClimbModel } from '../../index.js'
 import { disciplinesToArray } from './Utils.js'
 import { ClimbExtType } from '../../ClimbTypes.js'
 
@@ -62,7 +61,7 @@ const schema = {
     }
   ]
   // TBD: need to have better tie-breakers (star/popularity ratings)
-  //   default_sorting_field: 'climb_name'
+  // default_sorting_field: 'climb_name'
 }
 
 const onDBConnected = async (): Promise<void> => {
@@ -103,9 +102,39 @@ const onDBConnected = async (): Promise<void> => {
     gracefulExit()
   }
 
-  getAreaModel()
-  const climbsView = await createClimbsView()
-  const allClimbs = climbsView.find() as FindCursor<ClimbExtType>
+  /**
+   * SQL equivalent:
+   *
+   * `SELECT climbs.*, areas.ancestors, areas.pathTokens
+   * FROM climbs, areas
+   * WHERE climbs.metadata.areaRef = areas.metadata.area_id'`
+   */
+  const allClimbs = await getClimbModel()
+    .aggregate<ClimbExtType>([
+    {
+      $lookup: {
+        from: 'areas', // other collection name
+        localField: 'metadata.areaRef',
+        foreignField: 'metadata.area_id',
+        as: 'area', // clobber array of climb IDs with climb objects
+        pipeline: [
+          {
+            $project: { // only include specific fields
+              _id: 0,
+              ancestors: 1,
+              pathTokens: 1
+            }
+          }
+        ]
+      }
+    },
+    { $unwind: '$area' }, // Previous stage returns as an array of 1 element. 'unwind' turn it into an object.
+    {
+      $replaceWith: { // Merge area.* with top-level object
+        $mergeObjects: ['$$ROOT', '$area']
+      }
+    }
+  ])
 
   let count: number = 0
   let chunks: any[] = []
