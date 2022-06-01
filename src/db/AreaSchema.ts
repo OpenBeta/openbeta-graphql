@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-import type { Collection, Document } from 'mongodb'
 import muuid from 'uuid-mongodb'
 
 import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType } from './AreaTypes.js'
