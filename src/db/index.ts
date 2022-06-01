@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { config } from 'dotenv'
 
-import { getAreaModel, createClimbsView } from './AreaSchema.js'
+import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
 
@@ -61,4 +61,4 @@ export const gracefulExit = (exitCode: number = 0): void => {
 
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, createClimbsView, getClimbModel }
+export { getMediaModel, getAreaModel, getClimbModel }
