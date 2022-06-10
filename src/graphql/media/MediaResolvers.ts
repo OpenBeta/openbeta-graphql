@@ -2,7 +2,7 @@ import { MediaType, RefModelType } from '../../db/MediaTypes.js'
 const MediaResolvers = {
   MediaTagType: {
     mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
-    destination: (node: MediaType) => node.destinationId
+    destination: (node: MediaType) => node.destinationId.toUUID().toString()
   },
 
   TagEntryResult: {
