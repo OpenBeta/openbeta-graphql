@@ -15,3 +15,8 @@ export enum RefModelType {
   climbs = 'climbs',
   areas = 'areas'
 }
+
+export interface MediaListByAuthorType {
+  _id: string
+  tagList: MediaType[]
+}

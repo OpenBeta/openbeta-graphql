@@ -13,6 +13,10 @@ export const typeDef = gql`
     getTagsByMediaIdList(uuidList: [ID]): [TagEntryResult]
   }
 
+  type Query {
+    getRecentTags(userLimit: Int): [MediaListByAuthorType]
+  }
+
   "A tag linking the media with a climb or an area"
   type MediaTagType {
     mediaUuid: ID!
@@ -41,6 +45,11 @@ export const typeDef = gql`
   }
 
   union TagEntryResult = ClimbTag | AreaTag
+
+  type MediaListByAuthorType {
+    authorUuid: ID!
+    tagList: [MediaTagType]
+  }
 
   type DeleteTagResult {
     mediaUuid: ID!

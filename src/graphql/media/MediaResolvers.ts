@@ -1,4 +1,4 @@
-import { MediaType, RefModelType } from '../../db/MediaTypes.js'
+import { MediaListByAuthorType, MediaType, RefModelType } from '../../db/MediaTypes.js'
 const MediaResolvers = {
   MediaTagType: {
     mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
@@ -15,6 +15,10 @@ const MediaResolvers = {
       }
       return null
     }
+  },
+
+  MediaListByAuthorType: {
+    authorUuid: (node: MediaListByAuthorType) => node._id
   },
 
   ClimbTag: {
