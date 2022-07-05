@@ -7,7 +7,7 @@ import { getMediaModel } from './MediaSchema.js'
 
 config()
 
-const checkVar = (name: string): string => {
+export const checkVar = (name: string): string => {
   const value = process.env[name] ?? ''
   if (value === '') {
     console.log('Missing env ', name)

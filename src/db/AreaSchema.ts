@@ -7,6 +7,7 @@ import { PointSchema } from './ClimbSchema.js'
 const { Schema, connection } = mongoose
 
 const MetadataSchema = new Schema<IAreaMetadata>({
+  isDestination: { type: Boolean, sparse: true },
   leaf: { type: Boolean, sparse: true },
   lnglat: {
     type: PointSchema,

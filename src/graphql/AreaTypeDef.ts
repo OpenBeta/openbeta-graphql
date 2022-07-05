@@ -28,6 +28,7 @@ export const typeDef = gql`
   }
 
   type AreaMetadata {
+    isDestination: Boolean!
     leaf: Boolean!
     lat: Float!
     lng: Float!

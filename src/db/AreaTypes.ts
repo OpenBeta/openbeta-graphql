@@ -10,6 +10,7 @@ export type AreaType = IAreaProps & {
 
 export interface IAreaProps {
   _id: mongose.Types.ObjectId
+  shortCode?: string
   area_name: string
   climbs: Array<MUUID | ClimbType>
   children: mongose.Types.ObjectId[]
@@ -22,6 +23,7 @@ export interface IAreaProps {
 }
 
 export interface IAreaMetadata {
+  isDestination: boolean
   leaf: boolean
   lnglat: Point
   bbox: BBox

@@ -59,9 +59,11 @@ const makeDBArea = (node: AreaNode): AreaType => {
 
   return {
     _id,
+    shortCode: '',
     area_name: isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1),
     children: Array.from(children),
     metadata: {
+      isDestination: false,
       leaf: isLeaf,
       area_id: uuid,
       lnglat: geometry('Point', isLeaf ? node.jsonLine.lnglat : [0, 0]) as Point,
