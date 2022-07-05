@@ -7,7 +7,7 @@ import { typeDef as Area } from './AreaTypeDef.js'
 import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
 import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
-import { ClimbExtType } from '../db/ClimbTypes.js'
+import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { AreaEditTypeDef, AreaMutations } from './area/index.js'
@@ -43,7 +43,6 @@ const resolvers = {
     area: async (_: any,
       { uuid }: QueryByIdType,
       context, info) => {
-      // console.log('#ctx', context, info)
       const { dataSources } = context
       const { areas }: {areas: AreaDataSource} = dataSources
       if (uuid !== undefined && uuid !== '') {
@@ -102,7 +101,7 @@ const resolvers = {
       lat: node.metadata.lnglat.coordinates[1]
     }),
 
-    ancestors: (node: ClimbExtType) => node.ancestors.split(','),
+    ancestors: (node: ClimbExtType) => node?.ancestors?.split(',') ?? [],
 
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: {areas: AreaDataSource} = dataSources
@@ -130,8 +129,25 @@ const resolvers = {
 
     ancestors: async (parent) => parent.ancestors.split(','),
 
+    climbs: async (node: AreaType, _, { dataSources: { areas } }) => {
+      if ((node?.climbs.length ?? 0) === 0) {
+        return []
+      }
+
+      const { climbs } = node
+
+      // Test to see if we have actual climb object returned from findOneAreaByUUID()
+      if ((climbs[0] as ClimbType)?.name != null) {
+        return climbs
+      }
+
+      // List of IDs, we need to convert them into actual climbs
+      return areas.findManyClimbsByUuids(node.climbs)
+    },
+
     metadata: (node: AreaType) => ({
       ...node.metadata,
+      isDestination: node.metadata?.isDestination ?? false,
       leftRightIndex: node.metadata.left_right_index,
       area_id: node.metadata.area_id.toUUID().toString(),
       areaId: node.metadata.area_id.toUUID().toString(),

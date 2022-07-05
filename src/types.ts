@@ -53,3 +53,7 @@ export interface QueryByIdType {
   id?: string
   uuid?: string
 }
+
+export interface AuthUserType {
+  roles: string[]
+}

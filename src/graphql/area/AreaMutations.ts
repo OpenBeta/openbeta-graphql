@@ -1,11 +1,13 @@
+import muid from 'uuid-mongodb'
 
 import { AreaType } from '../../db/AreaTypes'
+import type AreaDataSource from '../../model/AreaDataSource'
 
 const AreaMutations = {
-  setDestinationFlag: async (_, { input }): Promise<AreaType|null> => {
+  setDestinationFlag: async (_, { input }, { dataSources }): Promise<AreaType|null> => {
+    const { areas }: {areas: AreaDataSource} = dataSources
     const { id, flag } = input
-    console.log('#setDestinationFlag()', id, flag)
-    return null
+    return await areas.setDestinationFlag(muid.from(id), flag)
   }
 }
 
