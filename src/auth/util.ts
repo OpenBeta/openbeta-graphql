@@ -1,13 +1,16 @@
 import jwksClient from 'jwks-rsa'
 import jwt from 'jsonwebtoken'
 
+import { checkVar } from '../db/index.js'
+
+const auth0Domain = checkVar('AUTH0_DOMAIN')
+const auth0Kid = checkVar('AUTH0_KID')
+
 const client = jwksClient({
-  jwksUri: 'https://dev-fmjy7n5n.us.auth0.com/.well-known/jwks.json'
+  jwksUri: `${auth0Domain}/.well-known/jwks.json`
 })
 
-const kid = 'uciP2tJdJ4BKWoz73Fmln'
-
 export const verifyJWT = async (token): Promise<any> => {
-  const key = await client.getSigningKey(kid)
+  const key = await client.getSigningKey(auth0Kid)
   return jwt.verify(token, key.getPublicKey())
 }
