@@ -10,10 +10,12 @@ import { AreaType } from '../db/AreaTypes.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
+import { AreaEditTypeDef, AreaMutations } from './area/index.js'
 
 const resolvers = {
   Mutation: {
-    ...MediaMutations
+    ...MediaMutations,
+    ...AreaMutations
   },
   Query: {
     ...MediaQueries,
@@ -147,6 +149,6 @@ const resolvers = {
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [Climb, Area, MediaTypeDef],
+  typeDefs: [Climb, Area, MediaTypeDef, AreaEditTypeDef],
   resolvers
 })
