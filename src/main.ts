@@ -19,14 +19,20 @@ import { createContext, permissions } from './auth/index.js'
       return {
         areas: new AreaDataSource(mongoose.connection.db.collection('areas'))
       }
-    }
+    },
+    cache: 'bounded'
   })
 
   await connectDB(async () => {
     getMediaModel()
     // additional initializing code here
   })
-  await server.listen().then((): void => {
-    console.log('🚀 Server ready!')
+
+  const port = 4000
+
+  await server.listen({
+    port
+  }).then((): void => {
+    console.log(`🚀 Server ready at http://localhost:${port}`)
   })
 })()
