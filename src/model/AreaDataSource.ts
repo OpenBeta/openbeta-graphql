@@ -1,10 +1,11 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import muuid, { MUUID } from 'uuid-mongodb'
+import bboxPolygon from '@turf/bbox-polygon'
 
 import { getAreaModel, getMediaModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
-import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear } from '../types'
+import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
 
@@ -276,6 +277,19 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       // this is a hack to add an arbitrary token to make the graphql result uniquely identifiable for Apollo client-side cache.  Todo: look for a better way as this could be potential injection.
       { $addFields: { placeId: placeId } }])
     return rs
+  }
+
+  async findCragsWithin (bbox: BBoxType, zoom: number): Promise<any> {
+    const polygon = bboxPolygon(bbox)
+    const filter = {
+      'metadata.lnglat': {
+        $geoWithin: {
+          $geometry: polygon.geometry
+        }
+      },
+      'metadata.leaf': zoom >= 11
+    }
+    return await this.areaModel.find(filter).lean()
   }
 
   async setDestinationFlag (uuid: MUUID, flag: boolean): Promise<AreaType> {

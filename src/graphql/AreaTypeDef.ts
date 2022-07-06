@@ -6,6 +6,7 @@ export const typeDef = gql`
     areas(filter: Filter, sort: Sort): [Area]
     stats: Stats
     cragsNear(placeId: String, lnglat: Point, minDistance: Int = 0, maxDistance: Int = 48000, includeCrags: Boolean = false): [CragsNear]
+    cragsWithin(filter: SearchWithinFilter): [Area]
   }
 
   "A climbing area, wall or crag"
@@ -80,6 +81,11 @@ export const typeDef = gql`
   input Point {
     lat: Float,
     lng: Float
+  }
+
+  input SearchWithinFilter {
+    bbox: [Float]
+    zoom: Float
   }
 
   input Sort {

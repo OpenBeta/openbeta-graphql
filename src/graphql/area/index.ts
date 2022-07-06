@@ -1,4 +1,5 @@
+import AreaQueries from './AreaQueries.js'
 import AreaMutations from './AreaMutations.js'
 import AreaEditTypeDef from './AreaEditTypeDef.js'
 
-export { AreaMutations, AreaEditTypeDef }
+export { AreaQueries, AreaMutations, AreaEditTypeDef }
