@@ -10,7 +10,7 @@ import { AreaType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
-import { AreaEditTypeDef, AreaMutations } from './area/index.js'
+import { AreaEditTypeDef, AreaQueries, AreaMutations } from './area/index.js'
 
 const resolvers = {
   Mutation: {
@@ -19,6 +19,7 @@ const resolvers = {
   },
   Query: {
     ...MediaQueries,
+    ...AreaQueries,
     climb: async (
       _,
       { uuid }: QueryByIdType,
