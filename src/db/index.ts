@@ -30,7 +30,7 @@ export const connectDB = (onConnected: () => any = defaultFn): any => {
   try {
     /* eslint-disable @typescript-eslint/no-floating-promises */
     mongoose.connect(
-    `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`,
+    `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=rs0`,
     { autoIndex: false }
     )
 

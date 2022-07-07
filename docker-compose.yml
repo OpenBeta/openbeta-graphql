@@ -1,14 +1,22 @@
-version: '3.7'
+version: '3.8'
 services:
   mongo_opentacos:
-    image: mongo
+    image: mongo:5
+    hostname: mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: 0nBelay!
+      MONGO_REPLICA_SET_NAME: rs0
     ports:
       - 27017:27017
     volumes:
       - opentacos_mongodb_data:/data/db
+      - ./:/opt/keyfile/
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    command: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/opt/keyfile/keyfile"]
   mongo-express:
     image: mongo-express
     restart: always
@@ -20,6 +28,5 @@ services:
       ME_CONFIG_MONGODB_SERVER: mongo_opentacos
     depends_on:
     - mongo_opentacos
-
 volumes:
   opentacos_mongodb_data:
