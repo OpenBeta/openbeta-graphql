@@ -16,4 +16,4 @@ const onConnected = async (): Promise<void> => {
   return await Promise.resolve()
 }
 
-connectDB(onConnected)
+void connectDB(onConnected)

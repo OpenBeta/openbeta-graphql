@@ -195,4 +195,4 @@ const geoToLatLng = (geoPoint: Point): [number, number] => {
   return [coordinates[1], coordinates[0]]
 }
 
-connectDB(onDBConnected)
+void connectDB(onDBConnected)

@@ -1,5 +1,5 @@
 import muuid from 'uuid-mongodb'
-import mongoose, { ObjectId } from 'mongoose'
+import mongoose from 'mongoose'
 import { ChangeStreamDocument } from 'mongodb'
 
 import ClimbHistoryType, { AreaHistoryType } from '../ClimbHistoryType.js'

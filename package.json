@@ -61,6 +61,12 @@
     ],
     "parser": "babel-eslint"
   },
+  "ts-standard": {
+    "ignore": [
+      "build",
+      "hacks"
+    ]
+  },
   "type": "module",
   "engines": {
     "node": ">=16.0.0"

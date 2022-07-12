@@ -28,8 +28,12 @@ import streamListener from './db/edit/streamListener.js'
   await connectDB(async () => {
     getMediaModel()
     await createIndexes()
+<<<<<<< HEAD
     await streamListener(mongoose.connection)
+=======
+>>>>>>> 4d27022 (Fix linting errors)
     console.log('Kudos!')
+    await streamListener(mongoose.connection)
   })
 
   const port = 4000
