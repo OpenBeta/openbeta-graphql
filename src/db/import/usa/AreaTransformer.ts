@@ -103,6 +103,11 @@ export const makeDBArea = (node: AreaNode): AreaType => {
 const URL_REGEX = /area\/(?<id>\d+)\//
 export const extractMpId = (url: string): string | undefined => URL_REGEX.exec(url)?.groups?.id
 
+/**
+ * Similar to String.join(',') but also convert each UUID to string before joining them
+ * @param a
+ * @returns
+ */
 const uuidArrayToString = (a: MUUID[]): string => {
   return a.reduce((acc: string, curr: MUUID, index) => {
     acc = acc + curr.toUUID().toString()

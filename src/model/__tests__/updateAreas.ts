@@ -21,9 +21,13 @@ describe('Areas', () => {
     console.log('##Counter ', counter)
     counter = counter + 1
     const canada = await areas.addCountry('ca')
+
+    const bc = await areas.addArea('British Columbia', canada.metadata.area_id)
     // const spain = await areas.addCountry('es')
     console.log('#canada', canada)
+    console.log('#BC', bc)
 
+    await areas.deleteArea(bc.metadata.area_id)
     const deleted = await areas.deleteArea(canada.metadata.area_id)
     console.log('#####deleted', deleted)
   })
