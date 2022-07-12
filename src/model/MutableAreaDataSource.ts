@@ -22,7 +22,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   async addArea (areaName: string, parentUuid: MUUID): Promise<AreaType> {
     const parentFilter = { 'metadata.area_id': parentUuid }
-    const rs = await this.areaModel.find(parentFilter).limit(1).lean()
+    const rs = await this.areaModel.find(parentFilter).limit(1)
 
     if (rs.length !== 1) {
       throw new Error(`Adding area failed.  Expecting 1 parent, found  + ${rs?.length}`)
@@ -32,6 +32,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parentPathTokens = rs[0].pathTokens
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens)
     const rs1 = await this.areaModel.insertMany(newArea)
+
+    await this.areaModel.updateOne(parentFilter, { $addToSet: { children: newArea._id } })
 
     return rs1[0]
   }

@@ -20,6 +20,9 @@ jobs:
       - name: Install Dependencies
         run: yarn install
 
+      - name: Build the docker-compose stack
+        run: docker-compose -f docker-compose.yml up -d
+
       - name: Lint and test
         run: yarn lint && yarn test
         env:
