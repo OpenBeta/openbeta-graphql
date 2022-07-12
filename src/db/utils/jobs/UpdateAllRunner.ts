@@ -12,7 +12,7 @@ const onConnected = async (): Promise<void> => {
   console.time('Calculating global stats')
   await visitAllAreas()
   console.timeEnd('Calculating global stats')
-  gracefulExit()
+  await gracefulExit()
   return await Promise.resolve()
 }
 

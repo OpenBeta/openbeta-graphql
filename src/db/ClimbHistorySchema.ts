@@ -20,11 +20,6 @@ const ClimbChangeEventSchema = new mongoose.Schema<ChangeEventType<ClimbType>>({
   },
   clusterTime: Object,
   operationType: String,
-  ns: {
-    db: String,
-    coll: String
-  },
-  documentKey: Object,
   fullDocument: ClimbSchema
 }, schemaOptions)
 
@@ -36,11 +31,6 @@ const AreaChangeEventSchema = new mongoose.Schema<ChangeEventType<AreaType>>({
   },
   clusterTime: Object,
   operationType: String,
-  ns: {
-    db: String,
-    coll: String
-  },
-  documentKey: Object,
   fullDocument: AreaSchema
 }, schemaOptions)
 
@@ -51,6 +41,9 @@ export const ClimbHistorySchema = new Schema<ClimbHistoryType>({
     type: 'object',
     value: { type: 'Buffer' },
     default: () => muuid.v4()
+  },
+  actionType: {
+    type: String
   },
   event: ClimbChangeEventSchema
 }, {
@@ -67,6 +60,9 @@ export const AreaHistorySchema = new Schema<AreaHistoryType>({
     type: 'object',
     value: { type: 'Buffer' },
     default: () => muuid.v4()
+  },
+  actionType: {
+    type: String
   },
   event: AreaChangeEventSchema
 }, {

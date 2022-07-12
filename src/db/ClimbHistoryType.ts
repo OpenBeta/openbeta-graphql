@@ -6,10 +6,14 @@ import { AreaType } from './AreaTypes'
 
 export default interface ClimbHistoryType extends Document{
   uid: MUUID
+  actionType: ActionType
   event: ChangeEventType<ClimbType>
 }
 
 export interface AreaHistoryType extends Document {
   uid: MUUID
+  actionType: ActionType
   event: ChangeEventType<AreaType>
 }
+
+export type ActionType = 'update' | 'add' | 'delete'

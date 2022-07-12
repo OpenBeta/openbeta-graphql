@@ -5,6 +5,14 @@ import { AreaType } from '../../AreaTypes'
 import { Tree, AreaNode, createRootNode } from './AreaTree.js'
 import { MUUID } from 'uuid-mongodb'
 
+export const createRootInDB = async (areaModel: mongoose.Model<AreaType>, countryCode: string): Promise<AreaType> => {
+  const countryNode = createRootNode(countryCode)
+  const doc = makeDBArea(countryNode)
+  const f = await areaModel.insertMany(doc, { ordered: false })
+  const singleDoc = f[0]
+  return singleDoc
+}
+
 export const createRoot = async (countryCode: string): Promise<AreaNode> => {
   const areaModel = getAreaModel('areas')
   const countryNode = createRootNode(countryCode)
@@ -54,7 +62,7 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
  * @param node
  * @returns
  */
-const makeDBArea = (node: AreaNode): AreaType => {
+export const makeDBArea = (node: AreaNode): AreaType => {
   const { key, isLeaf, children, _id, uuid } = node
 
   return {

@@ -70,7 +70,7 @@ const onDBConnected = async (): Promise<void> => {
   const apiKey = process.env.TYPESENSE_API_KEY ?? ''
 
   if (node === '' || apiKey === '') {
-    gracefulExit(1)
+    await gracefulExit(1)
   }
 
   logger.info('Start pushing data to TypeSense')
@@ -99,8 +99,13 @@ const onDBConnected = async (): Promise<void> => {
   try {
     await typesense.collections().create(schema)
   } catch (error) {
+<<<<<<< HEAD
     logger.error(error)
     gracefulExit()
+=======
+    console.log(error)
+    await gracefulExit()
+>>>>>>> a5e8355 (Support area Add and basic Delete)
   }
 
   /**
@@ -177,7 +182,7 @@ const onDBConnected = async (): Promise<void> => {
   }
 
   logger.info('Record uploaded: ', count)
-  gracefulExit()
+  await gracefulExit()
 }
 
 /**

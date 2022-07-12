@@ -79,14 +79,18 @@ export const AreaSchema = new Schema<AreaType>({
   metadata: MetadataSchema,
   content: ContentSchema,
   density: { type: Number },
-  totalClimbs: { type: Number }
+  totalClimbs: { type: Number },
+  _deleting: Date
 }, {
+  timestamps: true,
   writeConcern: {
     w: 'majority',
     j: false,
     wtimeout: 5000
   }
 })
+
+AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
 
 export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> => {
   return connection.model(name, AreaSchema)

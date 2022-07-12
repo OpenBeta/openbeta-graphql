@@ -16,10 +16,11 @@ export interface IAreaProps {
   children: mongose.Types.ObjectId[]
   ancestors: string
   pathTokens: string[]
-  aggregate: AggregateType
+  aggregate?: AggregateType
   content: IAreaContent
   density: number
   totalClimbs: number
+  _deleting?: Date
 }
 
 export interface IAreaMetadata {

@@ -84,7 +84,16 @@ const leafReducer = (node: AreaType): ResultType => {
     bbox: node.metadata.bbox,
     lnglat: node.metadata.lnglat,
     density: node.density,
-    aggregate: node.aggregate
+    aggregate: node.aggregate ?? {
+      byGrade: [],
+      byDiscipline: {},
+      byGradeBand: {
+        beginner: 0,
+        intermediate: 0,
+        advance: 0,
+        expert: 0
+      }
+    }
   }
 }
 

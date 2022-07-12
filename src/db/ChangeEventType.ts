@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { ChangeStreamNameSpace, Timestamp } from 'mongodb'
+import { Timestamp } from 'mongodb'
 
 export default interface ChangeEventType<FDocumentType> {
   _id: {
@@ -7,7 +7,5 @@ export default interface ChangeEventType<FDocumentType> {
   }
   operationType: string
   clusterTime: Timestamp
-  ns: ChangeStreamNameSpace
-  documentKey: Object
   fullDocument: FDocumentType
 }

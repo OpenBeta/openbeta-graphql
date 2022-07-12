@@ -4,7 +4,7 @@ import mongoose from 'mongoose'
 import { applyMiddleware } from 'graphql-middleware'
 
 import { graphqlSchema } from './graphql/resolvers.js'
-import { connectDB, getMediaModel } from './db/index.js'
+import { connectDB, getMediaModel, createIndexes } from './db/index.js'
 import AreaDataSource from './model/AreaDataSource.js'
 import { createContext, permissions } from './auth/index.js'
 import { logger } from './logger.js'
@@ -27,7 +27,8 @@ import streamListener from './db/edit/streamListener.js'
 
   await connectDB(async () => {
     getMediaModel()
-    streamListener(mongoose.connection)
+    await createIndexes()
+    await streamListener(mongoose.connection)
     console.log('Kudos!')
   })
 

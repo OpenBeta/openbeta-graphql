@@ -47,7 +47,7 @@ const main = async (): Promise<void> => {
 
   printStats(stats)
 
-  gracefulExit()
+  await gracefulExit()
   return await Promise.resolve()
 }
 
