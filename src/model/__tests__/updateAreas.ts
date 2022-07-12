@@ -1,4 +1,6 @@
 import mongoose from 'mongoose'
+import { jest } from '@jest/globals'
+
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB } from '../../db/index.js'
 
