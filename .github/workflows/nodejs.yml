@@ -20,6 +20,10 @@ jobs:
       - name: Install Dependencies
         run: yarn install && yarn lint
 
+      - name: Add hosts to /etc/hosts
+        run: |
+            sudo echo "127.0.0.1 mongodb" | sudo tee -a /etc/hosts
+
       - name: Build the docker-compose stack
         run: docker-compose -f docker-compose.yml up -d
 
