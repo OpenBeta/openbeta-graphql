@@ -2,7 +2,8 @@ import mongoose from 'mongoose'
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB } from '../../db/index.js'
 
-let counter = 0
+jest.setTimeout(30000)
+
 describe('Areas', () => {
   let areas: MutableAreaDataSource
 
@@ -18,12 +19,9 @@ describe('Areas', () => {
   })
 
   it('should create a country ISO code', async () => {
-    console.log('##Counter ', counter)
-    counter = counter + 1
     const canada = await areas.addCountry('ca')
 
     const bc = await areas.addArea('British Columbia', canada.metadata.area_id)
-    // const spain = await areas.addCountry('es')
     console.log('#canada', canada)
     console.log('#BC', bc)
 
