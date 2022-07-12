@@ -2,7 +2,6 @@ version: '3.8'
 services:
   mongo_opentacos:
     image: mongo:5
-    hostname: mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: 0nBelay!
