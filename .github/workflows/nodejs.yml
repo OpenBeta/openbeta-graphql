@@ -20,16 +20,16 @@ jobs:
       - name: Install Dependencies
         run: yarn install && yarn lint
 
-      - name: Build the docker-compose stack
-        run: docker-compose -f docker-compose.yml up -d
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: 5
+          mongodb-replica-set: rs0
 
       - name: Wait for the database to start
         run: wget -qO- https://raw.githubusercontent.com/eficode/wait-for/$WAIT_FOR_VERSION/wait-for | sh -s -- localhost:27017 -- echo "Database is up"
         env:
           WAIT_FOR_VERSION: 4df3f9262d84cab0039c07bf861045fbb3c20ab7 # v2.2.3
-
-      - name: Tail mongo log
-        run: docker compose logs --tail 10
 
       - name: Lint and test
         run: yarn test
