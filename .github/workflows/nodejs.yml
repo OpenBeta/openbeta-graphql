@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Install Dependencies
+      - name: Install Dependencies and lint code
         run: yarn install && yarn lint
 
       - name: Start MongoDB
@@ -30,6 +30,9 @@ jobs:
         run: wget -qO- https://raw.githubusercontent.com/eficode/wait-for/$WAIT_FOR_VERSION/wait-for | sh -s -- localhost:27017 -- echo "Database is up"
         env:
           WAIT_FOR_VERSION: 4df3f9262d84cab0039c07bf861045fbb3c20ab7 # v2.2.3
+      
+      - name: Setup test user
+        run: . .env && mongo admin --eval "db.createUser({user: ${MONGO_INITDB_ROOT_USERNAME}, pwd: ${MONGO_INITDB_ROOT_PASSWORD}, roles: ['readWrite']})"
 
       - name: Lint and test
         run: yarn test
