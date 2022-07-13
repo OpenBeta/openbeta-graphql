@@ -22,7 +22,7 @@ const defaultFn = logger.info.bind(console, 'DB connected successfully')
 
 export const connectDB = async (onConnected: () => any = defaultFn): Promise<any> => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
-  // const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
+  const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
 
   logger.info(
@@ -38,11 +38,9 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<any
         process.exit(1)
       }
     )
-    // authSource=admin
-    // `mongodb://${user}:${pass}@${server}:27017/opentacos?readPreference=primary&ssl=false&replicaSet=rs0`
     await mongoose.connect(
-    `mongodb://${server}:27017/opentacos?readPreference=primary&ssl=false&replicaSet=rs0`,
-    { autoIndex: false }
+      `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=rs0`,
+      { autoIndex: false }
     )
   } catch (e) {
     console.error("Can't connect to db")
