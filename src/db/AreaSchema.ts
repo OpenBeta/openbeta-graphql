@@ -82,12 +82,7 @@ export const AreaSchema = new Schema<AreaType>({
   totalClimbs: { type: Number },
   _deleting: Date
 }, {
-  timestamps: true,
-  writeConcern: {
-    w: 'majority',
-    j: false,
-    wtimeout: 5000
-  }
+  timestamps: true
 })
 
 AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })

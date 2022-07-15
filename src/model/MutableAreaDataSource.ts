@@ -24,7 +24,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parentFilter = { 'metadata.area_id': parentUuid }
     const rs = await this.areaModel.find(parentFilter).limit(1)
 
-    if (rs.length !== 1) {
+    if (rs?.length !== 1) {
       throw new Error(`Adding area failed.  Expecting 1 parent, found  + ${rs?.length}`)
     }
 
@@ -39,7 +39,44 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 
   async deleteArea (uuid: MUUID): Promise<any> {
-    return await this.areaModel.findOneAndUpdate({ 'metadata.area_id': uuid }, { $set: { _deleting: new Date() } })
+    const session = await this.areaModel.startSession()
+    return await session.withTransaction(async session => await this._deleteArea(session, uuid))
+  }
+
+  async _deleteArea (session, uuid: MUUID): Promise<any> {
+    const filter = { 'metadata.area_id': uuid }
+    const area = await this.areaModel.findOne(filter).session(session).lean()
+
+    if (area == null) {
+      throw new Error('Delete area error.  Reason: area not found.')
+    }
+
+    if (area?.children?.length > 0) {
+      throw new Error('Delete area error.  Reason: subareas not empty.')
+    }
+
+    // Remove this area id from the parent.children[]
+    await this.areaModel.updateMany(
+      {
+        children: [area._id]
+      },
+      {
+        $pullAll: {
+          children: [area._id]
+        }
+      }).session(session)
+
+    // In order to be able to record the deleted document in area_history, we mark (update) the
+    // document for deletion (set ttl record = now).
+    // See https://www.mongodb.com/community/forums/t/change-stream-fulldocument-on-delete/15963
+    // Mongo TTL indexes: https://www.mongodb.com/docs/manual/core/index-ttl/
+    return await this.areaModel.findOneAndUpdate(
+      { 'metadata.area_id': uuid },
+      {
+        $set: {
+          _deleting: new Date()
+        }
+      }).session(session)
   }
 }
 
