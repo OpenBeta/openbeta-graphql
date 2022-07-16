@@ -80,7 +80,7 @@ export const AreaSchema = new Schema<AreaType>({
   content: ContentSchema,
   density: { type: Number },
   totalClimbs: { type: Number },
-  _deleting: Date
+  _deleting: { type: Date }
 }, {
   timestamps: true
 })

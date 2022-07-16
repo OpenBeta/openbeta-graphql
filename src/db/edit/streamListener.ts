@@ -38,7 +38,7 @@ const onChange = (change: ChangeStreamDocument): void => {
       let userOpType = 'update'
       const source = change.ns.coll
       const { fullDocument, _id, clusterTime } = change
-      if (fullDocument?._deleting !== 0) {
+      if (fullDocument?._deleting != null) {
         userOpType = 'delete'
       }
       recordChange({ _id, clusterTime, source, fullDocument, userOpType })

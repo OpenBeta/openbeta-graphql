@@ -37,6 +37,8 @@ describe('Areas', () => {
     // Add 1st area to the country
     const bc = await areas.addArea('British Columbia', canada.metadata.area_id)
 
+    expect(bc.area_name).toEqual('British Columbia')
+
     let canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
 
     expect(canadaInDb.children.length).toEqual(1)
@@ -58,7 +60,8 @@ describe('Areas', () => {
     let caliInDb = await areas.findOneAreaByUUID(cali.metadata.area_id)
     expect(caliInDb.children.length).toEqual(1)
 
-    await areas.deleteArea(theValley.metadata.area_id)
+    const deletedArea = await areas.deleteArea(theValley.metadata.area_id)
+    expect(deletedArea.area_name).toEqual('Yosemite Valley')
 
     const theValleyInDb = await areas.findOneAreaByUUID(theValley.metadata.area_id)
     expect(theValleyInDb._deleting).not.toEqual(0)

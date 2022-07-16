@@ -20,27 +20,54 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return rs[0]
   }
 
-  async addArea (areaName: string, parentUuid: MUUID): Promise<AreaType> {
-    const parentFilter = { 'metadata.area_id': parentUuid }
-    const rs = await this.areaModel.find(parentFilter).limit(1)
+  async addArea (areaName: string, parentUuid: MUUID): Promise<any> {
+    const session = await this.areaModel.startSession()
 
-    if (rs?.length !== 1) {
-      throw new Error(`Adding area failed.  Expecting 1 parent, found  + ${rs?.length}`)
+    // eslint-disable-nextline
+    let ret
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async (session) => {
+        ret = await this._addArea(session, areaName, parentUuid)
+        return ret
+      })
+    return ret
+  }
+
+  async _addArea (session, areaName: string, parentUuid: MUUID): Promise<any> {
+    const parentFilter = { 'metadata.area_id': parentUuid }
+    const rs = await this.areaModel.findOne(parentFilter).session(session)
+
+    if (rs == null) {
+      throw new Error('Adding area failed.  Expecting 1 parent, found  none.')
     }
 
-    const parentAncestors = rs[0].ancestors
-    const parentPathTokens = rs[0].pathTokens
+    const parentAncestors = rs.ancestors
+    const parentPathTokens = rs.pathTokens
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens)
-    const rs1 = await this.areaModel.insertMany(newArea)
+    const rs1 = await this.areaModel.insertMany(newArea, { session })
 
-    await this.areaModel.updateOne(parentFilter, { $addToSet: { children: newArea._id } })
+    rs.children.push(newArea._id)
+    await rs.save()
 
     return rs1[0]
   }
 
   async deleteArea (uuid: MUUID): Promise<any> {
     const session = await this.areaModel.startSession()
-    return await session.withTransaction(async session => await this._deleteArea(session, uuid))
+    // eslint-disable-nextline
+    let ret
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async session => {
+        ret = await this._deleteArea(session, uuid)
+        return ret
+      })
+    return ret
   }
 
   async _deleteArea (session, uuid: MUUID): Promise<any> {
