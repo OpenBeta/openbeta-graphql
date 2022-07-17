@@ -8,7 +8,7 @@ import { getClimbHistoryModel, getAreaHistoryModel } from '../index.js'
 const climbHistory = getClimbHistoryModel()
 const areaHistory = getAreaHistoryModel()
 
-export default async function streamListener (db: mongoose.Connection): Promise<void> {
+export default async function streamListener (db: mongoose.Connection): Promise<any> {
   const pipeline = [{
     $match: {
       $and: [
@@ -27,7 +27,9 @@ export default async function streamListener (db: mongoose.Connection): Promise<
   const resumeId = await mostRecentResumeId()
 
   const changeStream = db.watch(pipeline, { fullDocument: 'updateLookup', startAfter: resumeId })
-  changeStream.on('change', onChange)
+  changeStream.on('error', console.log)
+  changeStream.on('end', console.log)
+  return changeStream.on('change', onChange)
 }
 
 const onChange = (change: ChangeStreamDocument): void => {

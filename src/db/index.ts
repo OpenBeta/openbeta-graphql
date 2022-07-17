@@ -6,6 +6,7 @@ import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
 import { logger } from '../logger.js'
 import { getClimbHistoryModel, getAreaHistoryModel } from './ClimbHistorySchema.js'
+import streamListener from './edit/streamListener.js'
 
 config()
 
@@ -58,6 +59,13 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
     logger.info('Gracefully exiting.')
     process.exit(exitCode)
   })
+}
+
+export const defaultPostConnect = async (): Promise<void> => {
+  // getMediaModel()
+  // await createIndexes()
+  console.log('Kudos!')
+  await streamListener(mongoose.connection)
 }
 
 // eslint-disable-next-line

@@ -1,10 +1,7 @@
 import mongoose from 'mongoose'
-import { jest } from '@jest/globals'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes } from '../../db/index.js'
-
-jest.setTimeout(120000)
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource

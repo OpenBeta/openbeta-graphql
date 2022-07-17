@@ -4,18 +4,10 @@ import mongoose from 'mongoose'
 import { applyMiddleware } from 'graphql-middleware'
 
 import { graphqlSchema } from './graphql/resolvers.js'
-import { connectDB, getMediaModel, createIndexes } from './db/index.js'
+import { connectDB, defaultPostConnect } from './db/index.js'
 import AreaDataSource from './model/AreaDataSource.js'
 import { createContext, permissions } from './auth/index.js'
 import { logger } from './logger.js'
-import streamListener from './db/edit/streamListener.js'
-
-export const defaultPostConnect = async (): Promise<void> => {
-  getMediaModel()
-  await createIndexes()
-  console.log('Kudos!')
-  await streamListener(mongoose.connection)
-}
 
 // eslint-disable-next-line
 (async function (): Promise<void> {
