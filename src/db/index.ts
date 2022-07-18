@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import { config } from 'dotenv'
+import { enableAllPlugins } from 'immer'
 
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
@@ -9,6 +10,7 @@ import { getClimbHistoryModel, getAreaHistoryModel } from './ClimbHistorySchema.
 import streamListener from './edit/streamListener.js'
 
 config()
+enableAllPlugins()
 
 export const checkVar = (name: string): string => {
   const value = process.env[name] ?? ''

@@ -33,6 +33,7 @@
     "graphql": "^16.5.0",
     "graphql-middleware": "^6.1.31",
     "graphql-shield": "^7.5.0",
+    "immer": "^9.0.15",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.1.4",
     "mongoose": "^6.4.3",
@@ -46,7 +47,7 @@
   "scripts": {
     "lint": "ts-standard",
     "fix": "ts-standard --fix",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "build": "tsc  -p tsconfig.build.json",
     "clean": "tsc -b --clean && rm -rf build/*",
     "serve": "yarn build && node build/main.js",

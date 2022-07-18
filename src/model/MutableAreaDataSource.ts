@@ -1,6 +1,7 @@
 import { geometry, Point } from '@turf/helpers'
 import { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
+import { produce } from 'immer'
 
 import { AreaType } from '../db/AreaTypes'
 import AreaDataSource from './AreaDataSource'
@@ -20,11 +21,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return rs[0]
   }
 
-  async addArea (areaName: string, parentUuid: MUUID): Promise<any> {
+  async addArea (areaName: string, parentUuid: MUUID): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
 
-    // eslint-disable-nextline
-    let ret
+    let ret: AreaType | null = null
 
     // withTransaction() doesn't return the callback result
     // see https://jira.mongodb.org/browse/NODE-2014
@@ -52,13 +52,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
     rs.children.push(newArea._id)
     await rs.save()
 
-    return rs1[0]
+    return rs1[0].toObject()
   }
 
-  async deleteArea (uuid: MUUID): Promise<any> {
+  async deleteArea (uuid: MUUID): Promise<AreaType|null> {
     const session = await this.areaModel.startSession()
-    // eslint-disable-nextline
-    let ret
+    let ret: AreaType|null = null
 
     // withTransaction() doesn't return the callback result
     // see https://jira.mongodb.org/browse/NODE-2014
@@ -111,8 +110,9 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
   const _id = new mongoose.Types.ObjectId()
   const uuid = getUUID(parentPathTokens.join() + areaName, false, undefined)
 
-  parentPathTokens.push(areaName)
-  const pathTokens = parentPathTokens
+  const pathTokens = produce(parentPathTokens, draft => {
+    draft.push(areaName)
+  })
 
   const ancestors = parentAncestors + ',' + uuid.toUUID().toString()
   return {

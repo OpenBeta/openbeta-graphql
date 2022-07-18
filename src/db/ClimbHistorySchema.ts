@@ -45,7 +45,7 @@ export const ClimbHistorySchema = new Schema<ClimbHistoryType>({
   actionType: {
     type: String
   },
-  event: ClimbChangeEventSchema
+  change: ClimbChangeEventSchema
 }, {
   _id: true,
   writeConcern: {
@@ -64,7 +64,7 @@ export const AreaHistorySchema = new Schema<AreaHistoryType>({
   actionType: {
     type: String
   },
-  event: AreaChangeEventSchema
+  change: AreaChangeEventSchema
 }, {
   _id: true,
   writeConcern: {

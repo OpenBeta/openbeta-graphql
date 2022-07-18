@@ -1,17 +1,18 @@
 import mongoose from 'mongoose'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
-import { connectDB, createIndexes } from '../../db/index.js'
+import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource
 
   beforeAll(async () => {
+    console.log('#BeforeAll Areas')
     await connectDB()
 
     try {
-      await mongoose.connection.collection('climbs').drop()
-      await mongoose.connection.collection('areas').drop()
+      await getAreaModel().collection.drop()
+      await getClimbModel().collection.drop()
     } catch (e) {
       console.log('Cleaning up db before test')
     }
@@ -34,33 +35,42 @@ describe('Areas', () => {
     // Add 1st area to the country
     const bc = await areas.addArea('British Columbia', canada.metadata.area_id)
 
-    expect(bc.area_name).toEqual('British Columbia')
+    expect(bc?.area_name).toEqual('British Columbia')
 
     let canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
 
     expect(canadaInDb.children.length).toEqual(1)
-    expect(canadaInDb.children[0]).toEqual(bc._id)
+    expect(canadaInDb.children[0]).toEqual(bc?._id)
 
     // Add another area to the country
     const theBug = await areas.addArea('The Bugaboos', canada.metadata.area_id)
 
     canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
     expect(canadaInDb.children.length).toEqual(2)
-    expect(canadaInDb.children[1]).toEqual(theBug._id)
+    expect(canadaInDb.children[1]).toEqual(theBug?._id)
   })
 
   it('should delete a subarea', async () => {
     const us = await areas.addCountry('us')
     const cali = await areas.addArea('California', us.metadata.area_id)
-    const theValley = await areas.addArea('Yosemite Valley', cali.metadata.area_id)
+
+    if (cali == null) {
+      fail('California should not be null')
+    }
+
+    const theValley = await areas.addArea('Yosemite Valley', cali?.metadata.area_id)
+
+    if (theValley == null) {
+      fail('Yosemite Valley should not be null')
+    }
 
     let caliInDb = await areas.findOneAreaByUUID(cali.metadata.area_id)
     expect(caliInDb.children.length).toEqual(1)
 
     const deletedArea = await areas.deleteArea(theValley.metadata.area_id)
-    expect(deletedArea.area_name).toEqual('Yosemite Valley')
+    expect(deletedArea?.area_name).toEqual('Yosemite Valley')
 
-    const theValleyInDb = await areas.findOneAreaByUUID(theValley.metadata.area_id)
+    const theValleyInDb = await areas.findOneAreaByUUID(theValley?.metadata.area_id)
     expect(theValleyInDb._deleting).not.toEqual(0)
 
     caliInDb = await areas.findOneAreaByUUID(cali.metadata.area_id)
@@ -70,7 +80,12 @@ describe('Areas', () => {
   it('should not delete a subarea containing children', async () => {
     const gr = await areas.addCountry('gr')
     const kali = await areas.addArea('Kalymnos', gr.metadata.area_id)
+
+    if (kali == null) fail()
+
     const arhi = await areas.addArea('Arhi', kali.metadata.area_id)
+
+    if (arhi == null) fail()
 
     // Try to delete 'Arhi' (expecting exception)
     await expect(areas.deleteArea(kali.metadata.area_id)).rejects.toThrow('subareas not empty')

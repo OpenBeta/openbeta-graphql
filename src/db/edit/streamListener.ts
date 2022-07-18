@@ -27,8 +27,6 @@ export default async function streamListener (db: mongoose.Connection): Promise<
   const resumeId = await mostRecentResumeId()
 
   const changeStream = db.watch(pipeline, { fullDocument: 'updateLookup', startAfter: resumeId })
-  changeStream.on('error', console.log)
-  changeStream.on('end', console.log)
   return changeStream.on('change', onChange)
 }
 
@@ -64,7 +62,7 @@ const recordChange = (data): void => {
       const newDocument: ClimbHistoryType = {
         uid: muuid.v4(),
         actionType: userOpType,
-        event: data
+        change: data
       }
       void climbHistory.insertMany(newDocument)
       break
@@ -74,7 +72,7 @@ const recordChange = (data): void => {
       const newDocument: AreaHistoryType = {
         uid: muuid.v4(),
         actionType: userOpType,
-        event: data
+        change: data
       }
       void areaHistory.insertMany(newDocument)
       break
@@ -84,8 +82,8 @@ const recordChange = (data): void => {
 }
 
 const mostRecentResumeId = async (): Promise<any> => {
-  const rs1 = await climbHistory.find({}, { 'event._id': 1 }).sort({ 'event._id': -1 }).limit(1).lean()
-  const rs2 = await areaHistory.find({}, { 'event._id': 1 }).sort({ 'event._id': -1 }).limit(1).lean()
+  const rs1: ClimbHistoryType[] = await climbHistory.find({}, { 'change._id': 1 }).sort({ 'change._id': -1 }).limit(1).lean()
+  const rs2: AreaHistoryType[] = await areaHistory.find({}, { 'change._id': 1 }).sort({ 'change._id': -1 }).limit(1).lean()
 
   const ts1 = rs1[0]
   const ts2 = rs2[0]
@@ -95,12 +93,12 @@ const mostRecentResumeId = async (): Promise<any> => {
   }
 
   if (ts1 === undefined) {
-    return ts2.event._id
+    return ts2.change._id
   }
 
   if (ts2 === undefined) {
-    return ts1.event._id
+    return ts1.change._id
   }
 
-  return ts1?._id.getTimestamp() > ts2._id.getTimestamp() ? ts1.event._id : ts2.event._id
+  return ts1?._id.getTimestamp() > ts2._id.getTimestamp() ? ts1.change._id : ts2.change._id
 }
