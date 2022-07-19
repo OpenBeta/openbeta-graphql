@@ -1,9 +1,10 @@
 import { connectDB, gracefulExit } from '../../index.js'
 import { visitAllAreas } from './AreaUpdater.js'
 import { visitAllCrags } from './CragUpdater.js'
+import { logger } from '../../../logger.js'
 
 const onConnected = async (): Promise<void> => {
-  console.log('Initializing database')
+  logger.info('Initializing database')
   console.time('Update crags')
   await visitAllCrags()
   console.timeEnd('Update crags')

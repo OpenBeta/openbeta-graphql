@@ -7,6 +7,7 @@ import { graphqlSchema } from './graphql/resolvers.js'
 import { connectDB, getMediaModel } from './db/index.js'
 import AreaDataSource from './model/AreaDataSource.js'
 import { createContext, permissions } from './auth/index.js'
+import { logger } from './logger.js';
 
 // eslint-disable-next-line
 (async function (): Promise<void> {
@@ -33,6 +34,6 @@ import { createContext, permissions } from './auth/index.js'
   await server.listen({
     port
   }).then((): void => {
-    console.log(`🚀 Server ready at http://localhost:${port}`)
+    logger.info(`🚀 Server ready at http://localhost:${port}`)
   })
 })()

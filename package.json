@@ -37,6 +37,7 @@
     "jwks-rsa": "^2.1.4",
     "mongoose": "^6.4.3",
     "p-limit": "^4.0.0",
+    "pino": "^8.2.0",
     "typesense": "^1.2.1",
     "underscore": "^1.13.2",
     "uuid": "^8.3.2",
