@@ -5,17 +5,18 @@ import { connectDB, gracefulExit, createIndexes } from '../../index.js'
 import { createRoot } from './AreaTransformer.js'
 import US_STATES from './us-states.js'
 import { seedState, dropCollection, JobStats } from './SeedState.js'
+import { logger } from '../../../logger.js'
 
 const contentDir: string = process.env.CONTENT_BASEDIR ?? ''
 
 const DEFAULT_CONCURRENT_JOBS = 4
 const concurrentJobs: number = process.env.OB_SEED_JOBS !== undefined ? parseInt(process.env.OB_SEED_JOBS) : DEFAULT_CONCURRENT_JOBS
 
-console.log('Data dir', contentDir)
-console.log('Max concurrent jobs: ', concurrentJobs)
+logger.info('Data dir', contentDir)
+logger.info('Max concurrent jobs: ', concurrentJobs)
 
 if (contentDir === '') {
-  console.log('Missing CONTENT_BASEDIR env')
+  logger.error('Missing CONTENT_BASEDIR env')
   process.exit(1)
 }
 
@@ -51,19 +52,19 @@ const main = async (): Promise<void> => {
 }
 
 const printStats = (stats: Array<JobStats|any>): void => {
-  console.log('------------------ Summary -------------------')
+  logger.info('------------------ Summary -------------------')
   const sums = { states: 0, climbs: 0, areas: 0 }
   for (const entry of stats) {
     if (entry !== undefined) {
-      console.log(entry)
+      logger.info(entry)
       const e = entry as JobStats
       sums.climbs += e.climbCount
       sums.areas += e.climbCount
       sums.states += 1
     }
   }
-  console.log('---------------------------------------------')
-  console.log('Total: ', sums)
+  logger.info('---------------------------------------------')
+  logger.info('Total: ', sums)
 }
 
 connectDB(main)

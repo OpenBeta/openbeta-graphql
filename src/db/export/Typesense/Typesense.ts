@@ -4,6 +4,7 @@ import { Point } from '@turf/helpers'
 import { connectDB, gracefulExit, getClimbModel } from '../../index.js'
 import { disciplinesToArray } from './Utils.js'
 import { ClimbExtType } from '../../ClimbTypes.js'
+import { logger } from '../../../logger.js'
 
 const chunkSize = 5000
 
@@ -72,7 +73,7 @@ const onDBConnected = async (): Promise<void> => {
     gracefulExit(1)
   }
 
-  console.log('Start pushing data to TypeSense')
+  logger.info('Start pushing data to TypeSense')
 
   const typesense = new Typesense.Client({
     nodes: [
@@ -92,13 +93,13 @@ const onDBConnected = async (): Promise<void> => {
     // Delete if the collection already exists from a previous example run
     await typesense.collections('climbs').delete()
   } catch (error) {
-    console.log(error)
+    logger.error(error)
   }
 
   try {
     await typesense.collections().create(schema)
   } catch (error) {
-    console.log(error)
+    logger.error(error)
     gracefulExit()
   }
 
@@ -158,7 +159,7 @@ const onDBConnected = async (): Promise<void> => {
       try {
         await typesense.collections('climbs').documents().import(chunks)
       } catch (e) {
-        console.log(e)
+        logger.error(e)
       }
       console.timeEnd(`Pushing batch: ${count / chunkSize}`)
       chunks = []
@@ -171,11 +172,11 @@ const onDBConnected = async (): Promise<void> => {
     try {
       await typesense.collections('climbs').documents().import(chunks)
     } catch (e) {
-      console.log(e)
+      logger.error(e)
     }
   }
 
-  console.log('Record uploaded: ', count)
+  logger.info('Record uploaded: ', count)
   gracefulExit()
 }
 

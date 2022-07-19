@@ -4,26 +4,27 @@ import { config } from 'dotenv'
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
+import { logger } from '../logger.js'
 
 config()
 
 export const checkVar = (name: string): string => {
   const value = process.env[name] ?? ''
   if (value === '') {
-    console.log('Missing env ', name)
+    logger.error('Missing env ', name)
     process.exit(1)
   }
   return value
 }
 
-const defaultFn = console.log.bind(console, 'DB connected successfully')
+const defaultFn = logger.info.bind(console, 'DB connected successfully')
 
 export const connectDB = (onConnected: () => any = defaultFn): any => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
 
-  console.log(
+  logger.info(
     `Connecting to database 'mongodb://${user}:****@${server}'...`
   )
   try {
@@ -54,7 +55,7 @@ export const createIndexes = async (): Promise<void> => {
 }
 export const gracefulExit = (exitCode: number = 0): void => {
   mongoose.connection.close(function () {
-    console.log('Gracefully exiting.')
+    logger.info('Gracefully exiting.')
     process.exit(exitCode)
   })
 }

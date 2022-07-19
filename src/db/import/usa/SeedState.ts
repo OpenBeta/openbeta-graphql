@@ -10,6 +10,7 @@ import { ClimbType } from '../../ClimbTypes.js'
 import transformClimbRecord from '../ClimbTransformer.js'
 import { createAreas } from './AreaTransformer.js'
 import { AreaNode } from './AreaTree.js'
+import { logger } from '../../../logger.js'
 
 export interface JobStats {
   state: string
@@ -22,12 +23,12 @@ export const seedState = async (root: AreaNode, stateCode: string, fileClimbs: s
 
   const areaModel: mongoose.Model<AreaType> = getAreaModel('areas')
   const climbModel: mongoose.Model<ClimbType> = getClimbModel('climbs')
-  console.log('start', stateCode)
+  logger.info('start', stateCode)
   const stats = await Promise.all([
     loadClimbs(fileClimbs, climbModel),
     loadAreas(root, fileAreas, areaModel)
   ])
-  console.log('link', stateCode)
+  logger.info('link', stateCode)
   await linkClimbsWithAreas(climbModel, areaModel)
 
   console.timeEnd('Loaded ' + stateCode)
