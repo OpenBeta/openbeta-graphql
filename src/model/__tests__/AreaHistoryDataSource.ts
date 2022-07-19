@@ -85,7 +85,7 @@ describe('Area history', () => {
     }
   })
 
-  it('should record Areas.setDestination() calls ', async () => {
+  it('should record multiple Areas.setDestination() calls ', async () => {
     const canada = await areas.addCountry('ca')
     const squamish = await areas.addArea('squamish', canada.metadata.area_id)
 
@@ -106,5 +106,52 @@ describe('Area history', () => {
       expect(history[1].change.fullDocument.metadata.isDestination).toStrictEqual(true)
       expect(history[2].change.fullDocument.metadata.isDestination).toStrictEqual(false)
     }
+  })
+
+  it('should record an Areas.deleteArea() call', async () => {
+    const greece = await areas.addCountry('gr')
+    const leonidio = await areas.addArea('Leonidio', greece.metadata.area_id)
+
+    if (leonidio == null) fail()
+
+    await areas.deleteArea(leonidio.metadata.area_id)
+
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 3000))
+
+    const history = await areaHistory.getChangesByUuid(leonidio.metadata.area_id)
+
+    expect(history).toHaveLength(2)
+    expect(history[0].actionType).toEqual('insert')
+    expect(history[0].change.fullDocument.area_name).toEqual(leonidio.area_name)
+    expect(history[1].actionType).toEqual('delete')
+    expect(history[1].change.fullDocument.area_name).toEqual(leonidio.area_name)
+  })
+
+  it('should not record a failed Areas.deleteArea() call', async () => {
+    const spain = await areas.addCountry('es')
+    const margalef = await areas.addArea('margalef', spain.metadata.area_id)
+
+    if (margalef == null) fail()
+
+    let deleted = false
+    try {
+      await areas.deleteArea(spain.metadata.area_id)
+      fail('Shouldn\'t allow deletion when the area still has subareas')
+    } catch (e) {
+      deleted = true
+    }
+
+    expect(deleted).toBeTruthy()
+
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 3000))
+
+    const history = await areaHistory.getChangesByUuid(spain.metadata.area_id)
+
+    // should only have 2 entries:
+    // 1. Add country
+    // 2. Add child to country
+    expect(history).toHaveLength(2)
   })
 })
