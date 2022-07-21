@@ -52,7 +52,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<any
       }
     )
     await mongoose.connect(
-      `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=rs0`,
+      `mongodb://${user}:${pass}@${server}/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=rs0`,
       { autoIndex: false }
     )
   } catch (e) {
