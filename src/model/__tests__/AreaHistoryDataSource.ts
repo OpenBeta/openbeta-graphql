@@ -5,6 +5,8 @@ import { connectDB, createIndexes, getAreaModel, getAreaHistoryModel } from '../
 import streamListener from '../../db/edit/streamListener'
 import AreaHistoryDataSource from '../AreaHistoryDatasource.js'
 
+jest.setTimeout(10000)
+
 describe('Area history', () => {
   let areas: MutableAreaDataSource
   let areaHistory: AreaHistoryDataSource
