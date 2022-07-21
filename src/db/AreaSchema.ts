@@ -65,7 +65,7 @@ const AggregateSchema = new Schema<AggregateType>({
   byGradeBand: CountByGradeBandSchema
 }, { _id: false })
 
-const AreaSchema = new Schema<AreaType>({
+export const AreaSchema = new Schema<AreaType>({
   area_name: { type: String, required: true, index: true },
   climbs: [{
     type: Schema.Types.Mixed,
@@ -79,14 +79,13 @@ const AreaSchema = new Schema<AreaType>({
   metadata: MetadataSchema,
   content: ContentSchema,
   density: { type: Number },
-  totalClimbs: { type: Number }
+  totalClimbs: { type: Number },
+  _deleting: { type: Date }
 }, {
-  writeConcern: {
-    w: 'majority',
-    j: false,
-    wtimeout: 5000
-  }
+  timestamps: true
 })
+
+AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
 
 export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> => {
   return connection.model(name, AreaSchema)

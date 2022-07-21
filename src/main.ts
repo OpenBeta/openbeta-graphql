@@ -4,10 +4,10 @@ import mongoose from 'mongoose'
 import { applyMiddleware } from 'graphql-middleware'
 
 import { graphqlSchema } from './graphql/resolvers.js'
-import { connectDB, getMediaModel } from './db/index.js'
+import { connectDB, defaultPostConnect } from './db/index.js'
 import AreaDataSource from './model/AreaDataSource.js'
 import { createContext, permissions } from './auth/index.js'
-import { logger } from './logger.js';
+import { logger } from './logger.js'
 
 // eslint-disable-next-line
 (async function (): Promise<void> {
@@ -24,10 +24,7 @@ import { logger } from './logger.js';
     cache: 'bounded'
   })
 
-  await connectDB(async () => {
-    getMediaModel()
-    // additional initializing code here
-  })
+  await connectDB(defaultPostConnect)
 
   const port = 4000
 

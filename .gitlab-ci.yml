@@ -8,6 +8,28 @@ variables:
   IMAGE_LATEST:  $CI_REGISTRY_IMAGE:latest 
   IMAGE_CURRENT: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
 
+docker-build-staging:
+  stage: build
+  only: # Only run for these branches
+  - staging
+
+  tags:
+  - docker
+
+  image: docker:20.10.10
+
+  services:
+  - docker:20.10.10-dind
+
+  before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+  script:
+  - docker pull $IMAGE_STAGING || true
+  - docker build --cache-from $IMAGE_STAGING --tag $IMAGE_CURRENT --tag $IMAGE_STAGING .
+  - docker push $IMAGE_CURRENT
+  - docker push $IMAGE_STAGING
+
 docker-build:
   stage: build
   only: # Only run for these branches
@@ -30,7 +52,6 @@ docker-build:
   - docker build --cache-from $IMAGE_LATEST --tag $IMAGE_CURRENT --tag $IMAGE_LATEST .
   - docker push $IMAGE_CURRENT
   - docker push $IMAGE_LATEST
-
 
 deploy:
   stage: deploy

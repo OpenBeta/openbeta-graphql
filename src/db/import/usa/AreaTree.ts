@@ -166,7 +166,7 @@ export const createRootNode = (countryCode: string): AreaNode => {
  * @param jsonLine raw data
  * @returns MUUID
  */
-const getUUID = (key, isLeaf: boolean, jsonLine: any): MUUID => {
+export const getUUID = (key, isLeaf: boolean, jsonLine: any): MUUID => {
   let idStr = key
   if (isLeaf) {
     assert(jsonLine !== undefined)
