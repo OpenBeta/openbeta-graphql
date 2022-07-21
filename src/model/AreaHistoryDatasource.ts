@@ -7,7 +7,7 @@ import { AreaChangeLogType } from '../db/ChangeLogType.js'
 export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
   changelogModel = getChangeLogModel()
 
-  async getChangeSetsByUuid (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
+  async getChangeSetsByUuid(areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
     let rs
     if (areaUuid == null) {
       const filter: any = {
@@ -30,7 +30,7 @@ export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
         $match: {
           changes: {
             $elemMatch:
-               { 'fullDocument.metadata.area_id': areaUuid, kind: 'areas' }
+              { 'fullDocument.metadata.area_id': areaUuid, kind: 'areas' }
           }
         }
       }
