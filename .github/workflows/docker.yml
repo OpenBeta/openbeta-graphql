@@ -2,7 +2,7 @@ name: 'docker publish'
 on:
   push:
     branches:
-      - 'staging'
+      - staging
 
 jobs:
   build:
