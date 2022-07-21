@@ -70,7 +70,7 @@ const onDBConnected = async (): Promise<void> => {
   const apiKey = process.env.TYPESENSE_API_KEY ?? ''
 
   if (node === '' || apiKey === '') {
-    gracefulExit(1)
+    await gracefulExit(1)
   }
 
   logger.info('Start pushing data to TypeSense')
@@ -100,7 +100,7 @@ const onDBConnected = async (): Promise<void> => {
     await typesense.collections().create(schema)
   } catch (error) {
     logger.error(error)
-    gracefulExit()
+    await gracefulExit()
   }
 
   /**
@@ -177,7 +177,7 @@ const onDBConnected = async (): Promise<void> => {
   }
 
   logger.info('Record uploaded: ', count)
-  gracefulExit()
+  await gracefulExit()
 }
 
 /**
@@ -190,4 +190,4 @@ const geoToLatLng = (geoPoint: Point): [number, number] => {
   return [coordinates[1], coordinates[0]]
 }
 
-connectDB(onDBConnected)
+void connectDB(onDBConnected)
