@@ -5,6 +5,7 @@ import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
 import { logger } from '../logger.js'
+import { getClimbHistoryModel, getAreaHistoryModel } from './ClimbHistorySchema.js'
 
 config()
 
@@ -62,4 +63,4 @@ export const gracefulExit = (exitCode: number = 0): void => {
 
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, getClimbModel }
+export { getMediaModel, getAreaModel, getClimbModel, getClimbHistoryModel, getAreaHistoryModel }

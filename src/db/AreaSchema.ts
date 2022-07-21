@@ -65,7 +65,7 @@ const AggregateSchema = new Schema<AggregateType>({
   byGradeBand: CountByGradeBandSchema
 }, { _id: false })
 
-const AreaSchema = new Schema<AreaType>({
+export const AreaSchema = new Schema<AreaType>({
   area_name: { type: String, required: true, index: true },
   climbs: [{
     type: Schema.Types.Mixed,

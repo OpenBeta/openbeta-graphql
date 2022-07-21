@@ -4,10 +4,11 @@ import mongoose from 'mongoose'
 import { applyMiddleware } from 'graphql-middleware'
 
 import { graphqlSchema } from './graphql/resolvers.js'
-import { connectDB, getMediaModel, getClimbModel } from './db/index.js'
+import { connectDB, getMediaModel } from './db/index.js'
 import AreaDataSource from './model/AreaDataSource.js'
 import { createContext, permissions } from './auth/index.js'
-import { logger } from './logger.js';
+import { logger } from './logger.js'
+import streamListener from './db/edit/streamListener.js'
 
 // eslint-disable-next-line
 (async function (): Promise<void> {
@@ -26,9 +27,8 @@ import { logger } from './logger.js';
 
   await connectDB(async () => {
     getMediaModel()
-    const climbs = getClimbModel()
-    // additional initializing code here
-    climbs.watch().on('change', change => console.log(change))
+    streamListener(mongoose.connection)
+    console.log('Kudos!')
   })
 
   const port = 4000
