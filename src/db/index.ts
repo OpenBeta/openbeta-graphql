@@ -27,6 +27,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<any
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
+  const rsName = checkVar('MONGO_REPLICA_SET_NAME')
 
   logger.info(
     `Connecting to database 'mongodb://${user}:****@${server}'...`
@@ -42,7 +43,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<any
       }
     )
     await mongoose.connect(
-      `mongodb://${user}:${pass}@${server}/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=rs0`,
+      `mongodb://${user}:${pass}@${server}/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=${rsName}`,
       { autoIndex: false }
     )
   } catch (e) {
@@ -64,8 +65,6 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
 }
 
 export const defaultPostConnect = async (): Promise<void> => {
-  // getMediaModel()
-  // await createIndexes()
   console.log('Kudos!')
   await streamListener(mongoose.connection)
 }
