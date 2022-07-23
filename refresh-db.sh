@@ -1,7 +1,8 @@
+#!/bin/bash
 # Download seed files and start seeding
 # Syntax: ./refresh-db.sh [full]
 # Specify 'full' to download the entire data set.
-#!/bin/bash
+
 rm -rf tmp
 mkdir tmp
 cd tmp
@@ -39,4 +40,4 @@ cd ..
 export CONTENT_BASEDIR=./tmp
 
 echo "NODE_OPTIONS=${NODE_OPTIONS}"
-#yarn seed-usa
+yarn seed-usa
