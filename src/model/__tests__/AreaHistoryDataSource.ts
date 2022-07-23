@@ -1,25 +1,28 @@
 import mongoose from 'mongoose'
+import { ChangeStream } from 'mongodb'
+import { jest } from '@jest/globals'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getAreaHistoryModel } from '../../db/index.js'
 import streamListener from '../../db/edit/streamListener'
 import AreaHistoryDataSource from '../AreaHistoryDatasource.js'
+import { logger } from '../../logger.js'
 
 jest.setTimeout(10000)
 
 describe('Area history', () => {
   let areas: MutableAreaDataSource
   let areaHistory: AreaHistoryDataSource
-  let stream
+  let stream: ChangeStream
+
   beforeAll(async () => {
-    console.log('#beforeAll AreaHistory')
     await connectDB()
 
     try {
       await getAreaModel().collection.drop()
       await getAreaHistoryModel().collection.drop()
     } catch (e) {
-      console.log('Cleaning up db before test')
+      logger.info('Expected exception')
     }
 
     areas = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))

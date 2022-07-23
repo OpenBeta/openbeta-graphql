@@ -21,7 +21,7 @@ export const checkVar = (name: string): string => {
   return value
 }
 
-const defaultFn = logger.info.bind(console, 'DB connected successfully')
+const defaultFn = logger.info.bind(logger, 'DB connected successfully')
 
 export const connectDB = async (onConnected: () => any = defaultFn): Promise<any> => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
@@ -37,7 +37,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<any
 
     mongoose.connection.on(
       'error', (e) => {
-        console.error('MongoDB connection error', e)
+        logger.error('MongoDB connection error', e)
         process.exit(1)
       }
     )
@@ -46,7 +46,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<any
       { autoIndex: false }
     )
   } catch (e) {
-    console.error("Can't connect to db")
+    logger.error("Can't connect to db")
     process.exit(1)
   }
 }
