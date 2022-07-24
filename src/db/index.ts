@@ -5,6 +5,7 @@ import { enableAllPlugins } from 'immer'
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
+import { getChangeLogModel } from './ChangeLogSchema.js'
 import { logger } from '../logger.js'
 import { getClimbHistoryModel, getAreaHistoryModel } from './ClimbHistorySchema.js'
 import streamListener from './edit/streamListener.js'
@@ -72,4 +73,4 @@ export const defaultPostConnect = async (): Promise<void> => {
 // eslint-disable-next-line
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, getClimbModel, getClimbHistoryModel, getAreaHistoryModel }
+export { getMediaModel, getAreaModel, getClimbModel, getClimbHistoryModel, getAreaHistoryModel, getChangeLogModel }

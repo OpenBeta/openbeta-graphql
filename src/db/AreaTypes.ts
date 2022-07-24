@@ -66,3 +66,9 @@ export interface CountByGradeBandType {
   advance: number
   expert: number
 }
+
+export enum OperationType {
+  addCountry = 'addCountry',
+  addArea = 'addArea',
+  deleteArea = 'deleteArea'
+}
