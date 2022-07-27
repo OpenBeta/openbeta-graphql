@@ -23,6 +23,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "admanny",
+      "name": "admanny",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31676895?v=4",
+      "profile": "https://github.com/admanny",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
