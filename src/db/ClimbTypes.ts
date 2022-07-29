@@ -1,6 +1,7 @@
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import type { WithId, Document } from 'mongodb'
+import { ChangeRecordMetadataType } from './ChangeLogType'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
@@ -22,6 +23,7 @@ export interface IClimbProps {
   yds: string
   type: IClimbType
   safety: SafetyType
+  _change?: ChangeRecordMetadataType
 }
 
 export enum SafetyType {

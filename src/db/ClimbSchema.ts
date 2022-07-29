@@ -65,12 +65,7 @@ export const ClimbSchema = new Schema<ClimbType>({
   metadata: MetadataSchema,
   content: ContentSchema
 }, {
-  _id: false,
-  writeConcern: {
-    w: 'majority',
-    j: true,
-    wtimeout: 5000
-  }
+  _id: false
 })
 
 ClimbSchema.pre('validate', function (next) {

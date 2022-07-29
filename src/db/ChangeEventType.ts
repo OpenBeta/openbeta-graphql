@@ -1,11 +1,18 @@
-import mongoose from 'mongoose'
-import { Timestamp } from 'mongodb'
+import { ResumeToken } from 'mongodb'
+
+import { AreaType } from './AreaTypes'
+import { ClimbType } from './ClimbTypes'
 
 export default interface ChangeEventType<FDocumentType> {
-  _id: {
-    _data: mongoose.Types.ObjectId
-  }
-  operationType: string
-  clusterTime: Timestamp
+  _id: ResumeToken
+  dbOp: string
   fullDocument: FDocumentType
+}
+export type AreaChangeType = ChangeEventType<AreaType>
+export type ClimbChangeType = ChangeEventType<ClimbType>
+export type SupportedChangeTypes = AreaChangeType | ClimbChangeType
+
+export type TrackableTypes = (AreaType & WithDiscriminator) | (ClimbType & WithDiscriminator)
+export interface WithDiscriminator {
+  kind: string
 }
