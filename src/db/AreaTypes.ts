@@ -3,6 +3,7 @@ import { MUUID } from 'uuid-mongodb'
 
 import { BBox, Point } from '@turf/helpers'
 import { ClimbType } from './ClimbTypes'
+import { ChangeRecordMetadataType } from './ChangeLogType'
 
 export type AreaType = IAreaProps & {
   metadata: IAreaMetadata
@@ -20,6 +21,7 @@ export interface IAreaProps {
   content: IAreaContent
   density: number
   totalClimbs: number
+  _change?: ChangeRecordMetadataType
   _deleting?: Date
 }
 

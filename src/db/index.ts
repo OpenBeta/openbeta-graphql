@@ -24,7 +24,7 @@ export const checkVar = (name: string): string => {
 
 const defaultFn = logger.info.bind(logger, 'DB connected successfully')
 
-export const connectDB = async (onConnected: () => any = defaultFn): Promise<any> => {
+export const connectDB = async (onConnected: () => any = defaultFn): Promise<void> => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')

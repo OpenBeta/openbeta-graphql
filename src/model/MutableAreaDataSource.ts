@@ -1,12 +1,13 @@
 import { geometry, Point } from '@turf/helpers'
-import { MUUID } from 'uuid-mongodb'
+import muuid, { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
 import { produce } from 'immer'
 
-import { AreaType } from '../db/AreaTypes'
+import { AreaType, OperationType } from '../db/AreaTypes'
 import AreaDataSource from './AreaDataSource'
 import { createRootNode, getUUID } from '../db/import/usa/AreaTree'
 import { makeDBArea } from '../db/import/usa/AreaTransformer'
+import { changelogDataSource } from './ChangeLogDataSource'
 
 export default class MutableAreaDataSource extends AreaDataSource {
   // async addArea (area: AreaType): Promise<any> {
@@ -17,6 +18,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const countryNode = createRootNode(countryCode)
     const doc = makeDBArea(countryNode)
     doc.shortCode = countryCode
+
+    const user = muuid.v4() // todo: change addCountry() signature
+    const change = await changelogDataSource.create(user, OperationType.addCountry)
+    doc._change = {
+      user,
+      changeId: change._id,
+      operation: OperationType.addCountry
+    }
     const rs = await this.areaModel.insertMany(doc)
     return rs[0]
   }
@@ -37,6 +46,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 
   async _addArea (session, areaName: string, parentUuid: MUUID): Promise<any> {
+    const user = muuid.v4() // todo: change _addArea() signature
+
     const parentFilter = { 'metadata.area_id': parentUuid }
     const rs = await this.areaModel.findOne(parentFilter).session(session)
 
@@ -44,9 +55,21 @@ export default class MutableAreaDataSource extends AreaDataSource {
       throw new Error('Adding area failed.  Expecting 1 parent, found  none.')
     }
 
+    const change = await changelogDataSource.create(user, OperationType.addArea)
+    const newChange = {
+      user,
+      changeId: change._id,
+      operation: OperationType.addArea
+    }
+
+    rs._change = newChange
+
     const parentAncestors = rs.ancestors
     const parentPathTokens = rs.pathTokens
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens)
+
+    newArea._change = newChange
+
     const rs1 = await this.areaModel.insertMany(newArea, { session })
 
     rs.children.push(newArea._id)

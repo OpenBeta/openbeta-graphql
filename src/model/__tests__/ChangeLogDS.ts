@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
 import { jest } from '@jest/globals'
 import muuid from 'uuid-mongodb'
-import { connectDB, createIndexes, getChangeLogModel } from '../../db/index.js'
+import { connectDB, getChangeLogModel } from '../../db/index.js'
 import ChangeLogDataSource from '../ChangeLogDataSource.js'
-import { ChangeLogType, OpType } from '../../db/ChangeLogType.js'
+import { OpType } from '../../db/ChangeLogType.js'
 import { OperationType } from '../../db/AreaTypes.js'
 
 import { logger } from '../../logger.js'
@@ -33,12 +33,12 @@ describe('Area history', () => {
   })
 
   it('should create a change record', async () => {
-    const uid = muuid.v4()
-    const op: OpType = OperationType.addArea
-    const ret = await changeLog.record(uid, op, ['foo', 'bar'])
+    const userId = muuid.v4()
+    const op: OpType = OperationType.addCountry
+    const ret = await changeLog.create(userId, op)
     expect(ret._id).toBeDefined()
-    expect(ret.editedBy).toEqual(uid)
+    expect(ret.editedBy).toEqual(userId)
     expect(ret.operation).toEqual(op)
-    expect(ret.cols).toEqual(['foo', 'bar'])
+    expect(ret.changes).toHaveLength(0)
   })
 })
