@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import { ChangeStream } from 'mongodb'
 import { jest } from '@jest/globals'
+import muuid from 'uuid-mongodb'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes, getAreaModel } from '../../db/index.js'
@@ -84,9 +85,15 @@ describe('Area history', () => {
     const orAreaHistory = areaHistory[2].changes
     expect(orAreaHistory).toHaveLength(2)
 
+    const randomHistory = await changelogDataSource.getAreaChangeSets(muuid.v4())
+    expect(randomHistory).toHaveLength(0)
+
     const usaHistory = await changelogDataSource.getAreaChangeSets(usa.metadata.area_id)
     console.log(usaHistory)
-    // expect(usaHistory).toHaveLength(3)
+    expect(usaHistory).toHaveLength(3)
+    expect(usaHistory[0].operation).toEqual('addArea')
+    expect(usaHistory[1].operation).toEqual('addArea')
+    expect(usaHistory[2].operation).toEqual('addCountry')
   })
 
   // it('should record multiple Areas.setDestination() calls ', async () => {

@@ -8,12 +8,6 @@ export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
   changelogModel = getChangeLogModel()
 
   async getChangeSetsByUuid (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
-    // if (areaUuid != null) {
-    //   filter = Object.assign(filter, {
-    //     'changes.fullDocument.metadata.area_id': areaUuid
-    //   })
-    // }
-
     let rs
     if (areaUuid == null) {
       const filter: any = {
@@ -23,73 +17,48 @@ export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
       }
       rs = await this.changelogModel.aggregate([
         filter
-        // {
-        //   $project: {
-        //     changes: {
-        //       $sortArray: {
-        //         input: '$changes',
-        //         sortBy: { _id: -1 }
-        //       }
-        //     }
-        //   }
-        // }
       ])
       return rs as AreaChangeLogType[]
     } else {
-      // const filter = {
-      //   $match: {
-      //     changes: {
-      //       $elemMatch:
-      //          { 'fullDocument.metadata.area_id': areaUuid, kind: 'areas' }
-      //     }
-
-      //     // kind: 'areas'
-      //   }
-      // }
+      const filter = {
+        $match: {
+          changes: {
+            $elemMatch:
+               { 'fullDocument.metadata.area_id': areaUuid, kind: 'areas' }
+          }
+          // kind: 'areas'
+        }
+      }
 
       const rs2 = await this.changelogModel
         .aggregate([
-          // filter,
-          {
-            $project: {
-              _id: 1,
-              changes: {
-                $filter: {
-                  input: '$changes',
-                  as: 'change',
-                  cond: { $eq: ['$$change.fullDocument.metadata.area_id', areaUuid] }
-                }
-              }
-            }
-          },
+          filter,
+          // Do we want to show strictly changes to an area or the transanction
+          // that may include other areas?
+          // Commented code: to show the former
           // {
           //   $project: {
-          //     first: { $arrayElemAt: ['$changes.fullDocument', 0] }
+          //     _id: 1,
+          //     editedBy: 1,
+          //     createdAt: 1,
+          //     operation: 1,
+          //     changes: {
+          //       $filter: {
+          //         input: '$changes',
+          //         as: 'change',
+          //         cond: { $eq: ['$$change.fullDocument.metadata.area_id', areaUuid] }
+          //       }
+          //     }
           //   }
-          // }
-          {
-            $unwind: '$changes'
-          }
           // },
-          // // {
-          // //   $unwind: '$changes.fullDocument'
-          // // }
           // {
-          //   $match: { 'changes.fullDocument.metadata.area_id': areaUuid }
-          // }
-          // {
-          //   $unwind: '$changes.fullDocument'
-          // }
-          // {
-          //   $unwind: '$changes._id'
-          // }
-          // Group back to the original form if you want
-          // {
-          //   $group: {
-          //     _id: '$_id',
-          //     changes: { $push: '$changes.' }
-          //   }
-          // }
+          //   $unwind: '$changes'
+          // },
+          {
+            $sort: {
+              _id: -1
+            }
+          }
         ])
       return rs2
     }
