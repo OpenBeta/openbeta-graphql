@@ -36,16 +36,16 @@ export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
       ])
       return rs as AreaChangeLogType[]
     } else {
-      const filter = {
-        $match: {
-          changes: {
-            $elemMatch:
-               { 'fullDocument.metadata.area_id': areaUuid, kind: 'areas' }
-          }
+      // const filter = {
+      //   $match: {
+      //     changes: {
+      //       $elemMatch:
+      //          { 'fullDocument.metadata.area_id': areaUuid, kind: 'areas' }
+      //     }
 
-          // kind: 'areas'
-        }
-      }
+      //     // kind: 'areas'
+      //   }
+      // }
 
       const rs2 = await this.changelogModel
         .aggregate([
