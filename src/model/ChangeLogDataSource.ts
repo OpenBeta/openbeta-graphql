@@ -38,7 +38,12 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
 
     const rs = await this.changeLogModel.updateOne(filter,
       {
-        $push: { changes: changeRecord }
+        $push: {
+          changes: {
+            $each: [changeRecord],
+            $position: 0
+          }
+        }
       }, {
         upsert: false
       })
@@ -49,7 +54,7 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
     return this
   }
 
-  async getAreaChangeSets (areaUuid = null): Promise<AreaChangeLogType[]> {
+  async getAreaChangeSets (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
     return await areaHistoryDataSource.getChangeSetsByUuid(areaUuid)
   }
 

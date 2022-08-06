@@ -5,9 +5,17 @@ const AreaEditTypeDefs = gql`
     setDestinationFlag(input: DestinationFlagInput): Area
   }
 
+  type Mutation {
+    addCountry(input: CountryInput): Area
+  }
+
   input DestinationFlagInput {
     id: ID!
     flag: Boolean!
+  }
+
+  input CountryInput {
+    isoCode: String
   }
 `
 

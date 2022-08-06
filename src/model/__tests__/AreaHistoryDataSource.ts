@@ -53,7 +53,7 @@ describe('Area history', () => {
     expect(or?._id).toBeTruthy()
 
     // eslint-disable-next-line
-    await new Promise(res => setTimeout(res, 3000))
+    await new Promise(res => setTimeout(res, 5000))
 
     const areaHistory = await changelogDataSource.getAreaChangeSets()
 
@@ -63,36 +63,30 @@ describe('Area history', () => {
     expect(areaHistory[2].operation).toEqual(OperationType.addArea)
 
     const newCountryChange = areaHistory[0].changes
-    // const change1 = historyUSA[1].change.fullDocument
-    // const change2 = historyUSA[2].change.fullDocument
-
     expect(newCountryChange).toHaveLength(1)
+    expect(newCountryChange[0].dbOp).toEqual('insert')
+    expect(newCountryChange[0].fullDocument.area_name).toEqual(usa.area_name)
 
-    // expect(change1.children.length).toEqual(1)
-    // expect(change1.children[0]).toEqual(nv?._id)
+    // Verify NV history
+    const nvAreaHistory = areaHistory[1].changes
+    expect(nvAreaHistory).toHaveLength(2)
 
-    // expect(change2.children.length).toEqual(2)
-    // expect(change2.children[1]).toEqual(or?._id)
+    // history is shown most recent first
+    expect(nvAreaHistory[0].dbOp).toEqual('update') // add area to country.children[]
+    expect(nvAreaHistory[0].fullDocument.area_name).toEqual(usa?.area_name)
+    expect(nvAreaHistory[1].dbOp).toEqual('insert') // insert new area
+    expect(nvAreaHistory[1].fullDocument.area_name).toEqual(nv?.area_name) // area added to the right parent?
 
-    // // Verify NV
-    // expect(nv?.metadata?.area_id).toBeTruthy()
+    expect(nvAreaHistory[0].fullDocument.children).toHaveLength(1)
+    expect(nvAreaHistory[0].fullDocument.children[0]).toEqual(nv?._id) // area added to parent.children[]?
 
-    // if (nv?.metadata.area_id != null) { // if clause to make TS happy
-    //   const historyNV = await areaHistory.getChangesByUuid(nv.metadata.area_id)
-    //   expect(historyNV).toHaveLength(1)
-    //   expect(historyNV[0].actionType).toEqual('insert')
-    //   expect(historyNV[0].change.fullDocument.area_name).toEqual(nv.area_name)
-    // }
+    // Verify OR history
+    const orAreaHistory = areaHistory[2].changes
+    expect(orAreaHistory).toHaveLength(2)
 
-    // // Verify OR
-    // expect(or?.metadata?.area_id).toBeTruthy()
-
-    // if (or?.metadata.area_id != null) { // if clause to make TS happy
-    //   const historyNV = await areaHistory.getChangesByUuid(or.metadata.area_id)
-    //   expect(historyNV).toHaveLength(1)
-    //   expect(historyNV[0].actionType).toEqual('insert')
-    //   expect(historyNV[0].change.fullDocument.area_name).toEqual(or.area_name)
-    // }
+    const usaHistory = await changelogDataSource.getAreaChangeSets(usa.metadata.area_id)
+    console.log(usaHistory)
+    // expect(usaHistory).toHaveLength(3)
   })
 
   // it('should record multiple Areas.setDestination() calls ', async () => {

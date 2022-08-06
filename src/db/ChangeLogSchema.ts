@@ -19,16 +19,17 @@ const AreaChangeSchema = new Schema<any>({
 { _id: false }
 )
 
-const ChangeSchema = new Schema<Omit<BaseChangeRecordType<any>, 'fullDocument'>>({
+const ChangeSchema = new Schema<BaseChangeRecordType<any>>({
   _id: {
     _data: Object
   },
-  dbOp: String
+  dbOp: String,
+  fullDocument: { type: Schema.Types.Mixed }
 },
-{ discriminatorKey: 'kind', _id: false }
+{ _id: false }
 )
 
-const ChangeLogSchema = new Schema<ChangeLogType<any>>({
+const ChangeLogSchema = new Schema<ChangeLogType<SupportedCollectionTypes>>({
   editedBy: {
     type: 'object',
     value: { type: 'Buffer' },
@@ -41,16 +42,14 @@ const ChangeLogSchema = new Schema<ChangeLogType<any>>({
     enum: Object.values(OperationType),
     required: true
   },
-  changes: [ChangeSchema]
+  changes: [{ type: Schema.Types.Mixed }]
 }, { timestamps: { createdAt: true, updatedAt: false } })
 
-const changeArray = ChangeLogSchema.path('changes')
+// const changeArray = ChangeLogSchema.path('changes')
 
-// @ts-expect-error
-changeArray.discriminator('climbs', ClimbChangeSchema)
-// @ts-expect-error
-changeArray.discriminator('areas', AreaChangeSchema)
+// ChangeSchema.discriminator('climbs', ClimbChangeSchema)
+// ChangeSchema.discriminator('areas', AreaChangeSchema)
 
-export const getChangeLogModel = (): mongoose.Model<ChangeLogType<SupportedCollectionTypes>> => {
+export const getChangeLogModel = (): mongoose.Model<ChangeLogType<any>> => {
   return connection.model('change_logs', ChangeLogSchema)
 }
