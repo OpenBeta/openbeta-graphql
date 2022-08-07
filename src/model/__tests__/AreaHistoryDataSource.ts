@@ -147,30 +147,32 @@ describe('Area history', () => {
     expect(history[0].changes[0].fullDocument._id).toEqual(leonidio._id)
   })
 
-  // it('should not record a failed Areas.deleteArea() call', async () => {
-  //   const spain = await areas.addCountry('es')
-  //   const margalef = await areas.addArea('margalef', spain.metadata.area_id)
+  it('should not record a failed Areas.deleteArea() call', async () => {
+    const spain = await areas.addCountry('es')
+    const margalef = await areas.addArea('margalef', spain.metadata.area_id)
 
-  //   if (margalef == null) fail()
+    if (margalef == null) fail()
 
-  //   let deleted = false
-  //   try {
-  //     await areas.deleteArea(spain.metadata.area_id)
-  //     fail('Shouldn\'t allow deletion when the area still has subareas')
-  //   } catch (e) {
-  //     deleted = true
-  //   }
+    let deleted = false
+    try {
+      await areas.deleteArea(spain.metadata.area_id)
+      fail('Shouldn\'t allow deletion when the area still has subareas')
+    } catch (e) {
+      deleted = true
+    }
 
-  //   expect(deleted).toBeTruthy()
+    expect(deleted).toBeTruthy()
 
-  //   // eslint-disable-next-line
-  //   await new Promise(res => setTimeout(res, 3000))
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 3000))
 
-  //   const history = await areaHistory.getChangesByUuid(spain.metadata.area_id)
+    const history = await changelogDataSource.getAreaChangeSets(spain.metadata.area_id)
 
-  //   // should only have 2 entries:
-  //   // 1. Add country
-  //   // 2. Add child to country
-  //   expect(history).toHaveLength(2)
-  // })
+    // should only have 2 entries:
+    // 1. Add country
+    // 2. Add child to country
+    expect(history).toHaveLength(2)
+    expect(history[0].operation).toEqual('addArea')
+    expect(history[1].operation).toEqual('addCountry')
+  })
 })
