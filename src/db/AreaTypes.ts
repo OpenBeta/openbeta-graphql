@@ -72,5 +72,6 @@ export interface CountByGradeBandType {
 export enum OperationType {
   addCountry = 'addCountry',
   addArea = 'addArea',
-  deleteArea = 'deleteArea'
+  deleteArea = 'deleteArea',
+  updateDestination = 'updateDestination'
 }

@@ -1,6 +1,6 @@
 import { geometry, Point } from '@turf/helpers'
 import muuid, { MUUID } from 'uuid-mongodb'
-import mongoose from 'mongoose'
+import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
 
 import { AreaType, OperationType } from '../db/AreaTypes'
@@ -10,23 +10,69 @@ import { makeDBArea } from '../db/import/usa/AreaTransformer'
 import { changelogDataSource } from './ChangeLogDataSource'
 
 export default class MutableAreaDataSource extends AreaDataSource {
-  // async addArea (area: AreaType): Promise<any> {
-  //   return await this.mediaModel.insertMany([area])
-  // }
+  async setDestinationFlag (uuid: MUUID, flag: boolean): Promise<AreaType|null> {
+    const user = muuid.v4() // todo: change addCountry() signature
+
+    const session = await this.areaModel.startSession()
+    let ret: AreaType | null = null
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async (session) => {
+        ret = await this._setDestinationFlag(session, user, uuid, flag)
+        return ret
+      })
+    return ret
+  }
+
+  async _setDestinationFlag (session, user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType> {
+    const change = await changelogDataSource.create(session, uuid, OperationType.updateDestination)
+
+    const filter = { 'metadata.area_id': uuid }
+    const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'>}> = {
+      'metadata.isDestination': flag,
+      _change: {
+        user,
+        changeId: change._id,
+        operation: OperationType.updateDestination
+      }
+    }
+    const opts = { new: true, session } // return newly updated doc
+    return await this.areaModel
+      .findOneAndUpdate(filter, update, opts).lean()
+  }
 
   async addCountry (countryCode: string): Promise<AreaType> {
+    const user = muuid.v4() // todo: change addCountry() signature
+
+    const session = await this.areaModel.startSession()
+
+    let ret: AreaType
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async (session) => {
+        ret = await this._addCountry(session, user, countryCode)
+        return ret
+      })
+    // @ts-expect-error
+    return ret
+  }
+
+  async _addCountry (session, user, countryCode: string): Promise<AreaType> {
     const countryNode = createRootNode(countryCode)
     const doc = makeDBArea(countryNode)
     doc.shortCode = countryCode
 
-    const user = muuid.v4() // todo: change addCountry() signature
-    const change = await changelogDataSource.create(user, OperationType.addCountry)
+    const change = await changelogDataSource.create(session, user, OperationType.addCountry)
     doc._change = {
       user,
       changeId: change._id,
       operation: OperationType.addCountry
     }
-    const rs = await this.areaModel.insertMany(doc)
+    const rs = await this.areaModel.insertMany(doc, { session })
     return rs[0]
   }
 
@@ -55,7 +101,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       throw new Error('Adding area failed.  Expecting 1 parent, found  none.')
     }
 
-    const change = await changelogDataSource.create(user, OperationType.addArea)
+    const change = await changelogDataSource.create(session, user, OperationType.addArea)
     const newChange = {
       user,
       changeId: change._id,
@@ -79,6 +125,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 
   async deleteArea (uuid: MUUID): Promise<AreaType|null> {
+    const user = muuid.v4() // todo: change _addArea() signature
+
     const session = await this.areaModel.startSession()
     let ret: AreaType|null = null
 
@@ -86,13 +134,13 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async session => {
-        ret = await this._deleteArea(session, uuid)
+        ret = await this._deleteArea(session, user, uuid)
         return ret
       })
     return ret
   }
 
-  async _deleteArea (session, uuid: MUUID): Promise<any> {
+  async _deleteArea (session: ClientSession, user, uuid: MUUID): Promise<any> {
     const filter = { 'metadata.area_id': uuid }
     const area = await this.areaModel.findOne(filter).session(session).lean()
 
@@ -104,6 +152,13 @@ export default class MutableAreaDataSource extends AreaDataSource {
       throw new Error('Delete area error.  Reason: subareas not empty.')
     }
 
+    const change = await changelogDataSource.create(session, user, OperationType.deleteArea)
+
+    const _change = {
+      user,
+      changeId: change._id,
+      operation: OperationType.deleteArea
+    }
     // Remove this area id from the parent.children[]
     await this.areaModel.updateMany(
       {
@@ -112,6 +167,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
       {
         $pullAll: {
           children: [area._id]
+        },
+        $set: {
+          _change
         }
       }).session(session)
 
@@ -123,7 +181,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
       { 'metadata.area_id': uuid },
       {
         $set: {
-          _deleting: new Date()
+          _deleting: new Date(),
+          _change
         }
       }).session(session)
   }

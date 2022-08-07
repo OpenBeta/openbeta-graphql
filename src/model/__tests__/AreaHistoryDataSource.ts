@@ -41,6 +41,10 @@ describe('Area history', () => {
     }
   })
 
+  beforeEach(async () => {
+    await changelogDataSource._testRemoveAll()
+  })
+
   it('should create history records for new country and subareas', async () => {
     const usa = await areas.addCountry('us')
     await createIndexes()
@@ -89,55 +93,59 @@ describe('Area history', () => {
     expect(randomHistory).toHaveLength(0)
 
     const usaHistory = await changelogDataSource.getAreaChangeSets(usa.metadata.area_id)
-    console.log(usaHistory)
     expect(usaHistory).toHaveLength(3)
     expect(usaHistory[0].operation).toEqual('addArea')
     expect(usaHistory[1].operation).toEqual('addArea')
     expect(usaHistory[2].operation).toEqual('addCountry')
   })
 
-  // it('should record multiple Areas.setDestination() calls ', async () => {
-  //   const canada = await areas.addCountry('ca')
-  //   const squamish = await areas.addArea('squamish', canada.metadata.area_id)
+  it('should record multiple Areas.setDestination() calls ', async () => {
+    const canada = await areas.addCountry('can')
+    const squamish = await areas.addArea('squamish', canada.metadata.area_id)
 
-  //   expect(squamish?._id).toBeTruthy()
+    expect(squamish?._id).toBeTruthy()
 
-  //   if (squamish != null) {
-  //     const areaUuid = squamish.metadata.area_id
-  //     await areas.setDestinationFlag(areaUuid, true)
-  //     await areas.setDestinationFlag(areaUuid, false)
+    if (squamish != null) {
+      const areaUuid = squamish.metadata.area_id
+      await areas.setDestinationFlag(muuid.v4(), true) // non-existent area id. Trx won't be recorded
+      await areas.setDestinationFlag(areaUuid, true)
+      await areas.setDestinationFlag(areaUuid, false)
 
-  //     // eslint-disable-next-line
-  //     await new Promise(res => setTimeout(res, 3000))
+      // eslint-disable-next-line
+      await new Promise(res => setTimeout(res, 3000))
 
-  //     const history = await areaHistory.getChangesByUuid(areaUuid)
+      const changset = await changelogDataSource.getAreaChangeSets(areaUuid)
 
-  //     expect(history).toHaveLength(3)
-  //     expect(history[0].change.fullDocument.metadata.isDestination).toStrictEqual(false)
-  //     expect(history[1].change.fullDocument.metadata.isDestination).toStrictEqual(true)
-  //     expect(history[2].change.fullDocument.metadata.isDestination).toStrictEqual(false)
-  //   }
-  // })
+      expect(changset).toHaveLength(3)
+      expect(changset[0].operation).toEqual('updateDestination')
+      expect(changset[1].operation).toEqual('updateDestination')
+      expect(changset[2].operation).toEqual('addArea')
 
-  // it('should record an Areas.deleteArea() call', async () => {
-  //   const greece = await areas.addCountry('gr')
-  //   const leonidio = await areas.addArea('Leonidio', greece.metadata.area_id)
+      expect(changset[0].changes[0].fullDocument.metadata.isDestination).toStrictEqual(false)
+      expect(changset[1].changes[0].fullDocument.metadata.isDestination).toStrictEqual(true)
+      expect(changset[2].changes[0].fullDocument.metadata.isDestination).toStrictEqual(false) // default
+    }
+  })
 
-  //   if (leonidio == null) fail()
+  it('should record an Areas.deleteArea() call', async () => {
+    const greece = await areas.addCountry('gr')
+    const leonidio = await areas.addArea('Leonidio', greece.metadata.area_id)
 
-  //   await areas.deleteArea(leonidio.metadata.area_id)
+    if (leonidio == null) fail()
 
-  //   // eslint-disable-next-line
-  //   await new Promise(res => setTimeout(res, 3000))
+    await areas.deleteArea(leonidio.metadata.area_id)
 
-  //   const history = await areaHistory.getChangesByUuid(leonidio.metadata.area_id)
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 5000))
 
-  //   expect(history).toHaveLength(2)
-  //   expect(history[0].actionType).toEqual('insert')
-  //   expect(history[0].change.fullDocument.area_name).toEqual(leonidio.area_name)
-  //   expect(history[1].actionType).toEqual('delete')
-  //   expect(history[1].change.fullDocument.area_name).toEqual(leonidio.area_name)
-  // })
+    const history = await changelogDataSource.getAreaChangeSets(leonidio.metadata.area_id)
+
+    expect(history).toHaveLength(2)
+    expect(history[0].operation).toEqual('deleteArea')
+    expect(history[1].operation).toEqual('addArea')
+
+    expect(history[0].changes[0].fullDocument._id).toEqual(leonidio._id)
+  })
 
   // it('should not record a failed Areas.deleteArea() call', async () => {
   //   const spain = await areas.addCountry('es')

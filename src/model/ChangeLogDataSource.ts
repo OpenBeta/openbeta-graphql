@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose, { ClientSession } from 'mongoose'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
 
@@ -6,6 +6,7 @@ import { getChangeLogModel } from '../db/index.js'
 import { ChangeLogType, OpType, BaseChangeRecordType, AreaChangeLogType } from '../db/ChangeLogType'
 import { logger } from '../logger.js'
 import { areaHistoryDataSource } from './AreaHistoryDatasource.js'
+
 export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> {
   changeLogModel = getChangeLogModel()
 
@@ -15,14 +16,14 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
    * @param operation
    * @returns
    */
-  async create (uuid: MUUID, operation: OpType): Promise<ChangeLogType> {
+  async create (session: ClientSession, uuid: MUUID, operation: OpType): Promise<ChangeLogType> {
     const newChangeDoc: ChangeLogType = {
       _id: new mongoose.Types.ObjectId(),
       editedBy: uuid,
       operation,
       changes: []
     }
-    const rs = await this.changeLogModel.insertMany(newChangeDoc)
+    const rs = await this.changeLogModel.insertMany(newChangeDoc, { session })
     if (rs?.length !== 1) throw new Error('Error inserting new change')
     return rs[0]
   }
