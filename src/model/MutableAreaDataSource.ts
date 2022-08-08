@@ -10,9 +10,7 @@ import { makeDBArea } from '../db/import/usa/AreaTransformer'
 import { changelogDataSource } from './ChangeLogDataSource'
 
 export default class MutableAreaDataSource extends AreaDataSource {
-  async setDestinationFlag (uuid: MUUID, flag: boolean): Promise<AreaType|null> {
-    const user = muuid.v4() // todo: change addCountry() signature
-
+  async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType|null> {
     const session = await this.areaModel.startSession()
     let ret: AreaType | null = null
 
@@ -43,9 +41,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       .findOneAndUpdate(filter, update, opts).lean()
   }
 
-  async addCountry (countryCode: string): Promise<AreaType> {
-    const user = muuid.v4() // todo: change addCountry() signature
-
+  async addCountry (user: MUUID, countryCode: string): Promise<AreaType> {
     const session = await this.areaModel.startSession()
 
     let ret: AreaType
@@ -76,7 +72,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return rs[0]
   }
 
-  async addArea (areaName: string, parentUuid: MUUID): Promise<AreaType | null> {
+  async addArea (user: MUUID, areaName: string, parentUuid: MUUID): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
 
     let ret: AreaType | null = null
@@ -85,15 +81,13 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addArea(session, areaName, parentUuid)
+        ret = await this._addArea(session, user, areaName, parentUuid)
         return ret
       })
     return ret
   }
 
-  async _addArea (session, areaName: string, parentUuid: MUUID): Promise<any> {
-    const user = muuid.v4() // todo: change _addArea() signature
-
+  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
     const rs = await this.areaModel.findOne(parentFilter).session(session)
 
@@ -124,9 +118,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return rs1[0].toObject()
   }
 
-  async deleteArea (uuid: MUUID): Promise<AreaType|null> {
-    const user = muuid.v4() // todo: change _addArea() signature
-
+  async deleteArea (user: MUUID, uuid: MUUID): Promise<AreaType|null> {
     const session = await this.areaModel.startSession()
     let ret: AreaType|null = null
 
