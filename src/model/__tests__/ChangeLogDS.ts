@@ -35,7 +35,10 @@ describe('Area history', () => {
   it('should create a change record', async () => {
     const userId = muuid.v4()
     const op: OpType = OperationType.addCountry
-    const ret = await changeLog.create(userId, op)
+
+    const session = await getChangeLogModel().startSession()
+    const ret = await changeLog.create(session, userId, op)
+
     expect(ret._id).toBeDefined()
     expect(ret.editedBy).toEqual(userId)
     expect(ret.operation).toEqual(op)
