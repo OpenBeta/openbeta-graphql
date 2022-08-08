@@ -1,3 +1,4 @@
+import muuid from 'uuid-mongodb'
 import { AuthUserType } from '../types.js'
 import { verifyJWT } from './util.js'
 
