@@ -34,10 +34,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
       _change: {
         user,
         changeId: change._id,
-        operation: OperationType.updateDestination
+        operation: OperationType.updateDestination,
+        updatedAt: Date.now()
       }
     }
-    const opts = { new: true, session } // return newly updated doc
+    const opts = { new: true, session, timestamps: false } // return newly updated doc
     return await this.areaModel
       .findOneAndUpdate(filter, update, opts).lean()
   }
@@ -107,6 +108,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     parent._change = produce(newChange, draft => {
       draft.seq = 0
+      draft.createdAt = parent._change?.createdAt
+      draft.updatedAt = Date.now()
     })
 
     const parentAncestors = parent.ancestors
@@ -118,7 +121,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const rs1 = await this.areaModel.insertMany(newArea, { session })
 
     parent.children.push(newArea._id)
-    await parent.save()
+    await parent.save({ timestamps: false })
     return rs1[0].toObject()
   }
 
@@ -150,7 +153,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const change = await changelogDataSource.create(session, user, OperationType.deleteArea)
 
-    const _change = {
+    const _change: ChangeRecordMetadataType = {
       user,
       changeId: change._id,
       operation: OperationType.deleteArea,
@@ -168,8 +171,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
         $set: {
           _change: produce(_change, draft => {
             draft.seq = 0
+            draft.updatedAt = Date.now()
           })
         }
+      }, {
+        timestamps: false
       }).session(session)
 
     // In order to be able to record the deleted document in area_history, we mark (update) the
@@ -183,8 +189,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
           _deleting: new Date(),
           _change: produce(_change, draft => {
             draft.seq = 1
+            draft.updatedAt = Date.now()
           })
         }
+      }, {
+        timestamps: false
       }).session(session)
   }
 }

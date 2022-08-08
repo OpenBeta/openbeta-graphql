@@ -26,6 +26,8 @@ export interface ChangeRecordMetadataType {
   operation: OpType
   changeId: mongose.Types.ObjectId
   seq: number
+  createdAt?: number
+  updatedAt?: number
 }
 
 export interface WithDiscriminator {
