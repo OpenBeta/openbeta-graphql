@@ -5,7 +5,7 @@ import { applyMiddleware } from 'graphql-middleware'
 
 import { graphqlSchema } from './graphql/resolvers.js'
 import { connectDB, defaultPostConnect } from './db/index.js'
-import AreaDataSource from './model/AreaDataSource.js'
+import MutableAreaDataSource from './model/MutableAreaDataSource.js'
 import { createContext, permissions } from './auth/index.js'
 import { logger } from './logger.js'
 
@@ -16,9 +16,9 @@ import { logger } from './logger.js'
     introspection: true,
     schema,
     context: createContext,
-    dataSources: (): DataSources<AreaDataSource> => {
+    dataSources: (): DataSources<MutableAreaDataSource> => {
       return {
-        areas: new AreaDataSource(mongoose.connection.db.collection('areas'))
+        areas: new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
       }
     },
     cache: 'bounded'
