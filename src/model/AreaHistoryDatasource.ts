@@ -1,14 +1,7 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
-// import { Sort } from 'mongoose'
 import { getChangeLogModel } from '../db/index.js'
 import { MUUID } from 'uuid-mongodb'
 import { AreaChangeLogType } from '../db/ChangeLogType.js'
-
-const sortOpts = {
-  $sort: {
-    createdAt: -1
-  }
-}
 
 export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
   changelogModel = getChangeLogModel()
