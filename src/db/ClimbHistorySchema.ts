@@ -10,7 +10,7 @@ import { AreaType } from './AreaTypes'
 const { Schema } = mongoose
 
 const schemaOptions = {
-  timestamps: { createdAt: 'clusterTime' },
+  timestamps: { createdAt: 'true' },
   _id: false
 }
 
@@ -18,8 +18,7 @@ const ClimbChangeEventSchema = new mongoose.Schema<ChangeEventType<ClimbType>>({
   _id: {
     _data: Object
   },
-  clusterTime: Object,
-  operationType: String,
+  dbOp: String,
   fullDocument: ClimbSchema
 }, schemaOptions)
 
@@ -29,8 +28,7 @@ const AreaChangeEventSchema = new mongoose.Schema<ChangeEventType<AreaType>>({
   _id: {
     _data: Object
   },
-  clusterTime: Object,
-  operationType: String,
+  dbOp: String,
   fullDocument: AreaSchema
 }, schemaOptions)
 

@@ -1,14 +1,26 @@
-import muuid from 'uuid-mongodb'
 import mongoose from 'mongoose'
-import { ChangeStreamDocument } from 'mongodb'
+import { ChangeStreamDocument, ResumeToken } from 'mongodb'
 
 import ClimbHistoryType, { AreaHistoryType } from '../ClimbHistoryType.js'
 import { getClimbHistoryModel, getAreaHistoryModel } from '../index.js'
+import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
+import { logger } from '../../logger.js'
+import { BaseChangeRecordType } from '../ChangeLogType.js'
 
 const climbHistory = getClimbHistoryModel()
 const areaHistory = getAreaHistoryModel()
 
 export default async function streamListener (db: mongoose.Connection): Promise<any> {
+  const resumeId = await mostRecentResumeId()
+  logger.info({ resumeId }, 'Starting stream listener')
+
+  const opts: any = {
+    fullDocument: 'updateLookup'
+  }
+  if (resumeId != null) {
+    opts.resumeId = resumeId
+  }
+
   const pipeline = [{
     $match: {
       $and: [
@@ -24,57 +36,65 @@ export default async function streamListener (db: mongoose.Connection): Promise<
     }
   }]
 
-  const resumeId = await mostRecentResumeId()
-
-  const changeStream = db.watch(pipeline, { fullDocument: 'updateLookup', startAfter: resumeId })
+  const changeStream = db.watch(pipeline, opts)
   return changeStream.on('change', onChange)
 }
 
 const onChange = (change: ChangeStreamDocument): void => {
   const { operationType } = change
+
   switch (operationType) {
     case 'replace':
     case 'update': {
-      let userOpType = 'update'
+      let dbOp = 'update'
       const source = change.ns.coll
-      const { fullDocument, _id, clusterTime } = change
+      const { fullDocument, _id } = change
       if (fullDocument?._deleting != null) {
-        userOpType = 'delete'
+        dbOp = 'delete'
       }
-      recordChange({ _id, clusterTime, source, fullDocument, userOpType })
+      recordChange({ _id, source, fullDocument, dbOp })
       break
     }
     case 'insert': {
-      const userOpType = 'insert'
+      const dbOp = 'insert'
       const source = change.ns.coll
-      const { fullDocument, _id, clusterTime } = change
-      recordChange({ _id, clusterTime, source, fullDocument, userOpType })
+      const { fullDocument, _id } = change
+      recordChange({ _id, source, fullDocument, dbOp })
       break
     }
   }
 }
 
-const recordChange = (data): void => {
-  const { source, userOpType } = data
+interface ChangeRecordType {
+  _id: ResumeToken
+  source: string
+  fullDocument: any | null
+  dbOp: string
+}
+
+const recordChange = (data: ChangeRecordType): void => {
+  const { source, dbOp, fullDocument, _id } = data
   switch (source) {
     case 'climbs': {
       // console.log('#climb change', userOpType, fullDocument)
-      const newDocument: ClimbHistoryType = {
-        uid: muuid.v4(),
-        actionType: userOpType,
-        change: data
-      }
-      void climbHistory.insertMany(newDocument)
+      // const newDocument: ClimbHistoryType = {
+      //   uid: muuid.v4(),
+      //   actionType: userOpType,
+      //   change: data
+      // }
+      // void climbHistory.insertMany(newDocument)
       break
     }
     case 'areas': {
       // console.log('#area change', userOpType, fullDocument)
-      const newDocument: AreaHistoryType = {
-        uid: muuid.v4(),
-        actionType: userOpType,
-        change: data
+      fullDocument.kind = source
+      const newDocument: BaseChangeRecordType = {
+        _id,
+        dbOp,
+        fullDocument,
+        kind: 'areas'
       }
-      void areaHistory.insertMany(newDocument)
+      void changelogDataSource.record(newDocument)
       break
     }
     default:

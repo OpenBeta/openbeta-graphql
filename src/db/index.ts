@@ -5,6 +5,7 @@ import { enableAllPlugins } from 'immer'
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
+import { getChangeLogModel } from './ChangeLogSchema.js'
 import { logger } from '../logger.js'
 import { getClimbHistoryModel, getAreaHistoryModel } from './ClimbHistorySchema.js'
 import streamListener from './edit/streamListener.js'
@@ -23,7 +24,7 @@ export const checkVar = (name: string): string => {
 
 const defaultFn = logger.info.bind(logger, 'DB connected successfully')
 
-export const connectDB = async (onConnected: () => any = defaultFn): Promise<any> => {
+export const connectDB = async (onConnected: () => any = defaultFn): Promise<void> => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
@@ -56,6 +57,7 @@ export const createIndexes = async (): Promise<void> => {
   await getClimbModel().ensureIndexes()
   await getAreaModel().ensureIndexes()
   await getMediaModel().ensureIndexes()
+  await getAreaHistoryModel().ensureIndexes()
 }
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
   await mongoose.connection.close(function () {
@@ -72,4 +74,4 @@ export const defaultPostConnect = async (): Promise<void> => {
 // eslint-disable-next-line
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, getClimbModel, getClimbHistoryModel, getAreaHistoryModel }
+export { getMediaModel, getAreaModel, getClimbModel, getClimbHistoryModel, getAreaHistoryModel, getChangeLogModel }

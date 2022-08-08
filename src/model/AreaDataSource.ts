@@ -291,12 +291,4 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     }
     return await this.areaModel.find(filter).lean()
   }
-
-  async setDestinationFlag (uuid: MUUID, flag: boolean): Promise<AreaType> {
-    const filter = { 'metadata.area_id': uuid }
-    const update = { 'metadata.isDestination': flag }
-    const opts = { new: true } // return newly updated doc
-    return await this.areaModel
-      .findOneAndUpdate(filter, update, opts).lean()
-  }
 }

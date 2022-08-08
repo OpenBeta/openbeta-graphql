@@ -36,7 +36,7 @@
     "immer": "^9.0.15",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.1.4",
-    "mongoose": "^6.4.3",
+    "mongoose": "6.4.7",
     "p-limit": "^4.0.0",
     "pino": "^8.2.0",
     "typesense": "^1.2.1",
