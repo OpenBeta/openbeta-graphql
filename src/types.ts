@@ -1,4 +1,5 @@
 import { BBox } from '@turf/helpers'
+import { MUUID } from 'uuid-mongodb'
 import { AreaType } from './db/AreaTypes'
 
 export enum SortDirection {
@@ -56,4 +57,5 @@ export interface QueryByIdType {
 
 export interface AuthUserType {
   roles: string[]
+  uuid: MUUID | undefined
 }

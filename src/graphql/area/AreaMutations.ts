@@ -13,10 +13,9 @@ const AreaMutations = {
 
   addCountry: async (_, { input }, context): Promise<AreaType|null> => {
     console.log('#addCountry', context)
-    const { dataSources } = context
+    const { dataSources, user } = context
     const { areas }: {areas: MutableAreaDataSource} = dataSources
     const { isoCode } = input
-    const user = muuid.v4()
     return await areas.addCountry(user, isoCode)
   }
 
