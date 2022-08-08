@@ -28,7 +28,6 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
-  const rsName = checkVar('MONGO_REPLICA_SET_NAME')
 
   logger.info(
     `Connecting to database 'mongodb://${user}:****@${server}'...`
@@ -44,7 +43,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
       }
     )
     await mongoose.connect(
-      `mongodb://${user}:${pass}@${server}/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=${rsName}`,
+      `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=rs0`,
       { autoIndex: false }
     )
   } catch (e) {
