@@ -1,8 +1,7 @@
 import muuid from 'uuid-mongodb'
 
-import { AreaType } from '../../db/AreaTypes.js'
-import { ContextWithAuth } from '../../types.js'
-import type MutableAreaDataSource from '../../model/MutableAreaDataSource.js'
+import { AreaType } from '../../db/AreaTypes'
+import type MutableAreaDataSource from '../../model/MutableAreaDataSource'
 
 const AreaMutations = {
   setDestinationFlag: async (_, { input }, { dataSources }): Promise<AreaType | null> => {
@@ -14,9 +13,10 @@ const AreaMutations = {
 
   addCountry: async (_, { input }, context): Promise<AreaType | null> => {
     console.log('#addCountry', context)
-    const { dataSources, user } = context
+    const { dataSources } = context
     const { areas }: { areas: MutableAreaDataSource } = dataSources
     const { isoCode } = input
+    const user = muuid.v4()
     return await areas.addCountry(user, isoCode)
   }
 
