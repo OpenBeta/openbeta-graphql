@@ -57,7 +57,6 @@ export const createIndexes = async (): Promise<void> => {
   await getClimbModel().ensureIndexes()
   await getAreaModel().ensureIndexes()
   await getMediaModel().ensureIndexes()
-  await getAreaHistoryModel().ensureIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
