@@ -1,5 +1,6 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
+import { AreaChangeLogType } from '../db/ChangeLogType.js'
 
 import { getChangeLogModel } from '../db/index.js'
 import { AreaChangeLogType } from '../db/ChangeLogType.js'
