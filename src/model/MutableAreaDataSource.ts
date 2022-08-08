@@ -3,12 +3,12 @@ import { MUUID } from 'uuid-mongodb'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
 
-import { AreaType, OperationType } from '../db/AreaTypes'
-import AreaDataSource from './AreaDataSource'
-import { createRootNode, getUUID } from '../db/import/usa/AreaTree'
-import { makeDBArea } from '../db/import/usa/AreaTransformer'
-import { changelogDataSource } from './ChangeLogDataSource'
-import { ChangeRecordMetadataType } from '../db/ChangeLogType'
+import { AreaType, OperationType } from '../db/AreaTypes.js'
+import AreaDataSource from './AreaDataSource.js'
+import { createRootNode, getUUID } from '../db/import/usa/AreaTree.js'
+import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
+import { changelogDataSource } from './ChangeLogDataSource.js'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 
 export default class MutableAreaDataSource extends AreaDataSource {
   async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType|null> {

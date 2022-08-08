@@ -7,7 +7,6 @@ import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
 import { getTickModel } from './TickSchema.js'
 import { logger } from '../logger.js'
-import { getClimbHistoryModel, getAreaHistoryModel } from './ClimbHistorySchema.js'
 import streamListener from './edit/streamListener.js'
 
 config()
@@ -57,7 +56,9 @@ export const createIndexes = async (): Promise<void> => {
   await getAreaModel().ensureIndexes()
   await getMediaModel().ensureIndexes()
   await getTickModel().ensureIndexes()
+
 }
+
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
   await mongoose.connection.close(function () {
     logger.info('Gracefully exiting.')
@@ -75,4 +76,5 @@ export const defaultPostConnect = async (): Promise<void> => {
 // eslint-disable-next-line
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, getClimbModel, getClimbHistoryModel, getAreaHistoryModel }
+
+export { getMediaModel, getAreaModel, getClimbModel, getChangeLogModel }
