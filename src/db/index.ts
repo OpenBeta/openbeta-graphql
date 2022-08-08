@@ -22,42 +22,32 @@ export const checkVar = (name: string): string => {
   return value
 }
 
-const defaultFn = logger.info.bind(logger, 'DB connected successfully')
+const defaultFn = logger.info.bind(console, 'DB connected successfully')
 
 export const connectDB = async (onConnected: () => any = defaultFn): Promise<any> => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
-  const rsName = checkVar('MONGO_REPLICA_SET_NAME')
 
   logger.info(
     `Connecting to database 'mongodb://${user}:****@${server}'...`
   )
   try {
-<<<<<<< HEAD
-    /* eslint-disable @typescript-eslint/no-floating-promises */
-    mongoose.connect(
-      `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`,
-      { autoIndex: false }
-    )
-
-=======
     // /* eslint-disable @typescript-eslint/no-floating-promises */
->>>>>>> a5b83ca (Edit history poc (#89))
     mongoose.connection.on('open', onConnected)
 
     mongoose.connection.on(
       'error', (e) => {
-        logger.error('MongoDB connection error', e)
+        console.error('MongoDB connection error', e)
         process.exit(1)
       }
     )
     await mongoose.connect(
-      `mongodb://${user}:${pass}@${server}/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=${rsName}`,
+      `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=rs0`,
       { autoIndex: false }
     )
   } catch (e) {
-    logger.error("Can't connect to db")
+    console.error("Can't connect to db")
     process.exit(1)
   }
 }
@@ -76,6 +66,8 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
 }
 
 export const defaultPostConnect = async (): Promise<void> => {
+  // getMediaModel()
+  // await createIndexes()
   console.log('Kudos!')
   await streamListener(mongoose.connection)
 }

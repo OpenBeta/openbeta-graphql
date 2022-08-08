@@ -1,10 +1,26 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType } from './AreaTypes.js'
+import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType, OperationType } from './AreaTypes.js'
 import { PointSchema } from './ClimbSchema.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
 
 const { Schema, connection } = mongoose
+
+const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
+  user: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    required: true
+  },
+  changeId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  operation: {
+    type: Schema.Types.Mixed,
+    enum: Object.values(OperationType),
+    required: true
+  },
+  seq: { type: Number, required: true, default: 0 }
+}, { _id: false, timestamps: true })
 
 const MetadataSchema = new Schema<IAreaMetadata>({
   isDestination: { type: Boolean, sparse: true },
@@ -80,9 +96,8 @@ export const AreaSchema = new Schema<AreaType>({
   content: ContentSchema,
   density: { type: Number },
   totalClimbs: { type: Number },
+  _change: ChangeRecordMetadata,
   _deleting: { type: Date }
-}, {
-  timestamps: true
 })
 
 AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
