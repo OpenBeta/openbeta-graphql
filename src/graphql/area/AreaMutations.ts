@@ -1,4 +1,4 @@
-import muid from 'uuid-mongodb'
+import muuid from 'uuid-mongodb'
 
 import { AreaType } from '../../db/AreaTypes'
 import type MutableAreaDataSource from '../../model/MutableAreaDataSource'
@@ -7,7 +7,8 @@ const AreaMutations = {
   setDestinationFlag: async (_, { input }, { dataSources }): Promise<AreaType|null> => {
     const { areas }: {areas: MutableAreaDataSource} = dataSources
     const { id, flag } = input
-    return await areas.setDestinationFlag(muid.from(id), flag)
+    const user = muuid.v4()
+    return await areas.setDestinationFlag(user, muuid.from(id), flag)
   },
 
   addCountry: async (_, { input }, context): Promise<AreaType|null> => {
@@ -15,7 +16,8 @@ const AreaMutations = {
     const { dataSources } = context
     const { areas }: {areas: MutableAreaDataSource} = dataSources
     const { isoCode } = input
-    return await areas.addCountry(isoCode)
+    const user = muuid.v4()
+    return await areas.addCountry(user, isoCode)
   }
 
 }

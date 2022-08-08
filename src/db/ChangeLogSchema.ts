@@ -21,6 +21,8 @@ const ChangeLogSchema = new Schema<ChangeLogType<SupportedCollectionTypes>>({
   changes: [{ type: Schema.Types.Mixed }]
 }, { timestamps: { createdAt: true, updatedAt: false } })
 
+ChangeLogSchema.index({ createdAt: 1 })
+
 export const getChangeLogModel = (): mongoose.Model<ChangeLogType<any>> => {
   return connection.model('change_logs', ChangeLogSchema)
 }

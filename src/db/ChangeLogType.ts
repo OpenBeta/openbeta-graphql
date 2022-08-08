@@ -25,6 +25,7 @@ export interface ChangeRecordMetadataType {
   user: MUUID
   operation: OpType
   changeId: mongose.Types.ObjectId
+  seq: number
 }
 
 export interface WithDiscriminator {

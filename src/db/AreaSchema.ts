@@ -18,8 +18,10 @@ const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
     type: Schema.Types.Mixed,
     enum: Object.values(OperationType),
     required: true
-  }
-}, { _id: false })
+  },
+  seq: { type: Number, required: true, default: 0 }
+}, { _id: false, timestamps: true })
+
 const MetadataSchema = new Schema<IAreaMetadata>({
   isDestination: { type: Boolean, sparse: true },
   leaf: { type: Boolean, sparse: true },

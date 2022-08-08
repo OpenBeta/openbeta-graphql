@@ -42,7 +42,8 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
         $push: {
           changes: {
             $each: [changeRecord],
-            $position: 0
+            // $position: 0,
+            $sort: { 'fullDocument._change.seq': -1 }
           }
         }
       }, {

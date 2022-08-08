@@ -1,5 +1,5 @@
 import { geometry, Point } from '@turf/helpers'
-import muuid, { MUUID } from 'uuid-mongodb'
+import { MUUID } from 'uuid-mongodb'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
 
@@ -8,6 +8,7 @@ import AreaDataSource from './AreaDataSource'
 import { createRootNode, getUUID } from '../db/import/usa/AreaTree'
 import { makeDBArea } from '../db/import/usa/AreaTransformer'
 import { changelogDataSource } from './ChangeLogDataSource'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType'
 
 export default class MutableAreaDataSource extends AreaDataSource {
   async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType|null> {
@@ -66,7 +67,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
     doc._change = {
       user,
       changeId: change._id,
-      operation: OperationType.addCountry
+      operation: OperationType.addCountry,
+      seq: 0
     }
     const rs = await this.areaModel.insertMany(doc, { session })
     return rs[0]
@@ -89,32 +91,34 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
-    const rs = await this.areaModel.findOne(parentFilter).session(session)
+    const parent = await this.areaModel.findOne(parentFilter).session(session)
 
-    if (rs == null) {
+    if (parent == null) {
       throw new Error('Adding area failed.  Expecting 1 parent, found  none.')
     }
 
     const change = await changelogDataSource.create(session, user, OperationType.addArea)
-    const newChange = {
+    const newChange: ChangeRecordMetadataType = {
       user,
       changeId: change._id,
-      operation: OperationType.addArea
+      operation: OperationType.addArea,
+      seq: 0
     }
 
-    rs._change = newChange
+    parent._change = produce(newChange, draft => {
+      draft.seq = 0
+    })
 
-    const parentAncestors = rs.ancestors
-    const parentPathTokens = rs.pathTokens
+    const parentAncestors = parent.ancestors
+    const parentPathTokens = parent.pathTokens
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens)
-
-    newArea._change = newChange
-
+    newArea._change = produce(newChange, draft => {
+      draft.seq = 1
+    })
     const rs1 = await this.areaModel.insertMany(newArea, { session })
 
-    rs.children.push(newArea._id)
-    await rs.save()
-
+    parent.children.push(newArea._id)
+    await parent.save()
     return rs1[0].toObject()
   }
 
@@ -149,7 +153,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const _change = {
       user,
       changeId: change._id,
-      operation: OperationType.deleteArea
+      operation: OperationType.deleteArea,
+      seq: 0
     }
     // Remove this area id from the parent.children[]
     await this.areaModel.updateMany(
@@ -161,7 +166,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
           children: [area._id]
         },
         $set: {
-          _change
+          _change: produce(_change, draft => {
+            draft.seq = 0
+          })
         }
       }).session(session)
 
@@ -174,7 +181,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
       {
         $set: {
           _deleting: new Date(),
-          _change
+          _change: produce(_change, draft => {
+            draft.seq = 1
+          })
         }
       }).session(session)
   }
