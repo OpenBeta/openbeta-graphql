@@ -1,11 +1,10 @@
 version: '3.8'
 services:
   mongo_opentacos:
+    hostname: mongodb
     image: mongo:5
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: 0nBelay!
-      MONGO_REPLICA_SET_NAME: rs0
+    env_file:
+    - .env
     ports:
       - 27017:27017
     volumes:
