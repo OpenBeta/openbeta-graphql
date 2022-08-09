@@ -69,6 +69,12 @@ query Example1 {
 - [yarn](https://yarnpkg.com/getting-started/install)
 
 
+0. Add '127.0.0.1 mongodb' entry to your `/etc/hosts` file (or C:\Windows\System32\drivers\etc\hosts on Windows)
+
+```bash
+127.0.0.1       mongodb
+```
+
 1.  Launch **mongodb** dev stack (the database server, and mongo-express, the web-based admin console for mongo):
 
 ```
