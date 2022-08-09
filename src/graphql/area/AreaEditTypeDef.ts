@@ -9,13 +9,31 @@ const AreaEditTypeDefs = gql`
     addCountry(input: CountryInput): Area
   }
 
+  type Mutation {
+    addArea(input: AreaInput): Area
+  }
+
+  type Mutation {
+    removeArea(input: RemoveAreaInput): Area
+  }
+
   input DestinationFlagInput {
     id: ID!
     flag: Boolean!
   }
 
   input CountryInput {
-    isoCode: String
+    alpha3ISOCode: String
+  }
+
+  input AreaInput {
+    name: String!
+    parentUuid: ID!
+    isDestination: Boolean
+  }
+
+  input RemoveAreaInput {
+    uuid: String!
   }
 `
 

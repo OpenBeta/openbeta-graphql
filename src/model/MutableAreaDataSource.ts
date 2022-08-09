@@ -2,6 +2,7 @@ import { geometry, Point } from '@turf/helpers'
 import { MUUID } from 'uuid-mongodb'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
+import isoCountries from 'i18n-iso-countries'
 
 import { AreaType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
@@ -9,6 +10,9 @@ import { createRootNode, getUUID } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
+
+import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+isoCountries.registerLocale(enJson)
 
 export default class MutableAreaDataSource extends AreaDataSource {
   async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType|null> {
@@ -44,6 +48,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 
   async addCountry (user: MUUID, countryCode: string): Promise<AreaType> {
+    if (countryCode?.length !== 3 || !isoCountries.isValid(countryCode)) {
+      throw new Error('Invalid Alpha3 ISO code: ' + countryCode)
+    }
+
     const session = await this.areaModel.startSession()
 
     let ret: AreaType
@@ -139,8 +147,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _deleteArea (session: ClientSession, user, uuid: MUUID): Promise<any> {
-    const filter = { 'metadata.area_id': uuid }
+  async _deleteArea (session: ClientSession, user: MUUID, uuid: MUUID): Promise<any> {
+    const filter = {
+      'metadata.area_id': uuid,
+      deleting: { $ne: null }
+    }
+
     const area = await this.areaModel.findOne(filter).session(session).lean()
 
     if (area == null) {

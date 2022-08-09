@@ -4,19 +4,32 @@ import { AreaType } from '../../db/AreaTypes'
 import type MutableAreaDataSource from '../../model/MutableAreaDataSource'
 
 const AreaMutations = {
-  setDestinationFlag: async (_, { input }, { dataSources }): Promise<AreaType|null> => {
+  setDestinationFlag: async (_, { input }, context): Promise<AreaType|null> => {
+    const { dataSources, user } = context
     const { areas }: {areas: MutableAreaDataSource} = dataSources
     const { id, flag } = input
-    const user = muuid.v4()
-    return await areas.setDestinationFlag(user, muuid.from(id), flag)
+    return await areas.setDestinationFlag(user.uuid, muuid.from(id), flag)
   },
 
   addCountry: async (_, { input }, context): Promise<AreaType|null> => {
-    console.log('#addCountry', context)
     const { dataSources, user } = context
     const { areas }: {areas: MutableAreaDataSource} = dataSources
-    const { isoCode } = input
-    return await areas.addCountry(user, isoCode)
+    const { alpha3ISOCode } = input
+    return await areas.addCountry(user.uuid, alpha3ISOCode)
+  },
+
+  removeArea: async (_, { input }, context): Promise<AreaType|null> => {
+    const { dataSources, user } = context
+    const { areas }: {areas: MutableAreaDataSource} = dataSources
+    const { uuid } = input
+    return await areas.deleteArea(user.uuid, muuid.from(uuid))
+  },
+
+  addArea: async (_, { input }, context): Promise<AreaType|null> => {
+    const { dataSources, user } = context
+    const { areas }: {areas: MutableAreaDataSource} = dataSources
+    const { name, parentUuid } = input
+    return await areas.addArea(user.uuid, name, muuid.from(parentUuid))
   }
 
 }
