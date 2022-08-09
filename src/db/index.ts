@@ -4,6 +4,7 @@ import { config } from 'dotenv'
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
+import { getTickModel } from './TickSchema.js'
 import { logger } from '../logger.js'
 
 config()
@@ -30,8 +31,8 @@ export const connectDB = (onConnected: () => any = defaultFn): any => {
   try {
     /* eslint-disable @typescript-eslint/no-floating-promises */
     mongoose.connect(
-    `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`,
-    { autoIndex: false }
+      `mongodb://${user}:${pass}@${server}:27017/opentacos?authSource=admin`,
+      { autoIndex: false }
     )
 
     mongoose.connection.on('open', onConnected)
@@ -52,6 +53,7 @@ export const createIndexes = async (): Promise<void> => {
   await getClimbModel().ensureIndexes()
   await getAreaModel().ensureIndexes()
   await getMediaModel().ensureIndexes()
+  await getTickModel().ensureIndexes()
 }
 export const gracefulExit = (exitCode: number = 0): void => {
   mongoose.connection.close(function () {
