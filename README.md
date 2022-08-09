@@ -7,9 +7,11 @@
 
 ### What is this?
 
-OpenBeta GraphQL API allows other applications to access the [climbing route catalog](https://github.com/OpenBeta/opentacos-content) using any standard GraphQL clients.
+OpenBeta Graph API allows other applications to access the [climbing route catalog](https://github.com/OpenBeta/opentacos-content) using any standard GraphQL clients.
  
-**Endpoint**: https://api.openbeta.io
+**Endpoint**: 
+- Production: https://api.openbeta.io
+- Development: https://stg-api.openbeta.io
 
 We recommend using an online [playground](https://graphiql-online.com) to explore the API.
 
@@ -94,9 +96,27 @@ yarn init-db      # update statistics
 yarn serve
 ```
 
-#### Tips
+### Tips
 
 - Browse the database: http://localhost:8081
+
+- GraphQL online playground: https://graphiql-online.com/
+
+- Full stack development
+
+  Connect your [frontend](https://github.com/OpenBeta/open-tacos) dev env to this local server
+  ```bash
+  # Run this in open-tacos project
+  yarn dev-local
+  ```
+
+- Fix "permissions on /opt/keyfile/keyfile are too open" error
+  
+  ```bash
+  chmod 400 keyfile
+  ```
+
+- MongoDB playground: https://mongoplayground.net/
 
 ### Questions?
 
