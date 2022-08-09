@@ -72,7 +72,7 @@ const resolvers = {
         minDistance < 0 ? 0 : minDistance,
         maxDistance > 325000 ? 325000 : maxDistance,
         includeCrags)
-    }
+    },
   },
 
   ...MediaResolvers,
