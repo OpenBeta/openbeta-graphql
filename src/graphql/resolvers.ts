@@ -5,17 +5,27 @@ import muid, { MUUID } from 'uuid-mongodb'
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
+import { typeDef as TickTypeDef } from './TickTypeDef.js'
 import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { AreaEditTypeDef, AreaQueries, AreaMutations } from './area/index.js'
+import TickDataSource from '../model/TickDataSource.js'
+import { TickType } from '../db/TickTypes.js'
 
 const resolvers = {
   Mutation: {
     ...MediaMutations,
-    ...AreaMutations
+    ...AreaMutations,
+    addTick: async (
+      args: TickType,
+      { dataSources }: { dataSources: DataSources<TickDataSource> }) => {
+      const tick = args
+      const ticks = dataSources.ticks as TickDataSource
+      return await ticks.addTick(tick)
+    }
   },
   Query: {
     ...MediaQueries,
@@ -24,7 +34,7 @@ const resolvers = {
       _,
       { uuid }: QueryByIdType,
       { dataSources }) => {
-      const { areas }: {areas: AreaDataSource} = dataSources
+      const { areas }: { areas: AreaDataSource } = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
       }
@@ -36,7 +46,7 @@ const resolvers = {
       { filter, sort }: { filter?: GQLFilter, sort?: Sort },
       { dataSources }
     ) => {
-      const { areas }: {areas: AreaDataSource} = dataSources
+      const { areas }: { areas: AreaDataSource } = dataSources
       const filtered = await areas.findAreasByFilter(filter)
       return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
@@ -45,7 +55,7 @@ const resolvers = {
       { uuid }: QueryByIdType,
       context, info) => {
       const { dataSources } = context
-      const { areas }: {areas: AreaDataSource} = dataSources
+      const { areas }: { areas: AreaDataSource } = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneAreaByUUID(muid.from(uuid))
       }
@@ -53,14 +63,14 @@ const resolvers = {
     },
 
     stats: async (parent: any, args: any, { dataSources }) => {
-      const { areas }: {areas: AreaDataSource} = dataSources
+      const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.getStats()
     },
 
     cragsNear: async (
       node: any,
       args,
-      { dataSources }: {dataSources: DataSources<AreaDataSource>}) => {
+      { dataSources }: { dataSources: DataSources<AreaDataSource> }) => {
       const { placeId, lnglat, minDistance, maxDistance, includeCrags } = args
       const areas = dataSources.areas as AreaDataSource
       return await areas.getCragsNear(
@@ -69,7 +79,7 @@ const resolvers = {
         minDistance < 0 ? 0 : minDistance,
         maxDistance > 325000 ? 325000 : maxDistance,
         includeCrags)
-    }
+    },
   },
 
   ...MediaResolvers,
@@ -105,7 +115,7 @@ const resolvers = {
     ancestors: (node: ClimbExtType) => node?.ancestors?.split(',') ?? [],
 
     media: async (node: any, args: any, { dataSources }) => {
-      const { areas }: {areas: AreaDataSource} = dataSources
+      const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByClimbId(node._id)
     }
   },
@@ -159,13 +169,13 @@ const resolvers = {
     }),
 
     media: async (node: any, args: any, { dataSources }) => {
-      const { areas }: {areas: AreaDataSource} = dataSources
+      const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByAreaId(node.metadata.area_id)
     }
   }
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [Climb, Area, MediaTypeDef, AreaEditTypeDef],
+  typeDefs: [Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef],
   resolvers
 })
