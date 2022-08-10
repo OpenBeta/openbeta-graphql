@@ -47,7 +47,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
       .findOneAndUpdate(filter, update, opts).lean()
   }
 
-  async addCountry(user: MUUID, countryCode: string): Promise<AreaType> {
+  async addCountry(user: MUUID, _countryCode: string): Promise<AreaType> {
+    const countryCode = _countryCode.toLocaleUpperCase('en-US')
+    if (countryCode?.length !== 3 || !isoCountries.isValid(countryCode)) {
+      throw new Error('Invalid Alpha3 ISO code: ' + countryCode)
+    }
+
     const session = await this.areaModel.startSession()
 
     let ret: AreaType
@@ -63,8 +68,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _addCountry(session, user, countryCode: string): Promise<AreaType> {
-    const countryNode = createRootNode(countryCode)
+  async _addCountry(session, user, countryCode: string, countryName: string): Promise<AreaType> {
+    const countryNode = createRootNode(countryName)
     const doc = makeDBArea(countryNode)
     doc.shortCode = countryCode
 
@@ -143,8 +148,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _deleteArea(session: ClientSession, user, uuid: MUUID): Promise<any> {
-    const filter = { 'metadata.area_id': uuid }
+  async _deleteArea(session: ClientSession, user: MUUID, uuid: MUUID): Promise<any> {
+    const filter = {
+      'metadata.area_id': uuid,
+      deleting: { $ne: null }
+    }
+
     const area = await this.areaModel.findOne(filter).session(session).lean()
 
     if (area == null) {
