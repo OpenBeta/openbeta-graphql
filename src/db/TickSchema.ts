@@ -5,11 +5,6 @@ import { TickType } from './TickTypes'
 const { Schema } = mongoose
 
 export const TickSchema = new Schema<TickType>({
-    _id: {
-        type: 'object',
-        value: { type: 'Buffer' },
-        default: () => muuid.v4()
-    },
     name: { type: Schema.Types.String, required: true, index: true },
     notes: { type: Schema.Types.String, required: false },
     uuid: { type: Schema.Types.String, required: true, index: true },

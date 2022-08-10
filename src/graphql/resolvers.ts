@@ -20,10 +20,11 @@ const resolvers = {
     ...MediaMutations,
     ...AreaMutations,
     addTick: async (
-      args: TickType,
-      { dataSources }: { dataSources: DataSources<TickDataSource> }) => {
-      const tick = args
-      const ticks = dataSources.ticks as TickDataSource
+      _,
+      { input },
+      { dataSources }) => {
+      const { ticks }: { ticks: TickDataSource } = dataSources
+      const tick: TickType = input
       return await ticks.addTick(tick)
     }
   },
