@@ -2,6 +2,7 @@ import { geometry, Point } from '@turf/helpers'
 import { MUUID } from 'uuid-mongodb'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
+import isoCountries from 'i18n-iso-countries'
 
 import { AreaType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
@@ -9,6 +10,9 @@ import { createRootNode, getUUID } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
+
+import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+isoCountries.registerLocale(enJson)
 
 export default class MutableAreaDataSource extends AreaDataSource {
   async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType|null> {
@@ -43,7 +47,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
       .findOneAndUpdate(filter, update, opts).lean()
   }
 
-  async addCountry (user: MUUID, countryCode: string): Promise<AreaType> {
+  async addCountry (user: MUUID, _countryCode: string): Promise<AreaType> {
+    const countryCode = _countryCode.toLocaleUpperCase('en-US')
+    if (countryCode?.length !== 3 || !isoCountries.isValid(countryCode)) {
+      throw new Error('Invalid Alpha3 ISO code: ' + countryCode)
+    }
+
     const session = await this.areaModel.startSession()
 
     let ret: AreaType
@@ -52,15 +61,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addCountry(session, user, countryCode)
+        ret = await this._addCountry(session, user, countryCode, isoCountries.getName(countryCode, 'en'))
         return ret
       })
     // @ts-expect-error
     return ret
   }
 
-  async _addCountry (session, user, countryCode: string): Promise<AreaType> {
-    const countryNode = createRootNode(countryCode)
+  async _addCountry (session, user, countryCode: string, countryName: string): Promise<AreaType> {
+    const countryNode = createRootNode(countryName)
     const doc = makeDBArea(countryNode)
     doc.shortCode = countryCode
 
@@ -139,8 +148,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _deleteArea (session: ClientSession, user, uuid: MUUID): Promise<any> {
-    const filter = { 'metadata.area_id': uuid }
+  async _deleteArea (session: ClientSession, user: MUUID, uuid: MUUID): Promise<any> {
+    const filter = {
+      'metadata.area_id': uuid,
+      deleting: { $ne: null }
+    }
+
     const area = await this.areaModel.findOne(filter).session(session).lean()
 
     if (area == null) {

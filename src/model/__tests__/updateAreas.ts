@@ -25,15 +25,15 @@ describe('Areas', () => {
     await mongoose.connection.close()
   })
 
-  it('should create a country by ISO code', async () => {
-    const spain = await areas.addCountry(testUser, 'es')
+  it('should create a country by Alpha-3 country code', async () => {
+    const spain = await areas.addCountry(testUser, 'esP')
     await createIndexes()
     const newArea = await areas.findOneAreaByUUID(spain.metadata.area_id)
     expect(newArea.area_name).toEqual(spain.area_name)
   })
 
   it('should create a country and 2 subareas', async () => {
-    const canada = await areas.addCountry(testUser, 'ca')
+    const canada = await areas.addCountry(testUser, 'can')
     // Add 1st area to the country
     const bc = await areas.addArea(testUser, 'British Columbia', canada.metadata.area_id)
 
@@ -53,7 +53,7 @@ describe('Areas', () => {
   })
 
   it('should delete a subarea', async () => {
-    const us = await areas.addCountry(testUser, 'us')
+    const us = await areas.addCountry(testUser, 'usa')
     const cali = await areas.addArea(testUser, 'California', us.metadata.area_id)
 
     if (cali == null) {
@@ -80,7 +80,7 @@ describe('Areas', () => {
   })
 
   it('should not delete a subarea containing children', async () => {
-    const gr = await areas.addCountry(testUser, 'gr')
+    const gr = await areas.addCountry(testUser, 'grc')
     const kali = await areas.addArea(testUser, 'Kalymnos', gr.metadata.area_id)
 
     if (kali == null) fail()
@@ -94,5 +94,17 @@ describe('Areas', () => {
 
     const arhiInDb = await areas.findOneAreaByUUID(arhi.metadata.area_id)
     expect(arhiInDb._id).toEqual(arhi._id)
+  })
+
+  it('should not create duplicate countries', async () => {
+    await areas.addCountry(testUser, 'ita')
+    await expect(areas.addCountry(testUser, 'ita')).rejects.toThrow('E11000 duplicate key error')
+  })
+
+  it('should not create duplicate sub-areas', async () => {
+    const fr = await areas.addCountry(testUser, 'fra')
+    await areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id)
+    await expect(areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id))
+      .rejects.toThrow('E11000 duplicate key error')
   })
 })

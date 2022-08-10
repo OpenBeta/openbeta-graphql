@@ -1,5 +1,4 @@
 import { ApolloServer } from 'apollo-server'
-import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import mongoose from 'mongoose'
 import { applyMiddleware } from 'graphql-middleware'
 
@@ -16,7 +15,7 @@ import { logger } from './logger.js'
     introspection: true,
     schema,
     context: createContext,
-    dataSources: (): DataSources<MutableAreaDataSource> => {
+    dataSources: () => {
       return {
         areas: new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
       }
