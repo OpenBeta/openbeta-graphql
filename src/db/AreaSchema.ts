@@ -83,6 +83,7 @@ const AggregateSchema = new Schema<AggregateType>({
 
 export const AreaSchema = new Schema<AreaType>({
   area_name: { type: String, required: true, index: true },
+  shortCode: { type: String, required: false, index: true },
   climbs: [{
     type: Schema.Types.Mixed,
     ref: 'climbs',
