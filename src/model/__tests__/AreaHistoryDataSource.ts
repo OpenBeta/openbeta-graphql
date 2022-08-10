@@ -49,7 +49,7 @@ describe('Area history', () => {
   })
 
   it('should create history records for new country and subareas', async () => {
-    const usa = await areas.addCountry(testUser, 'usa')
+    const usa = await areas.addCountry(testUser, 'usaa')
     await createIndexes()
     const newArea = await areas.findOneAreaByUUID(usa.metadata.area_id)
     expect(newArea.area_name).toEqual(usa.area_name)
