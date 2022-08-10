@@ -1,6 +1,9 @@
 import { BBox } from '@turf/helpers'
 import { MUUID } from 'uuid-mongodb'
-import { AreaType } from './db/AreaTypes'
+import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
+
+import { AreaType } from './db/AreaTypes.js'
+import MutableAreaDataSource from './model/MutableAreaDataSource'
 
 export enum SortDirection {
   ASC = 1,
@@ -58,4 +61,16 @@ export interface QueryByIdType {
 export interface AuthUserType {
   roles: string[]
   uuid: MUUID | undefined
+}
+
+export interface DataSourcesType {
+  areas: MutableAreaDataSource
+}
+export interface Context {
+  dataSources: DataSourcesType
+  // areas: MutableAreaDataSource
+}
+
+export interface ContextWithAuth extends Context {
+  user: AuthUserType
 }
