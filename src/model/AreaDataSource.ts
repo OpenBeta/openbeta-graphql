@@ -15,7 +15,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
   mediaModel = getMediaModel()
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
-    let mongoFilter = {}
+    let mongoFilter: any = {}
     if (filters !== undefined) {
       mongoFilter = Object.entries(filters).reduce<Filter<AreaType>>((acc, [key, filter]): Filter<AreaType> => {
         switch (key) {
@@ -66,6 +66,9 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         return acc
       }, {})
     }
+
+    mongoFilter._deleting = { $eq: null } // marked for deletion
+
     // Todo: figure whether we need to populate 'climbs' array
     return this.collection.find(mongoFilter)
   }

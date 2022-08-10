@@ -2,6 +2,7 @@ import { geometry, Point } from '@turf/helpers'
 import { MUUID } from 'uuid-mongodb'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
+import isoCountries from 'i18n-iso-countries'
 
 import { AreaType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
@@ -9,6 +10,9 @@ import { createRootNode, getUUID } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
+
+import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+isoCountries.registerLocale(enJson)
 
 export default class MutableAreaDataSource extends AreaDataSource {
   async setDestinationFlag(user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
@@ -52,7 +56,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addCountry(session, user, countryCode)
+        ret = await this._addCountry(session, user, countryCode, isoCountries.getName(countryCode, 'en'))
         return ret
       })
     // @ts-expect-error
