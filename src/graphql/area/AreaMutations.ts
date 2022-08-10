@@ -16,8 +16,7 @@ const AreaMutations = {
     return await areas.setDestinationFlag(user.uuid, muuid.from(id), flag)
   },
 
-  addCountry: async (_, { input }, context: ContextWithAuth): Promise<AreaType|null> => {
-    const { dataSources, user } = context
+  addCountry: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType|null> => {
     const { areas } = dataSources
     const { alpha3ISOCode } = input
 
@@ -27,8 +26,7 @@ const AreaMutations = {
     return await areas.addCountry(user.uuid, alpha3ISOCode)
   },
 
-  removeArea: async (_, { input }, context: ContextWithAuth): Promise<AreaType|null> => {
-    const { dataSources, user } = context
+  removeArea: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType|null> => {
     const { areas } = dataSources
     const { uuid } = input
 
@@ -38,10 +36,13 @@ const AreaMutations = {
     return await areas.deleteArea(user.uuid, muuid.from(uuid))
   },
 
-  addArea: async (_, { input }, context): Promise<AreaType|null> => {
-    const { dataSources, user } = context
-    const { areas }: {areas: MutableAreaDataSource} = dataSources
+  addArea: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType|null> => {
+    const { areas } = dataSources
     const { name, parentUuid } = input
+
+    // permission middleware shouldn't send undefined uuid
+    if (user?.uuid == null) throw new Error('Missing user uuid')
+
     return await areas.addArea(user.uuid, name, muuid.from(parentUuid))
   }
 

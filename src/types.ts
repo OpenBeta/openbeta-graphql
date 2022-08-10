@@ -1,6 +1,5 @@
 import { BBox } from '@turf/helpers'
 import { MUUID } from 'uuid-mongodb'
-import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 
 import { AreaType } from './db/AreaTypes.js'
 import MutableAreaDataSource from './model/MutableAreaDataSource'
