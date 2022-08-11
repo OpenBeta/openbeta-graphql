@@ -7,14 +7,17 @@ export const typeDef = gql`
 
     type Mutation {
         addTick(input: Tick): TickType
+        deleteTick(input: String): String
+        importTicks(input: [Tick]): [TickType]
+        editTick(input: TickFilter) : TickType
     }
 
     type TickType {
         _id: ID
-        user: ID
+        userId: String
         name: String
         notes: String
-        uuid: String
+        climbId: String
         style: String
         attemptType: String
         dateClimbed: String
@@ -24,12 +27,16 @@ export const typeDef = gql`
     input Tick{
         name: String
         notes: String
-        uuid: String
+        climbId: String
+        userId: String
         style: String
         attemptType: String
         dateClimbed: String
         grade: String
     }
 
-    
+    input TickFilter{
+        _id: String
+        updatedTick: Tick
+    }
 `

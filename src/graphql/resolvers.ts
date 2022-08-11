@@ -12,21 +12,13 @@ import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { AreaEditTypeDef, AreaQueries, AreaMutations } from './area/index.js'
-import TickDataSource from '../model/TickDataSource.js'
-import { TickType } from '../db/TickTypes.js'
+import TickMutations from './tick/TickMutations.js'
 
 const resolvers = {
   Mutation: {
     ...MediaMutations,
     ...AreaMutations,
-    addTick: async (
-      _,
-      { input },
-      { dataSources }) => {
-      const { ticks }: { ticks: TickDataSource } = dataSources
-      const tick: TickType = input
-      return await ticks.addTick(tick)
-    }
+    ...TickMutations
   },
   Query: {
     ...MediaQueries,

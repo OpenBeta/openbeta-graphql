@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
-    "types": [
-      "node",
-      "jest"
-    ],
+    "types": ["node", "jest"],
     "allowJs": true,
     "skipLibCheck": true,
     "target": "ES2020",
@@ -17,9 +14,5 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    ".ts",
-    "src/**/*.ts",
-    "tests/**/*.ts"
-  ],
+  "include": [".ts", "src/**/*.ts", "tests/**/*.ts"]
 }

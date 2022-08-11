@@ -7,7 +7,8 @@ const { Schema } = mongoose
 export const TickSchema = new Schema<TickType>({
     name: { type: Schema.Types.String, required: true, index: true },
     notes: { type: Schema.Types.String, required: false },
-    uuid: { type: Schema.Types.String, required: true, index: true },
+    climbId: { type: Schema.Types.String, required: true, index: true },
+    userId: { type: Schema.Types.String, required: true, index: true },
     style: { type: Schema.Types.String, required: true },
     attemptType: { type: Schema.Types.String, required: true, index: true },
     dateClimbed: { type: Schema.Types.String, required: true },
