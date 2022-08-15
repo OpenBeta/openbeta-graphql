@@ -12,5 +12,4 @@ COPY . ./
 RUN yarn install --no-progress && \
     yarn build
 
-CMD node build/main.js
-
+CMD node --experimental-json-modules build/main.js
