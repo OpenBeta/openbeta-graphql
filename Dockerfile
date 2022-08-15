@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/openbeta/openbeta-nodejs-docker:16.3
+FROM node:16.16-buster-slim
 
 ENV APP_DIR=/apps/openbeta-graphql
 
