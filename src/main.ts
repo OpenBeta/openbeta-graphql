@@ -1,8 +1,6 @@
 import { ApolloServer } from 'apollo-server'
-import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import mongoose from 'mongoose'
 import { applyMiddleware } from 'graphql-middleware'
-
 import { graphqlSchema } from './graphql/resolvers.js'
 import { connectDB, defaultPostConnect } from './db/index.js'
 import MutableAreaDataSource from './model/MutableAreaDataSource.js'
