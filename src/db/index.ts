@@ -75,5 +75,4 @@ export const defaultPostConnect = async (): Promise<void> => {
 // eslint-disable-next-line
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-
 export { getMediaModel, getAreaModel, getTickModel, getClimbModel, getChangeLogModel }
