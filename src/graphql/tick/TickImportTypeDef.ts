@@ -6,5 +6,4 @@ const TickImportTypeDefs = gql`
     }
 `
 
-
 export default TickImportTypeDefs

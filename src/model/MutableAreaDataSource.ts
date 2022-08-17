@@ -15,7 +15,7 @@ import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 isoCountries.registerLocale(enJson)
 
 export default class MutableAreaDataSource extends AreaDataSource {
-  async setDestinationFlag(user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
+  async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
     let ret: AreaType | null = null
 
@@ -29,7 +29,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _setDestinationFlag(session, user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType> {
+  async _setDestinationFlag (session, user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType> {
     const change = await changelogDataSource.create(session, uuid, OperationType.updateDestination)
 
     const filter = { 'metadata.area_id': uuid }
@@ -47,7 +47,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       .findOneAndUpdate(filter, update, opts).lean()
   }
 
-  async addCountry(user: MUUID, _countryCode: string): Promise<AreaType> {
+  async addCountry (user: MUUID, _countryCode: string): Promise<AreaType> {
     const countryCode = _countryCode.toLocaleUpperCase('en-US')
     if (countryCode?.length !== 3 || !isoCountries.isValid(countryCode)) {
       throw new Error('Invalid Alpha3 ISO code: ' + countryCode)
@@ -68,7 +68,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _addCountry(session, user, countryCode: string, countryName: string): Promise<AreaType> {
+  async _addCountry (session, user, countryCode: string, countryName: string): Promise<AreaType> {
     const countryNode = createRootNode(countryName)
     const doc = makeDBArea(countryNode)
     doc.shortCode = countryCode
@@ -84,7 +84,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return rs[0]
   }
 
-  async addArea(user: MUUID, areaName: string, parentUuid: MUUID): Promise<AreaType | null> {
+  async addArea (user: MUUID, areaName: string, parentUuid: MUUID): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
 
     let ret: AreaType | null = null
@@ -99,7 +99,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _addArea(session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<any> {
+  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
     const parent = await this.areaModel.findOne(parentFilter).session(session)
 
@@ -134,7 +134,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return rs1[0].toObject()
   }
 
-  async deleteArea(user: MUUID, uuid: MUUID): Promise<AreaType | null> {
+  async deleteArea (user: MUUID, uuid: MUUID): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
     let ret: AreaType | null = null
 
@@ -148,7 +148,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _deleteArea(session: ClientSession, user: MUUID, uuid: MUUID): Promise<any> {
+  async _deleteArea (session: ClientSession, user: MUUID, uuid: MUUID): Promise<any> {
     const filter = {
       'metadata.area_id': uuid,
       deleting: { $ne: null }
@@ -188,8 +188,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
           })
         }
       }, {
-      timestamps: false
-    }).session(session)
+        timestamps: false
+      }).session(session)
 
     // In order to be able to record the deleted document in area_history, we mark (update) the
     // document for deletion (set ttl record = now).
@@ -206,8 +206,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
           })
         }
       }, {
-      timestamps: false
-    }).session(session)
+        timestamps: false
+      }).session(session)
   }
 }
 

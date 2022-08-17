@@ -3,12 +3,11 @@ import { MUUID } from 'uuid-mongodb'
 import { AreaChangeLogType } from '../db/ChangeLogType.js'
 
 import { getChangeLogModel } from '../db/index.js'
-import { AreaChangeLogType } from '../db/ChangeLogType.js'
 
 export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
   changelogModel = getChangeLogModel()
 
-  async getChangeSetsByUuid(areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
+  async getChangeSetsByUuid (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
     let rs
     if (areaUuid == null) {
       const filter: any = {

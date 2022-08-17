@@ -5,7 +5,7 @@ import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
 import { BaseChangeRecordType } from '../ChangeLogType.js'
 
-export default async function streamListener(db: mongoose.Connection): Promise<any> {
+export default async function streamListener (db: mongoose.Connection): Promise<any> {
   const resumeId = await mostRecentResumeId()
   logger.info({ resumeId }, 'Starting stream listener')
 
