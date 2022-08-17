@@ -12,6 +12,9 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * returns that new tick
      */
     async addTick(tick: TickType): Promise<any> {
+        if (tick === undefined || tick === null) {
+            throw new Error('Failed to add tick, Reason: a tick was not provided')
+        }
         const res: TickType = await this.tickModel.create({ ...tick })
         return res
     }
@@ -22,6 +25,9 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * and deletes that tick
      */
     async deleteTick(_id: string): Promise<any> {
+        if (_id === undefined) {
+            throw new Error('Failed to delete tick, Reason: an Id needs to be provided')
+        }
         await this.tickModel.deleteOne({ _id })
     }
 
@@ -34,10 +40,14 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * the new/updated tick
      */
     async editTick(filter: TickEditFilterType, updatedTick: TickType): Promise<any> {
-        if (filter !== undefined) {
-            const res: TickType | null = await this.tickModel.findOneAndUpdate(filter, updatedTick, { new: true })
-            return res
+        if (filter === undefined) {
+            throw new Error('Failed to edit tick, Reason: filter is not defined')
         }
+        if (updatedTick === undefined || updatedTick === null) {
+            throw new Error('Failed to edit tick, Reason: updated tick is not defined')
+        }
+        const res: TickType | null = await this.tickModel.findOneAndUpdate(filter, updatedTick, { new: true })
+        return res
     }
 
     /**
@@ -47,7 +57,11 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * an array of ticks, just created in the database
      */
     async importTicks(ticks: TickType[]): Promise<any> {
-        const res: TickType[] = await this.tickModel.insertMany(ticks)
-        return res
+        if (ticks.length > 0) {
+            const res: TickType[] = await this.tickModel.insertMany(ticks)
+            return res
+        } else {
+            throw new Error("Can't import an empty tick list, check your import url or mutation")
+        }
     }
 }
