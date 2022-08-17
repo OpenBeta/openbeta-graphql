@@ -5,7 +5,6 @@ import { enableAllPlugins } from 'immer'
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
-import { getTickModel } from './TickSchema.js'
 import { getChangeLogModel } from './ChangeLogSchema.js'
 import { logger } from '../logger.js'
 import streamListener from './edit/streamListener.js'
@@ -22,7 +21,7 @@ export const checkVar = (name: string): string => {
   return value
 }
 
-const defaultFn = logger.info.bind(console, 'DB connected successfully')
+const defaultFn = logger.info.bind(logger, 'DB connected successfully')
 
 export const connectDB = async (onConnected: () => any = defaultFn): Promise<void> => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
@@ -57,7 +56,6 @@ export const createIndexes = async (): Promise<void> => {
   await getClimbModel().ensureIndexes()
   await getAreaModel().ensureIndexes()
   await getMediaModel().ensureIndexes()
-  await getTickModel().ensureIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
@@ -75,4 +73,4 @@ export const defaultPostConnect = async (): Promise<void> => {
 // eslint-disable-next-line
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, getTickModel, getClimbModel, getChangeLogModel }
+export { getMediaModel, getAreaModel, getClimbModel, getChangeLogModel }
