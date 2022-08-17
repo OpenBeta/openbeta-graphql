@@ -39,7 +39,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
 
     mongoose.connection.on(
       'error', (e) => {
-        console.error('MongoDB connection error', e)
+        logger.error('MongoDB connection error', e)
         process.exit(1)
       }
     )
@@ -48,7 +48,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
       { autoIndex: false }
     )
   } catch (e) {
-    console.error("Can't connect to db")
+    logger.error("Can't connect to db")
     process.exit(1)
   }
 }
