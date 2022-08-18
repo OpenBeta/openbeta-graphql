@@ -5,6 +5,7 @@ import { ContextWithAuth } from '../../types.js'
 import type MutableAreaDataSource from '../../model/MutableAreaDataSource.js'
 
 const AreaMutations = {
+
   setDestinationFlag: async (_, { input }, context: ContextWithAuth): Promise<AreaType | null> => {
     const { dataSources, user } = context
     const { areas }: { areas: MutableAreaDataSource } = dataSources
@@ -16,7 +17,9 @@ const AreaMutations = {
     return await areas.setDestinationFlag(user.uuid, muuid.from(id), flag)
   },
 
+
   addCountry: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType | null> => {
+
     const { areas } = dataSources
     const { alpha3ISOCode } = input
 
@@ -25,6 +28,7 @@ const AreaMutations = {
 
     return await areas.addCountry(user.uuid, alpha3ISOCode)
   },
+
 
   removeArea: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType | null> => {
     const { areas } = dataSources
@@ -35,6 +39,7 @@ const AreaMutations = {
 
     return await areas.deleteArea(user.uuid, muuid.from(uuid))
   },
+
 
   addArea: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType | null> => {
     const { areas } = dataSources
