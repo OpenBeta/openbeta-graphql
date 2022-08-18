@@ -3,7 +3,6 @@ import { MUUID } from 'uuid-mongodb'
 import { AreaChangeLogType } from '../db/ChangeLogType.js'
 import { getChangeLogModel } from '../db/index.js'
 
-
 export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
   changelogModel = getChangeLogModel()
 
