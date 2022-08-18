@@ -61,7 +61,7 @@ describe('Ticks', () => {
     })
 
     afterAll(async () => {
-        // await getTickModel().collection.drop()
+        await getTickModel().collection.drop()
         await mongoose.connection.close()
     })
 
