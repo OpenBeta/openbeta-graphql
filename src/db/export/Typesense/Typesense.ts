@@ -5,6 +5,7 @@ import { connectDB, gracefulExit, getClimbModel } from '../../index.js'
 import { disciplinesToArray } from './Utils.js'
 import { ClimbExtType } from '../../ClimbTypes.js'
 import { logger } from '../../../logger.js'
+import { MUUID } from 'uuid-mongodb'
 
 const chunkSize = 5000
 
@@ -116,7 +117,7 @@ const onDBConnected = async (): Promise<void> => {
       $lookup: {
         from: 'areas', // other collection name
         localField: 'metadata.areaRef',
-        foreignField: 'metadata.area_id',
+        foreignField: '_id',
         as: 'area', // clobber array of climb IDs with climb objects
         pipeline: [
           {
@@ -142,8 +143,9 @@ const onDBConnected = async (): Promise<void> => {
 
   for await (const doc of allClimbs) {
     if (chunks.length < chunkSize) {
+      const id: MUUID = doc.id // No clue why ts want this from me
       chunks.push({
-        climbUUID: doc.metadata.climb_id.toUUID().toString(),
+        climbUUID: id.toUUID().toString(),
         climbName: doc.name,
         climbDesc: doc.content.description ?? '',
         fa: doc.fa ?? '',

@@ -71,19 +71,22 @@ query Example1 {
 - [yarn](https://yarnpkg.com/getting-started/install)
 
 
-0. Add '127.0.0.1 mongodb' entry to your `/etc/hosts` file (or C:\Windows\System32\drivers\etc\hosts on Windows)
+1. Add '127.0.0.1 mongodb' entry to your `/etc/hosts` file (or C:\Windows\System32\drivers\etc\hosts on Windows)
 
-```bash
+```
 127.0.0.1       mongodb
 ```
 
-1.  Launch **mongodb** dev stack (the database server, and mongo-express, the web-based admin console for mongo):
+2. If in a linux environment, you may have to do `sudo chown 999 ./keyfile` and/or `sudo chmod 400 keyfile` So that the file gets injected into the docker container with the correct permissions.
 
-```
+
+3.  Launch **mongodb** dev stack (the database server, and mongo-express, the web-based admin console for mongo):
+
+```bash
 docker compose up -d
 ```
 
-2. Seed the development database
+4. Seed the development database
 
 ```bash
 yarn install
@@ -91,7 +94,7 @@ yarn refresh-db   # download data files locally and import
 yarn init-db      # update statistics
 ```
 
-3. Start the GraphQL server
+5. Start the GraphQL server
 ```bash
 yarn serve
 ```

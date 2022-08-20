@@ -76,7 +76,6 @@ const resolvers = {
 
   Climb: {
     id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
-    uuid: (node: ClimbExtType) => node.metadata.climb_id.toUUID().toString(),
 
     type: async (node: ClimbExtType) => {
       if (node.type === undefined) {
@@ -95,8 +94,6 @@ const resolvers = {
     metadata: (node: ClimbExtType) => ({
       ...node.metadata,
       leftRightIndex: node.metadata.left_right_index,
-      climb_id: node.metadata.climb_id.toUUID().toString(),
-      climbId: node.metadata.climb_id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
       lng: node.metadata.lnglat.coordinates[0],
       lat: node.metadata.lnglat.coordinates[1]
@@ -112,9 +109,7 @@ const resolvers = {
 
   Area: {
     id: (node: AreaType) => node._id,
-    uuid: (node: AreaType) => node.metadata.area_id.toUUID().toString(),
 
-    // New camel case field
     areaName: async (node: AreaType) => node.area_name,
 
     children: async (parent: AreaType, _, { dataSources: { areas } }) => {
@@ -150,8 +145,6 @@ const resolvers = {
       ...node.metadata,
       isDestination: node.metadata?.isDestination ?? false,
       leftRightIndex: node.metadata.left_right_index,
-      area_id: node.metadata.area_id.toUUID().toString(),
-      areaId: node.metadata.area_id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
       lng: node.metadata.lnglat.coordinates[0],
       lat: node.metadata.lnglat.coordinates[1],

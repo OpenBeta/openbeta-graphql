@@ -31,15 +31,7 @@ const MetadataSchema = new Schema<IAreaMetadata>({
   },
   bbox: [{ type: Number, required: true }],
   left_right_index: { type: Number, required: false },
-  ext_id: { type: String, required: false, index: true },
-  area_id: {
-    type: 'object',
-    value: { type: 'Buffer' },
-    default: () => muuid.v4(),
-    required: true,
-    unique: true,
-    index: true
-  }
+  ext_id: { type: String, required: false, index: true }
 }, { _id: false })
 
 const ContentSchema = new Schema<IAreaContent>({

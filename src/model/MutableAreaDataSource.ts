@@ -99,7 +99,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<any> {
+  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<AreaType> {
     const parentFilter = { 'metadata.area_id': parentUuid }
     const parent = await this.areaModel.findOne(parentFilter).session(session)
 
@@ -211,6 +211,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 }
 
+/**
+ * It takes a name, a parent's ancestors, and a parent's pathTokens, and returns a new area object
+ * that conforms to the type needed for insertion into the collection
+ * 
+ * @param {string} areaName - The name of the area you want to create
+ * @param {string} parentAncestors - The parent's ancestors string.
+ * @param {string[]} parentPathTokens - the pathTokens of the parent area
+ */
 export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[]): AreaType => {
   const _id = new mongoose.Types.ObjectId()
   const uuid = getUUID(parentPathTokens.join() + areaName, false, undefined)
@@ -228,7 +236,6 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
     metadata: {
       isDestination: false,
       leaf: false,
-      area_id: uuid,
       lnglat: geometry('Point', [0, 0]) as Point,
       bbox: [-180, -90, 180, 90],
       left_right_index: -1,
