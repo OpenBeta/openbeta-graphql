@@ -15,7 +15,7 @@ import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 isoCountries.registerLocale(enJson)
 
 export default class MutableAreaDataSource extends AreaDataSource {
-  async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType|null> {
+  async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
     let ret: AreaType | null = null
 
@@ -33,7 +33,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const change = await changelogDataSource.create(session, uuid, OperationType.updateDestination)
 
     const filter = { 'metadata.area_id': uuid }
-    const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'>}> = {
+    const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'> }> = {
       'metadata.isDestination': flag,
       _change: {
         user,
@@ -134,9 +134,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return rs1[0].toObject()
   }
 
-  async deleteArea (user: MUUID, uuid: MUUID): Promise<AreaType|null> {
+  async deleteArea (user: MUUID, uuid: MUUID): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
-    let ret: AreaType|null = null
+    let ret: AreaType | null = null
 
     // withTransaction() doesn't return the callback result
     // see https://jira.mongodb.org/browse/NODE-2014

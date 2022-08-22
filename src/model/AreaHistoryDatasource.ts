@@ -1,8 +1,7 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
-
-import { getChangeLogModel } from '../db/index.js'
 import { AreaChangeLogType } from '../db/ChangeLogType.js'
+import { getChangeLogModel } from '../db/index.js'
 
 export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
   changelogModel = getChangeLogModel()
@@ -30,7 +29,7 @@ export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
         $match: {
           changes: {
             $elemMatch:
-               { 'fullDocument.metadata.area_id': areaUuid, kind: 'areas' }
+              { 'fullDocument.metadata.area_id': areaUuid, kind: 'areas' }
           }
         }
       }
