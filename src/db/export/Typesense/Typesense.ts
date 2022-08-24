@@ -10,7 +10,7 @@ import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js'
 import { AreaType } from '../../AreaTypes.js'
 
 /**
- * The maxiumum number of documents we can push to typesense at once.
+ * The maxiumum number of documents we push to typesense at once.
  */
 const chunkSize = 5000
 
@@ -20,36 +20,67 @@ const chunkSize = 5000
  * SELECT climbs.*, areas.ancestors, areas.pathTokens
  * FROM climbs left join areas on areas.metadata.area_id = climbs.metadata.areaRef;
 */
-const getAllClimbs = async (): Promise<ClimbExtType[]> => await getClimbModel().aggregate<ClimbExtType>([
-  {
-    $lookup: {
-      from: 'areas', // other collection name
-      localField: 'metadata.areaRef',
-      foreignField: 'metadata.area_id',
-      as: 'area', // clobber array of climb IDs with climb objects
-      pipeline: [
-        {
-          $project: {
-            // only include specific fields
-            _id: 0,
-            ancestors: 1,
-            pathTokens: 1
-          }
+async function * getAllClimbs (): AsyncGenerator<ClimbExtType[], void, unknown> {
+  let pageNum = 0
+
+  while (true) {
+    const page = await getClimbModel()
+      .aggregate<ClimbExtType>([
+      {
+        $lookup: {
+          from: 'areas', // other collection name
+          localField: 'metadata.areaRef',
+          foreignField: 'metadata.area_id',
+          as: 'area', // clobber array of climb IDs with climb objects
+          pipeline: [
+            {
+              $project: {
+                // only include specific fields
+                _id: 0,
+                ancestors: 1,
+                pathTokens: 1
+              }
+            }
+          ]
         }
-      ]
+      },
+      { $unwind: '$area' }, // Previous stage returns as an array of 1 element. 'unwind' turn it into an object.
+      {
+        $replaceWith: {
+          // Merge area.* with top-level object
+          $mergeObjects: ['$$ROOT', '$area']
+        }
+      }
+    ])
+      .skip(pageNum * chunkSize)
+      .limit(chunkSize)
+
+    if (page.length === 0) {
+      return
     }
-  },
-  { $unwind: '$area' }, // Previous stage returns as an array of 1 element. 'unwind' turn it into an object.
-  {
-    $replaceWith: {
-      // Merge area.* with top-level object
-      $mergeObjects: ['$$ROOT', '$area']
-    }
+
+    yield page
+    pageNum += 1
   }
-])
+}
 
 // Just get all area documents
-const getAllAreas = async (): Promise<AreaType[]> => await getAreaModel().find<AreaType>({})
+async function * getAllAreas (): AsyncGenerator<AreaType[], void, unknown> {
+  let pageNum = 0
+
+  while (true) {
+    const page = await getAreaModel().find<AreaType>({})
+      .limit(chunkSize)
+      .skip(pageNum * chunkSize)
+
+    if (page.length === 0) {
+      return
+    }
+
+    yield page
+    pageNum += 1
+  }
+}
 
 /**
  * For a given collection that might exist in typesense, drop it (if it exists)
@@ -78,6 +109,20 @@ async function checkCollection (
   }
 }
 
+async function uploadChunk (client: Client, schema: CollectionCreateSchema, chunk: Object[]): Promise<void> {
+  // Chunk entries may not exceed chunkSize
+  if (chunk.length === 0) return
+
+  try {
+    logger.info(`pushing ${chunk.length} documents to typesense`)
+    // This is safe enough. If anyone's gonna pass a non-object type then
+    // they haven't been paying attention
+    await client.collections(schema.name).documents().import(chunk)
+  } catch (e) {
+    logger.error(e)
+  }
+}
+
 /**
  * Abstracts the process of actually importing data to typesense, all you
  * need to do is satisfy the type requirements and data should flow through
@@ -90,36 +135,14 @@ async function processMongoCollection <ChunkType, SourceDataType> (
   client: Client,
   schema: CollectionCreateSchema,
   convert: (data: SourceDataType) => ChunkType,
-  getAllData: () => Promise<SourceDataType[]>
+  dataGenerator: () => AsyncGenerator<SourceDataType[]>
 ): Promise<void> {
   // start by completely refreshing this collection. (Delete and stand back up)
   await checkCollection(client, areaSchema)
 
-  const data: SourceDataType[] = await getAllData()
-  // Array of chunks
-  const chunks: ChunkType[][] = [[]]
-
-  for await (const document of data) {
-    if (chunks[chunks.length - 1].length < chunkSize) {
-      chunks[chunks.length - 1].push(convert(document))
-    } else {
-      // New chunk of data
-      chunks.push([])
-    }
-  }
-
-  // Chunk entries may not exceed chunkSize
-  for (const chunk of chunks) {
-    if (chunk.length === 0) continue
-    logger.info(`pushing ${chunk.length} documents to typesense`)
-
-    try {
-      // This is safe enough. If anyone's gonna pass a non-object type then
-      // they haven't been paying attention
-      await client.collections(schema.name).documents().import(chunk as Object[])
-    } catch (e) {
-      logger.error(e)
-    }
+  for await (const chunk of dataGenerator()) {
+    // upload the chunk as an array of translated objects
+    await uploadChunk(client, schema, chunk.map(convert) as Object[])
   }
 }
 
@@ -182,13 +205,17 @@ async function onDBConnected (): Promise<void> {
 
   logger.info('Start pushing data to TypeSense')
 
-  // Update climb data in typesense
-  await updateClimbTypesense(typesense)
-  logger.info('Climbs pushed to typesense')
+  if (process.argv.includes('--climbs')) {
+    // Update climb data in typesense
+    await updateClimbTypesense(typesense)
+    logger.info('Climbs pushed to typesense')
+  }
 
+  if (process.argv.includes('--areas')) {
   // Update area data in typesense
-  await updateAreaTypesense(typesense)
-  logger.info('areas pushed to typesense')
+    await updateAreaTypesense(typesense)
+    logger.info('areas pushed to typesense')
+  }
 
   await gracefulExit()
 }
