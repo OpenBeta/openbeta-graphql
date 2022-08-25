@@ -11,7 +11,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * @returns
      * returns that new tick
      */
-  async addTick (tick: TickType): Promise<any> {
+  async addTick(tick: TickType): Promise<any> {
     if (tick === undefined || tick === null) {
       throw new Error('Failed to add tick, Reason: a tick was not provided')
     }
@@ -24,7 +24,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * takes in the mongodb _id value of the tick
      * and deletes that tick
      */
-  async deleteTick (_id: string): Promise<any> {
+  async deleteTick(_id: string): Promise<any> {
     if (_id === undefined) {
       throw new Error('Failed to delete tick, Reason: an Id needs to be provided')
     }
@@ -39,7 +39,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * @returns
      * the new/updated tick
      */
-  async editTick (filter: TickEditFilterType, updatedTick: TickType): Promise<any> {
+  async editTick(filter: TickEditFilterType, updatedTick: TickType): Promise<any> {
     if (filter === undefined) {
       throw new Error('Failed to edit tick, Reason: filter is not defined')
     }
@@ -56,12 +56,26 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * @returns
      * an array of ticks, just created in the database
      */
-  async importTicks (ticks: TickType[]): Promise<any> {
+  async importTicks(ticks: TickType[]): Promise<any> {
     if (ticks.length > 0) {
       const res: TickType[] = await this.tickModel.insertMany(ticks)
       return res
     } else {
       throw new Error("Can't import an empty tick list, check your import url or mutation")
+    }
+  }
+
+  async ticksByUser(userId: string): Promise<any> {
+    if (userId != null) {
+      const res: TickType[] = await this.tickModel.find({ userId })
+      return res
+    }
+  }
+
+  async ticksByUserAndClimb(userId: string, climbId: string): Promise<any> {
+    if (userId != null && climbId != null) {
+      const res: TickType[] = await this.tickModel.find({ userId, climbId })
+      return res
     }
   }
 }
