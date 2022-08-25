@@ -56,7 +56,7 @@
     "seed-usa": "yarn build && node build/db/import/usa/USADay0Seed.js",
     "init-db": "yarn build && node build/db/utils/jobs/UpdateAllRunner.js",
     "update-climb-search": "tsc ; node build/db/export/Typesense/Typesense.js --climbs",
-    "update-area-search": "tsc ; node build/db/export/Typesense/Typesense.js --area",
+    "update-area-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas",
     "update-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas --climbs"
   },
   "standard": {
