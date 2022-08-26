@@ -59,8 +59,11 @@ describe('Ticks', () => {
   })
 
   afterAll(async () => {
-    await getTickModel().collection.drop()
     await mongoose.connection.close()
+  })
+
+  afterEach(async () => {
+    await getTickModel().collection.drop()
   })
 
   // test adding tick
@@ -117,5 +120,29 @@ describe('Ticks', () => {
 
     const tick3 = await tickModel.findOne({ _id: newTicks[2]._id })
     expect(tick3?._id).toEqual(newTicks[2]._id)
+  })
+
+  it('should grab all ticks by userId', async () => {
+    const tick = await ticks.addTick(toTest)
+
+    if (tick == null) {
+      fail('Should add a new tick')
+    }
+
+    const newTicks = await ticks.ticksByUser('abc123')
+
+    expect(newTicks.length).toEqual(1)
+  })
+
+  it('should grab all ticks by userId and climbId', async () => {
+    const climbId = 'c76d2083-6b8f-524a-8fb8-76e1dc79833f'
+    const tick = await ticks.addTick(toTest)
+    const tick2 = await ticks.addTick(toTest2)
+
+    if (tick == null || tick2 == null) {
+      fail('Should add a new tick')
+    }
+    const userClimbTicks = await ticks.ticksByUserAndClimb('abc123', climbId)
+    expect(userClimbTicks.length).toEqual(1)
   })
 })

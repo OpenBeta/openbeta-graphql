@@ -64,4 +64,18 @@ export default class TickDataSource extends MongoDataSource<TickType> {
       throw new Error("Can't import an empty tick list, check your import url or mutation")
     }
   }
+
+  async ticksByUser (userId: string): Promise<any> {
+    if (userId != null) {
+      const res: TickType[] = await this.tickModel.find({ userId })
+      return res
+    }
+  }
+
+  async ticksByUserAndClimb (userId: string, climbId: string): Promise<any> {
+    if (userId != null && climbId != null) {
+      const res: TickType[] = await this.tickModel.find({ userId, climbId })
+      return res
+    }
+  }
 }

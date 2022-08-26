@@ -2,7 +2,8 @@ import { gql } from 'apollo-server'
 
 export const typeDef = gql`
     type Query {
-        ticks(user: ID): [TickType]
+        userTicks(userId: String): [TickType]
+        userTicksByClimbId(userId: String, climbId: String): [TickType]
     }
 
     type Mutation {
