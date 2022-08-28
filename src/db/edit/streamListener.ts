@@ -4,6 +4,7 @@ import { ChangeStreamDocument, ResumeToken } from 'mongodb'
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
 import { BaseChangeRecordType } from '../ChangeLogType.js'
+import { checkVar } from '../index.js'
 
 export default async function streamListener (db: mongoose.Connection): Promise<any> {
   const resumeId = await mostRecentResumeId()
@@ -20,7 +21,7 @@ export default async function streamListener (db: mongoose.Connection): Promise<
     $match: {
       $and: [
         {
-          'ns.db': 'opentacos'
+          'ns.db': checkVar('MONGO_DBNAME')
         },
         {
           'ns.coll': {

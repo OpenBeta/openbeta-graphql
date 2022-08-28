@@ -29,6 +29,10 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
   const rsName = checkVar('MONGO_REPLICA_SET_NAME')
+  const scheme = checkVar('MONGO_SCHEME')
+  const authDb = checkVar('MONGO_AUTHDB')
+  const dbName = checkVar('MONGO_DBNAME')
+  const tlsFlag = checkVar('MONGO_TLS')
 
   logger.info(
     `Connecting to database 'mongodb://${user}:****@${server}'...`
@@ -43,8 +47,10 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
         process.exit(1)
       }
     )
+
+    // mongodb+srv://doadmin:794xs0E2lj6om8H1@db-openbeta-prod-f9185abe.mongo.ondigitalocean.com/admin?authSource=admin&replicaSet=db-openbeta-prod&tls=true
     await mongoose.connect(
-      `mongodb://${user}:${pass}@${server}/opentacos?authSource=admin&readPreference=primary&ssl=false&replicaSet=${rsName}`,
+      `${scheme}://${user}:${pass}@${server}/${dbName}?authSource=${authDb}&tls=${tlsFlag}&replicaSet=${rsName}`,
       { autoIndex: false }
     )
   } catch (e) {
