@@ -183,9 +183,10 @@ async function updateAreaTypesense (client: Client): Promise<void> {
 
 async function onDBConnected (): Promise<void> {
   const node = process.env.TYPESENSE_NODE ?? ''
-  const apiKey = process.env.TYPESENSE_API_KEY ?? ''
+  const apiKey = process.env.TYPESENSE_API_KEY_RW ?? ''
 
   if (node === '' || apiKey === '') {
+    logger.error('Missing env keys')
     await gracefulExit(1)
   }
 
