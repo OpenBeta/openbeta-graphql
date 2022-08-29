@@ -1,6 +1,6 @@
 [![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 # Climbing Route Catalog API 
@@ -138,6 +138,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/gibboj"><img src="https://avatars.githubusercontent.com/u/2992272?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kendra Gibbons</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=gibboj" title="Code">💻</a> <a href="#ideas-gibboj" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="http://ukclimbing.com"><img src="https://avatars.githubusercontent.com/u/677264?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Paul Phillips</b></sub></a><br /><a href="#ideas-pau1phi11ips" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://github.com/admanny"><img src="https://avatars.githubusercontent.com/u/31676895?v=4?s=100" width="100px;" alt=""/><br /><sub><b>admanny</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=admanny" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Downster"><img src="https://avatars.githubusercontent.com/u/24400646?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Brendan Downing</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=Downster" title="Code">💻</a> <a href="#ideas-Downster" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
