@@ -94,7 +94,7 @@ async function checkCollection (
   try {
     // Delete if the collection already exists from a previous run
     await client.collections(schema.name).delete()
-    logger.error(`dropped ${schema.name} collection from typesense`)
+    logger.info(`dropped ${schema.name} collection from typesense`)
   } catch (error) {
     logger.error(error)
   }
@@ -102,7 +102,7 @@ async function checkCollection (
   // Create a collection matching the specified schema
   try {
     await client.collections().create(schema)
-    logger.error(`created ${schema.name} typesense collection`)
+    logger.info(`created ${schema.name} typesense collection`)
   } catch (error) {
     logger.error(error)
     await gracefulExit()
@@ -138,7 +138,7 @@ async function processMongoCollection <ChunkType, SourceDataType> (
   dataGenerator: () => AsyncGenerator<SourceDataType[]>
 ): Promise<void> {
   // start by completely refreshing this collection. (Delete and stand back up)
-  await checkCollection(client, areaSchema)
+  await checkCollection(client, schema)
 
   for await (const chunk of dataGenerator()) {
     // upload the chunk as an array of translated objects
@@ -183,9 +183,10 @@ async function updateAreaTypesense (client: Client): Promise<void> {
 
 async function onDBConnected (): Promise<void> {
   const node = process.env.TYPESENSE_NODE ?? ''
-  const apiKey = process.env.TYPESENSE_API_KEY ?? ''
+  const apiKey = process.env.TYPESENSE_API_KEY_RW ?? ''
 
   if (node === '' || apiKey === '') {
+    logger.error('Missing env keys')
     await gracefulExit(1)
   }
 
