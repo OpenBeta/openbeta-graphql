@@ -19,6 +19,7 @@ describe('Areas', () => {
       console.log('Cleaning up db before test')
     }
     areas = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
+    await createIndexes()
   })
 
   afterAll(async () => {
@@ -27,9 +28,15 @@ describe('Areas', () => {
 
   it('should create a country by Alpha-3 country code', async () => {
     const spain = await areas.addCountry(testUser, 'esP')
-    await createIndexes()
     const newArea = await areas.findOneAreaByUUID(spain.metadata.area_id)
-    expect(newArea.area_name).toEqual(spain.area_name)
+    expect(newArea.area_name).toEqual('Spain')
+    expect(newArea.shortCode).toEqual('ESP')
+  })
+
+  it('should create a country by Alpha-2 country code', async () => {
+    const country = await areas.addCountry(testUser, 'ch')
+    expect(country.area_name).toEqual('Switzerland')
+    expect(country.shortCode).toEqual('CHE')
   })
 
   it('should create a country and 2 subareas', async () => {
@@ -50,6 +57,23 @@ describe('Areas', () => {
     canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
     expect(canadaInDb.children.length).toEqual(2)
     expect(canadaInDb.children[1]).toEqual(theBug?._id)
+
+    // Verify paths and ancestors
+    if (theBug != null) { // make TS happy
+      expect(theBug.ancestors)
+        .toEqual(`${canada.metadata.area_id.toUUID().toString()},${theBug?.metadata.area_id.toUUID().toString()}`)
+      expect(theBug.pathTokens)
+        .toEqual([canada.area_name, theBug.area_name])
+    }
+  })
+
+  it('should create an area using only country code (without parent id)', async () => {
+    const country = await areas.addCountry(testUser, 'za')
+    const area = await areas.addArea(testUser, 'Table mountain', null, 'zaf')
+
+    const countryInDb = await areas.findOneAreaByUUID(country.metadata.area_id)
+    expect(countryInDb.children.length).toEqual(1)
+    expect(countryInDb.children[0]).toEqual(area?._id)
   })
 
   it('should delete a subarea', async () => {
@@ -106,5 +130,21 @@ describe('Areas', () => {
     await areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id)
     await expect(areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id))
       .rejects.toThrow('E11000 duplicate key error')
+  })
+
+  it('should fail when calling without a parent country', async () => {
+    await expect(areas.addArea(testUser, 'Peak District ', null, 'GB'))
+      .rejects.toThrow()
+  })
+
+  it('should fail when calling with a non-existent parent id', async () => {
+    const notInDb = muuid.from('abf6cb8b-8461-45c3-b46b-5997444be867')
+    await expect(areas.addArea(testUser, 'Land\'s End ', notInDb))
+      .rejects.toThrow()
+  })
+
+  it('should fail when calling with null parents', async () => {
+    await expect(areas.addArea(testUser, 'Land\'s End ', null, '1q1'))
+      .rejects.toThrow()
   })
 })

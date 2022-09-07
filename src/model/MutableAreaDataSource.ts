@@ -1,5 +1,6 @@
 import { geometry, Point } from '@turf/helpers'
-import { MUUID } from 'uuid-mongodb'
+import muuid, { MUUID } from 'uuid-mongodb'
+import { v5 as uuidv5, NIL } from 'uuid'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
 import isoCountries from 'i18n-iso-countries'
@@ -47,12 +48,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
       .findOneAndUpdate(filter, update, opts).lean()
   }
 
+  /**
+   * Add a country
+   * @param user
+   * @param _countryCode alpha2 or 3 code
+   */
   async addCountry (user: MUUID, _countryCode: string): Promise<AreaType> {
     const countryCode = _countryCode.toLocaleUpperCase('en-US')
-    if (countryCode?.length !== 3 || !isoCountries.isValid(countryCode)) {
-      throw new Error('Invalid Alpha3 ISO code: ' + countryCode)
+    if (!isoCountries.isValid(countryCode)) {
+      throw new Error('Invalid ISO code: ' + countryCode)
     }
-
+    // Code can be either alpha2 or 3. Let's convert it to alpha3.
+    const alpha3 = countryCode.length === 2 ? isoCountries.toAlpha3(countryCode) : countryCode
     const session = await this.areaModel.startSession()
 
     let ret: AreaType
@@ -61,17 +68,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addCountry(session, user, countryCode, isoCountries.getName(countryCode, 'en'))
+        ret = await this._addCountry(session, user, alpha3, isoCountries.getName(countryCode, 'en'))
         return ret
       })
     // @ts-expect-error
     return ret
   }
 
-  async _addCountry (session, user, countryCode: string, countryName: string): Promise<AreaType> {
-    const countryNode = createRootNode(countryName)
+  async _addCountry (session, user, countryCodeAlpha3: string, countryName: string): Promise<AreaType> {
+    const countryNode = createRootNode(countryCodeAlpha3, countryName)
     const doc = makeDBArea(countryNode)
-    doc.shortCode = countryCode
+    // doc.area_name = countryName
+    doc.shortCode = countryCodeAlpha3
 
     const change = await changelogDataSource.create(session, user, OperationType.addCountry)
     doc._change = {
@@ -84,7 +92,25 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return rs[0]
   }
 
-  async addArea (user: MUUID, areaName: string, parentUuid: MUUID): Promise<AreaType | null> {
+  /**
+   * Add a new area.  Either a parent id or country code is required.
+   * @param user
+   * @param areaName
+   * @param parentUuid
+   * @param countryCode
+   */
+  async addArea (user: MUUID, areaName: string, parentUuid: MUUID | null, countryCode?: string): Promise<AreaType | null> {
+    if (parentUuid == null && countryCode == null) {
+      throw new Error('Adding area failed. Must provide parent Id or country code')
+    }
+
+    let uuid: MUUID
+    if (parentUuid != null) {
+      uuid = parentUuid
+    } else if (countryCode != null) {
+      uuid = countryCode2Uuid(countryCode)
+    }
+
     const session = await this.areaModel.startSession()
 
     let ret: AreaType | null = null
@@ -93,7 +119,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addArea(session, user, areaName, parentUuid)
+        ret = await this._addArea(session, user, areaName, uuid)
         return ret
       })
     return ret
@@ -253,4 +279,12 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
       description: ''
     }
   }
+}
+
+export const countryCode2Uuid = (code: string): MUUID => {
+  if (!isoCountries.isValid(code)) {
+    throw new Error('Invalid country code.  Expect alpha2 or alpha3')
+  }
+  const alpha3 = code.length === 2 ? isoCountries.toAlpha3(code) : code
+  return muuid.from(uuidv5(alpha3.toUpperCase(), NIL))
 }

@@ -92,19 +92,25 @@ export class Tree {
   }
 
   getPathTokens (node: AreaNode): string[] {
-    const { key } = node
+    const { key, countryName } = node
     const tokens: string[] = key.split('|')
+
     if (this.root === undefined) {
       assert(tokens.length === 1, 'Country root node should not have a parent')
-      return tokens
+      // We're at country node
+      // - `countryName` is undefined when loading data from json files
+      // - we pass countryName when calling from addCountry() API
+      return countryName != null ? [countryName] : tokens
     }
-    tokens.unshift(this.root.key)
+    // use countryName if exists
+    tokens.unshift(this.root?.countryName ?? this.root.key)
     return tokens
   }
 }
 
 export class AreaNode {
   key: string
+  countryName?: string // only used by create country
   _id = new mongoose.Types.ObjectId()
   uuid: MUUID
   isLeaf: boolean
@@ -113,7 +119,7 @@ export class AreaNode {
   children: Set<mongoose.Types.ObjectId> = new Set<mongoose.Types.ObjectId>()
   treeRef: Tree
 
-  constructor (key: string, isLeaf: boolean, jsonLine = undefined, treeRef: Tree) {
+  constructor (key: string, isLeaf: boolean, jsonLine = undefined, treeRef: Tree, countryName?: string) {
     this.uuid = getUUID(key, isLeaf, jsonLine)
     this.key = key
     this.isLeaf = isLeaf
@@ -121,6 +127,7 @@ export class AreaNode {
       this.jsonLine = jsonLine
     }
     this.treeRef = treeRef
+    this.countryName = countryName
   }
 
   // create a ref to parent for upward traversal
@@ -155,8 +162,8 @@ export class AreaNode {
   }
 }
 
-export const createRootNode = (countryCode: string): AreaNode => {
-  return new AreaNode(countryCode, false, undefined, new Tree())
+export const createRootNode = (countryCode: string, countryName?: string): AreaNode => {
+  return new AreaNode(countryCode, false, undefined, new Tree(), countryName)
 }
 
 /**
