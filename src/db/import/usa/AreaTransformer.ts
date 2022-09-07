@@ -65,10 +65,16 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
 export const makeDBArea = (node: AreaNode): AreaType => {
   const { key, isLeaf, children, _id, uuid } = node
 
+  let areaName: string
+  if (node.countryName != null) {
+    areaName = node.countryName
+  } else {
+    areaName = isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1)
+  }
   return {
     _id,
     shortCode: '',
-    area_name: isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1),
+    area_name: areaName,
     children: Array.from(children),
     metadata: {
       isDestination: false,

@@ -39,12 +39,15 @@ const AreaMutations = {
 
   addArea: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType | null> => {
     const { areas } = dataSources
-    const { name, parentUuid } = input
+    const { name, parentUuid, countryCode } = input
 
     // permission middleware shouldn't send undefined uuid
     if (user?.uuid == null) throw new Error('Missing user uuid')
 
-    return await areas.addArea(user.uuid, name, muuid.from(parentUuid))
+    return await areas.addArea(
+      user.uuid, name,
+      parentUuid == null ? null : muuid.from(parentUuid),
+      countryCode)
   }
 
 }

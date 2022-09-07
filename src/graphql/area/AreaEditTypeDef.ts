@@ -28,7 +28,8 @@ const AreaEditTypeDefs = gql`
 
   input AreaInput {
     name: String!
-    parentUuid: ID!
+    parentUuid: ID
+    countryCode: String
     isDestination: Boolean
   }
 
