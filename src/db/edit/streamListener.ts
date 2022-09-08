@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
-import { ChangeStreamDocument, ResumeToken } from 'mongodb'
+import { ChangeStreamDocument } from 'mongodb'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
-import { BaseChangeRecordType } from '../ChangeLogType.js'
+import { BaseChangeRecordType, ResumeToken } from '../ChangeLogType.js'
 import { checkVar } from '../index.js'
 
 export default async function streamListener (db: mongoose.Connection): Promise<any> {
@@ -48,14 +48,14 @@ const onChange = (change: ChangeStreamDocument): void => {
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
       }
-      recordChange({ _id, source, fullDocument, dbOp })
+      recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
       break
     }
     case 'insert': {
       const dbOp = 'insert'
       const source = change.ns.coll
       const { fullDocument, _id } = change
-      recordChange({ _id, source, fullDocument, dbOp })
+      recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
       break
     }
   }

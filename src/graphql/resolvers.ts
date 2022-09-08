@@ -6,6 +6,7 @@ import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
 import { typeDef as TickTypeDef } from './TickTypeDef.js'
+import { HistoryTypeDef, HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
 import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
@@ -25,6 +26,9 @@ const resolvers = {
     ...MediaQueries,
     ...AreaQueries,
     ...TickQueries,
+    ...HistoryQueries,
+
+    // Future To-do: Move climbs and areas' mutations/queries to their own folder Media, Tick, History
     climb: async (
       _,
       { uuid }: QueryByIdType,
@@ -78,6 +82,7 @@ const resolvers = {
   },
 
   ...MediaResolvers,
+  ...HistoryFieldResolvers,
 
   Climb: {
     id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
@@ -171,6 +176,6 @@ const resolvers = {
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef],
+  typeDefs: [Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef, HistoryTypeDef],
   resolvers
 })
