@@ -9,6 +9,7 @@ export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
   async getChangeSetsByUuid (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
     let rs
     if (areaUuid == null) {
+      // No area id specified: return all changes
       const filter: any = {
         $match: {
           'changes.kind': 'areas'

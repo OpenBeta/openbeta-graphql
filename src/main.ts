@@ -4,6 +4,7 @@ import { applyMiddleware } from 'graphql-middleware'
 import { graphqlSchema } from './graphql/resolvers.js'
 import { connectDB, defaultPostConnect } from './db/index.js'
 import MutableAreaDataSource from './model/MutableAreaDataSource.js'
+import { changelogDataSource } from './model/ChangeLogDataSource.js'
 import TickDataSource from './model/TickDataSource.js'
 import { createContext, permissions } from './auth/index.js'
 import { logger } from './logger.js'
@@ -17,7 +18,8 @@ import { logger } from './logger.js'
     context: createContext,
     dataSources: () => ({
       areas: new MutableAreaDataSource(mongoose.connection.db.collection('areas')),
-      ticks: new TickDataSource(mongoose.connection.db.collection('ticks'))
+      ticks: new TickDataSource(mongoose.connection.db.collection('ticks')),
+      history: changelogDataSource // see source for explantion why we don't instantiate the object
     }),
     cache: 'bounded'
   })

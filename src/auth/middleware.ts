@@ -1,3 +1,4 @@
+import muid from 'uuid-mongodb'
 import { AuthUserType } from '../types.js'
 import { verifyJWT } from './util.js'
 
@@ -18,7 +19,8 @@ export const createContext = async ({ req }): Promise<any> => {
     const z = await verifyJWT(token)
 
     user.roles = z?.['https://tacos.openbeta.io/roles'] ?? []
-    user.uuid = z?.['https://tacos.openbeta.io/uuid']
+    const uidStr: string | undefined = z?.['https://tacos.openbeta.io/uuid']
+    user.uuid = uidStr != null ? muid.from(uidStr) : undefined
   }
 
   return { user }

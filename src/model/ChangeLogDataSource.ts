@@ -60,12 +60,32 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
     return await areaHistoryDataSource.getChangeSetsByUuid(areaUuid)
   }
 
+  /**
+   * Return all changes.  For now just handle Area type.
+   * @param uuidList optional filter
+   * @returns change sets
+   */
+  async getChangeSets (uuidList: MUUID[]): Promise<AreaChangeLogType[]> {
+    const rs = await this.changeLogModel.aggregate([
+      {
+        $sort: {
+          createdAt: -1
+        }
+      }
+    ])
+    return rs as AreaChangeLogType[]
+  }
+
   async _testRemoveAll (): Promise<void> {
     await this.changeLogModel.deleteMany()
   }
 }
 
-// TS error bug: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
+// Normally we instantiate the data source in the server main function because
+// the only place they're used is in GQL resolvers.
+// In this case we instantiate it once in order to use history in multiple places.
+//
+// Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
 // @ts-expect-error
 // eslint-disable-next-line
 export const changelogDataSource = new ChangeLogDataSource(getChangeLogModel())

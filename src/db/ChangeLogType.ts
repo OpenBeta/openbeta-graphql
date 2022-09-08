@@ -1,6 +1,5 @@
 import mongose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
-import { ResumeToken } from 'mongodb'
 
 import { OperationType as AreaOpType, AreaType } from './AreaTypes.js'
 import { ClimbType } from './ClimbTypes.js'
@@ -12,6 +11,10 @@ export interface ChangeLogType<T = SupportedCollectionTypes> {
   changes: Array<BaseChangeRecordType<T>>
 }
 
+// DIY since ResumeToke is defined as unknown in mongo TS
+export interface ResumeToken {
+  _data: string
+}
 export interface BaseChangeRecordType<FullDocumentType = SupportedCollectionTypes> {
   _id: ResumeToken
   dbOp: string
@@ -38,3 +41,10 @@ export type AreaChangeLogType = ChangeLogType<AreaType>
 export type AreaChangeRecordType = BaseChangeRecordType<AreaType>
 
 export type SupportedCollectionTypes = AreaType | ClimbType
+
+export interface GetHistoryInputFilterType {
+  uuidList: string[]
+  userUuid: string
+  fromDate: Date
+  toDate: Date
+}
