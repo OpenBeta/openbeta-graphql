@@ -16,7 +16,7 @@ const dateScalar = new GraphQLScalarType({
       return new Date(parseInt(ast.value, 10)) // Convert hard-coded AST string to integer and then to Date
     }
     return null // Invalid hard-coded value (not an integer)
-  },
+  }
 })
 
 export default dateScalar
