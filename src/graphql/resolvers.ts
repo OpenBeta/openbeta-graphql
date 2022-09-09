@@ -2,6 +2,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import muid, { MUUID } from 'uuid-mongodb'
 
+import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
@@ -81,6 +82,7 @@ const resolvers = {
     }
   },
 
+  ...CommonResolvers,
   ...MediaResolvers,
   ...HistoryFieldResolvers,
 
@@ -176,6 +178,6 @@ const resolvers = {
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef, HistoryTypeDef],
+  typeDefs: [CommonTypeDef, Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef, HistoryTypeDef],
   resolvers
 })

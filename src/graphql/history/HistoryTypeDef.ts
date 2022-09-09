@@ -4,8 +4,8 @@ const HistoryTypeDefs = gql`
   input AllHistoryFilter {
     uuidList: [ID]
     userUuid: ID
-    fromDate: String
-    toDate: String
+    fromDate: Date
+    toDate: Date
   }
 
   type Change {
@@ -20,7 +20,7 @@ const HistoryTypeDefs = gql`
     id: ID!
     editedBy: String!
     operation: String!
-    createdAt: String!
+    createdAt: Date!
     changes: [Change]
   }
 
