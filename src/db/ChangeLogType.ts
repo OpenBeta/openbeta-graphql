@@ -28,6 +28,7 @@ export interface ChangeRecordMetadataType {
   user: MUUID
   operation: OpType
   changeId: mongose.Types.ObjectId
+  prevChangeId?: mongose.Types.ObjectId
   seq: number
   createdAt?: number
   updatedAt?: number

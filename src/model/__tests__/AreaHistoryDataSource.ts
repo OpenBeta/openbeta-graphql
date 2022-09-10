@@ -24,6 +24,7 @@ describe('Area history', () => {
 
     try {
       await getAreaModel().collection.drop()
+      await createIndexes()
     } catch (e) {
       logger.info('Expected exception')
     }
@@ -43,18 +44,19 @@ describe('Area history', () => {
   })
 
   beforeEach(async () => {
-    await changelogDataSource._testRemoveAll()
+    // await changelogDataSource._testRemoveAll()
     // eslint-disable-next-line
     await new Promise(res => setTimeout(res, 3000))
   })
 
   it('should create history records for new country and subareas', async () => {
     const usa = await areas.addCountry(testUser, 'usa')
-    await createIndexes()
     const newArea = await areas.findOneAreaByUUID(usa.metadata.area_id)
     expect(newArea.area_name).toEqual(usa.area_name)
 
     const or = await areas.addArea(testUser, 'oregon', usa.metadata.area_id)
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 1000))
     const nv = await areas.addArea(testUser, 'nevada', usa.metadata.area_id)
 
     expect(nv?._id).toBeTruthy()
@@ -84,11 +86,20 @@ describe('Area history', () => {
     expect(nvAreaHistory[0].dbOp).toEqual('insert') // insert new area
     expect(nvAreaHistory[0].fullDocument.area_name).toEqual(nv?.area_name) // area added to the right parent?
 
+    // verify change history linking
+    expect(nvAreaHistory[0].fullDocument._change?.changeId).toEqual(areaHistory[0]._id) // should point to current change
+    expect(nvAreaHistory[0].fullDocument._change?.prevChangeId).not.toBeDefined() // new document -> no previous history
+
     expect(nvAreaHistory[1].dbOp).toEqual('update') // add area to country.children[]
     expect(nvAreaHistory[1].fullDocument.area_name).toEqual(usa?.area_name)
 
     expect(nvAreaHistory[1].fullDocument.children).toHaveLength(2)
     expect(nvAreaHistory[1].fullDocument.children[1]).toEqual(nv?._id) // area added to parent.children[]?
+
+    // verify change history linking
+    // 2nd change record: parent (country)
+    expect(nvAreaHistory[1].fullDocument._change?.changeId).toEqual(areaHistory[0]._id) // should point to current change
+    expect(nvAreaHistory[1].fullDocument._change?.prevChangeId).toEqual(areaHistory[1]._id) // should point to previous Add new area
 
     // Verify OR history
     const orAreaHistory = areaHistory[1].changes
@@ -103,6 +114,9 @@ describe('Area history', () => {
     expect(usaHistory[0].operation).toEqual('addArea')
     expect(usaHistory[1].operation).toEqual('addArea')
     expect(usaHistory[2].operation).toEqual('addCountry')
+
+    // Verify USA history links
+    expect(usaHistory[0].changes[0])
   })
 
   it('should record multiple Areas.setDestination() calls ', async () => {

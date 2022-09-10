@@ -1,10 +1,11 @@
 import mongoose from 'mongoose'
-import { ChangeStreamDocument } from 'mongodb'
+import { ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
+import * as Diff from 'diff'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
 import { BaseChangeRecordType, ResumeToken } from '../ChangeLogType.js'
-import { checkVar } from '../index.js'
+import { checkVar, getChangeLogModel } from '../index.js'
 
 export default async function streamListener (db: mongoose.Connection): Promise<any> {
   const resumeId = await mostRecentResumeId()
@@ -44,18 +45,19 @@ const onChange = (change: ChangeStreamDocument): void => {
     case 'update': {
       let dbOp = 'update'
       const source = change.ns.coll
-      const { fullDocument, _id } = change
+      const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
+      console.log('#update desc', updateDescription)
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
       }
-      recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
       break
     }
     case 'insert': {
       const dbOp = 'insert'
       const source = change.ns.coll
       const { fullDocument, _id } = change
-      recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
       break
     }
   }
@@ -68,7 +70,7 @@ interface ChangeRecordType {
   dbOp: string
 }
 
-const recordChange = (data: ChangeRecordType): void => {
+const recordChange = async (data: ChangeRecordType): Promise<void> => {
   const { source, dbOp, fullDocument, _id } = data
   switch (source) {
     case 'climbs': {
@@ -76,6 +78,33 @@ const recordChange = (data: ChangeRecordType): void => {
       break
     }
     case 'areas': {
+      if (dbOp === 'update') {
+        const prevId = fullDocument?._change?.prevChangeId
+        if (prevId != null) {
+          const area = await getChangeLogModel().aggregate([
+            { $match: { _id: prevId } },
+            {
+              $project:
+              {
+                changes: {
+                  $filter: {
+                    input: '$changes',
+                    as: 'item',
+                    cond: { $eq: ['$$item.fullDocument._id', fullDocument._id] }
+                  }
+                }
+              }
+            },
+            {
+              $unwind: '$changes'
+            }])
+          console.log('# get previous', area[0].changes.fullDocument)
+          console.log('# get current', fullDocument)
+
+          const diff = Diff.diffJson(area[0].changes.fullDocument.children, fullDocument.children, { ignoreWhitespace: true })
+          console.log('#diff', diff)
+        }
+      }
       fullDocument.kind = source
       const newDocument: BaseChangeRecordType = {
         _id,
