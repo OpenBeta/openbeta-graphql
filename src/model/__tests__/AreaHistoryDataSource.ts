@@ -87,8 +87,8 @@ describe('Area history', () => {
     expect(nvAreaHistory[0].fullDocument.area_name).toEqual(nv?.area_name) // area added to the right parent?
 
     // verify change history linking
-    expect(nvAreaHistory[0].fullDocument._change?.changeId).toEqual(areaHistory[0]._id) // should point to current change
-    expect(nvAreaHistory[0].fullDocument._change?.prevChangeId).not.toBeDefined() // new document -> no previous history
+    expect(nvAreaHistory[0].fullDocument._change?.historyId).toEqual(areaHistory[0]._id) // should point to current change
+    expect(nvAreaHistory[0].fullDocument._change?.prevHistoryId).not.toBeDefined() // new document -> no previous history
 
     expect(nvAreaHistory[1].dbOp).toEqual('update') // add area to country.children[]
     expect(nvAreaHistory[1].fullDocument.area_name).toEqual(usa?.area_name)
@@ -98,8 +98,8 @@ describe('Area history', () => {
 
     // verify change history linking
     // 2nd change record: parent (country)
-    expect(nvAreaHistory[1].fullDocument._change?.changeId).toEqual(areaHistory[0]._id) // should point to current change
-    expect(nvAreaHistory[1].fullDocument._change?.prevChangeId).toEqual(areaHistory[1]._id) // should point to previous Add new area
+    expect(nvAreaHistory[1].fullDocument._change?.historyId).toEqual(areaHistory[0]._id) // should point to current change
+    expect(nvAreaHistory[1].fullDocument._change?.prevHistoryId).toEqual(areaHistory[1]._id) // should point to previous Add new area
 
     // Verify OR history
     const orAreaHistory = areaHistory[1].changes
@@ -127,7 +127,8 @@ describe('Area history', () => {
 
     if (squamish != null) {
       const areaUuid = squamish.metadata.area_id
-      await areas.setDestinationFlag(testUser, muuid.v4(), true) // non-existent area id. Trx won't be recorded
+      await expect(areas.setDestinationFlag(testUser, muuid.v4(), true)).rejects.toThrow() // non-existent area id. Trx won't be recorded
+
       await areas.setDestinationFlag(testUser, areaUuid, true)
       await areas.setDestinationFlag(testUser, areaUuid, false)
 

@@ -97,7 +97,7 @@ describe('Areas', () => {
     expect(deletedArea?.area_name).toEqual('Yosemite Valley')
 
     const theValleyInDb = await areas.findOneAreaByUUID(theValley?.metadata.area_id)
-    expect(theValleyInDb._deleting).not.toEqual(0)
+    expect(theValleyInDb).toBeNull()
 
     caliInDb = await areas.findOneAreaByUUID(cali.metadata.area_id)
     expect(caliInDb.children.length).toEqual(0)

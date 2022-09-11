@@ -15,10 +15,17 @@ export interface ChangeLogType<T = SupportedCollectionTypes> {
 export interface ResumeToken {
   _data: string
 }
+
+export interface UpdateDescription<T> {
+  updatedFields: Partial<T>
+  removedFields: T[]
+  truncatedArrays: any[]
+}
 export interface BaseChangeRecordType<FullDocumentType = SupportedCollectionTypes> {
   _id: ResumeToken
   dbOp: string
   fullDocument: FullDocumentType
+  updateDescription: UpdateDescription<FullDocumentType>
   kind: string
 }
 
@@ -27,8 +34,8 @@ export type OpType = AreaOpType
 export interface ChangeRecordMetadataType {
   user: MUUID
   operation: OpType
-  changeId: mongose.Types.ObjectId
-  prevChangeId?: mongose.Types.ObjectId
+  historyId: mongose.Types.ObjectId
+  prevHistoryId?: mongose.Types.ObjectId
   seq: number
   createdAt?: number
   updatedAt?: number

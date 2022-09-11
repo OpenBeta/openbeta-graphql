@@ -34,18 +34,21 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const change = await changelogDataSource.create(session, uuid, OperationType.updateDestination)
 
     const filter = { 'metadata.area_id': uuid }
-    const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'> }> = {
-      'metadata.isDestination': flag,
-      _change: {
-        user,
-        changeId: change._id,
-        operation: OperationType.updateDestination,
-        updatedAt: Date.now()
+    const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'> }> = [{
+      $set: {
+        'metadata.isDestination': flag,
+        _change: {
+          user,
+          prevHistoryId: '$_change.historyId',
+          historyId: change._id,
+          operation: OperationType.updateDestination,
+          updatedAt: Date.now()
+        }
       }
-    }
+    }]
     const opts = { new: true, session, timestamps: false } // return newly updated doc
     return await this.areaModel
-      .findOneAndUpdate(filter, update, opts).lean()
+      .updateOne(filter, update, opts).orFail().lean()
   }
 
   /**
@@ -84,7 +87,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const change = await changelogDataSource.create(session, user, OperationType.addCountry)
     doc._change = {
       user,
-      changeId: change._id,
+      historyId: change._id,
       operation: OperationType.addCountry,
       seq: 0
     }
@@ -136,7 +139,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const change = await changelogDataSource.create(session, user, OperationType.addArea)
     const newChangeMeta: ChangeRecordMetadataType = {
       user,
-      changeId: change._id,
+      historyId: change._id,
       operation: OperationType.addArea,
       seq: 0
     }
@@ -145,7 +148,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       draft.seq = 0
       draft.createdAt = parent._change?.createdAt
       draft.updatedAt = Date.now()
-      draft.prevChangeId = parent._change?.changeId
+      draft.prevHistoryId = parent._change?.historyId
     })
 
     const parentAncestors = parent.ancestors
@@ -196,7 +199,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const _change: ChangeRecordMetadataType = {
       user,
-      changeId: change._id,
+      historyId: change._id,
       operation: OperationType.deleteArea,
       seq: 0
     }
@@ -205,22 +208,25 @@ export default class MutableAreaDataSource extends AreaDataSource {
       {
         children: area._id
       },
-      {
-        $pullAll: {
-          children: [area._id]
-        },
+      [{
         $set: {
-          // '_change.prevChangeId': '$_change.changeId',
+          children: {
+            $filter: {
+              input: '$children',
+              as: 'child',
+              cond: { $eq: ['$$child._id', area._id] }
+            }
+          },
+          '_change.prevHistoryId': '$_change.historyId',
           _change: produce(_change, draft => {
             draft.seq = 0
             draft.updatedAt = Date.now()
           })
         }
-      }
+      }]
       , {
-        multi: true,
         timestamps: false
-      }).session(session)
+      }).orFail().session(session)
 
     // In order to be able to record the deleted document in area_history, we mark (update) the
     // document for deletion (set ttl index = now).
@@ -231,15 +237,16 @@ export default class MutableAreaDataSource extends AreaDataSource {
       [{
         $set: {
           _deleting: new Date(), // TTL index = now
-          '_change.prevChangeId': '$_change.changeId',
+          '_change.prevHistoryId': '$_change.historyId',
           _change: produce(_change, draft => {
             draft.seq = 1
             draft.updatedAt = Date.now()
           })
         }
       }], {
-        timestamps: false
-      }).session(session)
+        timestamps: false,
+        returnOriginal: true
+      }).session(session).lean()
   }
 }
 

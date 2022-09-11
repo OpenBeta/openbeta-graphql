@@ -13,8 +13,8 @@ const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
     value: { type: 'Buffer' },
     required: true
   },
-  changeId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
-  prevChangeId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  historyId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  prevHistoryId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
   operation: {
     type: Schema.Types.Mixed,
     enum: Object.values(OperationType),

@@ -46,11 +46,10 @@ const onChange = (change: ChangeStreamDocument): void => {
       let dbOp = 'update'
       const source = change.ns.coll
       const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
-      console.log('#update desc', updateDescription)
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
       }
-      void recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument, updateDescription, dbOp })
       break
     }
     case 'insert': {
@@ -67,49 +66,23 @@ interface ChangeRecordType {
   _id: ResumeToken
   source: string
   fullDocument: any | null
+  updateDescription?: any
   dbOp: string
 }
 
-const recordChange = async (data: ChangeRecordType): Promise<void> => {
-  const { source, dbOp, fullDocument, _id } = data
+const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
   switch (source) {
     case 'climbs': {
       // TBD
       break
     }
     case 'areas': {
-      if (dbOp === 'update') {
-        const prevId = fullDocument?._change?.prevChangeId
-        if (prevId != null) {
-          const area = await getChangeLogModel().aggregate([
-            { $match: { _id: prevId } },
-            {
-              $project:
-              {
-                changes: {
-                  $filter: {
-                    input: '$changes',
-                    as: 'item',
-                    cond: { $eq: ['$$item.fullDocument._id', fullDocument._id] }
-                  }
-                }
-              }
-            },
-            {
-              $unwind: '$changes'
-            }])
-          console.log('# get previous', area[0].changes.fullDocument)
-          console.log('# get current', fullDocument)
-
-          const diff = Diff.diffJson(area[0].changes.fullDocument.children, fullDocument.children, { ignoreWhitespace: true })
-          console.log('#diff', diff)
-        }
-      }
       fullDocument.kind = source
       const newDocument: BaseChangeRecordType = {
         _id,
         dbOp,
         fullDocument,
+        updateDescription,
         kind: 'areas'
       }
       void changelogDataSource.record(newDocument)

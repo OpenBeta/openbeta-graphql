@@ -84,7 +84,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
   async findOneAreaByUUID (uuid: muuid.MUUID): Promise<any> {
     const rs = await this.areaModel
       .aggregate([
-        { $match: { 'metadata.area_id': uuid, _deleting: { $ne: 0 } } },
+        { $match: { 'metadata.area_id': uuid, _deleting: { $exists: false } } },
         {
           $lookup: {
             from: 'climbs', // other collection name
