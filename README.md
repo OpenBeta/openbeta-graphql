@@ -96,6 +96,22 @@ yarn init-db      # update statistics
 yarn serve
 ```
 
+### Troubleshooting
+
+- Fix "permissions on /opt/keyfile/keyfile are too open" error
+  This error appears because the keyfile is required to be read-only
+
+  ```bash
+  chmod 400 keyfile
+  ```
+
+- Fix "error opening file: /opt/keyfile/keyfile: bad file" error
+  This may appear after you update the keyfile to read-only access. The file needs to be owned by the same owner of the mongodb process
+
+  ```bash
+  chown 999:999 keyfile
+  ```
+
 ### Tips
 
 - Browse the database: http://localhost:8081
@@ -108,12 +124,6 @@ yarn serve
   ```bash
   # Run this in open-tacos project
   yarn dev-local
-  ```
-
-- Fix "permissions on /opt/keyfile/keyfile are too open" error
-  
-  ```bash
-  chmod 400 keyfile
   ```
 
 - MongoDB playground: https://mongoplayground.net/
