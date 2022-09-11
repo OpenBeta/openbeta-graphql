@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { ChangeStreamDocument } from 'mongodb'
+import { ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
@@ -44,18 +44,18 @@ const onChange = (change: ChangeStreamDocument): void => {
     case 'update': {
       let dbOp = 'update'
       const source = change.ns.coll
-      const { fullDocument, _id } = change
+      const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
       }
-      recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument, updateDescription, dbOp })
       break
     }
     case 'insert': {
       const dbOp = 'insert'
       const source = change.ns.coll
       const { fullDocument, _id } = change
-      recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
       break
     }
   }
@@ -65,11 +65,11 @@ interface ChangeRecordType {
   _id: ResumeToken
   source: string
   fullDocument: any | null
+  updateDescription?: any
   dbOp: string
 }
 
-const recordChange = (data: ChangeRecordType): void => {
-  const { source, dbOp, fullDocument, _id } = data
+const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
   switch (source) {
     case 'climbs': {
       // TBD
@@ -81,6 +81,7 @@ const recordChange = (data: ChangeRecordType): void => {
         _id,
         dbOp,
         fullDocument,
+        updateDescription,
         kind: 'areas'
       }
       void changelogDataSource.record(newDocument)

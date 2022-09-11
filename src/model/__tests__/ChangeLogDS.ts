@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { jest } from '@jest/globals'
 import muuid from 'uuid-mongodb'
-import { connectDB, getChangeLogModel } from '../../db/index.js'
+import { connectDB, getChangeLogModel, getAreaModel } from '../../db/index.js'
 import ChangeLogDataSource from '../ChangeLogDataSource.js'
 import { OpType } from '../../db/ChangeLogType.js'
 import { OperationType } from '../../db/AreaTypes.js'
@@ -17,6 +17,7 @@ describe('Area history', () => {
     await connectDB()
 
     try {
+      await getAreaModel().collection.drop()
       await getChangeLogModel().collection.drop()
     } catch (e) {
       logger.info('Expected exception')
