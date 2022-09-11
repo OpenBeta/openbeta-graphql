@@ -1,11 +1,10 @@
 import mongoose from 'mongoose'
 import { ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
-import * as Diff from 'diff'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
 import { BaseChangeRecordType, ResumeToken } from '../ChangeLogType.js'
-import { checkVar, getChangeLogModel } from '../index.js'
+import { checkVar } from '../index.js'
 
 export default async function streamListener (db: mongoose.Connection): Promise<any> {
   const resumeId = await mostRecentResumeId()
