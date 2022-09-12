@@ -8,10 +8,15 @@ const HistoryTypeDefs = gql`
     toDate: Date
   }
 
+  type UpdateDescription {
+    updatedFields: [String]
+  }
+
   type Change {
     changeId: ID!
     dbOp: String!
     fullDocument: Document
+    updateDescription: UpdateDescription
   }
 
   union Document = Area | Climb
