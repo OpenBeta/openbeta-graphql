@@ -52,6 +52,16 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "DarrenZLew",
+      "name": "Darren Lew",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26758226?v=4",
+      "profile": "https://github.com/DarrenZLew",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
