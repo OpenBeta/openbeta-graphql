@@ -16,16 +16,16 @@ export interface ResumeToken {
   _data: string
 }
 
-export interface UpdateDescription<T> {
-  updatedFields: Partial<T>
-  removedFields: T[]
-  truncatedArrays: any[]
+export interface UpdateDescription {
+  updatedFields?: string[]
+  removedFields?: string[]
+  truncatedArrays?: any[]
 }
 export interface BaseChangeRecordType<FullDocumentType = SupportedCollectionTypes> {
   _id: ResumeToken
   dbOp: string
   fullDocument: FullDocumentType
-  updateDescription: UpdateDescription<FullDocumentType>
+  updateDescription: UpdateDescription
   kind: string
 }
 
