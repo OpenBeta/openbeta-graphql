@@ -57,19 +57,20 @@ export const typeDef = gql`
         source: String
     }
     """This is our tick type input, containing the name,
-     notes climbId, etc of the ticked climb 
+     notes climbId, etc of the ticked climb, all fields are required
+
      NOTE: source must either be MP or OB which stand for Mountain Project, or Open Beta respectively
      """
     input Tick{
-        name: String
-        notes: String
-        climbId: String
-        userId: String
-        style: String
-        attemptType: String
-        dateClimbed: String
-        grade: String
-        source: String
+        name: String!
+        notes: String!
+        climbId: String!
+        userId: String!
+        style: String!
+        attemptType: String!
+        dateClimbed: String!
+        grade: String!
+        source: String!
     }
 
     """Takes in the MongoId and a tick object to replace the old tick object with"""
