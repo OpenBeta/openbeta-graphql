@@ -8,7 +8,8 @@ export const typeDef = gql`
 
     type Mutation {
         addTick(input: Tick): TickType
-        deleteTick(input: String): String
+        deleteTick(input: MongoId): String
+        deleteAllTicks(input: UserId): String
         importTicks(input: [Tick]): [TickType]
         editTick(input: TickFilter) : TickType
     }
@@ -39,5 +40,13 @@ export const typeDef = gql`
     input TickFilter{
         _id: String
         updatedTick: Tick
+    }
+
+    input UserId{
+        userId: String
+    }
+
+    input MongoId{
+        _id: String
     }
 `

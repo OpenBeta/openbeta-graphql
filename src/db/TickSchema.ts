@@ -11,7 +11,8 @@ export const TickSchema = new Schema<TickType>({
   style: { type: Schema.Types.String, required: true, default: '' },
   attemptType: { type: Schema.Types.String, required: true, index: true, default: '' },
   dateClimbed: { type: Schema.Types.String, required: true },
-  grade: { type: Schema.Types.String, required: true, index: true }
+  grade: { type: Schema.Types.String, required: true, index: true },
+  source: { type: Schema.Types.String, enum: ['MP', 'OB'], required: true, index: true }
 })
 
 TickSchema.index({ climbId: 1, dateClimbed: 1, style: 1, userId: 1 }, { unique: true })
