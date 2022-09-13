@@ -21,6 +21,7 @@ export interface IClimbProps {
   name: string
   fa?: string
   yds: string
+  grade: IGradeType
   type: IClimbType
   safety: SafetyType
   _change?: ChangeRecordMetadataType
@@ -33,6 +34,19 @@ export enum SafetyType {
   R = 'R',
   X = 'X',
 }
+
+export enum GradeType {
+  YDS = 'YDS',
+  FRENCH = 'French',
+  FONT = 'Font',
+}
+
+export interface IGradeType {
+  yds?: string
+  french?: string
+  font?: string
+}
+
 export interface IClimbType {
   trad: boolean
   sport: boolean
