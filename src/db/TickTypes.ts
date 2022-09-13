@@ -6,7 +6,8 @@ export interface TickType {
   style: string
   attemptType: string
   dateClimbed: string
-  grade: string
+  grade: string,
+  source: string
 }
 
 export interface TickEditFilterType {
