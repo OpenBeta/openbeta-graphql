@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
-import { ClimbType, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
+import { ClimbType, IClimbMetadata, IClimbContent, IGradeType, SafetyType } from './ClimbTypes.js'
 
 const { Schema } = mongoose
 
@@ -47,6 +47,12 @@ const MetadataSchema = new Schema<IClimbMetadata>({
   }
 }, { _id: false })
 
+const GradeTypeSchema = new Schema<IGradeType>({
+  yds: { type: Schema.Types.String, required: false },
+  french: { type: Schema.Types.String, required: false },
+  font: { type: Schema.Types.String, required: false }
+}, { _id: false })
+
 export const ClimbSchema = new Schema<ClimbType>({
   _id: {
     type: 'object',
@@ -55,6 +61,7 @@ export const ClimbSchema = new Schema<ClimbType>({
   },
   name: { type: Schema.Types.String, required: true, index: true },
   yds: { type: Schema.Types.String, required: true },
+  grade: GradeTypeSchema,
   fa: { type: Schema.Types.String, required: false },
   type: { type: Schema.Types.Mixed },
   safety: {

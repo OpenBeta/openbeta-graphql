@@ -12,6 +12,7 @@ export const typeDef = gql`
     name: String!
     fa: String!
     yds: String!
+    grade: GradeType!
     type: ClimbType!
     safety: SafetyEnum!
     metadata: ClimbMetadata!
@@ -45,6 +46,12 @@ export const typeDef = gql`
     mixed: Boolean
     aid: Boolean
     tr: Boolean
+  }
+
+  type GradeType {
+    yds: String
+    french: String
+    font: String
   }
 
   enum SafetyEnum {
