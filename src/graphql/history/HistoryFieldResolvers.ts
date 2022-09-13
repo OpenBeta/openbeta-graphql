@@ -10,7 +10,16 @@ const resolvers = {
   },
 
   Change: {
-    changeId: (node: BaseChangeRecordType) => node._id._data
+    changeId: (node: BaseChangeRecordType) => node._id._data,
+
+    updateDescription: ({ updateDescription }: BaseChangeRecordType) =>
+      updateDescription == null
+        ? ({
+            updatedFields: [],
+            removedFields: [],
+            truncatedArrays: []
+          })
+        : updateDescription
   },
 
   Document: {

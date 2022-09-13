@@ -34,7 +34,7 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
    */
   async record (changeRecord: BaseChangeRecordType): Promise<this> {
     const filter = {
-      _id: changeRecord.fullDocument._change?.changeId
+      _id: changeRecord.fullDocument._change?.historyId
     }
 
     const rs = await this.changeLogModel.updateOne(filter,
@@ -42,7 +42,6 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
         $push: {
           changes: {
             $each: [changeRecord],
-            // $position: 0,
             $sort: { 'fullDocument._change.seq': -1 }
           }
         }
@@ -51,7 +50,7 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
       })
 
     if (rs.matchedCount < 1) {
-      logger.error(changeRecord.fullDocument, 'Change Id not found.  Ignore change.')
+      logger.error(changeRecord.fullDocument, 'History Id not found.  Ignore change.')
     }
     return this
   }

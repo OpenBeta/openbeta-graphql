@@ -34,18 +34,21 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const change = await changelogDataSource.create(session, uuid, OperationType.updateDestination)
 
     const filter = { 'metadata.area_id': uuid }
-    const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'> }> = {
-      'metadata.isDestination': flag,
-      _change: {
-        user,
-        changeId: change._id,
-        operation: OperationType.updateDestination,
-        updatedAt: Date.now()
+    const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'> }> = [{
+      $set: {
+        'metadata.isDestination': flag,
+        _change: {
+          user,
+          prevHistoryId: '$_change.historyId',
+          historyId: change._id,
+          operation: OperationType.updateDestination,
+          updatedAt: Date.now()
+        }
       }
-    }
+    }]
     const opts = { new: true, session, timestamps: false } // return newly updated doc
     return await this.areaModel
-      .findOneAndUpdate(filter, update, opts).lean()
+      .updateOne(filter, update, opts).orFail().lean()
   }
 
   /**
@@ -84,7 +87,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const change = await changelogDataSource.create(session, user, OperationType.addCountry)
     doc._change = {
       user,
-      changeId: change._id,
+      historyId: change._id,
       operation: OperationType.addCountry,
       seq: 0
     }
@@ -130,31 +133,33 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parent = await this.areaModel.findOne(parentFilter).session(session)
 
     if (parent == null) {
-      throw new Error('Adding area failed.  Expecting 1 parent, found  none.')
+      throw new Error('Adding area failed.  Expecting 1 parent, found none.')
     }
 
     const change = await changelogDataSource.create(session, user, OperationType.addArea)
-    const newChange: ChangeRecordMetadataType = {
+    const newChangeMeta: ChangeRecordMetadataType = {
       user,
-      changeId: change._id,
+      historyId: change._id,
       operation: OperationType.addArea,
       seq: 0
     }
 
-    parent._change = produce(newChange, draft => {
+    parent._change = produce(newChangeMeta, draft => {
       draft.seq = 0
       draft.createdAt = parent._change?.createdAt
       draft.updatedAt = Date.now()
+      draft.prevHistoryId = parent._change?.historyId
     })
 
     const parentAncestors = parent.ancestors
     const parentPathTokens = parent.pathTokens
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens)
-    newArea._change = produce(newChange, draft => {
+    newArea._change = produce(newChangeMeta, draft => {
       draft.seq = 1
     })
     const rs1 = await this.areaModel.insertMany(newArea, { session })
 
+    // Make sure parent knows about this new area
     parent.children.push(newArea._id)
     await parent.save({ timestamps: false })
     return rs1[0].toObject()
@@ -194,46 +199,54 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const _change: ChangeRecordMetadataType = {
       user,
-      changeId: change._id,
+      historyId: change._id,
       operation: OperationType.deleteArea,
       seq: 0
     }
     // Remove this area id from the parent.children[]
-    await this.areaModel.updateMany(
+    await this.areaModel.updateOne(
       {
-        children: [area._id]
+        children: area._id
       },
-      {
-        $pullAll: {
-          children: [area._id]
-        },
+      [{
         $set: {
+          children: {
+            $filter: {
+              input: '$children',
+              as: 'child',
+              cond: { $eq: ['$$child._id', area._id] }
+            }
+          },
+          '_change.prevHistoryId': '$_change.historyId',
           _change: produce(_change, draft => {
             draft.seq = 0
             draft.updatedAt = Date.now()
           })
         }
-      }, {
+      }]
+      , {
         timestamps: false
-      }).session(session)
+      }).orFail().session(session)
 
     // In order to be able to record the deleted document in area_history, we mark (update) the
-    // document for deletion (set ttl record = now).
+    // document for deletion (set ttl index = now).
     // See https://www.mongodb.com/community/forums/t/change-stream-fulldocument-on-delete/15963
     // Mongo TTL indexes: https://www.mongodb.com/docs/manual/core/index-ttl/
     return await this.areaModel.findOneAndUpdate(
       { 'metadata.area_id': uuid },
-      {
+      [{
         $set: {
-          _deleting: new Date(),
+          _deleting: new Date(), // TTL index = now
+          '_change.prevHistoryId': '$_change.historyId',
           _change: produce(_change, draft => {
             draft.seq = 1
             draft.updatedAt = Date.now()
           })
         }
-      }, {
-        timestamps: false
-      }).session(session)
+      }], {
+        timestamps: false,
+        returnOriginal: true
+      }).session(session).lean()
   }
 }
 

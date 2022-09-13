@@ -1,9 +1,10 @@
 import mongoose from 'mongoose'
-import { ChangeStreamDocument } from 'mongodb'
+import { ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
+import dot from 'dot-object'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
-import { BaseChangeRecordType, ResumeToken } from '../ChangeLogType.js'
+import { BaseChangeRecordType, ResumeToken, UpdateDescription } from '../ChangeLogType.js'
 import { checkVar } from '../index.js'
 
 export default async function streamListener (db: mongoose.Connection): Promise<any> {
@@ -44,18 +45,19 @@ const onChange = (change: ChangeStreamDocument): void => {
     case 'update': {
       let dbOp = 'update'
       const source = change.ns.coll
-      const { fullDocument, _id } = change
+      const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
       }
-      recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
+
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument, updateDescription, dbOp })
       break
     }
     case 'insert': {
       const dbOp = 'insert'
       const source = change.ns.coll
       const { fullDocument, _id } = change
-      recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
       break
     }
   }
@@ -65,11 +67,11 @@ interface ChangeRecordType {
   _id: ResumeToken
   source: string
   fullDocument: any | null
+  updateDescription?: any
   dbOp: string
 }
 
-const recordChange = (data: ChangeRecordType): void => {
-  const { source, dbOp, fullDocument, _id } = data
+const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
   switch (source) {
     case 'climbs': {
       // TBD
@@ -81,6 +83,7 @@ const recordChange = (data: ChangeRecordType): void => {
         _id,
         dbOp,
         fullDocument,
+        updateDescription: dotifyUpdateDescription(updateDescription),
         kind: 'areas'
       }
       void changelogDataSource.record(newDocument)
@@ -110,4 +113,50 @@ const mostRecentResumeId = async (): Promise<any> => {
   // }
 
   // return ts1?._id.getTimestamp() > ts2._id.getTimestamp() ? ts1.change._id : ts2.change._id
+}
+
+// Mongo type
+interface UpdateDescriptionType {
+  updatedFields?: Object
+  removedFields?: Object
+  truncatedArrays?: Object
+}
+
+/**
+ * Convert updated field events to array of fields.  Example:
+ * ```
+ * updatedFields: {
+ *   areaName: 'New name'
+ *   children: [ ObjectId ('1231321231241') ]
+ * }
+ *
+ * ==>
+ * updatedFields: [
+ *  'areaName', 'children'
+ * ]
+ * ```
+ * @see https://www.mongodb.com/docs/manual/reference/change-events/update/#mongodb-data-update
+ */
+const dotifyUpdateDescription = (updateDescription: UpdateDescriptionType): UpdateDescription => {
+  if (updateDescription == null) {
+    return {
+      updatedFields: [],
+      removedFields: [],
+      truncatedArrays: []
+    }
+  }
+
+  const { updatedFields, removedFields, truncatedArrays } = updateDescription
+  cleanupObj(updatedFields)
+  return {
+    updatedFields: updatedFields != null ? Object.keys(dot.dot(updatedFields)) : [],
+    removedFields: removedFields != null ? Object.keys(dot.dot(removedFields)) : [],
+    truncatedArrays: truncatedArrays != null ? Object.keys(dot.dot(truncatedArrays)) : []
+  }
+}
+
+const cleanupObj = (obj: any): void => {
+  if (obj?.__v != null) {
+    delete obj.__v
+  }
 }

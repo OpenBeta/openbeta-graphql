@@ -38,6 +38,17 @@ export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
       const rs2 = await this.changelogModel
         .aggregate([
           filter,
+          // https://github.com/Automattic/mongoose/issues/12415
+          // {
+          //   $set: {
+          //     changes: {
+          //       $sortArray: {
+          //         input: '$changes',
+          //         sortBy: { 'fullDocument._change.seq': -1 }
+          //       }
+          //     }
+          //   }
+          // },
           {
             $sort: {
               createdAt: -1
