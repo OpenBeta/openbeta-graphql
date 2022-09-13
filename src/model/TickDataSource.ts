@@ -11,7 +11,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * @returns
      * returns that new tick
      */
-  async addTick(tick: TickType): Promise<any> {
+  async addTick (tick: TickType): Promise<any> {
     if (tick === undefined || tick === null) {
       throw new Error('Failed to add tick, Reason: a tick was not provided')
     }
@@ -20,31 +20,31 @@ export default class TickDataSource extends MongoDataSource<TickType> {
   }
 
   /**
-   * 
-   * @param userId 
+   *
+   * @param userId
    * takes in the userId and deletes all ticks previously imported
    * from mountain project
-   * 
+   *
    */
-  async deleteImportedTicks(userId: String): Promise<any> {
+  async deleteImportedTicks (userId: String): Promise<any> {
     if (userId === undefined || userId === null) {
       throw new Error('Failed to delete previously imported ticks, Reason: userId was not provided')
     }
     try {
-      await this.tickModel.deleteMany({ userId: userId, source: "MP" });
+      await this.tickModel.deleteMany({ userId: userId, source: 'MP' })
     } catch (e) {
-      throw new Error(e);
+      throw new Error(e)
     }
   }
 
-  async deleteAllTicks(userId: String): Promise<any> {
+  async deleteAllTicks (userId: String): Promise<any> {
     if (userId === undefined || userId === null) {
       throw new Error('Failed to delete previously imported ticks, Reason: userId was not provided')
     }
     try {
-      await this.tickModel.deleteMany({ userId: userId });
+      await this.tickModel.deleteMany({ userId: userId })
     } catch (e) {
-      throw new Error(e);
+      throw new Error(e)
     }
   }
 
@@ -53,7 +53,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * takes in the mongodb _id value of the tick
      * and deletes that tick
      */
-  async deleteTick(_id: string): Promise<any> {
+  async deleteTick (_id: string): Promise<any> {
     if (_id === undefined) {
       throw new Error('Failed to delete tick, Reason: an Id needs to be provided')
     }
@@ -68,7 +68,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * @returns
      * the new/updated tick
      */
-  async editTick(filter: TickEditFilterType, updatedTick: TickType): Promise<any> {
+  async editTick (filter: TickEditFilterType, updatedTick: TickType): Promise<any> {
     if (filter === undefined) {
       throw new Error('Failed to edit tick, Reason: filter is not defined')
     }
@@ -85,7 +85,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
      * @returns
      * an array of ticks, just created in the database
      */
-  async importTicks(ticks: TickType[]): Promise<any> {
+  async importTicks (ticks: TickType[]): Promise<any> {
     if (ticks.length > 0) {
       const res: TickType[] = await this.tickModel.insertMany(ticks)
       return res
@@ -94,14 +94,14 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     }
   }
 
-  async ticksByUser(userId: string): Promise<any> {
+  async ticksByUser (userId: string): Promise<any> {
     if (userId != null) {
       const res: TickType[] = await this.tickModel.find({ userId })
       return res
     }
   }
 
-  async ticksByUserAndClimb(userId: string, climbId: string): Promise<any> {
+  async ticksByUserAndClimb (userId: string, climbId: string): Promise<any> {
     if (userId != null && climbId != null) {
       const res: TickType[] = await this.tickModel.find({ userId, climbId })
       return res

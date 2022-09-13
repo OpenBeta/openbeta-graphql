@@ -23,8 +23,8 @@ const TickMutations = {
     { input },
     { dataSources }) => {
     const { ticks }: { ticks: TickDataSource } = dataSources
-    const userId: string = input;
-    return await ticks.deleteAllTicks(userId);
+    const userId: string = input
+    return await ticks.deleteAllTicks(userId)
   },
   importTicks: async (
     _,
@@ -32,8 +32,8 @@ const TickMutations = {
     { dataSources }) => {
     const { ticks }: { ticks: TickDataSource } = dataSources
     const tickImport: TickType[] = input
-    const userId = tickImport[0].userId;
-    await ticks.deleteImportedTicks(userId);
+    const userId = tickImport[0].userId
+    await ticks.deleteImportedTicks(userId)
     return await ticks.importTicks(tickImport)
   },
   editTick: async (

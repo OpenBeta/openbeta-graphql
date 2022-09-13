@@ -13,7 +13,7 @@ const toTest: TickType = {
   attemptType: 'Onsight',
   dateClimbed: '12/12/12',
   grade: '5.7',
-  source: "MP"
+  source: 'MP'
 }
 
 const toTest2: TickType = {
@@ -25,7 +25,7 @@ const toTest2: TickType = {
   attemptType: 'Flash',
   dateClimbed: '12/10/15',
   grade: '5.10',
-  source: "MP"
+  source: 'MP'
 }
 
 const tickUpdate: TickType = {
@@ -37,7 +37,7 @@ const tickUpdate: TickType = {
   attemptType: 'Fell/Hung',
   dateClimbed: '12/12/12',
   grade: '5.7',
-  source: "OB"
+  source: 'OB'
 }
 
 const testImport: TickType[] = [
@@ -150,29 +150,29 @@ describe('Ticks', () => {
   })
 
   it('should delete all ticks with the specified userId', async () => {
-    const userId = 'abc123';
-    const newTicks = await ticks.importTicks(testImport);
+    const userId = 'abc123'
+    const newTicks = await ticks.importTicks(testImport)
 
     if (newTicks == null) {
-      fail('Should add 3 new ticks');
+      fail('Should add 3 new ticks')
     }
 
-    await ticks.deleteAllTicks(userId);
-    const newTick = await tickModel.findOne({ userId: userId });
-    expect(newTick).toBeNull();
+    await ticks.deleteAllTicks(userId)
+    const newTick = await tickModel.findOne({ userId: userId })
+    expect(newTick).toBeNull()
   })
 
   it('should only delete MP imports', async () => {
-    const userId = 'abc123';
-    const MPTick = await ticks.addTick(toTest);
-    const OBTick = await ticks.addTick(tickUpdate);
+    const userId = 'abc123'
+    const MPTick = await ticks.addTick(toTest)
+    const OBTick = await ticks.addTick(tickUpdate)
 
     if (MPTick == null || OBTick == null) {
       fail('Should add two new ticks')
     }
 
-    await ticks.deleteImportedTicks(userId);
-    const newTick = await tickModel.findOne({ _id: OBTick._id });
+    await ticks.deleteImportedTicks(userId)
+    const newTick = await tickModel.findOne({ _id: OBTick._id })
     expect(newTick?._id).toEqual(OBTick._id)
     expect(newTick?.notes).toEqual('Not sandbagged')
   })
