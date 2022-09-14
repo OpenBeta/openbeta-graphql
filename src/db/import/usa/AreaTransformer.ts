@@ -1,21 +1,21 @@
 import mongoose from 'mongoose'
 import { geometry, Point } from '@turf/helpers'
+import isoCountries from 'i18n-iso-countries'
+import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes'
 import { Tree, AreaNode, createRootNode } from './AreaTree.js'
 import { MUUID } from 'uuid-mongodb'
 
-export const createRootInDB = async (areaModel: mongoose.Model<AreaType>, countryCode: string): Promise<AreaType> => {
-  const countryNode = createRootNode(countryCode)
-  const doc = makeDBArea(countryNode)
-  const f = await areaModel.insertMany(doc, { ordered: false })
-  const singleDoc = f[0]
-  return singleDoc
-}
+isoCountries.registerLocale(enJson)
 
 export const createRoot = async (countryCode: string): Promise<AreaNode> => {
+  if (!isoCountries.isValid(countryCode)) {
+    throw new Error('ISO code must be alpha 2 or 3')
+  }
   const areaModel = getAreaModel('areas')
-  const countryNode = createRootNode(countryCode)
+  const countryNode = createRootNode(isoCountries.toAlpha3(countryCode).toUpperCase())
   const doc = makeDBArea(countryNode)
   await areaModel.insertMany(doc, { ordered: false })
   return countryNode
