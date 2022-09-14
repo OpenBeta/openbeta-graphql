@@ -79,17 +79,6 @@ export const typeDef = gql`
         updatedTick: Tick
     }
 
-    """This is the userId provided by Auth-0"""
-    input UserId{
-        userId: String
-    }
-
-
-    """This is the _id provided by MongoDB upon creation"""
-    input MongoId{
-        _id: String
-    }
-
     type DeleteSingleTickResult {
         _id: ID!
         removed: Boolean!
