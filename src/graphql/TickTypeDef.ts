@@ -58,6 +58,7 @@ export const typeDef = gql`
     }
     """This is our tick type input, containing the name,
      notes climbId, etc of the ticked climb, all fields are required
+
      NOTE: source must either be MP or OB which stand for Mountain Project, or Open Beta respectively
      """
     input Tick{
