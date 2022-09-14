@@ -35,7 +35,7 @@ const tickUpdate: TickType = produce(toTest, draft => {
 })
 
 const testImport: TickType[] = [
-  toTest, toTest2
+  toTest, toTest2, tickUpdate
 ]
 
 describe('Ticks', () => {
@@ -116,6 +116,9 @@ describe('Ticks', () => {
 
     const tick2 = await tickModel.findOne({ _id: newTicks[1]._id })
     expect(tick2?._id).toEqual(newTicks[1]._id)
+
+    const tick3 = await tickModel.findOne({ _id: newTicks[2]._id })
+    expect(tick3?._id).toEqual(newTicks[2]._id)
   })
 
   it('should grab all ticks by userId', async () => {
