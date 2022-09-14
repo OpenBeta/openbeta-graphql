@@ -26,23 +26,25 @@ export default class TickDataSource extends MongoDataSource<TickType> {
    * from mountain project
    *
    */
-  async deleteImportedTicks (userId: String): Promise<any> {
+  async deleteImportedTicks (userId: string): Promise<any> {
     if (userId === undefined || userId === null) {
       throw new Error('Failed to delete previously imported ticks, Reason: userId was not provided')
     }
     try {
-      await this.tickModel.deleteMany({ userId: userId, source: 'MP' })
+      const res = await this.tickModel.deleteMany({ userId: userId, source: 'MP' })
+      return res
     } catch (e) {
       throw new Error(e)
     }
   }
 
-  async deleteAllTicks (userId: String): Promise<any> {
+  async deleteAllTicks (userId: string): Promise<any> {
     if (userId === undefined || userId === null) {
       throw new Error('Failed to delete previously imported ticks, Reason: userId was not provided')
     }
     try {
-      await this.tickModel.deleteMany({ userId: userId })
+      const res = await this.tickModel.deleteMany({ userId: userId })
+      return res
     } catch (e) {
       throw new Error(e)
     }
@@ -57,7 +59,12 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     if (_id === undefined) {
       throw new Error('Failed to delete tick, Reason: an Id needs to be provided')
     }
-    await this.tickModel.deleteOne({ _id })
+    try {
+      const res = await this.tickModel.deleteOne({ _id })
+      return res
+    } catch (e) {
+      throw new Error(e)
+    }
   }
 
   /**
