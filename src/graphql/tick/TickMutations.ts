@@ -12,19 +12,21 @@ const TickMutations = {
   },
   deleteTick: async (
     _,
-    { input },
+    { _id },
     { dataSources }) => {
     const { ticks }: { ticks: TickDataSource } = dataSources
-    const muid: string = input
-    return await ticks.deleteTick(muid)
+    const res = await ticks.deleteTick(_id)
+    if (res?.deletedCount === 1) return { _id: _id, removed: true }
+    return { _id: _id, removed: false }
   },
   deleteAllTicks: async (
     _,
-    { input },
+    { userId },
     { dataSources }) => {
     const { ticks }: { ticks: TickDataSource } = dataSources
-    const userId: string = input
-    return await ticks.deleteAllTicks(userId)
+    const res = await ticks.deleteAllTicks(userId)
+    if (res?.deletedCount > 0) return { deletedCount: res?.deletedCount, removed: true }
+    return { deletedCount: 0, removed: false }
   },
   importTicks: async (
     _,

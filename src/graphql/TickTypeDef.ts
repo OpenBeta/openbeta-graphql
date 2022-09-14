@@ -29,11 +29,11 @@ export const typeDef = gql`
         """
         addTick(input: Tick): TickType
         """Deletes a tick from MongoDB by the _id property created in the database"""
-        deleteTick(input: MongoId): String
+        deleteTick(_id: ID): DeleteSingleTickResult
         """Deletes all ticks created by a user by the userId, 
         mainly a dev feature for while we are working on getting the schema correct
         """
-        deleteAllTicks(input: UserId): String
+        deleteAllTicks(userId: String): DeleteAllTickResult
         """Imports a users ticks from mountain project, this feature also deletes all ticks previously imported from mountain project
          before importing them, allowing users to constantly update their ticks without creating duplicates
          """
@@ -58,16 +58,15 @@ export const typeDef = gql`
     }
     """This is our tick type input, containing the name,
      notes climbId, etc of the ticked climb, all fields are required
-
      NOTE: source must either be MP or OB which stand for Mountain Project, or Open Beta respectively
      """
     input Tick{
         name: String!
-        notes: String!
+        notes: String
         climbId: String!
         userId: String!
-        style: String!
-        attemptType: String!
+        style: String
+        attemptType: String
         dateClimbed: String!
         grade: String!
         source: String!
@@ -89,4 +88,14 @@ export const typeDef = gql`
     input MongoId{
         _id: String
     }
+
+    type DeleteSingleTickResult {
+        _id: ID!
+        removed: Boolean!
+      }
+
+    type DeleteAllTickResult {
+        removed: Boolean!
+        deletedCount: Int
+      }
 `
