@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-
+import { produce } from 'immer'
 import TickDataSource from '../TickDataSource.js'
 import { connectDB, getTickModel } from '../../db/index.js'
 import { TickType } from '../../db/TickTypes.js'
@@ -28,17 +28,11 @@ const toTest2: TickType = {
   source: 'MP'
 }
 
-const tickUpdate: TickType = {
-  name: 'Small Dog',
-  notes: 'Not sandbagged',
-  climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',
-  userId: 'abc123',
-  style: 'Lead',
-  attemptType: 'Fell/Hung',
-  dateClimbed: '12/12/12',
-  grade: '5.7',
-  source: 'OB'
-}
+const tickUpdate: TickType = produce(toTest, draft => {
+  draft.notes = 'Not sandbagged'
+  draft.attemptType = 'Fell/Hung'
+  draft.source = 'OB'
+})
 
 const testImport: TickType[] = [
   toTest, toTest2, tickUpdate
@@ -67,6 +61,7 @@ describe('Ticks', () => {
 
   afterEach(async () => {
     await getTickModel().collection.drop()
+    await tickModel.ensureIndexes()
   })
 
   // test adding tick
@@ -112,8 +107,9 @@ describe('Ticks', () => {
     const newTicks = await ticks.importTicks(testImport)
 
     if (newTicks == null) {
-      fail('Should add three new ticks')
+      fail(`Should add ${testImport.length} new ticks`)
     }
+    expect(newTicks?.length).toEqual(testImport.length)
 
     const tick1 = await tickModel.findOne({ _id: newTicks[0]._id })
     expect(tick1?._id).toEqual(newTicks[0]._id)
@@ -175,5 +171,25 @@ describe('Ticks', () => {
     const newTick = await tickModel.findOne({ _id: OBTick._id })
     expect(newTick?._id).toEqual(OBTick._id)
     expect(newTick?.notes).toEqual('Not sandbagged')
+  })
+
+  it('should reject duplicate ticks', async () => {
+    const tick1: TickType = {
+      name: 'Small Dog',
+      notes: 'Not sandbagged',
+      climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',
+      userId: 'user123',
+      style: 'Lead',
+      attemptType: 'Fell/Hung',
+      dateClimbed: '12/12/12',
+      grade: '5.7',
+      source: 'OB'
+    }
+
+    await ticks.addTick(tick1)
+
+    await expect(
+      ticks.addTick(tick1)
+    ).rejects.toThrow()
   })
 })

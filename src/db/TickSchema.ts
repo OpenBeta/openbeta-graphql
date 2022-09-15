@@ -15,7 +15,7 @@ export const TickSchema = new Schema<TickType>({
   source: { type: Schema.Types.String, enum: ['MP', 'OB'], required: true, index: true }
 })
 
-TickSchema.index({ climbId: 1, dateClimbed: 1, style: 1, userId: 1 }, { unique: true })
+TickSchema.index({ climbId: 1, dateClimbed: 1, style: 1, userId: 1, source: 1 }, { unique: true })
 
 export const getTickModel = (name: string = 'ticks'): mongoose.Model<TickType> => {
   return mongoose.model(name, TickSchema)
