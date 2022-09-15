@@ -10,13 +10,16 @@ import { MUUID } from 'uuid-mongodb'
 
 isoCountries.registerLocale(enJson)
 
-export const createRoot = async (countryCode: string): Promise<AreaNode> => {
+export const createRoot = async (countryCode: string, shortCode?: string): Promise<AreaNode> => {
   if (!isoCountries.isValid(countryCode)) {
     throw new Error('ISO code must be alpha 2 or 3')
   }
   const areaModel = getAreaModel('areas')
   const countryNode = createRootNode(isoCountries.toAlpha3(countryCode).toUpperCase())
   const doc = makeDBArea(countryNode)
+  if (shortCode != null) {
+    doc.shortCode = shortCode
+  }
   await areaModel.insertMany(doc, { ordered: false })
   return countryNode
 }

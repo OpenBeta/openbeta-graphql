@@ -4,6 +4,7 @@ import { v5 as uuidv5, NIL } from 'uuid'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
 import isoCountries from 'i18n-iso-countries'
+import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
 import { AreaType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
@@ -11,9 +12,11 @@ import { createRootNode, getUUID } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
+import CountriesLngLat from '../data/countries-with-lnglat.json' assert { type: 'json' }
+import { logger } from '../logger.js'
 
-import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 isoCountries.registerLocale(enJson)
+
 
 export default class MutableAreaDataSource extends AreaDataSource {
   async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
@@ -83,6 +86,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const doc = makeDBArea(countryNode)
     // doc.area_name = countryName
     doc.shortCode = countryCodeAlpha3
+    const entry = CountriesLngLat[countryCodeAlpha3]
+    if (entry != null) {
+      doc.metadata.lnglat = {
+        type: 'Point',
+        coordinates: entry.lnglat
+      }
+    } else {
+      logger.warn(`Missing lnglat for ${countryName}`)
+    }
 
     const change = await changelogDataSource.create(session, user, OperationType.addCountry)
     doc._change = {
