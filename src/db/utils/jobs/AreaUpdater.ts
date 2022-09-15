@@ -102,7 +102,7 @@ const leafReducer = (node: AreaType): ResultType => {
  * @param array of areas
  * @returns new center (Point)
  */
- const calculateNewCenterFromNodes = (nodes: ResultType[]): Point => {
+const calculateNewCenterFromNodes = (nodes: ResultType[]): Point => {
   // Convert area array to Geojson Feature array
   const arrayOfFeatures = nodes.reduce<Feature[]>((acc, curr) => {
     if (curr.lnglat.coordinates[0] !== 0 && curr.lnglat.coordinates[1] !== 0) {
@@ -113,7 +113,7 @@ const leafReducer = (node: AreaType): ResultType => {
   }, [])
 
   if (arrayOfFeatures.length > 0) {
-    // - convert array of features to a feature collection 
+    // - convert array of features to a feature collection
     // - calculate centroid
     return centroid(featureCollection(arrayOfFeatures)).geometry
   }

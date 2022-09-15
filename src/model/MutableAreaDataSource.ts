@@ -17,7 +17,6 @@ import { logger } from '../logger.js'
 
 isoCountries.registerLocale(enJson)
 
-
 export default class MutableAreaDataSource extends AreaDataSource {
   async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
