@@ -28,7 +28,6 @@ const toTest2: TickType = {
   source: 'MP'
 }
 
-
 const tickUpdate: TickType = produce(toTest, draft => {
   draft.notes = 'Not sandbagged'
   draft.attemptType = 'Fell/Hung'
@@ -173,7 +172,6 @@ describe('Ticks', () => {
     expect(newTick?._id).toEqual(OBTick._id)
     expect(newTick?.notes).toEqual('Not sandbagged')
   })
-
 
   it('should reject duplicate ticks', async () => {
     const tick1: TickType = {
