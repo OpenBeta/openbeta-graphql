@@ -1,0 +1,1710 @@
+{
+  "AFG": {
+    "alpha3": "AFG",
+    "lnglat": [
+      "65",
+      "33"
+    ]
+  },
+  "ALB": {
+    "alpha3": "ALB",
+    "lnglat": [
+      "20",
+      "41"
+    ]
+  },
+  "DZA": {
+    "alpha3": "DZA",
+    "lnglat": [
+      "3",
+      "28"
+    ]
+  },
+  "ASM": {
+    "alpha3": "ASM",
+    "lnglat": [
+      "-170",
+      "-14.3333"
+    ]
+  },
+  "AND": {
+    "alpha3": "AND",
+    "lnglat": [
+      "1.6",
+      "42.5"
+    ]
+  },
+  "AGO": {
+    "alpha3": "AGO",
+    "lnglat": [
+      "18.5",
+      "-12.5"
+    ]
+  },
+  "AIA": {
+    "alpha3": "AIA",
+    "lnglat": [
+      "-63.1667",
+      "18.25"
+    ]
+  },
+  "ATA": {
+    "alpha3": "ATA",
+    "lnglat": [
+      "0",
+      "-90"
+    ]
+  },
+  "ATG": {
+    "alpha3": "ATG",
+    "lnglat": [
+      "-61.8",
+      "17.05"
+    ]
+  },
+  "ARG": {
+    "alpha3": "ARG",
+    "lnglat": [
+      "-64",
+      "-34"
+    ]
+  },
+  "ARM": {
+    "alpha3": "ARM",
+    "lnglat": [
+      "45",
+      "40"
+    ]
+  },
+  "ABW": {
+    "alpha3": "ABW",
+    "lnglat": [
+      "-69.9667",
+      "12.5"
+    ]
+  },
+  "AUS": {
+    "alpha3": "AUS",
+    "lnglat": [
+      "133",
+      "-27"
+    ]
+  },
+  "AUT": {
+    "alpha3": "AUT",
+    "lnglat": [
+      "13.3333",
+      "47.3333"
+    ]
+  },
+  "AZE": {
+    "alpha3": "AZE",
+    "lnglat": [
+      "47.5",
+      "40.5"
+    ]
+  },
+  "BHS": {
+    "alpha3": "BHS",
+    "lnglat": [
+      "-76",
+      "24.25"
+    ]
+  },
+  "BHR": {
+    "alpha3": "BHR",
+    "lnglat": [
+      "50.55",
+      "26"
+    ]
+  },
+  "BGD": {
+    "alpha3": "BGD",
+    "lnglat": [
+      "90",
+      "24"
+    ]
+  },
+  "BRB": {
+    "alpha3": "BRB",
+    "lnglat": [
+      "-59.5333",
+      "13.1667"
+    ]
+  },
+  "BLR": {
+    "alpha3": "BLR",
+    "lnglat": [
+      "28",
+      "53"
+    ]
+  },
+  "BEL": {
+    "alpha3": "BEL",
+    "lnglat": [
+      "4",
+      "50.8333"
+    ]
+  },
+  "BLZ": {
+    "alpha3": "BLZ",
+    "lnglat": [
+      "-88.75",
+      "17.25"
+    ]
+  },
+  "BEN": {
+    "alpha3": "BEN",
+    "lnglat": [
+      "2.25",
+      "9.5"
+    ]
+  },
+  "BMU": {
+    "alpha3": "BMU",
+    "lnglat": [
+      "-64.75",
+      "32.3333"
+    ]
+  },
+  "BTN": {
+    "alpha3": "BTN",
+    "lnglat": [
+      "90.5",
+      "27.5"
+    ]
+  },
+  "BOL": {
+    "alpha3": "BOL",
+    "lnglat": [
+      "-65",
+      "-17"
+    ]
+  },
+  "BIH": {
+    "alpha3": "BIH",
+    "lnglat": [
+      "18",
+      "44"
+    ]
+  },
+  "BWA": {
+    "alpha3": "BWA",
+    "lnglat": [
+      "24",
+      "-22"
+    ]
+  },
+  "BVT": {
+    "alpha3": "BVT",
+    "lnglat": [
+      "3.4",
+      "-54.4333"
+    ]
+  },
+  "BRA": {
+    "alpha3": "BRA",
+    "lnglat": [
+      "-55",
+      "-10"
+    ]
+  },
+  "IOT": {
+    "alpha3": "IOT",
+    "lnglat": [
+      "71.5",
+      "-6"
+    ]
+  },
+  "BRN": {
+    "alpha3": "BRN",
+    "lnglat": [
+      "114.6667",
+      "4.5"
+    ]
+  },
+  "BGR": {
+    "alpha3": "BGR",
+    "lnglat": [
+      "25",
+      "43"
+    ]
+  },
+  "BFA": {
+    "alpha3": "BFA",
+    "lnglat": [
+      "-2",
+      "13"
+    ]
+  },
+  "BDI": {
+    "alpha3": "BDI",
+    "lnglat": [
+      "30",
+      "-3.5"
+    ]
+  },
+  "KHM": {
+    "alpha3": "KHM",
+    "lnglat": [
+      "105",
+      "13"
+    ]
+  },
+  "CMR": {
+    "alpha3": "CMR",
+    "lnglat": [
+      "12",
+      "6"
+    ]
+  },
+  "CAN": {
+    "alpha3": "CAN",
+    "lnglat": [
+      "-95",
+      "60"
+    ]
+  },
+  "CPV": {
+    "alpha3": "CPV",
+    "lnglat": [
+      "-24",
+      "16"
+    ]
+  },
+  "CYM": {
+    "alpha3": "CYM",
+    "lnglat": [
+      "-80.5",
+      "19.5"
+    ]
+  },
+  "CAF": {
+    "alpha3": "CAF",
+    "lnglat": [
+      "21",
+      "7"
+    ]
+  },
+  "TCD": {
+    "alpha3": "TCD",
+    "lnglat": [
+      "19",
+      "15"
+    ]
+  },
+  "CHL": {
+    "alpha3": "CHL",
+    "lnglat": [
+      "-71",
+      "-30"
+    ]
+  },
+  "CHN": {
+    "alpha3": "CHN",
+    "lnglat": [
+      "105",
+      "35"
+    ]
+  },
+  "CXR": {
+    "alpha3": "CXR",
+    "lnglat": [
+      "105.6667",
+      "-10.5"
+    ]
+  },
+  "CCK": {
+    "alpha3": "CCK",
+    "lnglat": [
+      "96.8333",
+      "-12.5"
+    ]
+  },
+  "COL": {
+    "alpha3": "COL",
+    "lnglat": [
+      "-72",
+      "4"
+    ]
+  },
+  "COM": {
+    "alpha3": "COM",
+    "lnglat": [
+      "44.25",
+      "-12.1667"
+    ]
+  },
+  "COG": {
+    "alpha3": "COG",
+    "lnglat": [
+      "15",
+      "-1"
+    ]
+  },
+  "COD": {
+    "alpha3": "COD",
+    "lnglat": [
+      "25",
+      "0"
+    ]
+  },
+  "COK": {
+    "alpha3": "COK",
+    "lnglat": [
+      "-159.7667",
+      "-21.2333"
+    ]
+  },
+  "CRI": {
+    "alpha3": "CRI",
+    "lnglat": [
+      "-84",
+      "10"
+    ]
+  },
+  "CIV": {
+    "alpha3": "CIV",
+    "lnglat": [
+      "-5",
+      "8"
+    ]
+  },
+  "HRV": {
+    "alpha3": "HRV",
+    "lnglat": [
+      "15.5",
+      "45.1667"
+    ]
+  },
+  "CUB": {
+    "alpha3": "CUB",
+    "lnglat": [
+      "-80",
+      "21.5"
+    ]
+  },
+  "CYP": {
+    "alpha3": "CYP",
+    "lnglat": [
+      "33",
+      "35"
+    ]
+  },
+  "CZE": {
+    "alpha3": "CZE",
+    "lnglat": [
+      "15.5",
+      "49.75"
+    ]
+  },
+  "DNK": {
+    "alpha3": "DNK",
+    "lnglat": [
+      "10",
+      "56"
+    ]
+  },
+  "DJI": {
+    "alpha3": "DJI",
+    "lnglat": [
+      "43",
+      "11.5"
+    ]
+  },
+  "DMA": {
+    "alpha3": "DMA",
+    "lnglat": [
+      "-61.3333",
+      "15.4167"
+    ]
+  },
+  "DOM": {
+    "alpha3": "DOM",
+    "lnglat": [
+      "-70.6667",
+      "19"
+    ]
+  },
+  "ECU": {
+    "alpha3": "ECU",
+    "lnglat": [
+      "-77.5",
+      "-2"
+    ]
+  },
+  "EGY": {
+    "alpha3": "EGY",
+    "lnglat": [
+      "30",
+      "27"
+    ]
+  },
+  "SLV": {
+    "alpha3": "SLV",
+    "lnglat": [
+      "-88.9167",
+      "13.8333"
+    ]
+  },
+  "GNQ": {
+    "alpha3": "GNQ",
+    "lnglat": [
+      "10",
+      "2"
+    ]
+  },
+  "ERI": {
+    "alpha3": "ERI",
+    "lnglat": [
+      "39",
+      "15"
+    ]
+  },
+  "EST": {
+    "alpha3": "EST",
+    "lnglat": [
+      "26",
+      "59"
+    ]
+  },
+  "ETH": {
+    "alpha3": "ETH",
+    "lnglat": [
+      "38",
+      "8"
+    ]
+  },
+  "FLK": {
+    "alpha3": "FLK",
+    "lnglat": [
+      "-59",
+      "-51.75"
+    ]
+  },
+  "FRO": {
+    "alpha3": "FRO",
+    "lnglat": [
+      "-7",
+      "62"
+    ]
+  },
+  "FJI": {
+    "alpha3": "FJI",
+    "lnglat": [
+      "175",
+      "-18"
+    ]
+  },
+  "FIN": {
+    "alpha3": "FIN",
+    "lnglat": [
+      "26",
+      "64"
+    ]
+  },
+  "FRA": {
+    "alpha3": "FRA",
+    "lnglat": [
+      "2",
+      "46"
+    ]
+  },
+  "GUF": {
+    "alpha3": "GUF",
+    "lnglat": [
+      "-53",
+      "4"
+    ]
+  },
+  "PYF": {
+    "alpha3": "PYF",
+    "lnglat": [
+      "-140",
+      "-15"
+    ]
+  },
+  "ATF": {
+    "alpha3": "ATF",
+    "lnglat": [
+      "67",
+      "-43"
+    ]
+  },
+  "GAB": {
+    "alpha3": "GAB",
+    "lnglat": [
+      "11.75",
+      "-1"
+    ]
+  },
+  "GMB": {
+    "alpha3": "GMB",
+    "lnglat": [
+      "-16.5667",
+      "13.4667"
+    ]
+  },
+  "GEO": {
+    "alpha3": "GEO",
+    "lnglat": [
+      "43.5",
+      "42"
+    ]
+  },
+  "DEU": {
+    "alpha3": "DEU",
+    "lnglat": [
+      "9",
+      "51"
+    ]
+  },
+  "GHA": {
+    "alpha3": "GHA",
+    "lnglat": [
+      "-2",
+      "8"
+    ]
+  },
+  "GIB": {
+    "alpha3": "GIB",
+    "lnglat": [
+      "-5.3667",
+      "36.1833"
+    ]
+  },
+  "GRC": {
+    "alpha3": "GRC",
+    "lnglat": [
+      "22",
+      "39"
+    ]
+  },
+  "GRL": {
+    "alpha3": "GRL",
+    "lnglat": [
+      "-40",
+      "72"
+    ]
+  },
+  "GRD": {
+    "alpha3": "GRD",
+    "lnglat": [
+      "-61.6667",
+      "12.1167"
+    ]
+  },
+  "GLP": {
+    "alpha3": "GLP",
+    "lnglat": [
+      "-61.5833",
+      "16.25"
+    ]
+  },
+  "GUM": {
+    "alpha3": "GUM",
+    "lnglat": [
+      "144.7833",
+      "13.4667"
+    ]
+  },
+  "GTM": {
+    "alpha3": "GTM",
+    "lnglat": [
+      "-90.25",
+      "15.5"
+    ]
+  },
+  "GGY": {
+    "alpha3": "GGY",
+    "lnglat": [
+      "-2.56",
+      "49.5"
+    ]
+  },
+  "GIN": {
+    "alpha3": "GIN",
+    "lnglat": [
+      "-10",
+      "11"
+    ]
+  },
+  "GNB": {
+    "alpha3": "GNB",
+    "lnglat": [
+      "-15",
+      "12"
+    ]
+  },
+  "GUY": {
+    "alpha3": "GUY",
+    "lnglat": [
+      "-59",
+      "5"
+    ]
+  },
+  "HTI": {
+    "alpha3": "HTI",
+    "lnglat": [
+      "-72.4167",
+      "19"
+    ]
+  },
+  "HMD": {
+    "alpha3": "HMD",
+    "lnglat": [
+      "72.5167",
+      "-53.1"
+    ]
+  },
+  "VAT": {
+    "alpha3": "VAT",
+    "lnglat": [
+      "12.45",
+      "41.9"
+    ]
+  },
+  "HND": {
+    "alpha3": "HND",
+    "lnglat": [
+      "-86.5",
+      "15"
+    ]
+  },
+  "HKG": {
+    "alpha3": "HKG",
+    "lnglat": [
+      "114.1667",
+      "22.25"
+    ]
+  },
+  "HUN": {
+    "alpha3": "HUN",
+    "lnglat": [
+      "20",
+      "47"
+    ]
+  },
+  "ISL": {
+    "alpha3": "ISL",
+    "lnglat": [
+      "-18",
+      "65"
+    ]
+  },
+  "IND": {
+    "alpha3": "IND",
+    "lnglat": [
+      "77",
+      "20"
+    ]
+  },
+  "IDN": {
+    "alpha3": "IDN",
+    "lnglat": [
+      "120",
+      "-5"
+    ]
+  },
+  "IRN": {
+    "alpha3": "IRN",
+    "lnglat": [
+      "53",
+      "32"
+    ]
+  },
+  "IRQ": {
+    "alpha3": "IRQ",
+    "lnglat": [
+      "44",
+      "33"
+    ]
+  },
+  "IRL": {
+    "alpha3": "IRL",
+    "lnglat": [
+      "-8",
+      "53"
+    ]
+  },
+  "IMN": {
+    "alpha3": "IMN",
+    "lnglat": [
+      "-4.55",
+      "54.23"
+    ]
+  },
+  "ISR": {
+    "alpha3": "ISR",
+    "lnglat": [
+      "34.75",
+      "31.5"
+    ]
+  },
+  "ITA": {
+    "alpha3": "ITA",
+    "lnglat": [
+      "12.8333",
+      "42.8333"
+    ]
+  },
+  "JAM": {
+    "alpha3": "JAM",
+    "lnglat": [
+      "-77.5",
+      "18.25"
+    ]
+  },
+  "JPN": {
+    "alpha3": "JPN",
+    "lnglat": [
+      "138",
+      "36"
+    ]
+  },
+  "JEY": {
+    "alpha3": "JEY",
+    "lnglat": [
+      "-2.13",
+      "49.21"
+    ]
+  },
+  "JOR": {
+    "alpha3": "JOR",
+    "lnglat": [
+      "36",
+      "31"
+    ]
+  },
+  "KAZ": {
+    "alpha3": "KAZ",
+    "lnglat": [
+      "68",
+      "48"
+    ]
+  },
+  "KEN": {
+    "alpha3": "KEN",
+    "lnglat": [
+      "38",
+      "1"
+    ]
+  },
+  "KIR": {
+    "alpha3": "KIR",
+    "lnglat": [
+      "173",
+      "1.4167"
+    ]
+  },
+  "PRK": {
+    "alpha3": "PRK",
+    "lnglat": [
+      "127",
+      "40"
+    ]
+  },
+  "KOR": {
+    "alpha3": "KOR",
+    "lnglat": [
+      "127.5",
+      "37"
+    ]
+  },
+  "KWT": {
+    "alpha3": "KWT",
+    "lnglat": [
+      "47.6581",
+      "29.3375"
+    ]
+  },
+  "KGZ": {
+    "alpha3": "KGZ",
+    "lnglat": [
+      "75",
+      "41"
+    ]
+  },
+  "LAO": {
+    "alpha3": "LAO",
+    "lnglat": [
+      "105",
+      "18"
+    ]
+  },
+  "LVA": {
+    "alpha3": "LVA",
+    "lnglat": [
+      "25",
+      "57"
+    ]
+  },
+  "LBN": {
+    "alpha3": "LBN",
+    "lnglat": [
+      "35.8333",
+      "33.8333"
+    ]
+  },
+  "LSO": {
+    "alpha3": "LSO",
+    "lnglat": [
+      "28.5",
+      "-29.5"
+    ]
+  },
+  "LBR": {
+    "alpha3": "LBR",
+    "lnglat": [
+      "-9.5",
+      "6.5"
+    ]
+  },
+  "LBY": {
+    "alpha3": "LBY",
+    "lnglat": [
+      "17",
+      "25"
+    ]
+  },
+  "LIE": {
+    "alpha3": "LIE",
+    "lnglat": [
+      "9.5333",
+      "47.1667"
+    ]
+  },
+  "LTU": {
+    "alpha3": "LTU",
+    "lnglat": [
+      "24",
+      "56"
+    ]
+  },
+  "LUX": {
+    "alpha3": "LUX",
+    "lnglat": [
+      "6.1667",
+      "49.75"
+    ]
+  },
+  "MAC": {
+    "alpha3": "MAC",
+    "lnglat": [
+      "113.55",
+      "22.1667"
+    ]
+  },
+  "MKD": {
+    "alpha3": "MKD",
+    "lnglat": [
+      "22",
+      "41.8333"
+    ]
+  },
+  "MDG": {
+    "alpha3": "MDG",
+    "lnglat": [
+      "47",
+      "-20"
+    ]
+  },
+  "MWI": {
+    "alpha3": "MWI",
+    "lnglat": [
+      "34",
+      "-13.5"
+    ]
+  },
+  "MYS": {
+    "alpha3": "MYS",
+    "lnglat": [
+      "112.5",
+      "2.5"
+    ]
+  },
+  "MDV": {
+    "alpha3": "MDV",
+    "lnglat": [
+      "73",
+      "3.25"
+    ]
+  },
+  "MLI": {
+    "alpha3": "MLI",
+    "lnglat": [
+      "-4",
+      "17"
+    ]
+  },
+  "MLT": {
+    "alpha3": "MLT",
+    "lnglat": [
+      "14.5833",
+      "35.8333"
+    ]
+  },
+  "MHL": {
+    "alpha3": "MHL",
+    "lnglat": [
+      "168",
+      "9"
+    ]
+  },
+  "MTQ": {
+    "alpha3": "MTQ",
+    "lnglat": [
+      "-61",
+      "14.6667"
+    ]
+  },
+  "MRT": {
+    "alpha3": "MRT",
+    "lnglat": [
+      "-12",
+      "20"
+    ]
+  },
+  "MUS": {
+    "alpha3": "MUS",
+    "lnglat": [
+      "57.55",
+      "-20.2833"
+    ]
+  },
+  "MYT": {
+    "alpha3": "MYT",
+    "lnglat": [
+      "45.1667",
+      "-12.8333"
+    ]
+  },
+  "MEX": {
+    "alpha3": "MEX",
+    "lnglat": [
+      "-102",
+      "23"
+    ]
+  },
+  "FSM": {
+    "alpha3": "FSM",
+    "lnglat": [
+      "158.25",
+      "6.9167"
+    ]
+  },
+  "MDA": {
+    "alpha3": "MDA",
+    "lnglat": [
+      "29",
+      "47"
+    ]
+  },
+  "MCO": {
+    "alpha3": "MCO",
+    "lnglat": [
+      "7.4",
+      "43.7333"
+    ]
+  },
+  "MNG": {
+    "alpha3": "MNG",
+    "lnglat": [
+      "105",
+      "46"
+    ]
+  },
+  "MNE": {
+    "alpha3": "MNE",
+    "lnglat": [
+      "19",
+      "42"
+    ]
+  },
+  "MSR": {
+    "alpha3": "MSR",
+    "lnglat": [
+      "-62.2",
+      "16.75"
+    ]
+  },
+  "MAR": {
+    "alpha3": "MAR",
+    "lnglat": [
+      "-5",
+      "32"
+    ]
+  },
+  "MOZ": {
+    "alpha3": "MOZ",
+    "lnglat": [
+      "35",
+      "-18.25"
+    ]
+  },
+  "MMR": {
+    "alpha3": "MMR",
+    "lnglat": [
+      "98",
+      "22"
+    ]
+  },
+  "NAM": {
+    "alpha3": "NAM",
+    "lnglat": [
+      "17",
+      "-22"
+    ]
+  },
+  "NRU": {
+    "alpha3": "NRU",
+    "lnglat": [
+      "166.9167",
+      "-0.5333"
+    ]
+  },
+  "NPL": {
+    "alpha3": "NPL",
+    "lnglat": [
+      "84",
+      "28"
+    ]
+  },
+  "NLD": {
+    "alpha3": "NLD",
+    "lnglat": [
+      "5.75",
+      "52.5"
+    ]
+  },
+  "ANT": {
+    "alpha3": "ANT",
+    "lnglat": [
+      "-68.75",
+      "12.25"
+    ]
+  },
+  "NCL": {
+    "alpha3": "NCL",
+    "lnglat": [
+      "165.5",
+      "-21.5"
+    ]
+  },
+  "NZL": {
+    "alpha3": "NZL",
+    "lnglat": [
+      "174",
+      "-41"
+    ]
+  },
+  "NIC": {
+    "alpha3": "NIC",
+    "lnglat": [
+      "-85",
+      "13"
+    ]
+  },
+  "NER": {
+    "alpha3": "NER",
+    "lnglat": [
+      "8",
+      "16"
+    ]
+  },
+  "NGA": {
+    "alpha3": "NGA",
+    "lnglat": [
+      "8",
+      "10"
+    ]
+  },
+  "NIU": {
+    "alpha3": "NIU",
+    "lnglat": [
+      "-169.8667",
+      "-19.0333"
+    ]
+  },
+  "NFK": {
+    "alpha3": "NFK",
+    "lnglat": [
+      "167.95",
+      "-29.0333"
+    ]
+  },
+  "MNP": {
+    "alpha3": "MNP",
+    "lnglat": [
+      "145.75",
+      "15.2"
+    ]
+  },
+  "NOR": {
+    "alpha3": "NOR",
+    "lnglat": [
+      "10",
+      "62"
+    ]
+  },
+  "OMN": {
+    "alpha3": "OMN",
+    "lnglat": [
+      "57",
+      "21"
+    ]
+  },
+  "PAK": {
+    "alpha3": "PAK",
+    "lnglat": [
+      "70",
+      "30"
+    ]
+  },
+  "PLW": {
+    "alpha3": "PLW",
+    "lnglat": [
+      "134.5",
+      "7.5"
+    ]
+  },
+  "PSE": {
+    "alpha3": "PSE",
+    "lnglat": [
+      "35.25",
+      "32"
+    ]
+  },
+  "PAN": {
+    "alpha3": "PAN",
+    "lnglat": [
+      "-80",
+      "9"
+    ]
+  },
+  "PNG": {
+    "alpha3": "PNG",
+    "lnglat": [
+      "147",
+      "-6"
+    ]
+  },
+  "PRY": {
+    "alpha3": "PRY",
+    "lnglat": [
+      "-58",
+      "-23"
+    ]
+  },
+  "PER": {
+    "alpha3": "PER",
+    "lnglat": [
+      "-76",
+      "-10"
+    ]
+  },
+  "PHL": {
+    "alpha3": "PHL",
+    "lnglat": [
+      "122",
+      "13"
+    ]
+  },
+  "PCN": {
+    "alpha3": "PCN",
+    "lnglat": [
+      "-127.4",
+      "-24.7"
+    ]
+  },
+  "POL": {
+    "alpha3": "POL",
+    "lnglat": [
+      "20",
+      "52"
+    ]
+  },
+  "PRT": {
+    "alpha3": "PRT",
+    "lnglat": [
+      "-8",
+      "39.5"
+    ]
+  },
+  "PRI": {
+    "alpha3": "PRI",
+    "lnglat": [
+      "-66.5",
+      "18.25"
+    ]
+  },
+  "QAT": {
+    "alpha3": "QAT",
+    "lnglat": [
+      "51.25",
+      "25.5"
+    ]
+  },
+  "REU": {
+    "alpha3": "REU",
+    "lnglat": [
+      "55.6",
+      "-21.1"
+    ]
+  },
+  "ROU": {
+    "alpha3": "ROU",
+    "lnglat": [
+      "25",
+      "46"
+    ]
+  },
+  "RUS": {
+    "alpha3": "RUS",
+    "lnglat": [
+      "100",
+      "60"
+    ]
+  },
+  "RWA": {
+    "alpha3": "RWA",
+    "lnglat": [
+      "30",
+      "-2"
+    ]
+  },
+  "SHN": {
+    "alpha3": "SHN",
+    "lnglat": [
+      "-5.7",
+      "-15.9333"
+    ]
+  },
+  "KNA": {
+    "alpha3": "KNA",
+    "lnglat": [
+      "-62.75",
+      "17.3333"
+    ]
+  },
+  "LCA": {
+    "alpha3": "LCA",
+    "lnglat": [
+      "-61.1333",
+      "13.8833"
+    ]
+  },
+  "SPM": {
+    "alpha3": "SPM",
+    "lnglat": [
+      "-56.3333",
+      "46.8333"
+    ]
+  },
+  "VCT": {
+    "alpha3": "VCT",
+    "lnglat": [
+      "-61.2",
+      "13.25"
+    ]
+  },
+  "WSM": {
+    "alpha3": "WSM",
+    "lnglat": [
+      "-172.3333",
+      "-13.5833"
+    ]
+  },
+  "SMR": {
+    "alpha3": "SMR",
+    "lnglat": [
+      "12.4167",
+      "43.7667"
+    ]
+  },
+  "STP": {
+    "alpha3": "STP",
+    "lnglat": [
+      "7",
+      "1"
+    ]
+  },
+  "SAU": {
+    "alpha3": "SAU",
+    "lnglat": [
+      "45",
+      "25"
+    ]
+  },
+  "SEN": {
+    "alpha3": "SEN",
+    "lnglat": [
+      "-14",
+      "14"
+    ]
+  },
+  "SRB": {
+    "alpha3": "SRB",
+    "lnglat": [
+      "21",
+      "44"
+    ]
+  },
+  "SYC": {
+    "alpha3": "SYC",
+    "lnglat": [
+      "55.6667",
+      "-4.5833"
+    ]
+  },
+  "SLE": {
+    "alpha3": "SLE",
+    "lnglat": [
+      "-11.5",
+      "8.5"
+    ]
+  },
+  "SGP": {
+    "alpha3": "SGP",
+    "lnglat": [
+      "103.8",
+      "1.3667"
+    ]
+  },
+  "SVK": {
+    "alpha3": "SVK",
+    "lnglat": [
+      "19.5",
+      "48.6667"
+    ]
+  },
+  "SVN": {
+    "alpha3": "SVN",
+    "lnglat": [
+      "15",
+      "46"
+    ]
+  },
+  "SLB": {
+    "alpha3": "SLB",
+    "lnglat": [
+      "159",
+      "-8"
+    ]
+  },
+  "SOM": {
+    "alpha3": "SOM",
+    "lnglat": [
+      "49",
+      "10"
+    ]
+  },
+  "ZAF": {
+    "alpha3": "ZAF",
+    "lnglat": [
+      "24",
+      "-29"
+    ]
+  },
+  "SGS": {
+    "alpha3": "SGS",
+    "lnglat": [
+      "-37",
+      "-54.5"
+    ]
+  },
+  "SSD": {
+    "alpha3": "SSD",
+    "lnglat": [
+      "30",
+      "8"
+    ]
+  },
+  "ESP": {
+    "alpha3": "ESP",
+    "lnglat": [
+      "-4",
+      "40"
+    ]
+  },
+  "LKA": {
+    "alpha3": "LKA",
+    "lnglat": [
+      "81",
+      "7"
+    ]
+  },
+  "SDN": {
+    "alpha3": "SDN",
+    "lnglat": [
+      "30",
+      "15"
+    ]
+  },
+  "SUR": {
+    "alpha3": "SUR",
+    "lnglat": [
+      "-56",
+      "4"
+    ]
+  },
+  "SJM": {
+    "alpha3": "SJM",
+    "lnglat": [
+      "20",
+      "78"
+    ]
+  },
+  "SWZ": {
+    "alpha3": "SWZ",
+    "lnglat": [
+      "31.5",
+      "-26.5"
+    ]
+  },
+  "SWE": {
+    "alpha3": "SWE",
+    "lnglat": [
+      "15",
+      "62"
+    ]
+  },
+  "CHE": {
+    "alpha3": "CHE",
+    "lnglat": [
+      "8",
+      "47"
+    ]
+  },
+  "SYR": {
+    "alpha3": "SYR",
+    "lnglat": [
+      "38",
+      "35"
+    ]
+  },
+  "TWN": {
+    "alpha3": "TWN",
+    "lnglat": [
+      "121",
+      "23.5"
+    ]
+  },
+  "TJK": {
+    "alpha3": "TJK",
+    "lnglat": [
+      "71",
+      "39"
+    ]
+  },
+  "TZA": {
+    "alpha3": "TZA",
+    "lnglat": [
+      "35",
+      "-6"
+    ]
+  },
+  "THA": {
+    "alpha3": "THA",
+    "lnglat": [
+      "100",
+      "15"
+    ]
+  },
+  "TLS": {
+    "alpha3": "TLS",
+    "lnglat": [
+      "125.5167",
+      "-8.55"
+    ]
+  },
+  "TGO": {
+    "alpha3": "TGO",
+    "lnglat": [
+      "1.1667",
+      "8"
+    ]
+  },
+  "TKL": {
+    "alpha3": "TKL",
+    "lnglat": [
+      "-172",
+      "-9"
+    ]
+  },
+  "TON": {
+    "alpha3": "TON",
+    "lnglat": [
+      "-175",
+      "-20"
+    ]
+  },
+  "TTO": {
+    "alpha3": "TTO",
+    "lnglat": [
+      "-61",
+      "11"
+    ]
+  },
+  "TUN": {
+    "alpha3": "TUN",
+    "lnglat": [
+      "9",
+      "34"
+    ]
+  },
+  "TUR": {
+    "alpha3": "TUR",
+    "lnglat": [
+      "35",
+      "39"
+    ]
+  },
+  "TKM": {
+    "alpha3": "TKM",
+    "lnglat": [
+      "60",
+      "40"
+    ]
+  },
+  "TCA": {
+    "alpha3": "TCA",
+    "lnglat": [
+      "-71.5833",
+      "21.75"
+    ]
+  },
+  "TUV": {
+    "alpha3": "TUV",
+    "lnglat": [
+      "178",
+      "-8"
+    ]
+  },
+  "UGA": {
+    "alpha3": "UGA",
+    "lnglat": [
+      "32",
+      "1"
+    ]
+  },
+  "UKR": {
+    "alpha3": "UKR",
+    "lnglat": [
+      "32",
+      "49"
+    ]
+  },
+  "ARE": {
+    "alpha3": "ARE",
+    "lnglat": [
+      "54",
+      "24"
+    ]
+  },
+  "GBR": {
+    "alpha3": "GBR",
+    "lnglat": [
+      "-2",
+      "54"
+    ]
+  },
+  "USA": {
+    "alpha3": "USA",
+    "lnglat": [
+      "-97",
+      "38"
+    ]
+  },
+  "UMI": {
+    "alpha3": "UMI",
+    "lnglat": [
+      "166.6",
+      "19.2833"
+    ]
+  },
+  "URY": {
+    "alpha3": "URY",
+    "lnglat": [
+      "-56",
+      "-33"
+    ]
+  },
+  "UZB": {
+    "alpha3": "UZB",
+    "lnglat": [
+      "64",
+      "41"
+    ]
+  },
+  "VUT": {
+    "alpha3": "VUT",
+    "lnglat": [
+      "167",
+      "-16"
+    ]
+  },
+  "VEN": {
+    "alpha3": "VEN",
+    "lnglat": [
+      "-66",
+      "8"
+    ]
+  },
+  "VNM": {
+    "alpha3": "VNM",
+    "lnglat": [
+      "106",
+      "16"
+    ]
+  },
+  "VGB": {
+    "alpha3": "VGB",
+    "lnglat": [
+      "-64.5",
+      "18.5"
+    ]
+  },
+  "VIR": {
+    "alpha3": "VIR",
+    "lnglat": [
+      "-64.8333",
+      "18.3333"
+    ]
+  },
+  "WLF": {
+    "alpha3": "WLF",
+    "lnglat": [
+      "-176.2",
+      "-13.3"
+    ]
+  },
+  "ESH": {
+    "alpha3": "ESH",
+    "lnglat": [
+      "-13",
+      "24.5"
+    ]
+  },
+  "YEM": {
+    "alpha3": "YEM",
+    "lnglat": [
+      "48",
+      "15"
+    ]
+  },
+  "ZMB": {
+    "alpha3": "ZMB",
+    "lnglat": [
+      "30",
+      "-15"
+    ]
+  },
+  "ZWE": {
+    "alpha3": "ZWE",
+    "lnglat": [
+      "30",
+      "-20"
+    ]
+  }
+}

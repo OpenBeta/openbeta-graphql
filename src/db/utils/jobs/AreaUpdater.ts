@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { BBox, Point, feature, featureCollection } from '@turf/helpers'
+import { feature, geometry, featureCollection, Feature, BBox, Point } from '@turf/helpers'
 import centroid from '@turf/centroid'
 import pLimit from 'p-limit'
 
@@ -98,6 +98,29 @@ const leafReducer = (node: AreaType): ResultType => {
 }
 
 /**
+ * Calculate a center from multiple areas
+ * @param array of areas
+ * @returns new center (Point)
+ */
+const calculateNewCenterFromNodes = (nodes: ResultType[]): Point => {
+  // Convert area array to Geojson Feature array
+  const arrayOfFeatures = nodes.reduce<Feature[]>((acc, curr) => {
+    if (curr.lnglat.coordinates[0] !== 0 && curr.lnglat.coordinates[1] !== 0) {
+      // non-default coordinates  --> geojson feature
+      acc.push(feature(curr.lnglat))
+    }
+    return acc
+  }, [])
+
+  if (arrayOfFeatures.length > 0) {
+    // - convert array of features to a feature collection
+    // - calculate centroid
+    return centroid(featureCollection(arrayOfFeatures)).geometry
+  }
+  return geometry('Point', [0, 0]) as Point
+}
+
+/**
  * Calculate stats from a list of nodes
  * @param result nodes
  * @param parent parent node to save stats to
@@ -136,9 +159,7 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
     }
   }, initial)
 
-  // Calculate a center for all crags
-  const collectionOfAreas = featureCollection(result.map(item => feature(item.lnglat)))
-  const calculatedParentCenter = centroid(collectionOfAreas).geometry
+  const calculatedParentCenter = calculateNewCenterFromNodes(result)
   z.lnglat = calculatedParentCenter
   z.density = areaDensity(z.bbox, z.totalClimbs)
 
