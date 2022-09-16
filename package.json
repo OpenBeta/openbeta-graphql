@@ -25,7 +25,6 @@
     "@turf/centroid": "^6.5.0",
     "@turf/circle": "^6.5.0",
     "@types/uuid": "^8.3.3",
-    "algoliasearch": "^4.11.0",
     "apollo-datasource-mongodb": "^0.5.4",
     "apollo-server": "^3.9.0",
     "cors": "^2.8.5",
