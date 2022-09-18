@@ -88,10 +88,10 @@ describe('Areas', () => {
 
     let usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
 
-    // verify number of child areas
+    // verify number of child areas in parent
     expect(usaInDB.children as any[]).toHaveLength(3)
 
-    // verify child area IDs
+    // verify child area IDs in parent
     expect(usaInDB.children).toMatchObject([
       muuid.from(ca.metadata.area_id).toUUID(),
       muuid.from(or.metadata.area_id).toUUID(),
@@ -107,6 +107,9 @@ describe('Areas', () => {
       muuid.from(or.metadata.area_id).toUUID(),
       muuid.from(wa.metadata.area_id).toUUID()
     ])
+
+    const deletedAreaInDb = await areas.findOneAreaByUUID(ca.metadata.area_id)
+    expect(deletedAreaInDb).toBeNull()
   })
 
   it('should not delete a subarea containing children', async () => {
