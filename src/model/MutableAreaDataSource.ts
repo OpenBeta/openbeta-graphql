@@ -225,7 +225,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
             $filter: {
               input: '$children',
               as: 'child',
-              cond: { $eq: ['$$child._id', area._id] }
+              cond: { $ne: ['$$child', area._id] }
             }
           },
           '_change.prevHistoryId': '$_change.historyId',

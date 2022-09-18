@@ -77,30 +77,39 @@ describe('Areas', () => {
   })
 
   it('should delete a subarea', async () => {
-    const us = await areas.addCountry(testUser, 'usa')
-    const cali = await areas.addArea(testUser, 'California', us.metadata.area_id)
+    const usa = await areas.addCountry(testUser, 'usa')
+    const ca = await areas.addArea(testUser, 'CA', usa.metadata.area_id)
+    const or = await areas.addArea(testUser, 'OR', usa.metadata.area_id)
+    const wa = await areas.addArea(testUser, 'WA', usa.metadata.area_id)
 
-    if (cali == null) {
-      fail('California should not be null')
+    if (ca == null || or == null || wa == null) {
+      fail('Child area is null')
     }
 
-    const theValley = await areas.addArea(testUser, 'Yosemite Valley', cali?.metadata.area_id)
+    let usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
 
-    if (theValley == null) {
-      fail('Yosemite Valley should not be null')
-    }
+    // verify number of child areas in parent
+    expect(usaInDB.children as any[]).toHaveLength(3)
 
-    let caliInDb = await areas.findOneAreaByUUID(cali.metadata.area_id)
-    expect(caliInDb.children.length).toEqual(1)
+    // verify child area IDs in parent
+    expect(usaInDB.children).toMatchObject([
+      muuid.from(ca.metadata.area_id).toUUID(),
+      muuid.from(or.metadata.area_id).toUUID(),
+      muuid.from(wa.metadata.area_id).toUUID()
+    ])
 
-    const deletedArea = await areas.deleteArea(testUser, theValley.metadata.area_id)
-    expect(deletedArea?.area_name).toEqual('Yosemite Valley')
+    await areas.deleteArea(testUser, ca.metadata.area_id)
 
-    const theValleyInDb = await areas.findOneAreaByUUID(theValley?.metadata.area_id)
-    expect(theValleyInDb).toBeNull()
+    usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
+    // verify child area IDs (one less than before)
+    expect(usaInDB.children as any[]).toHaveLength(2)
+    expect(usaInDB.children).toMatchObject([
+      muuid.from(or.metadata.area_id).toUUID(),
+      muuid.from(wa.metadata.area_id).toUUID()
+    ])
 
-    caliInDb = await areas.findOneAreaByUUID(cali.metadata.area_id)
-    expect(caliInDb.children.length).toEqual(0)
+    const deletedAreaInDb = await areas.findOneAreaByUUID(ca.metadata.area_id)
+    expect(deletedAreaInDb).toBeNull()
   })
 
   it('should not delete a subarea containing children', async () => {
