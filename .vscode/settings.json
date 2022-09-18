@@ -1,5 +1,12 @@
 {
     "standard.enable": true,
     "standard.engine": "ts-standard",
-    "standard.treatErrorsAsWarnings": true
+    "standard.treatErrorsAsWarnings": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true,
+    "cSpell.words": [
+        "bson",
+        "openbeta",
+        "pymongo"
+    ]
 }
