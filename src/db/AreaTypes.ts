@@ -38,6 +38,15 @@ export interface IAreaContent {
   description?: string
 }
 
+export interface AreaEditableFieldsType {
+  areaName?: string
+  description?: string
+  isDestination?: boolean
+  shortCode?: string
+  lat: number
+  lng: number
+}
+
 export interface CountByGroupType {
   count: number
   label: string

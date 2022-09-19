@@ -48,6 +48,20 @@ const AreaMutations = {
       user.uuid, name,
       parentUuid == null ? null : muuid.from(parentUuid),
       countryCode)
+  },
+
+  editArea: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType | null> => {
+    const { areas } = dataSources
+
+    if (user?.uuid == null) throw new Error('Missing user uuid')
+    if (input?.uuid == null) throw new Error('Missing area uuid')
+
+    const areaUuid = muuid.from(input.uuid)
+    return await areas.editArea(
+      user.uuid,
+      areaUuid,
+      input
+    )
   }
 
 }

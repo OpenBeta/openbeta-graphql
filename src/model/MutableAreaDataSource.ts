@@ -6,7 +6,7 @@ import { produce } from 'immer'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
-import { AreaType, OperationType } from '../db/AreaTypes.js'
+import { AreaType, AreaEditableFieldsType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
 import { createRootNode, getUUID } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
@@ -258,6 +258,46 @@ export default class MutableAreaDataSource extends AreaDataSource {
         timestamps: false,
         returnOriginal: true
       }).session(session).lean()
+  }
+
+  async editArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<AreaType | null> {
+    const _editArea = async (session: ClientSession, user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<any> => {
+      const filter = {
+        'metadata.area_id': areaUuid,
+        deleting: { $ne: null }
+      }
+      const area = await this.areaModel.findOne(filter).session(session)
+
+      if (area == null) {
+        throw new Error('Area edit error.  Reason: area not found.')
+      }
+
+      const { areaName, description, shortCode, isDestination, lat, lng } = document
+
+      if (areaName != null) area.set({ area_name: areaName })
+      if (description != null) area.set({ 'content.description': description })
+      if (shortCode != null) area.set({ shortCode })
+      if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        area.set({
+          'metadata.lnglat': geometry('Point', [lng, lat])
+        })
+      }
+      await area.save()
+      return area
+    }
+
+    const session = await this.areaModel.startSession()
+    let ret: AreaType | null = null
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async session => {
+        ret = await _editArea(session, user, areaUuid, document)
+        return ret
+      })
+    return ret
   }
 }
 
