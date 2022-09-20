@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
-import { geometry, Point } from '@turf/helpers'
-
+import { geometry } from '@turf/helpers'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
