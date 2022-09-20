@@ -59,15 +59,21 @@ const AreaMutations = {
     const { lat, lng } = input
     if (lat != null && !isLatitude(lat)) throw Error('Invalid latitude')
     if (lng != null && !isLongitude(lng)) throw Error('Invalid longitude')
+    if (lat == null || lng == null) throw Error('Must provide both latitude and longitude')
 
     const areaUuid = muuid.from(input.uuid)
+
+    // Except for 'uuid' other fields are optional, check to see if there are any fields
+    // besides 'uuid'
+    const fields = Object.keys(input).filter(key => key !== 'uuid')
+    if (fields.length === 0) return null
+
     return await areas.updateArea(
       user.uuid,
       areaUuid,
       input
     )
   }
-
 }
 
 export default AreaMutations

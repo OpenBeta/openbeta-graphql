@@ -290,7 +290,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
       if (areaName != null) area.set({ area_name: areaName })
       if (description != null) area.set({ 'content.description': description })
-      if (shortCode != null) area.set({ shortCode })
+      if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
       if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
 
       if (lat != null && lng != null) { // we should already validate lat,lng before in GQL layer
@@ -298,6 +298,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
           'metadata.lnglat': geometry('Point', [lng, lat])
         })
       }
+
+      if (!area.isModified()) {
+        return area.toObject()
+      }
+
       const opType = OperationType.updateArea
       const change = await changelogDataSource.create(session, user, opType)
 
