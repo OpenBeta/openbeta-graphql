@@ -48,8 +48,35 @@ const AreaMutations = {
       user.uuid, name,
       parentUuid == null ? null : muuid.from(parentUuid),
       countryCode)
-  }
+  },
 
+  updateArea: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType | null> => {
+    const { areas } = dataSources
+
+    if (user?.uuid == null) throw new Error('Missing user uuid')
+    if (input?.uuid == null) throw new Error('Missing area uuid')
+
+    const { lat, lng } = input
+    if (lat != null && !isLatitude(lat)) throw Error('Invalid latitude')
+    if (lng != null && !isLongitude(lng)) throw Error('Invalid longitude')
+    if (lat == null || lng == null) throw Error('Must provide both latitude and longitude')
+
+    const areaUuid = muuid.from(input.uuid)
+
+    // Except for 'uuid' other fields are optional, check to see if there are any fields
+    // besides 'uuid'
+    const fields = Object.keys(input).filter(key => key !== 'uuid')
+    if (fields.length === 0) return null
+
+    return await areas.updateArea(
+      user.uuid,
+      areaUuid,
+      input
+    )
+  }
 }
 
 export default AreaMutations
+
+const isLatitude = (num: number): boolean => isFinite(num) && Math.abs(num) <= 90
+const isLongitude = (num: number): boolean => isFinite(num) && Math.abs(num) <= 180

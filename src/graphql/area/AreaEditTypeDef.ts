@@ -17,6 +17,10 @@ const AreaEditTypeDefs = gql`
     removeArea(input: RemoveAreaInput): Area
   }
 
+  type Mutation {
+    updateArea(input: AreEditableFieldsInput): Area
+  }
+
   input DestinationFlagInput {
     id: ID!
     flag: Boolean!
@@ -35,6 +39,16 @@ const AreaEditTypeDefs = gql`
 
   input RemoveAreaInput {
     uuid: String!
+  }
+
+  input AreEditableFieldsInput {
+    uuid: String!
+    areaName: String
+    isDestination: Boolean
+    shortCode: String
+    lat: Float
+    lng: Float
+    description: String
   }
 `
 

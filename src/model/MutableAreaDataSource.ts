@@ -6,7 +6,7 @@ import { produce } from 'immer'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
-import { AreaType, OperationType } from '../db/AreaTypes.js'
+import { AreaType, AreaEditableFieldsType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
 import { createRootNode, getUUID } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
@@ -258,6 +258,77 @@ export default class MutableAreaDataSource extends AreaDataSource {
         timestamps: false,
         returnOriginal: true
       }).session(session).lean()
+  }
+
+  /**
+   * Update one or more area fields.
+   *
+   * *Note*: Users may not update country name and short code.
+   * @param user
+   * @param areaUuid Area uuid to be updated
+   * @param document New fields
+   * @returns Newly updated area
+   */
+  async updateArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<AreaType | null> {
+    const _updateArea = async (session: ClientSession, user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<any> => {
+      const filter = {
+        'metadata.area_id': areaUuid,
+        deleting: { $ne: null }
+      }
+      const area = await this.areaModel.findOne(filter).session(session)
+
+      if (area == null) {
+        throw new Error('Area update error.  Reason: area not found.')
+      }
+
+      const { areaName, description, shortCode, isDestination, lat, lng } = document
+
+      if (area.pathTokens.length === 1) {
+        if (areaName != null) throw new Error('Area update error.  Reason: updating country name is not allowed.')
+        if (shortCode != null) throw new Error('Area update error.  Reason: updating country short code is not allowed.')
+      }
+
+      if (areaName != null) area.set({ area_name: areaName })
+      if (description != null) area.set({ 'content.description': description })
+      if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
+      if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
+
+      if (lat != null && lng != null) { // we should already validate lat,lng before in GQL layer
+        area.set({
+          'metadata.lnglat': geometry('Point', [lng, lat])
+        })
+      }
+
+      if (!area.isModified()) {
+        return area.toObject()
+      }
+
+      const opType = OperationType.updateArea
+      const change = await changelogDataSource.create(session, user, opType)
+
+      const _change: ChangeRecordMetadataType = {
+        user,
+        historyId: change._id,
+        prevHistoryId: area._change?.historyId._id,
+        operation: opType,
+        seq: 0
+      }
+      area.set({ _change })
+      const cursor = await area.save()
+      return cursor.toObject()
+    }
+
+    const session = await this.areaModel.startSession()
+    let ret: AreaType | null = null
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async session => {
+        ret = await _updateArea(session, user, areaUuid, document)
+        return ret
+      })
+    return ret
   }
 }
 

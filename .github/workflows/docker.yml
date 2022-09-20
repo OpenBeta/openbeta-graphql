@@ -22,8 +22,8 @@ jobs:
       - name: Install Dependencies and lint code
         run: yarn install && yarn lint
 
-      - name: Build
-        run: yarn build
+      - name: Test build
+        run: yarn build-release
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2

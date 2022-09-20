@@ -36,11 +36,8 @@ jobs:
            source .env && \
            mongo admin --eval "db.createUser({user: '${MONGO_INITDB_ROOT_USERNAME}', pwd: '${MONGO_INITDB_ROOT_PASSWORD}', roles: ['readWrite']})"
 
-      - name: Lint and test
+      - name: Build and run tests
         run: yarn test
         env:
           NODE_OPTIONS: --experimental-vm-modules
-
-      - name: Build
-        run: yarn build
 
