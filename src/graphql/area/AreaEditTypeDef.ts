@@ -46,8 +46,8 @@ const AreaEditTypeDefs = gql`
     areaName: String
     isDestination: Boolean
     shortCode: String
-    lat: Number
-    lng: Number
+    lat: Float
+    lng: Float
     description: String
   }
 `

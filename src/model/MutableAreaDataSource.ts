@@ -298,6 +298,17 @@ export default class MutableAreaDataSource extends AreaDataSource {
           'metadata.lnglat': geometry('Point', [lng, lat])
         })
       }
+      const opType = OperationType.updateArea
+      const change = await changelogDataSource.create(session, user, opType)
+
+      const _change: ChangeRecordMetadataType = {
+        user,
+        historyId: change._id,
+        prevHistoryId: area._change?.historyId._id,
+        operation: opType,
+        seq: 0
+      }
+      area.set({ _change })
       const cursor = await area.save()
       return cursor.toObject()
     }

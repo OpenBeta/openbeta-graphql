@@ -100,7 +100,7 @@ export const AreaSchema = new Schema<AreaType>({
   totalClimbs: { type: Number },
   _change: ChangeRecordMetadata,
   _deleting: { type: Date }
-})
+}, { timestamps: true })
 
 AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
 

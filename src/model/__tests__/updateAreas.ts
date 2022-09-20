@@ -113,6 +113,10 @@ describe('Areas', () => {
     const country = await areas.addCountry(testUser, 'lao')
     if (country == null) fail()
     await expect(areas.updateArea(testUser, country.metadata.area_id, { areaName: 'Foo' })).rejects.toThrowError()
+
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 2000))
+
     await expect(areas.updateArea(testUser, country.metadata.area_id, { shortCode: 'Foo' })).rejects.toThrowError()
   })
 

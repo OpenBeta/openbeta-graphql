@@ -82,5 +82,6 @@ export enum OperationType {
   addCountry = 'addCountry',
   addArea = 'addArea',
   deleteArea = 'deleteArea',
-  updateDestination = 'updateDestination'
+  updateDestination = 'updateDestination',
+  updateArea = 'updateArea'
 }

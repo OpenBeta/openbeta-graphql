@@ -15,6 +15,7 @@ export const typeDef = gql`
     uuid: ID!
     area_name: String!
     areaName: String!
+    shortCode: String
     metadata: AreaMetadata!
     climbs: [Climb]
     children: [Area]
@@ -26,6 +27,8 @@ export const typeDef = gql`
     density: Float!
     totalClimbs: Int!
     media: [MediaTagType]
+    createdAt: Date
+    updatedAt: Date
   }
 
   type AreaMetadata {
