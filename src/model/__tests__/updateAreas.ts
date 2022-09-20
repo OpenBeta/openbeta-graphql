@@ -1,8 +1,11 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
+import { geometry, Point } from '@turf/helpers'
+
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
+import { AreaEditableFieldsType } from '../../db/AreaTypes.js'
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource
@@ -74,6 +77,39 @@ describe('Areas', () => {
     const countryInDb = await areas.findOneAreaByUUID(country.metadata.area_id)
     expect(countryInDb.children.length).toEqual(1)
     expect(countryInDb.children[0]).toEqual(area?._id)
+  })
+
+  it('should update multiple fields', async () => {
+    await areas.addCountry(testUser, 'au')
+    const a1 = await areas.addArea(testUser, 'One', null, 'au')
+
+    if (a1 == null) {
+      fail()
+    }
+
+    const doc1: AreaEditableFieldsType = {
+      areaName: '1',
+      shortCode: 'ONE',
+      description: 'This is a cool area.'
+    }
+    let a1Updated = await areas.updateArea(testUser, a1?.metadata.area_id, doc1)
+
+    // expect(a1Updated).toMatchObject()
+    expect(a1Updated?.shortCode).toEqual(doc1.shortCode)
+
+    const doc2: AreaEditableFieldsType = {
+      lat: 46.433333,
+      lng: 11.85
+    }
+    a1Updated = await areas.updateArea(testUser, a1?.metadata.area_id, doc2)
+    expect(a1Updated?.metadata.lnglat).toEqual(geometry('Point', [doc2.lng, doc2.lat]))
+
+    // const doc3: AreaEditableFieldsType = {
+    //   lat: 46.433333,
+    //   lng: 11.85
+    // }
+    // a1Updated = await areas.updateArea(testUser, a1?.metadata.area_id, doc2)
+    // expect(a1Updated?.metadata.lnglat).toEqual(geometry('Point', [doc2.lng, doc2.lat]))
   })
 
   it('should delete a subarea', async () => {

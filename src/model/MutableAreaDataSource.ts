@@ -260,8 +260,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
       }).session(session).lean()
   }
 
-  async editArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<AreaType | null> {
-    const _editArea = async (session: ClientSession, user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<any> => {
+  async updateArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<AreaType | null> {
+    const _updateArea = async (session: ClientSession, user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<any> => {
       const filter = {
         'metadata.area_id': areaUuid,
         deleting: { $ne: null }
@@ -278,13 +278,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
       if (description != null) area.set({ 'content.description': description })
       if (shortCode != null) area.set({ shortCode })
       if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
-      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+
+      if (lat != null && lng != null) { // we should already validate lat,lng before in GQL layer
         area.set({
           'metadata.lnglat': geometry('Point', [lng, lat])
         })
       }
-      await area.save()
-      return area
+      const cursor = await area.save()
+      return cursor.toObject()
     }
 
     const session = await this.areaModel.startSession()
@@ -294,7 +295,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async session => {
-        ret = await _editArea(session, user, areaUuid, document)
+        ret = await _updateArea(session, user, areaUuid, document)
         return ret
       })
     return ret

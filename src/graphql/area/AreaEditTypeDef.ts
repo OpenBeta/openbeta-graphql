@@ -18,7 +18,7 @@ const AreaEditTypeDefs = gql`
   }
 
   type Mutation {
-    editArea(input AreEditableFieldsInput): Area
+    updateArea(input: AreEditableFieldsInput): Area
   }
 
   input DestinationFlagInput {

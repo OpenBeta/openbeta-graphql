@@ -43,8 +43,8 @@ export interface AreaEditableFieldsType {
   description?: string
   isDestination?: boolean
   shortCode?: string
-  lat: number
-  lng: number
+  lat?: number
+  lng?: number
 }
 
 export interface CountByGroupType {

@@ -10,6 +10,6 @@ RUN mkdir -p ${APP_DIR}
 COPY . ./
 
 RUN yarn install --no-progress && \
-    yarn build
+    yarn build-release
 
 CMD node --experimental-json-modules build/main.js

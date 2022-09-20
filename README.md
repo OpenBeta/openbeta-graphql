@@ -7,7 +7,7 @@
 
 ### What is this?
 
-OpenBeta Graph API allows other applications to access the [climbing route catalog](https://github.com/OpenBeta/opentacos-content) using any standard GraphQL clients.
+OpenBeta Graph API allows other applications to access the [OpenBeta climbing database](https://openbeta.io) using any standard GraphQL clients.
  
 **Endpoint**: 
 - Production: https://api.openbeta.io
@@ -67,7 +67,7 @@ query Example1 {
 #### Requirements:
 
 - [Docker](https://docs.docker.com/get-docker)
-- [Node.js](https://nodejs.org) (v16 or later)
+- [Node.js](https://nodejs.org) (v16.14.0 or later)
 - [yarn](https://yarnpkg.com/getting-started/install)
 
 
@@ -77,7 +77,7 @@ query Example1 {
 127.0.0.1       mongodb
 ```
 
-1.  Launch **mongodb** dev stack (the database server, and mongo-express, the web-based admin console for mongo):
+1.  Launch **mongodb** dev stack: database server and mongo-express (web-based admin console for mongo):
 
 ```
 docker compose up -d
@@ -87,7 +87,7 @@ docker compose up -d
 
 ```bash
 yarn install
-yarn refresh-db   # download data files locally and import
+yarn refresh-db   # download USA data files locally and import
 yarn init-db      # update statistics
 ```
 
