@@ -260,6 +260,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
       }).session(session).lean()
   }
 
+  /**
+   * Update one or more area fields.
+   *
+   * *Note*: Users may not update country name and short code.
+   * @param user
+   * @param areaUuid Area uuid to be updated
+   * @param document New fields
+   * @returns Newly updated area
+   */
   async updateArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<AreaType | null> {
     const _updateArea = async (session: ClientSession, user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<any> => {
       const filter = {
@@ -269,10 +278,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
       const area = await this.areaModel.findOne(filter).session(session)
 
       if (area == null) {
-        throw new Error('Area edit error.  Reason: area not found.')
+        throw new Error('Area update error.  Reason: area not found.')
       }
 
       const { areaName, description, shortCode, isDestination, lat, lng } = document
+
+      if (area.pathTokens.length === 1) {
+        if (areaName != null) throw new Error('Area update error.  Reason: updating country name is not allowed.')
+        if (shortCode != null) throw new Error('Area update error.  Reason: updating country short code is not allowed.')
+      }
 
       if (areaName != null) area.set({ area_name: areaName })
       if (description != null) area.set({ 'content.description': description })

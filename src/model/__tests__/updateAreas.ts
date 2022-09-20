@@ -89,26 +89,31 @@ describe('Areas', () => {
     const doc1: AreaEditableFieldsType = {
       areaName: '1',
       shortCode: 'ONE',
-      description: 'This is a cool area.'
+      description: 'This is a cool area.',
+      isDestination: true
     }
     let a1Updated = await areas.updateArea(testUser, a1?.metadata.area_id, doc1)
 
-    // expect(a1Updated).toMatchObject()
+    expect(a1Updated?.area_name).toEqual(doc1.areaName)
     expect(a1Updated?.shortCode).toEqual(doc1.shortCode)
+    expect(a1Updated?.content.description).toEqual(doc1.description)
+    expect(a1Updated?.metadata.isDestination).toEqual(doc1.isDestination)
 
     const doc2: AreaEditableFieldsType = {
+      isDestination: false,
       lat: 46.433333,
       lng: 11.85
     }
     a1Updated = await areas.updateArea(testUser, a1?.metadata.area_id, doc2)
     expect(a1Updated?.metadata.lnglat).toEqual(geometry('Point', [doc2.lng, doc2.lat]))
+    expect(a1Updated?.metadata.isDestination).toEqual(doc2.isDestination)
+  })
 
-    // const doc3: AreaEditableFieldsType = {
-    //   lat: 46.433333,
-    //   lng: 11.85
-    // }
-    // a1Updated = await areas.updateArea(testUser, a1?.metadata.area_id, doc2)
-    // expect(a1Updated?.metadata.lnglat).toEqual(geometry('Point', [doc2.lng, doc2.lat]))
+  it('should not update country name and code', async () => {
+    const country = await areas.addCountry(testUser, 'lao')
+    if (country == null) fail()
+    await expect(areas.updateArea(testUser, country.metadata.area_id, { areaName: 'Foo' })).rejects.toThrowError()
+    await expect(areas.updateArea(testUser, country.metadata.area_id, { shortCode: 'Foo' })).rejects.toThrowError()
   })
 
   it('should delete a subarea', async () => {
