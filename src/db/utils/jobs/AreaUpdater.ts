@@ -159,12 +159,13 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
     }
   }, initial)
 
-  const calculatedParentCenter = calculateNewCenterFromNodes(result)
-  z.lnglat = calculatedParentCenter
+  z.lnglat = calculateNewCenterFromNodes(result)
   z.density = areaDensity(z.bbox, z.totalClimbs)
 
   const { totalClimbs, bbox, density, aggregate, lnglat } = z
-  parent.metadata.lnglat = lnglat
+  if (parent.metadata.lnglat.coordinates[0] !== 0 && parent.metadata.lnglat.coordinates[1] !== 0) {
+    parent.metadata.lnglat = lnglat
+  }
   parent.totalClimbs = totalClimbs
   parent.metadata.bbox = bbox
   parent.density = density
