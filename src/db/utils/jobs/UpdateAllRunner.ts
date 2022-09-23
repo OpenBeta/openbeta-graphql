@@ -15,12 +15,10 @@ const onConnected = async (): Promise<void> => {
   console.time('Update crags')
   await visitAllCrags()
   console.timeEnd('Update crags')
-
-  await insertAllCountries()
-
   console.time('Calculating global stats')
   await visitAllAreas()
   console.timeEnd('Calculating global stats')
+  await insertAllCountries()
   await gracefulExit()
   return await Promise.resolve()
 }

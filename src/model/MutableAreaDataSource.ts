@@ -284,8 +284,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       const { areaName, description, shortCode, isDestination, lat, lng } = document
 
       if (area.pathTokens.length === 1) {
-        if (areaName != null) throw new Error('Area update error.  Reason: updating country name is not allowed.')
-        if (shortCode != null) throw new Error('Area update error.  Reason: updating country short code is not allowed.')
+        if (areaName != null || shortCode != null) throw new Error('Area update error.  Reason: updating country name or short code is not allowed.')
       }
 
       if (areaName != null) area.set({ area_name: areaName })
@@ -297,10 +296,6 @@ export default class MutableAreaDataSource extends AreaDataSource {
         area.set({
           'metadata.lnglat': geometry('Point', [lng, lat])
         })
-      }
-
-      if (!area.isModified()) {
-        return area.toObject()
       }
 
       const opType = OperationType.updateArea
