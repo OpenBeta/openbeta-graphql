@@ -59,7 +59,7 @@ const AreaMutations = {
     const { lat, lng } = input
     if (lat != null && !isLatitude(lat)) throw Error('Invalid latitude')
     if (lng != null && !isLongitude(lng)) throw Error('Invalid longitude')
-    if (lat == null || lng == null) throw Error('Must provide both latitude and longitude')
+    if ((lat == null && lng != null) || (lat != null && lng == null)) throw Error('Must provide both latitude and longitude')
 
     const areaUuid = muuid.from(input.uuid)
 
