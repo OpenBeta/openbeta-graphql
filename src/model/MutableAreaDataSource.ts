@@ -206,6 +206,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
       throw new Error('Delete area error.  Reason: subareas not empty.')
     }
 
+    if (area?.climbs?.length > 0) {
+      throw new Error('Delete area error.  Reason: climbs not empty.')
+    }
+
     const change = await changelogDataSource.create(session, user, OperationType.deleteArea)
 
     const _change: ChangeRecordMetadataType = {
