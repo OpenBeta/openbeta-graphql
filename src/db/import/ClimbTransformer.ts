@@ -1,11 +1,11 @@
 import { geometry, Point } from '@turf/helpers'
-import { ClimbType, GradeType } from '../ClimbTypes.js'
+import { ClimbType } from '../ClimbTypes.js'
 import muuid from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 
 const transformClimbRecord = (row: any): ClimbType => {
   /* eslint-disable-next-line */
-  const { route_name, grade, safety, type, fa, metadata, description, protection, location } = row
+  const { route_name, grade, gradeContext, safety, type, fa, metadata, description, protection, location } = row
   /* eslint-disable-next-line */
   const { parent_lnglat, left_right_seq, mp_route_id, mp_sector_id } = metadata
 
@@ -16,11 +16,12 @@ const transformClimbRecord = (row: any): ClimbType => {
     _id: uuid,
     name: route_name,
     yds: grade.YDS,
-    grade: {
-      yds: grade[GradeType.YDS],
-      font: grade[GradeType.FONT],
-      french: grade[GradeType.FRENCH]
+    grades: {
+      yds: grade.YDS,
+      font: grade.Font,
+      french: grade.French
     },
+    gradeContext: gradeContext,
     safety: safety,
     type: type,
     fa: fa,

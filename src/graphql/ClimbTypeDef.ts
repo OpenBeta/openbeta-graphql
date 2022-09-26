@@ -11,8 +11,9 @@ export const typeDef = gql`
     uuid: ID!
     name: String!
     fa: String!
-    yds: String!
-    grade: GradeType!
+    yds: String! @deprecated(reason: "migrating to grades field")
+    grades: GradeType!
+    gradeContext: String
     type: ClimbType!
     safety: SafetyEnum!
     metadata: ClimbMetadata!
@@ -43,6 +44,8 @@ export const typeDef = gql`
     sport: Boolean
     bouldering: Boolean
     alpine: Boolean
+    snow: Boolean
+    ice: Boolean
     mixed: Boolean
     aid: Boolean
     tr: Boolean

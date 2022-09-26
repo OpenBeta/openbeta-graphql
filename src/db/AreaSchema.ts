@@ -4,6 +4,7 @@ import muuid from 'uuid-mongodb'
 import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType, OperationType } from './AreaTypes.js'
 import { PointSchema } from './ClimbSchema.js'
 import { ChangeRecordMetadataType } from './ChangeLogType.js'
+import { GradeContexts } from '../grade-utils.js'
 
 const { Schema, connection } = mongoose
 
@@ -53,6 +54,7 @@ export const CountByGroup = new Schema<CountByGroupType>({
 }, { _id: false })
 
 export const CountByGradeBandSchema = new Schema<CountByGradeBandType>({
+  unknown: { type: Number, required: true },
   beginner: { type: Number, required: true },
   intermediate: { type: Number, required: true },
   advance: { type: Number, required: true },
@@ -71,6 +73,8 @@ export const CountByDisciplineSchema = new Schema<CountByDisciplineType>({
   sport: { type: DisciplineStatsSchema, required: false },
   boulder: { type: DisciplineStatsSchema, required: false },
   alpine: { type: DisciplineStatsSchema, required: false },
+  snow: { type: DisciplineStatsSchema, required: false },
+  ice: { type: DisciplineStatsSchema, required: false },
   mixed: { type: DisciplineStatsSchema, required: false },
   aid: { type: DisciplineStatsSchema, required: false },
   tr: { type: DisciplineStatsSchema, required: false }
@@ -93,6 +97,7 @@ export const AreaSchema = new Schema<AreaType>({
   children: [{ type: Schema.Types.ObjectId, ref: 'areas', required: false }],
   ancestors: { type: String, required: true, index: true },
   pathTokens: [{ type: String, required: true, index: true }],
+  gradeContext: { type: String, enum: Object.values(GradeContexts), required: true },
   aggregate: AggregateSchema,
   metadata: MetadataSchema,
   content: ContentSchema,

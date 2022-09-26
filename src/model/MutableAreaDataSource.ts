@@ -164,7 +164,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const parentAncestors = parent.ancestors
     const parentPathTokens = parent.pathTokens
-    const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens)
+    const parentGradeContext = parent.gradeContext
+    const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens, parentGradeContext)
     newArea._change = produce(newChangeMeta, draft => {
       draft.seq = 1
     })
@@ -331,7 +332,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 }
 
-export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[]): AreaType => {
+export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: string): AreaType => {
   const _id = new mongoose.Types.ObjectId()
   const uuid = getUUID(parentPathTokens.join() + areaName, false, undefined)
 
@@ -357,10 +358,12 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
     ancestors: ancestors,
     climbs: [],
     pathTokens: pathTokens,
+    gradeContext: parentGradeContext,
     aggregate: {
       byGrade: [],
       byDiscipline: {},
       byGradeBand: {
+        unknown: 0,
         beginner: 0,
         intermediate: 0,
         advance: 0,
