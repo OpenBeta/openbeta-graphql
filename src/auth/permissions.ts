@@ -9,7 +9,8 @@ const permissions = shield({
     setDestinationFlag: isEditor,
     addCountry: isEditor,
     removeArea: isEditor,
-    addArea: isEditor
+    addArea: isEditor,
+    updateArea: isEditor
   }
 },
 {
