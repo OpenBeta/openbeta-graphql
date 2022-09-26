@@ -9,6 +9,7 @@
   "devDependencies": {
     "@types/jest": "~29.0.3",
     "@types/underscore": "^1.11.4",
+    "husky": "^8.0.1",
     "jest": "~29.0.3",
     "ts-jest": "~29.0.1",
     "ts-node": "~10.9.1",
