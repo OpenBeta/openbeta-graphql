@@ -91,10 +91,12 @@ export const makeDBArea = (node: AreaNode): AreaType => {
     ancestors: uuidArrayToString(node.getAncestors()),
     climbs: [],
     pathTokens: node.getPathTokens(),
+    gradeContext: node.getGradeContext(),
     aggregate: {
       byGrade: [],
       byDiscipline: {},
       byGradeBand: {
+        unknown: 0,
         beginner: 0,
         intermediate: 0,
         advance: 0,

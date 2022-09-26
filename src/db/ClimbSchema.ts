@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import { ClimbType, IClimbMetadata, IClimbContent, IGradeType, SafetyType } from './ClimbTypes.js'
+import { GradeContexts } from '../grade-utils.js'
 
 const { Schema } = mongoose
 
@@ -61,7 +62,8 @@ export const ClimbSchema = new Schema<ClimbType>({
   },
   name: { type: Schema.Types.String, required: true, index: true },
   yds: { type: Schema.Types.String, required: true },
-  grade: GradeTypeSchema,
+  grades: GradeTypeSchema,
+  gradeContext: { type: String, enum: Object.values(GradeContexts), required: false },
   fa: { type: Schema.Types.String, required: false },
   type: { type: Schema.Types.Mixed },
   safety: {

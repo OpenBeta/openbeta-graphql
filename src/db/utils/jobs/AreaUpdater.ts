@@ -88,6 +88,7 @@ const leafReducer = (node: AreaType): ResultType => {
       byGrade: [],
       byDiscipline: {},
       byGradeBand: {
+        unknown: 0,
         beginner: 0,
         intermediate: 0,
         advance: 0,
@@ -139,6 +140,7 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
       byGrade: [],
       byDiscipline: {},
       byGradeBand: {
+        unknown: 0,
         beginner: 0,
         intermediate: 0,
         advance: 0,

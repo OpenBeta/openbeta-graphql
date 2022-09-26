@@ -17,6 +17,7 @@ export interface IAreaProps {
   children: mongose.Types.ObjectId[]
   ancestors: string
   pathTokens: string[]
+  gradeContext: string
   aggregate?: AggregateType
   content: IAreaContent
   density: number
@@ -61,6 +62,8 @@ export interface CountByDisciplineType {
   sport?: DisciplineStatsType
   boulder?: DisciplineStatsType
   alpine?: DisciplineStatsType
+  snow?: DisciplineStatsType
+  ice?: DisciplineStatsType
   mixed?: DisciplineStatsType
   aid?: DisciplineStatsType
   tr?: DisciplineStatsType
@@ -72,6 +75,7 @@ export interface DisciplineStatsType {
 }
 
 export interface CountByGradeBandType {
+  unknown: number
   beginner: number
   intermediate: number
   advance: number

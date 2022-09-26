@@ -24,6 +24,7 @@ export const typeDef = gql`
     content: AreaContent
     pathHash: String!
     pathTokens: [String]!
+    gradeContext: String!
     density: Float!
     totalClimbs: Int!
     media: [MediaTagType]
@@ -55,6 +56,8 @@ export const typeDef = gql`
     sport: DisciplineStatsType
     boulder: DisciplineStatsType
     alpine: DisciplineStatsType
+    snow: DisciplineStatsType
+    ice: DisciplineStatsType
     mixed: DisciplineStatsType
     aid: DisciplineStatsType
     tr: DisciplineStatsType
@@ -71,6 +74,7 @@ export const typeDef = gql`
   }
 
   type CountByGradeBand {
+    unknown: Int
     beginner: Int
     intermediate: Int
     advance: Int

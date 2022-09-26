@@ -2,6 +2,7 @@ import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import type { WithId, Document } from 'mongodb'
 import { ChangeRecordMetadataType } from './ChangeLogType'
+import { GradeContexts } from "../grade-utils"
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
@@ -21,7 +22,8 @@ export interface IClimbProps {
   name: string
   fa?: string
   yds: string
-  grade: IGradeType
+  grades: IGradeType
+  gradeContext?: GradeContexts
   type: IClimbType
   safety: SafetyType
   _change?: ChangeRecordMetadataType
@@ -35,16 +37,10 @@ export enum SafetyType {
   X = 'X',
 }
 
-export enum GradeType {
-  YDS = 'YDS',
-  FRENCH = 'French',
-  FONT = 'Font',
-}
-
 export interface IGradeType {
-  yds?: string
-  french?: string
-  font?: string
+	yds?: string
+	french?: string
+	font?: string
 }
 
 export interface IClimbType {
@@ -52,6 +48,8 @@ export interface IClimbType {
   sport: boolean
   boulder: boolean
   alpine: boolean
+  snow: boolean
+  ice: boolean
   mixed: boolean
   aid: boolean
   tr: boolean
@@ -71,6 +69,7 @@ export interface IClimbContent {
 }
 
 export enum GradeBand {
+  UNKNOWN = 'unknown',
   BEGINNER = 'beginner',
   INTERMEDIATE = 'intermediate',
   ADVANCE = 'advance',

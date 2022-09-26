@@ -90,7 +90,12 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             from: 'climbs', // other collection name
             localField: 'climbs',
             foreignField: '_id',
-            as: 'climbs' // clobber array of climb IDs with climb objects
+            as: 'climbs', // clobber array of climb IDs with climb objects
+          }
+        },
+        {
+          $set: {
+            'climbs.gradeContext': '$gradeContext' // manually set area's grade context to climb
           }
         }
       ])
@@ -165,7 +170,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
                 $project: { // only include specific fields
                   _id: 0,
                   ancestors: 1,
-                  pathTokens: 1
+                  pathTokens: 1,
+                  gradeContext: 1
                 }
               }
             ]
