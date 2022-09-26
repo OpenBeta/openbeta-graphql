@@ -2,7 +2,7 @@ import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import type { WithId, Document } from 'mongodb'
 import { ChangeRecordMetadataType } from './ChangeLogType'
-import { GradeContexts } from "../grade-utils"
+import { GradeContexts } from '../grade-utils'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
@@ -38,9 +38,9 @@ export enum SafetyType {
 }
 
 export interface IGradeType {
-	yds?: string
-	french?: string
-	font?: string
+  yds?: string
+  french?: string
+  font?: string
 }
 
 export interface IClimbType {

@@ -115,5 +115,4 @@ describe('Aggregate Crag Stats', () => {
     }
     expect(aggregateCragStats(crag)).toEqual(expectedStats)
   })
-
 })

@@ -66,15 +66,15 @@ export const aggregateCragStats = (crag: any): AggregateType => {
     // Assumption: all types provided from a climb use the same grade scale
     const cragGradeType = Object.keys(type).find(t => type[t] === true && cragGradeScales[t] !== undefined)
     if (cragGradeType !== undefined) {
-        const gradeScale: GradeScales = cragGradeScales[cragGradeType]
-        // Assumption: the climb has the specified grade scale in data.
-        const grade = grades[gradeScale]
-        if (grade === undefined) {
-          console.warn(`Climb: ${name} does not have a corresponding grade with expected grade scale: ${gradeScale}`)
-        }
-        const entry: CountByGroupType = typeof byGrade[grade as string] === 'undefined' ? { label: grade, count: 0 } : byGrade[grade as string]
-        entry.count = entry.count + 1
-        byGrade[grade as string] = entry
+      const gradeScale: GradeScales = cragGradeScales[cragGradeType]
+      // Assumption: the climb has the specified grade scale in data.
+      const grade = grades[gradeScale]
+      if (grade === undefined) {
+        console.warn(`Climb: ${name} does not have a corresponding grade with expected grade scale: ${gradeScale}`)
+      }
+      const entry: CountByGroupType = typeof byGrade[grade as string] === 'undefined' ? { label: grade, count: 0 } : byGrade[grade as string]
+      entry.count = entry.count + 1
+      byGrade[grade as string] = entry
     }
 
     // Disciplines
@@ -107,7 +107,7 @@ export const aggregateCragStats = (crag: any): AggregateType => {
   }
 
   const _byGradeBand: Record<string, number> = _.countBy(climbs, (climb: ClimbType) => {
-    const { grades, type = {}, name } = (climb as ClimbType)
+    const { grades, type = {}, name } = (climb)
     // Assumption: all types provided from a climb use the same grade scale
     const cragGradeType = Object.keys(type).find(t => type[t] === true && cragGradeScales[t] !== undefined)
     const gradeScale: GradeScales = cragGradeScales[cragGradeType]
@@ -116,7 +116,8 @@ export const aggregateCragStats = (crag: any): AggregateType => {
       console.warn(`Climb: ${name} does not have a corresponding grade or type with expected grade scale: ${gradeScale}`)
       return GradeBand.UNKNOWN
     }
-    return getBand(grade as string, cragGradeType, crag.gradeContext)})
+    return getBand(grade, cragGradeType, crag.gradeContext)
+  })
   const z = { ...INIT_GRADEBAND, ..._byGradeBand }
   return {
     byGrade: Object.values(byGrade) as [CountByGroupType] | [],

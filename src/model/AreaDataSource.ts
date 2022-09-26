@@ -90,7 +90,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             from: 'climbs', // other collection name
             localField: 'climbs',
             foreignField: '_id',
-            as: 'climbs', // clobber array of climb IDs with climb objects
+            as: 'climbs' // clobber array of climb IDs with climb objects
           }
         },
         {

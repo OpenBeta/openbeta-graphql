@@ -12,18 +12,18 @@ export class Tree {
   subRoot: AreaNode
   map = new Map<string, AreaNode>()
 
-  constructor(root?: AreaNode) {
+  constructor (root?: AreaNode) {
     this.root = root
   }
 
-  prefixRoot(key: string): string {
+  prefixRoot (key: string): string {
     if (this.root === undefined) {
       return key
     }
     return `${this.root.key}|${key}`
   }
 
-  private insert(
+  private insert (
     key: string,
     isSubRoot: boolean,
     isLeaf: boolean = false,
@@ -49,7 +49,7 @@ export class Tree {
     return this
   }
 
-  insertMany(path: string, jsonLine: any = undefined): Tree {
+  insertMany (path: string, jsonLine: any = undefined): Tree {
     const tokens: string[] = path.split('|')
     tokens.reduce<string>((acc, curr, index) => {
       if (acc.length === 0) {
@@ -65,17 +65,17 @@ export class Tree {
     return this
   }
 
-  getParent(key: string): AreaNode | undefined {
+  getParent (key: string): AreaNode | undefined {
     const parentPath = key.substring(0, key.lastIndexOf('|'))
     const parent = this.atPath(parentPath)
     return parent
   }
 
-  atPath(path: string): AreaNode | undefined {
+  atPath (path: string): AreaNode | undefined {
     return this.map.get(path)
   }
 
-  getAncestors(node: AreaNode): MUUID[] {
+  getAncestors (node: AreaNode): MUUID[] {
     if (this.root === undefined) {
       // Country root shouldn't have an ancestor so return itself
       return [node.uuid]
@@ -113,11 +113,11 @@ export class Tree {
       // - we pass countryName when calling from addCountry() API
       return countryName != null ? [countryName] : tokens
     }
-      // use countryName if exists
-      tokens.unshift(this.root?.countryName ?? this.root.key)
-      return tokens
+    // use countryName if exists
+    tokens.unshift(this.root?.countryName ?? this.root.key)
+    return tokens
   }
-  
+
   /**
    *
    * @param node
@@ -125,16 +125,14 @@ export class Tree {
    * Inherits from parent tree if current tree does not have one
    * Country root is the highest default grade context
    */
-  getGradeContext(node: AreaNode): string {
+  getGradeContext (node: AreaNode): string {
     const countriesDefaultGradeContext = getCountriesDefaultGradeContext()
-    const USGradeContext = countriesDefaultGradeContext['US']
+    const USGradeContext = countriesDefaultGradeContext.US
     const { key, jsonLine } = node
     // country level, return key
-    if (this.root === undefined)
-      return countriesDefaultGradeContext[key] ?? USGradeContext
+    if (this.root === undefined) { return countriesDefaultGradeContext[key] ?? USGradeContext }
     // imported grade context for current area
-    if (jsonLine !== undefined && jsonLine.gradeContext !== undefined)
-      return jsonLine.gradeContext ?? USGradeContext
+    if (jsonLine?.gradeContext !== undefined) { return jsonLine.gradeContext ?? USGradeContext }
     // check grade context for parent area
     const parent = this.getParent(key)
     if (parent !== undefined) return parent.getGradeContext()
@@ -166,7 +164,7 @@ export class AreaNode {
   }
 
   // create a ref to parent for upward traversal
-  setParent(parent: AreaNode | undefined): AreaNode {
+  setParent (parent: AreaNode | undefined): AreaNode {
     if (parent !== undefined) {
       const { _id } = parent
       this.parentRef = _id
@@ -175,7 +173,7 @@ export class AreaNode {
   }
 
   // add a child node to this node
-  linkChild(child: AreaNode): AreaNode {
+  linkChild (child: AreaNode): AreaNode {
     const { _id } = child
     this.children.add(_id)
     return this
@@ -184,7 +182,7 @@ export class AreaNode {
   /**
    * Return an array of ancestor refs of this node (inclusive)
    */
-  getAncestors(): MUUID[] {
+  getAncestors (): MUUID[] {
     const a = this.treeRef.getAncestors(this)
     return a
   }
@@ -192,7 +190,7 @@ export class AreaNode {
   /**
    * Return an array of ancestor area name of this node (inclusive)
    */
-  getPathTokens(): string[] {
+  getPathTokens (): string[] {
     return this.treeRef.getPathTokens(this)
   }
 
@@ -200,7 +198,7 @@ export class AreaNode {
    * Return the grade context for node
    * Inherits from parent node if current node does not have one
    */
-  getGradeContext(): string {
+  getGradeContext (): string {
     return this.treeRef.getGradeContext(this)
   }
 }
