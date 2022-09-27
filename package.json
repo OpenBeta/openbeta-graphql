@@ -11,6 +11,7 @@
     "@types/underscore": "^1.11.4",
     "husky": "^8.0.1",
     "jest": "~29.0.3",
+    "lint-staged": "^13.0.3",
     "ts-jest": "~29.0.1",
     "ts-node": "~10.9.1",
     "ts-standard": "^11.0.0",
@@ -59,7 +60,8 @@
     "init-db": "yarn build && node build/db/utils/jobs/UpdateAllRunner.js",
     "update-climb-search": "tsc ; node build/db/export/Typesense/Typesense.js --climbs",
     "update-area-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas",
-    "update-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas --climbs"
+    "update-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas --climbs",
+    "prepare": "husky install"
   },
   "standard": {
     "plugins": [
