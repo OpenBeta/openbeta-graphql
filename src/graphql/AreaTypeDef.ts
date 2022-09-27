@@ -15,6 +15,7 @@ export const typeDef = gql`
     uuid: ID!
     area_name: String!
     areaName: String!
+    shortCode: String
     metadata: AreaMetadata!
     climbs: [Climb]
     children: [Area]
