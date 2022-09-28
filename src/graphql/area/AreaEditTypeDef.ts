@@ -6,10 +6,6 @@ const AreaEditTypeDefs = gql`
   }
 
   type Mutation {
-    addCountry(input: CountryInput): Area
-  }
-
-  type Mutation {
     addArea(input: AreaInput): Area
   }
 

@@ -20,8 +20,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Initialize DB",
-            "program": "${workspaceFolder}/src/db/utils/jobs/UpdateAllRunner.ts",
+            "name": "Update stats",
+            "program": "${workspaceFolder}/src/db/utils/jobs/UpdateStatsJob.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"

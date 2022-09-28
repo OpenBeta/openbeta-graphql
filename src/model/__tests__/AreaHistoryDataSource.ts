@@ -49,8 +49,8 @@ describe('Area history', () => {
     await new Promise(res => setTimeout(res, 3000))
   })
 
-  it('should create history records for new country and subareas', async () => {
-    const usa = await areas.addCountry(testUser, 'usa')
+  it('should create history records for new subareas', async () => {
+    const usa = await areas.addCountry('usa')
     const newArea = await areas.findOneAreaByUUID(usa.metadata.area_id)
     expect(newArea.area_name).toEqual(usa.area_name)
 
@@ -67,16 +67,10 @@ describe('Area history', () => {
 
     const areaHistory = await changelogDataSource.getAreaChangeSets()
 
-    expect(areaHistory).toHaveLength(3)
+    expect(areaHistory).toHaveLength(2)
     // verify changes in most recent order
     expect(areaHistory[0].operation).toEqual(OperationType.addArea)
     expect(areaHistory[1].operation).toEqual(OperationType.addArea)
-    expect(areaHistory[2].operation).toEqual(OperationType.addCountry)
-
-    const newCountryChange = areaHistory[2].changes
-    expect(newCountryChange).toHaveLength(1)
-    expect(newCountryChange[0].dbOp).toEqual('insert')
-    expect(newCountryChange[0].fullDocument.area_name).toEqual(usa.area_name)
 
     // Verify NV history
     const nvAreaHistory = areaHistory[0].changes
@@ -110,17 +104,16 @@ describe('Area history', () => {
 
     // Verify USA history
     const usaHistory = await changelogDataSource.getAreaChangeSets(usa.metadata.area_id)
-    expect(usaHistory).toHaveLength(3)
+    expect(usaHistory).toHaveLength(2)
     expect(usaHistory[0].operation).toEqual('addArea')
     expect(usaHistory[1].operation).toEqual('addArea')
-    expect(usaHistory[2].operation).toEqual('addCountry')
 
     // Verify USA history links
     expect(usaHistory[0].changes[0])
   })
 
   it('should record multiple Areas.setDestination() calls ', async () => {
-    const canada = await areas.addCountry(testUser, 'can')
+    const canada = await areas.addCountry('can')
     const squamish = await areas.addArea(testUser, 'squamish', canada.metadata.area_id)
 
     expect(squamish?._id).toBeTruthy()
@@ -149,7 +142,7 @@ describe('Area history', () => {
   })
 
   it('should record an Areas.deleteArea() call', async () => {
-    const greece = await areas.addCountry(testUser, 'grc')
+    const greece = await areas.addCountry('grc')
     const leonidio = await areas.addArea(testUser, 'Leonidio', greece.metadata.area_id)
 
     if (leonidio == null) fail()
@@ -169,14 +162,18 @@ describe('Area history', () => {
   })
 
   it('should not record a failed Areas.deleteArea() call', async () => {
-    const spain = await areas.addCountry(testUser, 'esp')
+    const spain = await areas.addCountry('esp')
     const margalef = await areas.addArea(testUser, 'margalef', spain.metadata.area_id)
 
     if (margalef == null) fail()
 
+    const newChild = await areas.addArea(testUser, 'One', margalef.metadata.area_id)
+
+    if (newChild == null) fail()
+
     let deleted = false
     try {
-      await areas.deleteArea(testUser, spain.metadata.area_id)
+      await areas.deleteArea(testUser, margalef.metadata.area_id)
       fail('Shouldn\'t allow deletion when the area still has subareas')
     } catch (e) {
       deleted = true
@@ -192,8 +189,7 @@ describe('Area history', () => {
     // should only have 2 entries:
     // 1. Add country
     // 2. Add child to country
-    expect(history).toHaveLength(2)
+    expect(history).toHaveLength(1)
     expect(history[0].operation).toEqual('addArea')
-    expect(history[1].operation).toEqual('addCountry')
   })
 })

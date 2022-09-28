@@ -55,55 +55,40 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   /**
    * Add a country
-   * @param user
-   * @param _countryCode alpha2 or 3 code
+   * @param _countryCode alpha2 or 3 ISO code
    */
-  async addCountry (user: MUUID, _countryCode: string): Promise<AreaType> {
+  async addCountry (_countryCode: string): Promise<AreaType> {
     const countryCode = _countryCode.toLocaleUpperCase('en-US')
     if (!isoCountries.isValid(countryCode)) {
       throw new Error('Invalid ISO code: ' + countryCode)
     }
-    // Code can be either alpha2 or 3. Let's convert it to alpha3.
+
+    // Country code can be either alpha2 or 3. Let's convert it to alpha3.
     const alpha3 = countryCode.length === 2 ? isoCountries.toAlpha3(countryCode) : countryCode
-    const session = await this.areaModel.startSession()
+    const countryName = isoCountries.getName(countryCode, 'en')
+    const countryNode = createRootNode(alpha3, countryName)
 
-    let ret: AreaType
-
-    // withTransaction() doesn't return the callback result
-    // see https://jira.mongodb.org/browse/NODE-2014
-    await session.withTransaction(
-      async (session) => {
-        ret = await this._addCountry(session, user, alpha3, isoCountries.getName(countryCode, 'en'))
-        return ret
-      })
-    // @ts-expect-error
-    return ret
-  }
-
-  async _addCountry (session, user, countryCodeAlpha3: string, countryName: string): Promise<AreaType> {
-    const countryNode = createRootNode(countryCodeAlpha3, countryName)
+    // Build the Mongo document to be inserted
     const doc = makeDBArea(countryNode)
-    // doc.area_name = countryName
-    doc.shortCode = countryCodeAlpha3
-    const entry = CountriesLngLat[countryCodeAlpha3]
+    doc.shortCode = alpha3
+
+    // Look up the country lat,lng
+    const entry = CountriesLngLat[alpha3]
     if (entry != null) {
       doc.metadata.lnglat = {
         type: 'Point',
         coordinates: entry.lnglat
       }
     } else {
+      // account for a few new/unofficial countries without lat,lng in the lookup table
       logger.warn(`Missing lnglat for ${countryName}`)
     }
 
-    const change = await changelogDataSource.create(session, user, OperationType.addCountry)
-    doc._change = {
-      user,
-      historyId: change._id,
-      operation: OperationType.addCountry,
-      seq: 0
+    const rs = await this.areaModel.insertMany(doc)
+    if (rs.length === 1) {
+      return rs[0]
     }
-    const rs = await this.areaModel.insertMany(doc, { session })
-    return rs[0]
+    throw new Error('Error inserting ' + countryCode)
   }
 
   /**
@@ -157,8 +142,6 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     parent._change = produce(newChangeMeta, draft => {
       draft.seq = 0
-      draft.createdAt = parent._change?.createdAt
-      draft.updatedAt = Date.now()
       draft.prevHistoryId = parent._change?.historyId
     })
 
@@ -236,7 +219,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
           '_change.prevHistoryId': '$_change.historyId',
           _change: produce(_change, draft => {
             draft.seq = 0
-            draft.updatedAt = Date.now()
+            // draft.updatedAt = Date.now()
           })
         }
       }]
@@ -256,7 +239,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
           '_change.prevHistoryId': '$_change.historyId',
           _change: produce(_change, draft => {
             draft.seq = 1
-            draft.updatedAt = Date.now()
+            // draft.updatedAt = Date.now()
           })
         }
       }], {

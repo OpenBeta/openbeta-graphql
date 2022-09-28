@@ -10,6 +10,7 @@ type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
 
 /**
  * Run an update operation on all crags (leaf nodes)
+ * Todo: finer-grained data, ie per country?
  */
 export const visitAllCrags = async (): Promise<void> => {
   const areaModel = getAreaModel('areas')
@@ -20,6 +21,8 @@ export const visitAllCrags = async (): Promise<void> => {
     .populate<{climbs: ClimbType[]}>({ path: 'climbs', model: getClimbModel() })
     .allowDiskUse(true)
 
+  // Calculate stats and bbox
+  // Todo: bbox should be calculate when we insert a crag or change their coordinate
   for await (const crag of iterator) {
     const node: AreaMongoType = crag
     node.aggregate = aggregateCragStats(crag.toObject())

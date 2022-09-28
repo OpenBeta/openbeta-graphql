@@ -7,7 +7,6 @@ const permissions = shield({
   },
   Mutation: {
     setDestinationFlag: isEditor,
-    addCountry: isEditor,
     removeArea: isEditor,
     addArea: isEditor,
     updateArea: isEditor
