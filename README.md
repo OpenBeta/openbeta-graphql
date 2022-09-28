@@ -88,7 +88,7 @@ docker compose up -d
 ```bash
 yarn install
 yarn refresh-db   # download USA data files locally and import
-yarn init-db      # update statistics
+yarn update-stats      # update statistics
 ```
 
 3. Start the GraphQL server
@@ -124,6 +124,23 @@ yarn serve
   ```bash
   # Run this in open-tacos project
   yarn dev-local
+  ```
+
+- Advanced database commands:
+
+  ```bash
+  # Download & import USA data files.  Also create all other countries.
+  yarn refresh-db full #  Remove 'full' to import only a small dataset
+
+  # Re-import USA from previously downloaded data files (cache dir: ./tmp)
+  # Note: this command will drop and recreate the 'areas' and 'climbs' collection.
+  yarn seed-usa
+
+  # Add all countries (except for USA)
+  yarn add-countries
+
+  # Update area statistics (can be rerun as needed)
+  yarn update-stats
   ```
 
 - MongoDB playground: https://mongoplayground.net/

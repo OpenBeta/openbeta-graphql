@@ -22,7 +22,7 @@ const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
     required: true
   },
   seq: { type: Number, required: true, default: 0 }
-}, { _id: false, timestamps: true })
+}, { _id: false, timestamps: false })
 
 const MetadataSchema = new Schema<IAreaMetadata>({
   isDestination: { type: Boolean, sparse: true },

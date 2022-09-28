@@ -37,8 +37,6 @@ export interface ChangeRecordMetadataType {
   historyId: mongose.Types.ObjectId
   prevHistoryId?: mongose.Types.ObjectId
   seq: number
-  createdAt?: number
-  updatedAt?: number
 }
 
 export interface WithDiscriminator {

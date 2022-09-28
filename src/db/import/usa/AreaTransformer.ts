@@ -61,9 +61,8 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
 }
 
 /**
- * Convert simple Area tree node to Mongo Area
+ * Convert simple Area tree node to Mongo Area.
  * @param node
- * @returns
  */
 export const makeDBArea = (node: AreaNode): AreaType => {
   const { key, isLeaf, children, _id, uuid } = node

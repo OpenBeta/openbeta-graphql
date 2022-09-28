@@ -41,3 +41,5 @@ export CONTENT_BASEDIR=./tmp
 
 echo "NODE_OPTIONS=${NODE_OPTIONS}"
 yarn seed-usa
+
+yarn add-countries
