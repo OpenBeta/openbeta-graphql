@@ -46,7 +46,13 @@ describe('Areas', () => {
     // Add 1st area to the country
     const bc = await areas.addArea(testUser, 'British Columbia', canada.metadata.area_id)
 
-    expect(bc?.area_name).toEqual('British Columbia')
+    if (bc == null || canada == null) {
+      fail()
+    }
+    expect(canada.metadata.lnglat).not.toMatchObject(geometry('Point', [0, 0]))
+    expect(bc.area_name).toEqual('British Columbia')
+
+    expect(bc.metadata.lnglat).toEqual(canada.metadata.lnglat)
 
     let canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
 
