@@ -86,7 +86,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const rs = await this.areaModel.insertMany(doc)
     if (rs.length === 1) {
-      return rs[0]
+      return await rs[0].toObject()
     }
     throw new Error('Error inserting ' + countryCode)
   }
@@ -149,6 +149,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parentPathTokens = parent.pathTokens
     const parentGradeContext = parent.gradeContext
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens, parentGradeContext)
+    newArea.metadata.lnglat = parent.metadata.lnglat
     newArea._change = produce(newChangeMeta, draft => {
       draft.seq = 1
     })
