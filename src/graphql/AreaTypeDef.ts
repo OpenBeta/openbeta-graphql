@@ -77,7 +77,7 @@ export const typeDef = gql`
     unknown: Int
     beginner: Int
     intermediate: Int
-    advance: Int
+    advanced: Int
     expert: Int
   }
 
