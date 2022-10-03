@@ -29,24 +29,30 @@ describe('Areas', () => {
   })
 
   it('should create a country by Alpha-3 country code', async () => {
-    const spain = await areas.addCountry(testUser, 'esP')
+    const spain = await areas.addCountry('esP')
     const newArea = await areas.findOneAreaByUUID(spain.metadata.area_id)
     expect(newArea.area_name).toEqual('Spain')
     expect(newArea.shortCode).toEqual('ESP')
   })
 
   it('should create a country by Alpha-2 country code', async () => {
-    const country = await areas.addCountry(testUser, 'ch')
+    const country = await areas.addCountry('ch')
     expect(country.area_name).toEqual('Switzerland')
     expect(country.shortCode).toEqual('CHE')
   })
 
   it('should create a country and 2 subareas', async () => {
-    const canada = await areas.addCountry(testUser, 'can')
+    const canada = await areas.addCountry('can')
     // Add 1st area to the country
     const bc = await areas.addArea(testUser, 'British Columbia', canada.metadata.area_id)
 
-    expect(bc?.area_name).toEqual('British Columbia')
+    if (bc == null || canada == null) {
+      fail()
+    }
+    expect(canada.metadata.lnglat).not.toMatchObject(geometry('Point', [0, 0]))
+    expect(bc.area_name).toEqual('British Columbia')
+
+    expect(bc.metadata.lnglat).toEqual(canada.metadata.lnglat)
 
     let canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
 
@@ -70,7 +76,7 @@ describe('Areas', () => {
   })
 
   it('should create an area using only country code (without parent id)', async () => {
-    const country = await areas.addCountry(testUser, 'za')
+    const country = await areas.addCountry('za')
     const area = await areas.addArea(testUser, 'Table mountain', null, 'zaf')
 
     const countryInDb = await areas.findOneAreaByUUID(country.metadata.area_id)
@@ -79,7 +85,7 @@ describe('Areas', () => {
   })
 
   it('should update multiple fields', async () => {
-    await areas.addCountry(testUser, 'au')
+    await areas.addCountry('au')
     const a1 = await areas.addArea(testUser, 'One', null, 'au')
 
     if (a1 == null) {
@@ -110,7 +116,7 @@ describe('Areas', () => {
   })
 
   it('should not update country name and code', async () => {
-    const country = await areas.addCountry(testUser, 'lao')
+    const country = await areas.addCountry('lao')
     if (country == null) fail()
     await expect(areas.updateArea(testUser, country.metadata.area_id, { areaName: 'Foo' })).rejects.toThrowError()
 
@@ -121,7 +127,7 @@ describe('Areas', () => {
   })
 
   it('should delete a subarea', async () => {
-    const usa = await areas.addCountry(testUser, 'usa')
+    const usa = await areas.addCountry('usa')
     const ca = await areas.addArea(testUser, 'CA', usa.metadata.area_id)
     const or = await areas.addArea(testUser, 'OR', usa.metadata.area_id)
     const wa = await areas.addArea(testUser, 'WA', usa.metadata.area_id)
@@ -157,7 +163,7 @@ describe('Areas', () => {
   })
 
   it('should not delete a subarea containing children', async () => {
-    const gr = await areas.addCountry(testUser, 'grc')
+    const gr = await areas.addCountry('grc')
     const kali = await areas.addArea(testUser, 'Kalymnos', gr.metadata.area_id)
 
     if (kali == null) fail()
@@ -174,12 +180,12 @@ describe('Areas', () => {
   })
 
   it('should not create duplicate countries', async () => {
-    await areas.addCountry(testUser, 'ita')
-    await expect(areas.addCountry(testUser, 'ita')).rejects.toThrow('E11000 duplicate key error')
+    await areas.addCountry('ita')
+    await expect(areas.addCountry('ita')).rejects.toThrow('E11000 duplicate key error')
   })
 
   it('should not create duplicate sub-areas', async () => {
-    const fr = await areas.addCountry(testUser, 'fra')
+    const fr = await areas.addCountry('fra')
     await areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id)
     await expect(areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id))
       .rejects.toThrow('E11000 duplicate key error')
