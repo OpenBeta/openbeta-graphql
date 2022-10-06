@@ -1,4 +1,4 @@
-import mongose from 'mongoose'
+import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
 import { BBox, Point } from '@turf/helpers'
@@ -10,11 +10,11 @@ export type AreaType = IAreaProps & {
 }
 
 export interface IAreaProps {
-  _id: mongose.Types.ObjectId
+  _id: mongoose.Types.ObjectId
   shortCode?: string
   area_name: string
   climbs: Array<MUUID | ClimbType>
-  children: mongose.Types.ObjectId[]
+  children: mongoose.Types.ObjectId[]
   ancestors: string
   pathTokens: string[]
   gradeContext: string
@@ -78,7 +78,7 @@ export interface CountByGradeBandType {
   unknown: number
   beginner: number
   intermediate: number
-  advance: number
+  advanced: number
   expert: number
 }
 

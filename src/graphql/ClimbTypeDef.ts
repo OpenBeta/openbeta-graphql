@@ -52,6 +52,7 @@ export const typeDef = gql`
   }
 
   type GradeType {
+    vscale: String
     yds: String
     french: String
     font: String

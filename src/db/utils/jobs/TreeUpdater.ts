@@ -101,7 +101,7 @@ const leafReducer = (node: AreaType): ResultType => {
         unknown: 0,
         beginner: 0,
         intermediate: 0,
-        advance: 0,
+        advanced: 0,
         expert: 0
       }
     }
@@ -153,7 +153,7 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
         unknown: 0,
         beginner: 0,
         intermediate: 0,
-        advance: 0,
+        advanced: 0,
         expert: 0
       }
     }

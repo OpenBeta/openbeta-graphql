@@ -3,6 +3,7 @@ import { Point } from '@turf/helpers'
 import type { WithId, Document } from 'mongodb'
 import { ChangeRecordMetadataType } from './ChangeLogType'
 import { GradeContexts } from '../grade-utils'
+import { GradeScalesTypes } from '@openbeta/sandbag'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
@@ -22,7 +23,7 @@ export interface IClimbProps {
   name: string
   fa?: string
   yds: string
-  grades: IGradeType
+  grades: Partial<Record<GradeScalesTypes, string>>
   gradeContext?: GradeContexts
   type: IClimbType
   safety: SafetyType
@@ -66,12 +67,4 @@ export interface IClimbContent {
   description?: string
   protection?: string
   location?: string
-}
-
-export enum GradeBand {
-  UNKNOWN = 'unknown',
-  BEGINNER = 'beginner',
-  INTERMEDIATE = 'intermediate',
-  ADVANCE = 'advance',
-  EXPERT = 'expert'
 }
