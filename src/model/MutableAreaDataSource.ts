@@ -5,6 +5,7 @@ import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+import sanitizeHtml from 'sanitize-html'
 
 import { AreaType, AreaEditableFieldsType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
@@ -277,9 +278,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
       }
 
       if (areaName != null) area.set({ area_name: areaName })
-      if (description != null) area.set({ 'content.description': description })
       if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
       if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
+
+      if (description != null) {
+        const sanitized = sanitizeHtml(description, {
+          allowedTags: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
+          allowedAttributes: {
+            a: ['href']
+          }
+        })
+        area.set({ 'content.description': sanitized })
+      }
 
       if (lat != null && lng != null) { // we should already validate lat,lng before in GQL layer
         area.set({
