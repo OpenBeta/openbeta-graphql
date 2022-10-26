@@ -71,7 +71,7 @@ export const typeDef = gql`
   type CountByGradeBand {
     beginner: Int
     intermediate: Int
-    advance: Int
+    advanced: Int
     expert: Int
   }
 

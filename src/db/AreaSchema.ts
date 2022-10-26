@@ -38,7 +38,7 @@ export const CountByGroup = new Schema<CountByGroupType>({
 export const CountByGradeBandSchema = new Schema<CountByGradeBandType>({
   beginner: { type: Number, required: true },
   intermediate: { type: Number, required: true },
-  advance: { type: Number, required: true },
+  advanced: { type: Number, required: true },
   expert: { type: Number, required: true }
 }, {
   _id: false

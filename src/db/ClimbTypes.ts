@@ -57,6 +57,6 @@ export interface IClimbContent {
 export enum GradeBand {
   BEGINNER = 'beginner',
   INTERMEDIATE = 'intermediate',
-  ADVANCE = 'advance',
+  ADVANCED = 'advanced',
   EXPERT = 'expert'
 }

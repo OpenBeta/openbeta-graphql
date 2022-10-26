@@ -24,7 +24,7 @@ const ysdScoreToBand = (score: number): GradeBand =>
     : score < 67.5
       ? GradeBand.INTERMEDIATE
       : score < 82.5
-        ? GradeBand.ADVANCE
+        ? GradeBand.ADVANCED
         : GradeBand.EXPERT
 
 const vScoreToBand = (score: number): GradeBand =>
@@ -33,5 +33,5 @@ const vScoreToBand = (score: number): GradeBand =>
     : score < 60 // v1 - v2
       ? GradeBand.INTERMEDIATE
       : score < 72 // v3 - v6
-        ? GradeBand.ADVANCE
+        ? GradeBand.ADVANCED
         : GradeBand.EXPERT
