@@ -47,7 +47,7 @@ const mergeBands = (lhs: CountByGradeBandType, rhs: CountByGradeBandType): Count
   return {
     beginner: _l.beginner + _r.beginner,
     intermediate: _l.intermediate + _r.intermediate,
-    advance: _l.advance + _r.advance,
+    advanced: _l.advanced + _r.advanced,
     expert: _l.expert + _r.expert
   }
 }
@@ -97,7 +97,7 @@ export const aggregateCragStats = (crag: any): AggregateType => {
 const INIT_GRANDEBAND: CountByGradeBandType = {
   beginner: 0,
   intermediate: 0,
-  advance: 0,
+  advanced: 0,
   expert: 0
 }
 

@@ -80,7 +80,7 @@ const makeDBArea = (node: AreaNode): AreaType => {
       byGradeBand: {
         beginner: 0,
         intermediate: 0,
-        advance: 0,
+        advanced: 0,
         expert: 0
       }
     },
