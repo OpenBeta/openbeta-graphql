@@ -8,6 +8,7 @@ import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
+import { logger } from '../logger.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
@@ -79,6 +80,15 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       { $addFields: { __order: { $indexOfArray: [pathHashes, '$pathHash'] } } },
       { $sort: { __order: 1 } }
     ]).toArray()
+  }
+
+  async listAllCountries (): Promise<any> {
+    try {
+      return await this.areaModel.find({ pathTokens: { $size: 1 } }).lean()
+    } catch (e) {
+      logger.error(e)
+      return []
+    }
   }
 
   async findOneAreaByUUID (uuid: muuid.MUUID): Promise<any> {

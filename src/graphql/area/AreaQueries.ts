@@ -6,7 +6,13 @@ const AreaQueries = {
     const { areas }: {areas: AreaDataSource} = dataSources
     const { bbox, zoom } = filter
     return await areas.findCragsWithin(bbox, zoom)
+  },
+
+  countries: async (_, params, { dataSources }): Promise<AreaType[]> => {
+    const { areas }: {areas: AreaDataSource} = dataSources
+    return await areas.listAllCountries()
   }
+
 }
 
 export default AreaQueries
