@@ -7,6 +7,7 @@ export const typeDef = gql`
     stats: Stats
     cragsNear(placeId: String, lnglat: Point, minDistance: Int = 0, maxDistance: Int = 48000, includeCrags: Boolean = false): [CragsNear]
     cragsWithin(filter: SearchWithinFilter): [Area]
+    countries: [Area]
   }
 
   "A climbing area, wall or crag"

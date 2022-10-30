@@ -62,6 +62,16 @@
         "ideas",
         "code"
       ]
+    },
+    {
+      "login": "Vednus",
+      "name": "Sundev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2602014?v=4",
+      "profile": "https://github.com/Vednus",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -69,5 +79,6 @@
   "projectOwner": "OpenBeta",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }
