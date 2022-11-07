@@ -1,13 +1,13 @@
 import { ApolloServer } from 'apollo-server'
-import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import mongoose from 'mongoose'
 import { applyMiddleware } from 'graphql-middleware'
-
 import { graphqlSchema } from './graphql/resolvers.js'
-import { connectDB, getMediaModel } from './db/index.js'
-import AreaDataSource from './model/AreaDataSource.js'
+import { connectDB, defaultPostConnect } from './db/index.js'
+import MutableAreaDataSource from './model/MutableAreaDataSource.js'
+import { changelogDataSource } from './model/ChangeLogDataSource.js'
+import TickDataSource from './model/TickDataSource.js'
 import { createContext, permissions } from './auth/index.js'
-import { logger } from './logger.js';
+import { logger } from './logger.js'
 
 // eslint-disable-next-line
 (async function (): Promise<void> {
@@ -16,18 +16,15 @@ import { logger } from './logger.js';
     introspection: true,
     schema,
     context: createContext,
-    dataSources: (): DataSources<AreaDataSource> => {
-      return {
-        areas: new AreaDataSource(mongoose.connection.db.collection('areas'))
-      }
-    },
+    dataSources: () => ({
+      areas: new MutableAreaDataSource(mongoose.connection.db.collection('areas')),
+      ticks: new TickDataSource(mongoose.connection.db.collection('ticks')),
+      history: changelogDataSource // see source for explantion why we don't instantiate the object
+    }),
     cache: 'bounded'
   })
 
-  await connectDB(async () => {
-    getMediaModel()
-    // additional initializing code here
-  })
+  await connectDB(defaultPostConnect)
 
   const port = 4000
 

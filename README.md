@@ -1,15 +1,21 @@
 [![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+<<<<<<< HEAD
+[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+=======
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
+>>>>>>> develop
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 # Climbing Route Catalog API 
 
 ### What is this?
 
-OpenBeta GraphQL API allows other applications to access the [climbing route catalog](https://github.com/OpenBeta/opentacos-content) using any standard GraphQL clients.
+OpenBeta Graph API allows other applications to access the [OpenBeta climbing database](https://openbeta.io) using any standard GraphQL clients.
  
-**Endpoint**: https://api.openbeta.io
+**Endpoint**: 
+- Production: https://api.openbeta.io
+- Development: https://stg-api.openbeta.io
 
 We recommend using an online [playground](https://graphiql-online.com) to explore the API.
 
@@ -65,11 +71,17 @@ query Example1 {
 #### Requirements:
 
 - [Docker](https://docs.docker.com/get-docker)
-- [Node.js](https://nodejs.org) (v16 or later)
+- [Node.js](https://nodejs.org) (v16.14.0 or later)
 - [yarn](https://yarnpkg.com/getting-started/install)
 
 
-1.  Launch **mongodb** dev stack (the database server, and mongo-express, the web-based admin console for mongo):
+0. Add '127.0.0.1 mongodb' entry to your `/etc/hosts` file (or C:\Windows\System32\drivers\etc\hosts on Windows)
+
+```bash
+127.0.0.1       mongodb
+```
+
+1.  Launch **mongodb** dev stack: database server and mongo-express (web-based admin console for mongo):
 
 ```
 docker compose up -d
@@ -79,8 +91,8 @@ docker compose up -d
 
 ```bash
 yarn install
-yarn refresh-db   # download data files locally and import
-yarn init-db      # update statistics
+yarn refresh-db   # download USA data files locally and import
+yarn update-stats      # update statistics
 ```
 
 3. Start the GraphQL server
@@ -88,9 +100,54 @@ yarn init-db      # update statistics
 yarn serve
 ```
 
-#### Tips
+### Troubleshooting
+
+- Fix "permissions on /opt/keyfile/keyfile are too open" error
+  This error appears because the keyfile is required to be read-only
+
+  ```bash
+  chmod 400 keyfile
+  ```
+
+- Fix "error opening file: /opt/keyfile/keyfile: bad file" error
+  This may appear after you update the keyfile to read-only access. The file needs to be owned by the same owner of the mongodb process
+
+  ```bash
+  chown 999:999 keyfile
+  ```
+
+### Tips
 
 - Browse the database: http://localhost:8081
+
+- GraphQL online playground: https://graphiql-online.com/
+
+- Full stack development
+
+  Connect your [frontend](https://github.com/OpenBeta/open-tacos) dev env to this local server
+  ```bash
+  # Run this in open-tacos project
+  yarn dev-local
+  ```
+
+- Advanced database commands:
+
+  ```bash
+  # Download & import USA data files.  Also create all other countries.
+  yarn refresh-db full #  Remove 'full' to import only a small dataset
+
+  # Re-import USA from previously downloaded data files (cache dir: ./tmp)
+  # Note: this command will drop and recreate the 'areas' and 'climbs' collection.
+  yarn seed-usa
+
+  # Add all countries (except for USA)
+  yarn add-countries
+
+  # Update area statistics (can be rerun as needed)
+  yarn update-stats
+  ```
+
+- MongoDB playground: https://mongoplayground.net/
 
 ### Questions?
 
@@ -108,11 +165,17 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <table>
-  <tr>
-    <td align="center"><a href="https://github.com/gibboj"><img src="https://avatars.githubusercontent.com/u/2992272?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kendra Gibbons</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=gibboj" title="Code">💻</a> <a href="#ideas-gibboj" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="http://ukclimbing.com"><img src="https://avatars.githubusercontent.com/u/677264?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Paul Phillips</b></sub></a><br /><a href="#ideas-pau1phi11ips" title="Ideas, Planning, & Feedback">🤔</a></td>
-    <td align="center"><a href="https://github.com/admanny"><img src="https://avatars.githubusercontent.com/u/31676895?v=4?s=100" width="100px;" alt=""/><br /><sub><b>admanny</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=admanny" title="Code">💻</a></td>
-  </tr>
+  <tbody>
+    <tr>
+      <td align="center"><a href="https://github.com/gibboj"><img src="https://avatars.githubusercontent.com/u/2992272?v=4?s=100" width="100px;" alt="Kendra Gibbons"/><br /><sub><b>Kendra Gibbons</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=gibboj" title="Code">💻</a> <a href="#ideas-gibboj" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center"><a href="http://ukclimbing.com"><img src="https://avatars.githubusercontent.com/u/677264?v=4?s=100" width="100px;" alt="Paul Phillips"/><br /><sub><b>Paul Phillips</b></sub></a><br /><a href="#ideas-pau1phi11ips" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center"><a href="https://github.com/admanny"><img src="https://avatars.githubusercontent.com/u/31676895?v=4?s=100" width="100px;" alt="admanny"/><br /><sub><b>admanny</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=admanny" title="Code">💻</a></td>
+      <td align="center"><a href="https://github.com/CocoisBuggy"><img src="https://avatars.githubusercontent.com/u/64557383?v=4?s=100" width="100px;" alt="Colin Gale"/><br /><sub><b>Colin Gale</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=CocoisBuggy" title="Code">💻</a> <a href="#ideas-CocoisBuggy" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center"><a href="https://github.com/Downster"><img src="https://avatars.githubusercontent.com/u/24400646?v=4?s=100" width="100px;" alt="Brendan Downing"/><br /><sub><b>Brendan Downing</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=Downster" title="Code">💻</a> <a href="#ideas-Downster" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center"><a href="https://github.com/DarrenZLew"><img src="https://avatars.githubusercontent.com/u/26758226?v=4?s=100" width="100px;" alt="Darren Lew"/><br /><sub><b>Darren Lew</b></sub></a><br /><a href="#ideas-DarrenZLew" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=DarrenZLew" title="Code">💻</a></td>
+      <td align="center"><a href="https://github.com/Vednus"><img src="https://avatars.githubusercontent.com/u/2602014?v=4?s=100" width="100px;" alt="Sundev"/><br /><sub><b>Sundev</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=Vednus" title="Code">💻</a> <a href="#ideas-Vednus" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+  </tbody>
 </table>
 
 <!-- markdownlint-restore -->

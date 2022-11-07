@@ -32,6 +32,46 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "CocoisBuggy",
+      "name": "Colin Gale",
+      "avatar_url": "https://avatars.githubusercontent.com/u/64557383?v=4",
+      "profile": "https://github.com/CocoisBuggy",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "Downster",
+      "name": "Brendan Downing",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24400646?v=4",
+      "profile": "https://github.com/Downster",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "DarrenZLew",
+      "name": "Darren Lew",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26758226?v=4",
+      "profile": "https://github.com/DarrenZLew",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
+    },
+    {
+      "login": "Vednus",
+      "name": "Sundev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2602014?v=4",
+      "profile": "https://github.com/Vednus",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -39,5 +79,6 @@
   "projectOwner": "OpenBeta",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }

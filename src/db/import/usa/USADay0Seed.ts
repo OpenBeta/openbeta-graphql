@@ -31,7 +31,7 @@ const main = async (): Promise<void> => {
   await createIndexes()
   console.timeEnd('Creating indexes')
 
-  const rootNode = await createRoot('US')
+  const rootNode = await createRoot('US', 'USA')
 
   const stats: Array<JobStats|any> = await Promise.all<Array<JobStats|any>>(US_STATES.map(async state => {
     const code = state.code.toLowerCase()
@@ -47,7 +47,7 @@ const main = async (): Promise<void> => {
 
   printStats(stats)
 
-  gracefulExit()
+  await gracefulExit()
   return await Promise.resolve()
 }
 
@@ -67,4 +67,4 @@ const printStats = (stats: Array<JobStats|any>): void => {
   logger.info('Total: ', sums)
 }
 
-connectDB(main)
+void connectDB(main)

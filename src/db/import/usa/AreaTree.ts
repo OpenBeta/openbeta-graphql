@@ -2,6 +2,7 @@ import assert from 'node:assert'
 import mongoose from 'mongoose'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
+import { getCountriesDefaultGradeContext } from '../../../grade-utils.js'
 
 /**
  * A tree-like data structure for storing area hierarchy during raw json files progressing.
@@ -22,7 +23,12 @@ export class Tree {
     return `${this.root.key}|${key}`
   }
 
-  private insert (key: string, isSubRoot: boolean, isLeaf: boolean = false, jsonLine = undefined): Tree {
+  private insert (
+    key: string,
+    isSubRoot: boolean,
+    isLeaf: boolean = false,
+    jsonLine = undefined
+  ): Tree {
     if (this.map.has(key)) return this
 
     const newNode = new AreaNode(key, isLeaf, jsonLine, this)
@@ -33,9 +39,8 @@ export class Tree {
       this.subRoot = newNode
     } else {
       // find this new node's parent
-      const parentPath = key.substring(0, key.lastIndexOf('|'))
-      const parent = this.map.get(parentPath)
-      if (parent === undefined) assert(false, 'Parent path exists but parent node doesn\'t')
+      const parent = this.getParent(key)
+      if (parent === undefined) assert(false, "Parent path exists but parent node doesn't")
       parent?.linkChild(newNode)
       newNode.setParent(parent)
     }
@@ -58,6 +63,12 @@ export class Tree {
       return acc
     }, '')
     return this
+  }
+
+  getParent (key: string): AreaNode | undefined {
+    const parentPath = key.substring(0, key.lastIndexOf('|'))
+    const parent = this.atPath(parentPath)
+    return parent
   }
 
   atPath (path: string): AreaNode | undefined {
@@ -92,19 +103,46 @@ export class Tree {
   }
 
   getPathTokens (node: AreaNode): string[] {
-    const { key } = node
+    const { key, countryName } = node
     const tokens: string[] = key.split('|')
+
     if (this.root === undefined) {
       assert(tokens.length === 1, 'Country root node should not have a parent')
-      return tokens
+      // We're at country node
+      // - `countryName` is undefined when loading data from json files
+      // - we pass countryName when calling from addCountry() API
+      return countryName != null ? [countryName] : tokens
     }
-    tokens.unshift(this.root.key)
+    // use countryName if exists
+    tokens.unshift(this.root?.countryName ?? this.root.key)
     return tokens
+  }
+
+  /**
+   *
+   * @param node
+   * @returns the grade context for this tree
+   * Inherits from parent tree if current tree does not have one
+   * Country root is the highest default grade context
+   */
+  getGradeContext (node: AreaNode): string {
+    const countriesDefaultGradeContext = getCountriesDefaultGradeContext()
+    const USGradeContext = countriesDefaultGradeContext.US
+    const { key, jsonLine } = node
+    // country level, return key
+    if (this.root === undefined) { return countriesDefaultGradeContext[key] ?? USGradeContext }
+    // imported grade context for current area
+    if (jsonLine?.gradeContext !== undefined) { return jsonLine.gradeContext ?? USGradeContext }
+    // check grade context for parent area
+    const parent = this.getParent(key)
+    if (parent !== undefined) return parent.getGradeContext()
+    return countriesDefaultGradeContext[this.root.key]
   }
 }
 
 export class AreaNode {
   key: string
+  countryName?: string // only used by create country
   _id = new mongoose.Types.ObjectId()
   uuid: MUUID
   isLeaf: boolean
@@ -113,18 +151,20 @@ export class AreaNode {
   children: Set<mongoose.Types.ObjectId> = new Set<mongoose.Types.ObjectId>()
   treeRef: Tree
 
-  constructor (key: string, isLeaf: boolean, jsonLine = undefined, treeRef: Tree) {
+  constructor (key: string, isLeaf: boolean, jsonLine = undefined, treeRef: Tree, countryName?: string) {
     this.uuid = getUUID(key, isLeaf, jsonLine)
     this.key = key
     this.isLeaf = isLeaf
-    if (isLeaf) { // because our data files contain only leaf area data
+    if (isLeaf) {
+      // because our data files contain only leaf area data
       this.jsonLine = jsonLine
     }
     this.treeRef = treeRef
+    this.countryName = countryName
   }
 
   // create a ref to parent for upward traversal
-  setParent (parent: AreaNode|undefined): AreaNode {
+  setParent (parent: AreaNode | undefined): AreaNode {
     if (parent !== undefined) {
       const { _id } = parent
       this.parentRef = _id
@@ -148,15 +188,23 @@ export class AreaNode {
   }
 
   /**
-   * Return an array of ancenstor area name of this node (inclusive)
+   * Return an array of ancestor area name of this node (inclusive)
    */
   getPathTokens (): string[] {
     return this.treeRef.getPathTokens(this)
   }
+
+  /**
+   * Return the grade context for node
+   * Inherits from parent node if current node does not have one
+   */
+  getGradeContext (): string {
+    return this.treeRef.getGradeContext(this)
+  }
 }
 
-export const createRootNode = (countryCode: string): AreaNode => {
-  return new AreaNode(countryCode, false, undefined, new Tree())
+export const createRootNode = (countryCode: string, countryName?: string): AreaNode => {
+  return new AreaNode(countryCode, false, undefined, new Tree(), countryName)
 }
 
 /**
@@ -166,7 +214,7 @@ export const createRootNode = (countryCode: string): AreaNode => {
  * @param jsonLine raw data
  * @returns MUUID
  */
-const getUUID = (key, isLeaf: boolean, jsonLine: any): MUUID => {
+export const getUUID = (key, isLeaf: boolean, jsonLine: any): MUUID => {
   let idStr = key
   if (isLeaf) {
     assert(jsonLine !== undefined)

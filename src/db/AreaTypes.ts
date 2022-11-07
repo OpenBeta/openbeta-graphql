@@ -1,25 +1,29 @@
-import mongose from 'mongoose'
+import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
 import { BBox, Point } from '@turf/helpers'
 import { ClimbType } from './ClimbTypes'
+import { ChangeRecordMetadataType } from './ChangeLogType'
 
 export type AreaType = IAreaProps & {
   metadata: IAreaMetadata
 }
 
 export interface IAreaProps {
-  _id: mongose.Types.ObjectId
+  _id: mongoose.Types.ObjectId
   shortCode?: string
   area_name: string
   climbs: Array<MUUID | ClimbType>
-  children: mongose.Types.ObjectId[]
+  children: mongoose.Types.ObjectId[]
   ancestors: string
   pathTokens: string[]
-  aggregate: AggregateType
+  gradeContext: string
+  aggregate?: AggregateType
   content: IAreaContent
   density: number
   totalClimbs: number
+  _change?: ChangeRecordMetadataType
+  _deleting?: Date
 }
 
 export interface IAreaMetadata {
@@ -33,6 +37,15 @@ export interface IAreaMetadata {
 }
 export interface IAreaContent {
   description?: string
+}
+
+export interface AreaEditableFieldsType {
+  areaName?: string
+  description?: string
+  isDestination?: boolean
+  shortCode?: string
+  lat?: number
+  lng?: number
 }
 
 export interface CountByGroupType {
@@ -49,6 +62,8 @@ export interface CountByDisciplineType {
   sport?: DisciplineStatsType
   boulder?: DisciplineStatsType
   alpine?: DisciplineStatsType
+  snow?: DisciplineStatsType
+  ice?: DisciplineStatsType
   mixed?: DisciplineStatsType
   aid?: DisciplineStatsType
   tr?: DisciplineStatsType
@@ -60,8 +75,17 @@ export interface DisciplineStatsType {
 }
 
 export interface CountByGradeBandType {
+  unknown: number
   beginner: number
   intermediate: number
   advanced: number
   expert: number
+}
+
+export enum OperationType {
+  addCountry = 'addCountry',
+  addArea = 'addArea',
+  deleteArea = 'deleteArea',
+  updateDestination = 'updateDestination',
+  updateArea = 'updateArea'
 }

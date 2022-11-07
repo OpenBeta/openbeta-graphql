@@ -20,8 +20,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Initialize DB",
-            "program": "${workspaceFolder}/src/db/utils/jobs/UpdateAllRunner.ts",
+            "name": "Update stats",
+            "program": "${workspaceFolder}/src/db/utils/jobs/UpdateStatsJob.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
@@ -66,7 +66,8 @@
             "runtimeArgs": [
                 "--inspect-brk",
                 "${workspaceRoot}/node_modules/.bin/jest",
-                "--runInBand"
+                "--runInBand",
+                "AreaHistory"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",

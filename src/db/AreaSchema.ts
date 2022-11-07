@@ -1,10 +1,28 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType } from './AreaTypes.js'
+import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType, OperationType } from './AreaTypes.js'
 import { PointSchema } from './ClimbSchema.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
+import { GradeContexts } from '../grade-utils.js'
 
 const { Schema, connection } = mongoose
+
+const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
+  user: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    required: true
+  },
+  historyId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  prevHistoryId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  operation: {
+    type: Schema.Types.Mixed,
+    enum: Object.values(OperationType),
+    required: true
+  },
+  seq: { type: Number, required: true, default: 0 }
+}, { _id: false, timestamps: false })
 
 const MetadataSchema = new Schema<IAreaMetadata>({
   isDestination: { type: Boolean, sparse: true },
@@ -36,6 +54,7 @@ export const CountByGroup = new Schema<CountByGroupType>({
 }, { _id: false })
 
 export const CountByGradeBandSchema = new Schema<CountByGradeBandType>({
+  unknown: { type: Number, required: true },
   beginner: { type: Number, required: true },
   intermediate: { type: Number, required: true },
   advanced: { type: Number, required: true },
@@ -54,6 +73,8 @@ export const CountByDisciplineSchema = new Schema<CountByDisciplineType>({
   sport: { type: DisciplineStatsSchema, required: false },
   boulder: { type: DisciplineStatsSchema, required: false },
   alpine: { type: DisciplineStatsSchema, required: false },
+  snow: { type: DisciplineStatsSchema, required: false },
+  ice: { type: DisciplineStatsSchema, required: false },
   mixed: { type: DisciplineStatsSchema, required: false },
   aid: { type: DisciplineStatsSchema, required: false },
   tr: { type: DisciplineStatsSchema, required: false }
@@ -65,8 +86,9 @@ const AggregateSchema = new Schema<AggregateType>({
   byGradeBand: CountByGradeBandSchema
 }, { _id: false })
 
-const AreaSchema = new Schema<AreaType>({
+export const AreaSchema = new Schema<AreaType>({
   area_name: { type: String, required: true, index: true },
+  shortCode: { type: String, required: false, index: true },
   climbs: [{
     type: Schema.Types.Mixed,
     ref: 'climbs',
@@ -75,18 +97,17 @@ const AreaSchema = new Schema<AreaType>({
   children: [{ type: Schema.Types.ObjectId, ref: 'areas', required: false }],
   ancestors: { type: String, required: true, index: true },
   pathTokens: [{ type: String, required: true, index: true }],
+  gradeContext: { type: String, enum: Object.values(GradeContexts), required: true },
   aggregate: AggregateSchema,
   metadata: MetadataSchema,
   content: ContentSchema,
   density: { type: Number },
-  totalClimbs: { type: Number }
-}, {
-  writeConcern: {
-    w: 'majority',
-    j: false,
-    wtimeout: 5000
-  }
-})
+  totalClimbs: { type: Number },
+  _change: ChangeRecordMetadata,
+  _deleting: { type: Date }
+}, { timestamps: true })
+
+AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
 
 export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> => {
   return connection.model(name, AreaSchema)

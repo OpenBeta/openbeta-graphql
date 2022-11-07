@@ -8,6 +8,7 @@ import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbExtType } from '../db/ClimbTypes.js'
+import { logger } from '../logger.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
@@ -15,7 +16,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
   mediaModel = getMediaModel()
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
-    let mongoFilter = {}
+    let mongoFilter: any = {}
     if (filters !== undefined) {
       mongoFilter = Object.entries(filters).reduce<Filter<AreaType>>((acc, [key, filter]): Filter<AreaType> => {
         switch (key) {
@@ -66,6 +67,9 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         return acc
       }, {})
     }
+
+    mongoFilter._deleting = { $eq: null } // marked for deletion
+
     // Todo: figure whether we need to populate 'climbs' array
     return this.collection.find(mongoFilter)
   }
@@ -78,16 +82,30 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     ]).toArray()
   }
 
+  async listAllCountries (): Promise<any> {
+    try {
+      return await this.areaModel.find({ pathTokens: { $size: 1 } }).lean()
+    } catch (e) {
+      logger.error(e)
+      return []
+    }
+  }
+
   async findOneAreaByUUID (uuid: muuid.MUUID): Promise<any> {
     const rs = await this.areaModel
       .aggregate([
-        { $match: { 'metadata.area_id': uuid } },
+        { $match: { 'metadata.area_id': uuid, _deleting: { $exists: false } } },
         {
           $lookup: {
             from: 'climbs', // other collection name
             localField: 'climbs',
             foreignField: '_id',
             as: 'climbs' // clobber array of climb IDs with climb objects
+          }
+        },
+        {
+          $set: {
+            'climbs.gradeContext': '$gradeContext' // manually set area's grade context to climb
           }
         }
       ])
@@ -162,7 +180,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
                 $project: { // only include specific fields
                   _id: 0,
                   ancestors: 1,
-                  pathTokens: 1
+                  pathTokens: 1,
+                  gradeContext: 1
                 }
               }
             ]
@@ -290,13 +309,5 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       'metadata.leaf': zoom >= 11
     }
     return await this.areaModel.find(filter).lean()
-  }
-
-  async setDestinationFlag (uuid: MUUID, flag: boolean): Promise<AreaType> {
-    const filter = { 'metadata.area_id': uuid }
-    const update = { 'metadata.isDestination': flag }
-    const opts = { new: true } // return newly updated doc
-    return await this.areaModel
-      .findOneAndUpdate(filter, update, opts).lean()
   }
 }

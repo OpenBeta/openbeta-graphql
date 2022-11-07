@@ -1,5 +1,10 @@
 import { BBox } from '@turf/helpers'
-import { AreaType } from './db/AreaTypes'
+import { MUUID } from 'uuid-mongodb'
+
+import { AreaType } from './db/AreaTypes.js'
+import type MutableAreaDataSource from './model/MutableAreaDataSource.js'
+import type TickDataSource from './model/TickDataSource.js'
+import type HistoryDataSouce from './model/ChangeLogDataSource.js'
 
 export enum SortDirection {
   ASC = 1,
@@ -56,4 +61,20 @@ export interface QueryByIdType {
 
 export interface AuthUserType {
   roles: string[]
+  uuid: MUUID | undefined
+}
+
+export interface DataSourcesType {
+  areas: MutableAreaDataSource
+  ticks: TickDataSource
+  history: HistoryDataSouce
+}
+
+export interface Context {
+  dataSources: DataSourcesType
+  // areas: MutableAreaDataSource
+}
+
+export interface ContextWithAuth extends Context {
+  user: AuthUserType
 }

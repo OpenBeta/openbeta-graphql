@@ -1,14 +1,25 @@
 import mongoose from 'mongoose'
 import { geometry, Point } from '@turf/helpers'
+import isoCountries from 'i18n-iso-countries'
+import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes'
 import { Tree, AreaNode, createRootNode } from './AreaTree.js'
 import { MUUID } from 'uuid-mongodb'
 
-export const createRoot = async (countryCode: string): Promise<AreaNode> => {
+isoCountries.registerLocale(enJson)
+
+export const createRoot = async (countryCode: string, shortCode?: string): Promise<AreaNode> => {
+  if (!isoCountries.isValid(countryCode)) {
+    throw new Error('ISO code must be alpha 2 or 3')
+  }
   const areaModel = getAreaModel('areas')
-  const countryNode = createRootNode(countryCode)
+  const countryNode = createRootNode(isoCountries.toAlpha3(countryCode).toUpperCase())
   const doc = makeDBArea(countryNode)
+  if (shortCode != null) {
+    doc.shortCode = shortCode
+  }
   await areaModel.insertMany(doc, { ordered: false })
   return countryNode
 }
@@ -50,17 +61,22 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
 }
 
 /**
- * Convert simple Area tree node to Mongo Area
+ * Convert simple Area tree node to Mongo Area.
  * @param node
- * @returns
  */
-const makeDBArea = (node: AreaNode): AreaType => {
+export const makeDBArea = (node: AreaNode): AreaType => {
   const { key, isLeaf, children, _id, uuid } = node
 
+  let areaName: string
+  if (node.countryName != null) {
+    areaName = node.countryName
+  } else {
+    areaName = isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1)
+  }
   return {
     _id,
     shortCode: '',
-    area_name: isLeaf ? node.jsonLine.area_name : key.substring(key.lastIndexOf('|') + 1),
+    area_name: areaName,
     children: Array.from(children),
     metadata: {
       isDestination: false,
@@ -74,10 +90,12 @@ const makeDBArea = (node: AreaNode): AreaType => {
     ancestors: uuidArrayToString(node.getAncestors()),
     climbs: [],
     pathTokens: node.getPathTokens(),
+    gradeContext: node.getGradeContext(),
     aggregate: {
       byGrade: [],
       byDiscipline: {},
       byGradeBand: {
+        unknown: 0,
         beginner: 0,
         intermediate: 0,
         advanced: 0,
@@ -95,6 +113,11 @@ const makeDBArea = (node: AreaNode): AreaType => {
 const URL_REGEX = /area\/(?<id>\d+)\//
 export const extractMpId = (url: string): string | undefined => URL_REGEX.exec(url)?.groups?.id
 
+/**
+ * Similar to String.join(',') but also convert each UUID to string before joining them
+ * @param a
+ * @returns
+ */
 const uuidArrayToString = (a: MUUID[]): string => {
   return a.reduce((acc: string, curr: MUUID, index) => {
     acc = acc + curr.toUUID().toString()

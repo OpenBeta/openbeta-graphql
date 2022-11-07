@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/openbeta/openbeta-nodejs-docker:16.3
+FROM registry.gitlab.com/openbeta/openbeta-nodejs-docker:16
 
 ENV APP_DIR=/apps/openbeta-graphql
 
@@ -10,7 +10,6 @@ RUN mkdir -p ${APP_DIR}
 COPY . ./
 
 RUN yarn install --no-progress && \
-    yarn build
+    yarn build-release
 
-CMD node build/main.js
-
+CMD node --experimental-json-modules build/main.js

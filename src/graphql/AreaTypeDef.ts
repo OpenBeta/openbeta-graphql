@@ -7,6 +7,7 @@ export const typeDef = gql`
     stats: Stats
     cragsNear(placeId: String, lnglat: Point, minDistance: Int = 0, maxDistance: Int = 48000, includeCrags: Boolean = false): [CragsNear]
     cragsWithin(filter: SearchWithinFilter): [Area]
+    countries: [Area]
   }
 
   "A climbing area, wall or crag"
@@ -24,9 +25,12 @@ export const typeDef = gql`
     content: AreaContent
     pathHash: String!
     pathTokens: [String]!
+    gradeContext: String!
     density: Float!
     totalClimbs: Int!
     media: [MediaTagType]
+    createdAt: Date
+    updatedAt: Date
   }
 
   type AreaMetadata {
@@ -53,6 +57,8 @@ export const typeDef = gql`
     sport: DisciplineStatsType
     boulder: DisciplineStatsType
     alpine: DisciplineStatsType
+    snow: DisciplineStatsType
+    ice: DisciplineStatsType
     mixed: DisciplineStatsType
     aid: DisciplineStatsType
     tr: DisciplineStatsType
@@ -69,6 +75,7 @@ export const typeDef = gql`
   }
 
   type CountByGradeBand {
+    unknown: Int
     beginner: Int
     intermediate: Int
     advanced: Int

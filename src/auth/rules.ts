@@ -1,5 +1,5 @@
 import { rule } from 'graphql-shield'
 
 export const isEditor = rule()(async (parent, args, ctx, info) => {
-  return ctx.user.roles.includes('editor')
+  return (ctx.user.uuid != null) && ctx.user.roles.includes('editor')
 })

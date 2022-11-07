@@ -2,6 +2,8 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import { ClimbType, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
+import { GradeContexts } from '../grade-utils.js'
+import { GradeScalesTypes } from '@openbeta/sandbag'
 
 const { Schema } = mongoose
 
@@ -47,6 +49,12 @@ const MetadataSchema = new Schema<IClimbMetadata>({
   }
 }, { _id: false })
 
+const GradeTypeSchema = new Schema<GradeScalesTypes>({
+  yds: { type: Schema.Types.String, required: false },
+  french: { type: Schema.Types.String, required: false },
+  font: { type: Schema.Types.String, required: false }
+}, { _id: false })
+
 export const ClimbSchema = new Schema<ClimbType>({
   _id: {
     type: 'object',
@@ -55,6 +63,8 @@ export const ClimbSchema = new Schema<ClimbType>({
   },
   name: { type: Schema.Types.String, required: true, index: true },
   yds: { type: Schema.Types.String, required: true },
+  grades: GradeTypeSchema,
+  gradeContext: { type: String, enum: Object.values(GradeContexts), required: false },
   fa: { type: Schema.Types.String, required: false },
   type: { type: Schema.Types.Mixed },
   safety: {
@@ -65,12 +75,7 @@ export const ClimbSchema = new Schema<ClimbType>({
   metadata: MetadataSchema,
   content: ContentSchema
 }, {
-  _id: false,
-  writeConcern: {
-    w: 'majority',
-    j: true,
-    wtimeout: 5000
-  }
+  _id: false
 })
 
 ClimbSchema.pre('validate', function (next) {
