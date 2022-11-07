@@ -1,3 +1,5 @@
+import { Point } from '@turf/helpers'
+
 import { IClimbType } from '../../ClimbTypes'
 
 export interface IFlatClimbTypes {
@@ -34,4 +36,14 @@ export const disciplinesToArray = (type: IClimbType): any => {
     }
   }
   return z
+}
+
+/**
+ * Convert mongo db geo point type to [lat,lng] for typesense geo search
+ * @param geoPoint
+ * @returns
+ */
+export const geoToLatLng = (geoPoint: Point): [number, number] => {
+  const { coordinates } = geoPoint
+  return [coordinates[1], coordinates[0]]
 }

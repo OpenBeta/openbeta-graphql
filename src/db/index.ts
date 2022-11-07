@@ -75,6 +75,7 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
 
 export const defaultPostConnect = async (): Promise<void> => {
   console.log('Kudos!')
+  await createIndexes()
   await streamListener(mongoose.connection)
 }
 

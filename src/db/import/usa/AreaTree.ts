@@ -214,7 +214,7 @@ export const createRootNode = (countryCode: string, countryName?: string): AreaN
  * @param jsonLine raw data
  * @returns MUUID
  */
-export const getUUID = (key, isLeaf: boolean, jsonLine: any): MUUID => {
+export const getUUID = (key: string, isLeaf: boolean, jsonLine: any): MUUID => {
   let idStr = key
   if (isLeaf) {
     assert(jsonLine !== undefined)
@@ -223,7 +223,7 @@ export const getUUID = (key, isLeaf: boolean, jsonLine: any): MUUID => {
       idStr = extId
     }
   }
-  return muuid.from(uuidv5(idStr, NIL))
+  return muuid.from(uuidv5(idStr.toUpperCase(), NIL))
 }
 
 const URL_REGEX = /area\/(?<id>\d+)\//
