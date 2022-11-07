@@ -126,6 +126,8 @@ const resolvers = {
     id: (node: AreaType) => node._id,
     uuid: (node: AreaType) => node.metadata.area_id.toUUID().toString(),
 
+    shortCode: (node: AreaType) => node?.shortCode ?? null,
+
     // New camel case field
     areaName: async (node: AreaType) => node.area_name,
 
