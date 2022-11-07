@@ -15,13 +15,13 @@ config() // initialize dotenv
  * See https://typesense.org/docs/0.23.1/api/
  * @returns Typesense Client object
  */
-export default function typesense (): Client {
+export default function typesense (): Client | undefined {
   const node = process.env.TYPESENSE_NODE ?? ''
   const apiKey = process.env.TYPESENSE_API_KEY_RW ?? ''
 
   if (node === '' || apiKey === '') {
-    logger.error('Missing env keys')
-    process.exit(1)
+    logger.warn('Can\'t create Typesense client: missing env keys.')
+    return
   }
   const client = new Typesense.Client({
     nodes: [
@@ -44,10 +44,10 @@ export const addArea = async (area: AreaType, op: DBOperation): Promise<void> =>
     switch (op) {
       case 'insert':
       case 'update':
-        await typesense().collections(areaSchema.name).documents().upsert(mongoAreaToTypeSense(area))
+        await typesense()?.collections(areaSchema.name).documents().upsert(mongoAreaToTypeSense(area))
         break
       case 'delete':
-        await typesense().collections(areaSchema.name).documents().delete(area.metadata.area_id.toUUID().toString())
+        await typesense()?.collections(areaSchema.name).documents().delete(area.metadata.area_id.toUUID().toString())
         break
     }
   } catch (e) {

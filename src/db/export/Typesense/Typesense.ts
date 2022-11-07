@@ -179,6 +179,9 @@ async function onDBConnected (): Promise<void> {
   }
 
   const typesense = typesenseClient()
+  if (typesense == null) {
+    process.exit(1)
+  }
 
   logger.info('Start pushing data to TypeSense')
 
