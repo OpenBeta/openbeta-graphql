@@ -4,8 +4,9 @@ import dot from 'dot-object'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
-import { BaseChangeRecordType, ResumeToken, UpdateDescription } from '../ChangeLogType.js'
+import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation } from '../ChangeLogType.js'
 import { checkVar } from '../index.js'
+import { addArea as addAreaToTypesense } from '../export/Typesense/Client.js'
 
 export default async function streamListener (db: mongoose.Connection): Promise<any> {
   const resumeId = await mostRecentResumeId()
@@ -43,7 +44,7 @@ const onChange = (change: ChangeStreamDocument): void => {
   switch (operationType) {
     case 'replace':
     case 'update': {
-      let dbOp = 'update'
+      let dbOp: DBOperation = 'update'
       const source = change.ns.coll
       const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
       if (fullDocument?._deleting != null) {
@@ -68,7 +69,7 @@ interface ChangeRecordType {
   source: string
   fullDocument: any | null
   updateDescription?: any
-  dbOp: string
+  dbOp: DBOperation
 }
 
 const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
@@ -87,6 +88,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         kind: 'areas'
       }
       void changelogDataSource.record(newDocument)
+      void addAreaToTypesense(fullDocument, dbOp)
       break
     }
     default:

@@ -4,6 +4,8 @@ import { MUUID } from 'uuid-mongodb'
 import { OperationType as AreaOpType, AreaType } from './AreaTypes.js'
 import { ClimbType } from './ClimbTypes.js'
 
+export type DBOperation = 'insert' | 'update' | 'delete'
+
 export interface ChangeLogType<T = SupportedCollectionTypes> {
   _id: mongose.Types.ObjectId
   editedBy: MUUID
@@ -23,7 +25,7 @@ export interface UpdateDescription {
 }
 export interface BaseChangeRecordType<FullDocumentType = SupportedCollectionTypes> {
   _id: ResumeToken
-  dbOp: string
+  dbOp: DBOperation
   fullDocument: FullDocumentType
   updateDescription: UpdateDescription
   kind: string

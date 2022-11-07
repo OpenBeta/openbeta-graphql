@@ -1,13 +1,14 @@
-import Typesense, { Client } from 'typesense'
-import { Point } from '@turf/helpers'
+import { Client } from 'typesense'
 
+import typesenseClient from './Client.js'
 import { connectDB, gracefulExit, getClimbModel, getAreaModel } from '../../index.js'
-import { disciplinesToArray } from './Utils.js'
+import { disciplinesToArray, geoToLatLng } from './Utils.js'
 import { ClimbExtType } from '../../ClimbTypes.js'
 import { logger } from '../../../logger.js'
 import { climbSchema, areaSchema, ClimbTypeSenseItem, AreaTypeSenseItem } from './TypesenseSchemas.js'
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js'
 import { AreaType } from '../../AreaTypes.js'
+import { mongoAreaToTypeSense } from './transformers.js'
 
 /**
  * The maxiumum number of documents we push to typesense at once.
@@ -117,7 +118,7 @@ async function uploadChunk (client: Client, schema: CollectionCreateSchema, chun
     logger.info(`pushing ${chunk.length} documents to typesense`)
     // This is safe enough. If anyone's gonna pass a non-object type then
     // they haven't been paying attention
-    await client.collections(schema.name).documents().import(chunk)
+    await client.collections(schema.name).documents().import(chunk, { action: 'upsert' })
   } catch (e) {
     logger.error(e)
   }
@@ -165,20 +166,7 @@ async function updateClimbTypesense (client: Client): Promise<void> {
 }
 
 async function updateAreaTypesense (client: Client): Promise<void> {
-  function mongoToTypeSense (doc: AreaType): AreaTypeSenseItem {
-    return {
-      areaUUID: doc.metadata.area_id.toUUID().toString(),
-      name: doc.area_name ?? '',
-      pathTokens: doc.pathTokens,
-      areaLatLng: geoToLatLng(doc.metadata.lnglat),
-      leaf: doc.metadata.leaf,
-      isDestination: doc.metadata.isDestination,
-      totalClimbs: doc.totalClimbs,
-      density: doc.density
-    }
-  }
-
-  await processMongoCollection<AreaTypeSenseItem, AreaType>(client, areaSchema, mongoToTypeSense, getAllAreas)
+  await processMongoCollection<AreaTypeSenseItem, AreaType>(client, areaSchema, mongoAreaToTypeSense, getAllAreas)
 }
 
 async function onDBConnected (): Promise<void> {
@@ -190,19 +178,10 @@ async function onDBConnected (): Promise<void> {
     await gracefulExit(1)
   }
 
-  const typesense = new Typesense.Client({
-    nodes: [
-      {
-        host: node,
-        port: 443,
-        protocol: 'https'
-      }
-    ],
-    apiKey,
-    numRetries: 3, // A total of 4 tries (1 original try + 3 retries)
-    connectionTimeoutSeconds: 120, // Set a longer timeout for large imports
-    logLevel: 'info'
-  })
+  const typesense = typesenseClient()
+  if (typesense == null) {
+    process.exit(1)
+  }
 
   logger.info('Start pushing data to TypeSense')
 
@@ -219,16 +198,6 @@ async function onDBConnected (): Promise<void> {
   }
 
   await gracefulExit()
-}
-
-/**
- * Convert mongo db geo point type to [lat,lng] for typesense geo search
- * @param geoPoint
- * @returns
- */
-const geoToLatLng = (geoPoint: Point): [number, number] => {
-  const { coordinates } = geoPoint
-  return [coordinates[1], coordinates[0]]
 }
 
 void connectDB(onDBConnected)

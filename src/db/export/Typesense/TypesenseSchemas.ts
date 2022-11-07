@@ -73,6 +73,7 @@ export const climbSchema: CollectionCreateSchema = {
 }
 
 export interface AreaTypeSenseItem {
+  id: string
   name: string
   pathTokens: string[]
   areaUUID: string
