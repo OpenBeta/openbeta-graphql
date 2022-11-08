@@ -8,6 +8,10 @@ const HistoryTypeDefs = gql`
     toDate: Date
   }
 
+  input AreaHistoryFilter {
+    areaId: ID
+  }
+
   type UpdateDescription {
     updatedFields: [String]
   }
@@ -31,6 +35,7 @@ const HistoryTypeDefs = gql`
 
   type Query {
     getChangeHistory(filter: AllHistoryFilter): [History]
+    getAreaHistory(filter: AreaHistoryFilter): [History]
   }
 `
 
