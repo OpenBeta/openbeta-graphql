@@ -56,3 +56,7 @@ export interface GetHistoryInputFilterType {
   fromDate: Date
   toDate: Date
 }
+
+export interface GetAreaHistoryInputFilterType {
+  areaId: string
+}
