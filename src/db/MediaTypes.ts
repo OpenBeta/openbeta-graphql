@@ -5,7 +5,7 @@ export interface MediaType {
   _id?: mongoose.Types.ObjectId
   mediaUuid: MUUID
   mediaUrl: string
-  mediaType: number
+  mediaType: number // 0: image, 1: video
   destinationId: MUUID // reference to a climb or area
   destType: number // 0: climb, 1: area
   onModel: RefModelType
