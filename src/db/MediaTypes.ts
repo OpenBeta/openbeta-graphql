@@ -1,6 +1,9 @@
 import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
+import { AreaType } from './AreaTypes.js'
+import { ClimbType } from './ClimbTypes.js'
+
 export interface MediaType {
   _id?: mongoose.Types.ObjectId
   mediaUuid: MUUID
@@ -20,3 +23,29 @@ export interface MediaListByAuthorType {
   _id: string
   tagList: MediaType[]
 }
+
+export interface MediaInputType {
+  mediaUuid: MUUID
+  mediaUrl: string
+  mediaType: number
+  destinationId: MUUID
+  destType: number
+}
+
+export interface AreaTagType {
+  mediaUuid: MUUID
+  mediaUrl: string
+  mediaType: number
+  destinationId: AreaType
+  destType: number
+}
+
+export interface ClimbTagType {
+  mediaUuid: MUUID
+  mediaUrl: string
+  mediaType: number
+  destinationId: ClimbType
+  destType: number
+}
+
+export type TagEntryResultType = AreaTagType | ClimbTagType

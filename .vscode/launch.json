@@ -67,11 +67,10 @@
                 "--inspect-brk",
                 "${workspaceRoot}/node_modules/.bin/jest",
                 "--runInBand",
-                "AreaHistory"
+                "MediaDataSource"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "port": 9229
         }
     ]
 }
