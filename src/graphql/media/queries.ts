@@ -2,8 +2,12 @@ import muid from 'uuid-mongodb'
 import { getMediaModel } from '../../db/index.js'
 import { MediaListByAuthorType } from '../../db/MediaTypes.js'
 
+// TODO: move function implementations to MediaDataSource.ts
 const MediaQueries = {
 
+  /**
+   * Giving a list of media IDs return all tags.
+   */
   getTagsByMediaIdList: async (_, { uuidList }: {uuidList: string[]}) => {
     if (uuidList !== undefined && uuidList.length > 0) {
       const muidList = uuidList.map(entry => muid.from(entry))

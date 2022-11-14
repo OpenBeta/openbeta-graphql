@@ -1,8 +1,9 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { UserInputError } from 'apollo-server'
+import { MUUID } from 'uuid-mongodb'
 
 import { getMediaModel, getClimbModel, getAreaModel } from '../db/index.js'
-import { MediaType, MediaInputType, RefModelType, TagEntryResultType } from '../db/MediaTypes.js'
+import { MediaType, MediaInputType, RefModelType, TagEntryResultType, RemoveTagResult } from '../db/MediaTypes.js'
 
 const QUERY_OPTIONS = { upsert: true, new: true, overwrite: false }
 
@@ -33,7 +34,7 @@ export default class AreaDataSource extends MongoDataSource<MediaType> {
 
         const filter = { mediaUuid: doc.mediaUuid, destinationId }
 
-        if (await media.exists(filter) != null) throw new UserInputError('Duplicate mediaUuid and destinationId now allowed')
+        if (await media.exists(filter) != null) throw new UserInputError('Duplicate mediaUuid and destinationId not allowed')
 
         return await media
           .findOneAndUpdate(
@@ -80,5 +81,13 @@ export default class AreaDataSource extends MongoDataSource<MediaType> {
       }
       default: return null
     }
+  }
+
+  async removeTag (mediaUuid: MUUID, destinationId: MUUID): Promise<RemoveTagResult|null> {
+    const rs = await getMediaModel().deleteOne({ mediaUuid, destinationId })
+    if (rs?.deletedCount === 1) {
+      return { mediaUuid, destinationId, removed: true }
+    }
+    return { mediaUuid, destinationId, removed: false }
   }
 }

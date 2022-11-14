@@ -49,3 +49,9 @@ export interface ClimbTagType {
 }
 
 export type TagEntryResultType = AreaTagType | ClimbTagType
+
+export interface RemoveTagResult {
+  mediaUuid: MUUID
+  destinationId: MUUID
+  removed: boolean
+}

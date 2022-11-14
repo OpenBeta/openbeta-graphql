@@ -46,7 +46,7 @@ describe('MediaDataSource', () => {
     await expect(media.setTag(input)).rejects.toThrow(/doesn't exist/)
   })
 
-  it('should tag an area', async () => {
+  it('should set & remove an area tag', async () => {
     if (areaForTagging == null) fail('Pre-seeded test area not found')
 
     const input: MediaInputType = {
@@ -67,6 +67,10 @@ describe('MediaDataSource', () => {
         area_name: areaForTagging.area_name
       })
     })
+
+    // remove tag
+    const res = await media.removeTag(input.mediaUuid, input.destinationId)
+    expect(res?.removed).toBeTruthy()
   })
 
   it('should prevent a duplicate area tag', async () => {
