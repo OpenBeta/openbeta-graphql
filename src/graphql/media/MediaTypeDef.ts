@@ -9,7 +9,7 @@ export const typeDef = gql`
   }
 
   type Mutation {
-    removeTag(mediaUuid: MUID!, destinationId: MUID!): DeleteTagResult
+    removeTag(mediaUuid: ID!, destinationId: ID!): DeleteTagResult
   }
 
   type Query {
@@ -31,7 +31,7 @@ export const typeDef = gql`
 
   "A tag linking the media with a climb"
   type ClimbTag {
-    mediaUuid: MUID!
+    mediaUuid: ID!
     mediaUrl: String!
     mediaType: Int!
     climb: Climb!
@@ -40,7 +40,7 @@ export const typeDef = gql`
 
   "A tag linking the media with an area"
   type AreaTag {
-    mediaUuid: MUID!
+    mediaUuid: ID!
     mediaUrl: String!
     mediaType: Int!
     area: Area!
@@ -55,16 +55,16 @@ export const typeDef = gql`
   }
 
   type DeleteTagResult {
-    mediaUuid: MUID!
-    destinationId: MUID!
+    mediaUuid: ID!
+    destinationId: ID!
     removed: Boolean!
   }
 
   input MediaInput {
-    mediaUuid: MUID!
+    mediaUuid: ID!
     mediaUrl: String!
     mediaType: Int!
-    destinationId: MUID! 
+    destinationId: ID! 
     destType: Int!
   }
 `
