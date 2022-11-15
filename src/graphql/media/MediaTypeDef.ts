@@ -1,12 +1,15 @@
 import { gql } from 'apollo-server'
 
+/**
+ * For custom scalars see common/*Scalar.ts
+ */
 export const typeDef = gql`
   type Mutation {
     setTag(input: MediaInput): TagEntryResult
   }
 
   type Mutation {
-    removeTag(mediaUuid: ID!, destinationId: ID!): DeleteTagResult
+    removeTag(mediaUuid: MUID!, destinationId: MUID!): DeleteTagResult
   }
 
   type Query {
@@ -28,7 +31,7 @@ export const typeDef = gql`
 
   "A tag linking the media with a climb"
   type ClimbTag {
-    mediaUuid: ID!
+    mediaUuid: MUID!
     mediaUrl: String!
     mediaType: Int!
     climb: Climb!
@@ -37,7 +40,7 @@ export const typeDef = gql`
 
   "A tag linking the media with an area"
   type AreaTag {
-    mediaUuid: ID!
+    mediaUuid: MUID!
     mediaUrl: String!
     mediaType: Int!
     area: Area!
@@ -52,16 +55,16 @@ export const typeDef = gql`
   }
 
   type DeleteTagResult {
-    mediaUuid: ID!
-    destinationId: ID!
+    mediaUuid: MUID!
+    destinationId: MUID!
     removed: Boolean!
   }
 
   input MediaInput {
-    mediaUuid: ID!
+    mediaUuid: MUID!
     mediaUrl: String!
     mediaType: Int!
-    destinationId: ID! 
+    destinationId: MUID! 
     destType: Int!
   }
 `

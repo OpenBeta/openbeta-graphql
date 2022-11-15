@@ -1,4 +1,4 @@
-import { MediaListByAuthorType, MediaType, RefModelType } from '../../db/MediaTypes.js'
+import { MediaListByAuthorType, MediaType, RefModelType, ClimbTagType, AreaTagType } from '../../db/MediaTypes.js'
 const MediaResolvers = {
   MediaTagType: {
     mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
@@ -6,7 +6,7 @@ const MediaResolvers = {
   },
 
   TagEntryResult: {
-    __resolveType (obj) {
+    __resolveType (obj: MediaType) {
       if (obj.onModel === RefModelType.climbs) {
         return 'ClimbTag'
       }
@@ -22,15 +22,13 @@ const MediaResolvers = {
   },
 
   ClimbTag: {
-    mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
     // destinationId now contains the actual climb object. See Mongoose 'populate()'.
-    climb: (node: any) => node.destinationId
+    climb: (node: ClimbTagType) => node.destinationId
   },
 
   AreaTag: {
-    mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
     // destinationId now contains the actual area object. See Mongoose 'populate()'.
-    area: (node: any) => node.destinationId
+    area: (node: AreaTagType) => node.destinationId
   }
 }
 

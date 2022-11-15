@@ -1,11 +1,14 @@
 import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
+import { AreaType } from './AreaTypes.js'
+import { ClimbType } from './ClimbTypes.js'
+
 export interface MediaType {
   _id?: mongoose.Types.ObjectId
   mediaUuid: MUUID
   mediaUrl: string
-  mediaType: number
+  mediaType: number // 0: image, 1: video
   destinationId: MUUID // reference to a climb or area
   destType: number // 0: climb, 1: area
   onModel: RefModelType
@@ -19,4 +22,36 @@ export enum RefModelType {
 export interface MediaListByAuthorType {
   _id: string
   tagList: MediaType[]
+}
+
+export interface MediaInputType {
+  mediaUuid: MUUID
+  mediaUrl: string
+  mediaType: number
+  destinationId: MUUID
+  destType: number
+}
+
+export interface AreaTagType {
+  mediaUuid: MUUID
+  mediaUrl: string
+  mediaType: number
+  destinationId: AreaType
+  destType: number
+}
+
+export interface ClimbTagType {
+  mediaUuid: MUUID
+  mediaUrl: string
+  mediaType: number
+  destinationId: ClimbType
+  destType: number
+}
+
+export type TagEntryResultType = AreaTagType | ClimbTagType
+
+export interface RemoveTagResult {
+  mediaUuid: MUUID
+  destinationId: MUUID
+  removed: boolean
 }
