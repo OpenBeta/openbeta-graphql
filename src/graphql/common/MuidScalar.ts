@@ -1,6 +1,7 @@
 import { GraphQLScalarType, Kind } from 'graphql'
 import muid, { MUUID } from 'uuid-mongodb'
 
+// Not yet possible to use scalars on the client.  See https://github.com/apollographql/apollo-client/issues/8857
 const fromString = (s: string): MUUID => muid.from(s)
 
 // See https://www.apollographql.com/docs/apollo-server/schema/custom-scalars/

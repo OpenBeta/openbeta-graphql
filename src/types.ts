@@ -5,7 +5,7 @@ import { AreaType } from './db/AreaTypes.js'
 import type MutableAreaDataSource from './model/MutableAreaDataSource.js'
 import type TickDataSource from './model/TickDataSource.js'
 import type HistoryDataSouce from './model/ChangeLogDataSource.js'
-import type MediaDataSource from './model/MediaDataSource.js'
+import type MutableMediaDataSource from './model/MutableMediaDataSource.js'
 
 export enum SortDirection {
   ASC = 1,
@@ -69,7 +69,7 @@ export interface DataSourcesType {
   areas: MutableAreaDataSource
   ticks: TickDataSource
   history: HistoryDataSouce
-  media: MediaDataSource
+  media: MutableMediaDataSource
 }
 
 export interface Context {
