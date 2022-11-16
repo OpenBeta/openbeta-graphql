@@ -1,4 +1,4 @@
-import { MediaListByAuthorType, MediaType, RefModelType, ClimbTagType, AreaTagType } from '../../db/MediaTypes.js'
+import { MediaListByAuthorType, MediaType, RefModelType, ClimbTagType, AreaTagType, DeleteTagResult } from '../../db/MediaTypes.js'
 const MediaResolvers = {
   MediaTagType: {
     mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
@@ -15,6 +15,11 @@ const MediaResolvers = {
       }
       return null
     }
+  },
+
+  DeleteTagResult: {
+    mediaUuid: (node: DeleteTagResult) => node.mediaUuid.toUUID().toString(),
+    destinationId: (node: DeleteTagResult) => node.destinationId.toUUID().toString()
   },
 
   MediaListByAuthorType: {

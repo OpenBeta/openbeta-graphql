@@ -2,7 +2,7 @@ import { UserInputError } from 'apollo-server'
 import { MUUID } from 'uuid-mongodb'
 
 import { getMediaModel, getClimbModel, getAreaModel } from '../db/index.js'
-import { MediaType, MediaInputType, RefModelType, TagEntryResultType, RemoveTagResult } from '../db/MediaTypes.js'
+import { MediaType, MediaInputType, RefModelType, TagEntryResultType, DeleteTagResult } from '../db/MediaTypes.js'
 import MediaDataSource from './MediaDataSource.js'
 
 const QUERY_OPTIONS = { upsert: true, new: true, overwrite: false }
@@ -83,7 +83,7 @@ export default class MutableAreaDataSource extends MediaDataSource {
     }
   }
 
-  async removeTag (mediaUuid: MUUID, destinationId: MUUID): Promise<RemoveTagResult|null> {
+  async removeTag (mediaUuid: MUUID, destinationId: MUUID): Promise<DeleteTagResult|null> {
     const rs = await getMediaModel().deleteOne({ mediaUuid, destinationId })
     if (rs?.deletedCount === 1) {
       return { mediaUuid, destinationId, removed: true }
