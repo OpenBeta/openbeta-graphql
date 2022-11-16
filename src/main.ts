@@ -5,7 +5,7 @@ import { graphqlSchema } from './graphql/resolvers.js'
 import { connectDB, defaultPostConnect } from './db/index.js'
 import MutableAreaDataSource from './model/MutableAreaDataSource.js'
 import { changelogDataSource } from './model/ChangeLogDataSource.js'
-import MediaDataSource from './model/MediaDataSource.js'
+import MutableMediaDataSource from './model/MutableMediaDataSource.js'
 import TickDataSource from './model/TickDataSource.js'
 import { createContext, permissions } from './auth/index.js'
 import { logger } from './logger.js'
@@ -21,7 +21,7 @@ import { logger } from './logger.js'
       areas: new MutableAreaDataSource(mongoose.connection.db.collection('areas')),
       ticks: new TickDataSource(mongoose.connection.db.collection('ticks')),
       history: changelogDataSource, // see source for explantion why we don't instantiate the object
-      media: new MediaDataSource(mongoose.connection.db.collection('media'))
+      media: new MutableMediaDataSource(mongoose.connection.db.collection('media'))
     }),
     cache: 'bounded'
   })
