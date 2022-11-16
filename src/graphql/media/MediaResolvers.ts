@@ -22,11 +22,13 @@ const MediaResolvers = {
   },
 
   ClimbTag: {
+    mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString(),
     // destinationId now contains the actual climb object. See Mongoose 'populate()'.
     climb: (node: ClimbTagType) => node.destinationId
   },
 
   AreaTag: {
+    mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString(),
     // destinationId now contains the actual area object. See Mongoose 'populate()'.
     area: (node: AreaTagType) => node.destinationId
   }
