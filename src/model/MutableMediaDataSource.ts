@@ -59,10 +59,10 @@ export default class MutableAreaDataSource extends MediaDataSource {
         modelType = RefModelType.areas
         // Check whether the area referencing this tag exists before we allow
         // the tag to be added
-        const area = await getAreaModel().findOne({ 'metadata.area_id': destinationId }).lean()
-        if (area == null) {
-          throw new UserInputError(`Area with id: ${destinationId.toUUID().toString()} doesn't exist`)
-        }
+        const area = await getAreaModel()
+          .findOne({ 'metadata.area_id': destinationId })
+          .lean()
+          .orFail(new UserInputError(`Area with id: ${destinationId.toUUID().toString()} doesn't exist`))
 
         const doc: MediaType = {
           mediaUuid,

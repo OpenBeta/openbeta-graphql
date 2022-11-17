@@ -12,6 +12,7 @@ describe('MediaDataSource', () => {
   let areas: AreaDataSource
   let areaForTagging: AreaType | null
   let areaTag1: MediaInputType
+  let badClimbTag: MediaInputType
 
   beforeAll(async () => {
     await connectDB()
@@ -28,13 +29,21 @@ describe('MediaDataSource', () => {
 
     await areas.addCountry('USA')
     areaForTagging = await areas.addArea(muuid.v4(), 'Yosemite NP', null, 'USA')
+
     if (areaForTagging == null) fail('Fail to preseed test areas for tagging')
     areaTag1 = {
       mediaType: 0,
       mediaUuid: muuid.v4(),
-      mediaUrl: `/u/${muuid.v4().toUUID.toString()}/boo.jpg`,
+      mediaUrl: `/u/${muuid.v4().toUUID().toString()}/boo.jpg`,
       destinationId: areaForTagging?.metadata.area_id,
       destType: 1 // 0: climb, 1: area
+    }
+    badClimbTag = {
+      mediaType: 0,
+      mediaUuid: muuid.v4(),
+      mediaUrl: `/u/${muuid.v4().toUUID().toString()}/woof.jpg`,
+      destinationId: muuid.v4(), // climb doesn't exist
+      destType: 0 // 0: climb, 1: area
     }
   })
 
@@ -57,6 +66,10 @@ describe('MediaDataSource', () => {
     await expect(media.setTag(input)).rejects.toThrow(/doesn't exist/)
   })
 
+  it('should not tag a nonexistent *climb*', async () => {
+    await expect(media.setTag(badClimbTag)).rejects.toThrow(/doesn't exist/)
+  })
+
   it('should set & remove an area tag', async () => {
     if (areaForTagging == null) fail('Pre-seeded test area not found')
 
@@ -77,21 +90,10 @@ describe('MediaDataSource', () => {
   })
 
   it('should prevent a duplicate area tag', async () => {
-    if (areaForTagging == null) fail('Pre-seeded test area not found')
+    await media.setTag(areaTag1)
 
-    const randomId = muuid.v4()
-    const input: MediaInputType = {
-      mediaType: 0,
-      mediaUuid: randomId,
-      mediaUrl: 'woof.jpg',
-      destinationId: areaForTagging.metadata.area_id,
-      destType: 1 // 0: climb, 1: area
-    }
-
-    await media.setTag(input)
-
-    // should throw an error
-    await expect(media.setTag(input)).rejects.toThrowError(/Duplicate/)
+    // Insert the same tag again -> should throw an error
+    await expect(media.setTag(areaTag1)).rejects.toThrowError(/Duplicate/)
   })
 
   it('should return recent tags', async () => {
@@ -100,9 +102,18 @@ describe('MediaDataSource', () => {
     let tags = await media.getRecentTags()
     expect(tags).toHaveLength(0)
 
-    await media.setTag({ ...areaTag1, destinationId: areaForTagging.metadata.area_id })
+    await media.setTag(areaTag1)
     tags = await media.getRecentTags()
 
     expect(tags).toHaveLength(1)
+    expect(tags[0].tagList).toHaveLength(1)
+
+    console.log('#Tag', tags[0].tagList[0])
+
+    expect(tags[0].tagList[0]).toMatchObject({
+      mediaType: areaTag1.mediaType,
+      mediaUuid: areaTag1.mediaUuid.toUUID(),
+      mediaUrl: areaTag1.mediaUrl
+    })
   })
 })
