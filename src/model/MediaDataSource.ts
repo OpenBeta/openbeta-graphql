@@ -8,9 +8,13 @@ export default class AreaDataSource extends MongoDataSource<MediaType> {
   async getTagsByMediaIds (uuidList: string[]): Promise<any> {
     if (uuidList !== undefined && uuidList.length > 0) {
       const muidList = uuidList.map(entry => muid.from(entry))
+      // const rs = await getMediaModel()
+      //   .find({ mediaUuid: { $in: muidList } })
+      //   .populate('destinationId').lean()
       const rs = await getMediaModel()
         .find({ mediaUuid: { $in: muidList } })
-        .populate('destinationId').lean()
+        .populate('climb')
+        .populate('area').lean({ virtual: true })
       return rs
     }
     return []

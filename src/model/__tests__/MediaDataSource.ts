@@ -50,7 +50,7 @@ describe('MediaDataSource', () => {
     const input: MediaInputType = {
       mediaType: 0,
       mediaUuid: muuid.v4(),
-      mediaUrl: `/u/${muuid.v4().toUUID.toString()}/boo.jpg`,
+      mediaUrl: `/u/${muuid.v4().toUUID().toString()}/boo.jpg`,
       destinationId: muuid.v4(), // random area id - doesn't exist!
       destType: 1 // 0: climb, 1: area
     }
@@ -66,7 +66,7 @@ describe('MediaDataSource', () => {
       mediaType: areaTag1.mediaType,
       mediaUuid: areaTag1.mediaUuid.toUUID(),
       mediaUrl: areaTag1.mediaUrl,
-      destinationId: expect.objectContaining({
+      area: expect.objectContaining({
         area_name: areaForTagging.area_name
       })
     })
