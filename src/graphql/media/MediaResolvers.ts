@@ -1,4 +1,4 @@
-import { MediaListByAuthorType, MediaType, RefModelType, ClimbTagType, AreaTagType, DeleteTagResult } from '../../db/MediaTypes.js'
+import { MediaListByAuthorType, MediaType, RefModelType, AreaTagType, DeleteTagResult, TagEntryResultType } from '../../db/MediaTypes.js'
 const MediaResolvers = {
   MediaTagType: {
     mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
@@ -6,7 +6,7 @@ const MediaResolvers = {
   },
 
   TagEntryResult: {
-    __resolveType (obj: MediaType) {
+    __resolveType (obj: TagEntryResultType) {
       if (obj.onModel === RefModelType.climbs) {
         return 'ClimbTag'
       }
@@ -27,15 +27,11 @@ const MediaResolvers = {
   },
 
   ClimbTag: {
-    mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString(),
-    // destinationId now contains the actual climb object. See Mongoose 'populate()'.
-    climb: (node: ClimbTagType) => node.destinationId
+    mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString()
   },
 
   AreaTag: {
-    mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString(),
-    // destinationId now contains the actual area object. See Mongoose 'populate()'.
-    area: (node: AreaTagType) => node.destinationId
+    mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString()
   }
 }
 

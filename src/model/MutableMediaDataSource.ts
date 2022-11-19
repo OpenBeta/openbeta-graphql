@@ -1,8 +1,10 @@
 import { UserInputError } from 'apollo-server'
 import { MUUID } from 'uuid-mongodb'
 
+import { AreaType } from '../db/AreaTypes.js'
+import { ClimbType } from '../db/ClimbTypes.js'
 import { getMediaModel, getClimbModel, getAreaModel } from '../db/index.js'
-import { MediaType, MediaInputType, RefModelType, TagEntryResultType, DeleteTagResult } from '../db/MediaTypes.js'
+import { MediaType, MediaInputType, RefModelType, TagEntryResultType, AreaTagType, DeleteTagResult, ClimbTagType } from '../db/MediaTypes.js'
 import MediaDataSource from './MediaDataSource.js'
 
 const QUERY_OPTIONS = { upsert: true, new: true, overwrite: false }
@@ -10,7 +12,6 @@ const QUERY_OPTIONS = { upsert: true, new: true, overwrite: false }
 export default class MutableAreaDataSource extends MediaDataSource {
   async setTag ({ mediaUuid, mediaType, mediaUrl, destType, destinationId }: MediaInputType): Promise<TagEntryResultType | null> {
     let modelType: RefModelType
-    // const destUUID = muid.from(destinationId)
     const media = getMediaModel()
 
     switch (destType) {
@@ -18,10 +19,8 @@ export default class MutableAreaDataSource extends MediaDataSource {
         modelType = RefModelType.climbs
         // Check whether the climb referencing this tag exists before we allow
         // the tag to be added
-        const climb = await getClimbModel().exists({ _id: destinationId })
-        if (climb == null) {
-          throw new UserInputError(`Climb with id: ${destinationId.toUUID().toString()} doesn't exist`)
-        }
+        const climb = await getClimbModel().findOne({ _id: destinationId })
+          .orFail(new UserInputError(`Climb with id: ${destinationId.toUUID().toString()} doesn't exist`))
 
         const doc: MediaType = {
           mediaUuid,
@@ -36,23 +35,34 @@ export default class MutableAreaDataSource extends MediaDataSource {
 
         if (await media.exists(filter) != null) throw new UserInputError('Duplicate mediaUuid and destinationId not allowed')
 
-        return await media
+        const rs = await media
           .findOneAndUpdate(
             filter,
             doc,
             QUERY_OPTIONS)
-          .populate('destinationId')
           .lean()
+
+        if (rs == null) return rs
+
+        const climbTag: ClimbTagType = {
+          mediaUuid: rs.mediaUuid,
+          mediaType: rs.mediaType,
+          mediaUrl: rs.mediaUrl,
+          destType: rs.destType,
+          climb: climb as ClimbType,
+          onModel: RefModelType.climbs
+        }
+        return climbTag
       }
 
       case 1: {
         modelType = RefModelType.areas
         // Check whether the area referencing this tag exists before we allow
         // the tag to be added
-        const area = await getAreaModel().findOne({ 'metadata.area_id': destinationId }).lean()
-        if (area == null) {
-          throw new UserInputError(`Area with id: ${destinationId.toUUID().toString()} doesn't exist`)
-        }
+        const area = await getAreaModel()
+          .findOne({ 'metadata.area_id': destinationId })
+          .lean()
+          .orFail(new UserInputError(`Area with id: ${destinationId.toUUID().toString()} doesn't exist`))
 
         const doc: MediaType = {
           mediaUuid,
@@ -74,11 +84,19 @@ export default class MutableAreaDataSource extends MediaDataSource {
             QUERY_OPTIONS)
           .lean()
 
-        // @ts-expect-error-error
-        rs.destinationId = area // mimic Mongoose popuplate()'
-        // @ts-expect-error-error
-        return rs
+        if (rs == null) return null
+
+        const areaTag: AreaTagType = {
+          mediaUuid: rs.mediaUuid,
+          mediaType: rs.mediaType,
+          mediaUrl: rs.mediaUrl,
+          destType: rs.destType,
+          area: area as AreaType,
+          onModel: RefModelType.areas
+        }
+        return areaTag
       }
+
       default: return null
     }
   }

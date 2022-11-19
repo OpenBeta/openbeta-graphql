@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
+import mongooseLeanVirtuals from 'mongoose-lean-virtuals'
 
 import { MediaType, RefModelType } from './MediaTypes.js'
 
@@ -36,6 +37,21 @@ const MediaSchema = new Schema<MediaType>({
   _id: false
 })
 
+MediaSchema.virtual('climb', {
+  ref: 'climbs',
+  localField: 'destinationId',
+  foreignField: '_id',
+  justOne: true
+})
+
+MediaSchema.virtual('area', {
+  ref: 'areas',
+  localField: 'destinationId',
+  foreignField: 'metadata.area_id',
+  justOne: true
+})
+
+MediaSchema.plugin(mongooseLeanVirtuals)
 MediaSchema.index({ mediaUuid: 1, destinationId: 1 }, { unique: true })
 
 export const getMediaModel = (name: string = 'media'): mongoose.Model<MediaType> => {

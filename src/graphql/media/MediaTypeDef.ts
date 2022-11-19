@@ -34,7 +34,7 @@ export const typeDef = gql`
     mediaUuid: ID!
     mediaUrl: String!
     mediaType: Int!
-    climb: Climb!
+    climb: Climb
     destType: Int!
   }
 
@@ -43,7 +43,7 @@ export const typeDef = gql`
     mediaUuid: ID!
     mediaUrl: String!
     mediaType: Int!
-    area: Area!
+    area: Area
     destType: Int!
   }
 

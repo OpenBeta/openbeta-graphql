@@ -36,16 +36,18 @@ export interface AreaTagType {
   mediaUuid: MUUID
   mediaUrl: string
   mediaType: number
-  destinationId: AreaType
+  area: AreaType
   destType: number
+  onModel: RefModelType
 }
 
 export interface ClimbTagType {
   mediaUuid: MUUID
   mediaUrl: string
   mediaType: number
-  destinationId: ClimbType
+  climb: ClimbType
   destType: number
+  onModel: RefModelType
 }
 
 export type TagEntryResultType = AreaTagType | ClimbTagType

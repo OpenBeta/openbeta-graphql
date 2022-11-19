@@ -39,6 +39,7 @@
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.1.4",
     "mongoose": "6.4.7",
+    "mongoose-lean-virtuals": "0.9.1",
     "p-limit": "^4.0.0",
     "pino": "^8.2.0",
     "sanitize-html": "^2.7.2",
