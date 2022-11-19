@@ -6,14 +6,20 @@ import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { typeDef as Climb } from './ClimbTypeDef.js'
 import { typeDef as Area } from './AreaTypeDef.js'
 import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
+import { typeDef as PostTypeDef } from './PostTypeDefs.js'
 import { typeDef as TickTypeDef } from './TickTypeDef.js'
-import { HistoryTypeDef, HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
+import {
+  HistoryTypeDef,
+  HistoryQueries,
+  HistoryFieldResolvers
+} from '../graphql/history/index.js'
 import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { AreaEditTypeDef, AreaQueries, AreaMutations } from './area/index.js'
+import { PostMutations, PostQueries, PostResolvers } from './post/index.js'
 import TickMutations from './tick/TickMutations.js'
 import TickQueries from './tick/TickQueries.js'
 
@@ -21,19 +27,18 @@ const resolvers = {
   Mutation: {
     ...MediaMutations,
     ...AreaMutations,
-    ...TickMutations
+    ...TickMutations,
+    ...PostMutations
   },
   Query: {
     ...MediaQueries,
     ...AreaQueries,
     ...TickQueries,
     ...HistoryQueries,
+    ...PostQueries,
 
     // Future To-do: Move climbs and areas' mutations/queries to their own folder Media, Tick, History
-    climb: async (
-      _,
-      { uuid }: QueryByIdType,
-      { dataSources }) => {
+    climb: async (_, { uuid }: QueryByIdType, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
@@ -51,9 +56,7 @@ const resolvers = {
       return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
 
-    area: async (_: any,
-      { uuid }: QueryByIdType,
-      context, info) => {
+    area: async (_: any, { uuid }: QueryByIdType, context, info) => {
       const { dataSources } = context
       const { areas }: { areas: AreaDataSource } = dataSources
       if (uuid !== undefined && uuid !== '') {
@@ -70,7 +73,8 @@ const resolvers = {
     cragsNear: async (
       node: any,
       args,
-      { dataSources }: { dataSources: DataSources<AreaDataSource> }) => {
+      { dataSources }: { dataSources: DataSources<AreaDataSource> }
+    ) => {
       const { placeId, lnglat, minDistance, maxDistance, includeCrags } = args
       const areas = dataSources.areas as AreaDataSource
       return await areas.getCragsNear(
@@ -78,13 +82,15 @@ const resolvers = {
         [lnglat.lng, lnglat.lat],
         minDistance < 0 ? 0 : minDistance,
         maxDistance > 325000 ? 325000 : maxDistance,
-        includeCrags)
+        includeCrags
+      )
     }
   },
 
   ...CommonResolvers,
   ...MediaResolvers,
   ...HistoryFieldResolvers,
+  ...PostResolvers,
 
   Climb: {
     id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
@@ -178,6 +184,15 @@ const resolvers = {
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [CommonTypeDef, Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef, HistoryTypeDef],
+  typeDefs: [
+    CommonTypeDef,
+    Climb,
+    Area,
+    MediaTypeDef,
+    AreaEditTypeDef,
+    TickTypeDef,
+    HistoryTypeDef,
+    PostTypeDef
+  ],
   resolvers
 })

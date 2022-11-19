@@ -9,6 +9,7 @@ import { getTickModel } from './TickSchema.js'
 import { getChangeLogModel } from './ChangeLogSchema.js'
 import { logger } from '../logger.js'
 import streamListener from './edit/streamListener.js'
+import { getPostModel } from './PostSchema.js'
 
 config()
 enableAllPlugins()
@@ -24,7 +25,9 @@ export const checkVar = (name: string): string => {
 
 const defaultFn = logger.info.bind(logger, 'DB connected successfully')
 
-export const connectDB = async (onConnected: () => any = defaultFn): Promise<void> => {
+export const connectDB = async (
+  onConnected: () => any = defaultFn
+): Promise<void> => {
   const user = checkVar('MONGO_INITDB_ROOT_USERNAME')
   const pass = checkVar('MONGO_INITDB_ROOT_PASSWORD')
   const server = checkVar('MONGO_SERVICE')
@@ -34,19 +37,15 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
   const dbName = checkVar('MONGO_DBNAME')
   const tlsFlag = checkVar('MONGO_TLS')
 
-  logger.info(
-    `Connecting to database 'mongodb://${user}:****@${server}'...`
-  )
+  logger.info(`Connecting to database 'mongodb://${user}:****@${server}'...`)
   try {
     // /* eslint-disable @typescript-eslint/no-floating-promises */
     mongoose.connection.on('open', onConnected)
 
-    mongoose.connection.on(
-      'error', (e) => {
-        logger.error('MongoDB connection error', e)
-        process.exit(1)
-      }
-    )
+    mongoose.connection.on('error', (e) => {
+      logger.error('MongoDB connection error', e)
+      process.exit(1)
+    })
 
     // mongodb+srv://doadmin:794xs0E2lj6om8H1@db-openbeta-prod-f9185abe.mongo.ondigitalocean.com/admin?authSource=admin&replicaSet=db-openbeta-prod&tls=true
     await mongoose.connect(
@@ -64,6 +63,7 @@ export const createIndexes = async (): Promise<void> => {
   await getAreaModel().ensureIndexes()
   await getMediaModel().ensureIndexes()
   await getTickModel().ensureIndexes()
+  await getPostModel().ensureIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
@@ -81,4 +81,11 @@ export const defaultPostConnect = async (): Promise<void> => {
 // eslint-disable-next-line
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, getTickModel, getClimbModel, getChangeLogModel }
+export {
+  getMediaModel,
+  getAreaModel,
+  getTickModel,
+  getClimbModel,
+  getChangeLogModel,
+  getPostModel
+}
