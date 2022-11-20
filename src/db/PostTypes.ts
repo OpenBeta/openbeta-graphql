@@ -2,29 +2,30 @@ import { MUUID } from 'uuid-mongodb'
 
 export interface PostType {
   // _id?: mongoose.Types.ObjectId
-  media: NewMedia[]
-  description: string
+  media: PostMedia[]
+  description?: string
   // mediaType: number
   createdAt: string
   updatedAt: string
   userId: MUUID
   comments: Comment[]
+  destinationIds?: MUUID[]
   // destType: number // 0: climb, 1: area
   // onModel: RefModelType
 }
 
 export interface PostInputType {
-  media: NewMedia[]
-  description: string
+  media: PostMedia[]
+  description?: string
   createdAt: string
   updatedAt: string
   userId: MUUID
+  destinationIds?: MUUID[]
 }
 
-export interface NewMedia {
+export interface PostMedia {
   mediaUrl: string
   mediaUuid: MUUID
-  destinationId: MUUID
 }
 
 export interface Comment {

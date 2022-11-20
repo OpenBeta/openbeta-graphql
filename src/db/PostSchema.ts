@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
-import { PostType, Comment, NewMedia } from './PostTypes'
+import { PostType, Comment, PostMedia } from './PostTypes'
 
 const { Schema } = mongoose
 
@@ -18,7 +18,7 @@ const CommentSchema = new Schema<Comment>({
   content: { type: String, required: true }
 })
 
-const NewMediaSchema = new Schema<NewMedia>({
+const MediaSchema = new Schema<PostMedia>({
   mediaUrl: { type: String, required: true },
   mediaUuid: {
     type: 'object',
@@ -27,18 +27,12 @@ const NewMediaSchema = new Schema<NewMedia>({
     required: true,
     unique: false,
     index: true
-  },
-  destinationId: {
-    type: Schema.Types.Mixed,
-    value: { type: 'Buffer' },
-    required: true,
-    refPath: 'onModel'
   }
 })
 
 const PostSchema = new Schema<PostType>(
   {
-    media: [NewMediaSchema],
+    media: [MediaSchema],
     description: { type: String, required: true },
     // mediaType: { type: Number, required: true },
     // destType: { type: Number, required: true },
@@ -52,7 +46,14 @@ const PostSchema = new Schema<PostType>(
       unique: false,
       index: true
     },
-    comments: [CommentSchema]
+    comments: [CommentSchema],
+    destinationIds: [
+      {
+        type: Schema.Types.Mixed,
+        value: { type: 'Buffer' },
+        refPath: 'onModel'
+      }
+    ]
   },
   {
     toObject: {

@@ -2,7 +2,7 @@ import { gql } from 'apollo-server'
 
 export const typeDef = gql`
   type Mutation {
-    createPost(input: PostInput): TagEntryResult
+    createPost(input: PostInput): CreatePostResult
   }
 
   input PostInput {
