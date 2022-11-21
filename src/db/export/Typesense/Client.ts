@@ -1,14 +1,11 @@
 import Typesense, { Client } from 'typesense'
-import { config } from 'dotenv'
 
 import { areaSchema } from './TypesenseSchemas.js'
 import { mongoAreaToTypeSense } from './transformers.js'
 import { logger } from '../../../logger.js'
 import { AreaType } from '../../AreaTypes.js'
 import { DBOperation } from '../../ChangeLogType.js'
-
-config({ path: '.env.local' })
-config() // initialize dotenv
+import Config from '../../../Config.js'
 
 /**
  * Return a Typesense client.
@@ -16,22 +13,15 @@ config() // initialize dotenv
  * @returns Typesense Client object
  */
 export default function typesense (): Client | undefined {
-  const node = process.env.TYPESENSE_NODE ?? ''
-  const apiKey = process.env.TYPESENSE_API_KEY_RW ?? ''
-
-  if (node === '' || apiKey === '') {
-    logger.warn('Can\'t create Typesense client: missing env keys.')
-    return
-  }
   const client = new Typesense.Client({
     nodes: [
       {
-        host: node,
+        host: Config.TYPESENSE_NODE,
         port: 443,
         protocol: 'https'
       }
     ],
-    apiKey,
+    apiKey: Config.TYPESENSE_API_KEY_RW,
     numRetries: 3, // A total of 4 tries (1 original try + 3 retries)
     connectionTimeoutSeconds: 120, // Set a longer timeout for large imports
     logLevel: 'info'
@@ -39,8 +29,16 @@ export default function typesense (): Client | undefined {
   return client
 }
 
-export const addArea = async (area: AreaType, op: DBOperation): Promise<void> => {
+/**
+ * Update/remove a record in Area index
+ * @param area
+ * @param op
+ */
+export const updateAreaIndex = async (area: AreaType, op: DBOperation): Promise<void> => {
   try {
+    if (Config.DEPLOYMENT_ENV !== 'production') {
+      return
+    }
     switch (op) {
       case 'insert':
       case 'update':

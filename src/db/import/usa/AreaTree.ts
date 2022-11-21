@@ -223,7 +223,7 @@ export const getUUID = (key: string, isLeaf: boolean, jsonLine: any): MUUID => {
       idStr = extId
     }
   }
-  return muuid.from(uuidv5(idStr.toUpperCase(), NIL))
+  return muuid.from(uuidv5(idStr, NIL)) // Note: we should leave this alone to preserve existing stable IDs for USA
 }
 
 const URL_REGEX = /area\/(?<id>\d+)\//
