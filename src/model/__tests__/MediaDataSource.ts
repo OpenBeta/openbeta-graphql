@@ -115,7 +115,6 @@ describe('MediaDataSource', () => {
 
   it('should prevent a duplicate area tag', async () => {
     await media.setTag(areaTag1)
-
     // Insert the same tag again -> should throw an error
     await expect(media.setTag(areaTag1)).rejects.toThrowError(/Duplicate/)
   })

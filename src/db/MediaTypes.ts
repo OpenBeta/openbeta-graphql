@@ -41,6 +41,7 @@ interface BaseTagType {
   destType: number
   onModel: RefModelType
 }
+
 export interface AreaTagType extends BaseTagType {
   area: AreaType
 }
