@@ -30,11 +30,12 @@ const MediaSchema = new Schema<MediaType>({
     enum: Object.values(RefModelType)
   }
 }, {
+  _id: true,
+  strictQuery: 'throw',
   toObject: {
     virtuals: true
   },
-  toJSON: { virtuals: true },
-  _id: false
+  toJSON: { virtuals: true }
 })
 
 MediaSchema.virtual('climb', {

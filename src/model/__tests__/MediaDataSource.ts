@@ -12,6 +12,7 @@ describe('MediaDataSource', () => {
   let areas: AreaDataSource
   let areaForTagging: AreaType | null
   let areaTag1: MediaInputType
+  let areaTag2: MediaInputType
   let badClimbTag: MediaInputType
 
   beforeAll(async () => {
@@ -35,6 +36,13 @@ describe('MediaDataSource', () => {
       mediaType: 0,
       mediaUuid: muuid.v4(),
       mediaUrl: `/u/${muuid.v4().toUUID().toString()}/boo.jpg`,
+      destinationId: areaForTagging?.metadata.area_id,
+      destType: 1 // 0: climb, 1: area
+    }
+    areaTag2 = {
+      mediaType: 0,
+      mediaUuid: muuid.v4(),
+      mediaUrl: `/u/${muuid.v4().toUUID().toString()}/moo.jpg`,
       destinationId: areaForTagging?.metadata.area_id,
       destType: 1 // 0: climb, 1: area
     }
@@ -73,14 +81,18 @@ describe('MediaDataSource', () => {
   it('should set & remove an area tag', async () => {
     if (areaForTagging == null) fail('Pre-seeded test area not found')
 
-    const tag: TagEntryResultType | null = await media.setTag(areaTag1)
+    // add 1st tag
+    await media.setTag(areaTag1)
+
+    // add 2nd tag
+    const tag: TagEntryResultType | null = await media.setTag(areaTag2)
 
     if (tag == null) fail('Tag shouldn\'t be null')
 
     expect(tag).toMatchObject({
-      mediaType: areaTag1.mediaType,
-      mediaUuid: areaTag1.mediaUuid.toUUID(),
-      mediaUrl: areaTag1.mediaUrl,
+      mediaType: areaTag2.mediaType,
+      mediaUuid: areaTag2.mediaUuid.toUUID(),
+      mediaUrl: areaTag2.mediaUrl,
       area: expect.objectContaining({
         area_name: areaForTagging.area_name
       })
@@ -88,7 +100,17 @@ describe('MediaDataSource', () => {
 
     // remove tag
     const res = await media.removeTag(tag._id.toString())
-    expect(res?.removed).toBeTruthy()
+    expect(res.id).toEqual(tag._id.toString())
+    expect(res.mediaUuid).toEqual(tag.mediaUuid.toUUID().toString())
+  })
+
+  it('should handle delete tag error gracefully', async () => {
+    // Calling with invalid id format
+    await expect(media.removeTag('123')).rejects.toThrowError(/Argument passed in must be a string of 12/)
+
+    // Calling with non-existing id
+    const randomId = new mongoose.Types.ObjectId()
+    await expect(media.removeTag(randomId.toString())).rejects.toThrowError(/Tag not found/)
   })
 
   it('should prevent a duplicate area tag', async () => {

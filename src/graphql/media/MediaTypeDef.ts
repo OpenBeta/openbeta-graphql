@@ -56,11 +56,15 @@ export const typeDef = gql`
     tagList: [MediaTagType]
   }
 
+  "Result of a delete tag operation"
   type DeleteTagResult {
     id: ID!
-    removed: Boolean!
+    mediaUuid: ID!
+    destinationId: ID!
+    destType: Int!
   }
 
+  "Input param for creating a new tag"
   input MediaInput {
     mediaUuid: ID!
     mediaUrl: String!

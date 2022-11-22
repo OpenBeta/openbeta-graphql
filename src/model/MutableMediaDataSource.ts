@@ -103,18 +103,17 @@ export default class MutableAreaDataSource extends MediaDataSource {
     }
   }
 
-  async removeTag (mongoIdStr: string): Promise<DeleteTagResult|null> {
+  async removeTag (mongoIdStr: string): Promise<DeleteTagResult> {
     const _id = new mongoose.Types.ObjectId(mongoIdStr)
-    const rs = await getMediaModel().deleteOne({ _id })
-    if (rs?.deletedCount === 1) {
-      return {
-        id: mongoIdStr,
-        removed: true
-      }
-    }
+    const rs = await getMediaModel()
+      .findOneAndDelete({ _id })
+      .orFail(new Error('Tag not found'))
+      .lean()
     return {
-      id: mongoIdStr,
-      removed: false
+      id: rs._id.toString(),
+      mediaUuid: rs.mediaUuid.toUUID().toString(),
+      destinationId: rs.destinationId.toUUID().toString(),
+      destType: rs.destType
     }
   }
 }
