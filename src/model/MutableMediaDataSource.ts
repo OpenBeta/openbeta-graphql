@@ -1,5 +1,5 @@
 import { UserInputError } from 'apollo-server'
-import { MUUID } from 'uuid-mongodb'
+import mongoose from 'mongoose'
 
 import { AreaType } from '../db/AreaTypes.js'
 import { ClimbType } from '../db/ClimbTypes.js'
@@ -45,6 +45,7 @@ export default class MutableAreaDataSource extends MediaDataSource {
         if (rs == null) return rs
 
         const climbTag: ClimbTagType = {
+          _id: rs._id,
           mediaUuid: rs.mediaUuid,
           mediaType: rs.mediaType,
           mediaUrl: rs.mediaUrl,
@@ -87,6 +88,7 @@ export default class MutableAreaDataSource extends MediaDataSource {
         if (rs == null) return null
 
         const areaTag: AreaTagType = {
+          _id: rs._id,
           mediaUuid: rs.mediaUuid,
           mediaType: rs.mediaType,
           mediaUrl: rs.mediaUrl,
@@ -101,11 +103,18 @@ export default class MutableAreaDataSource extends MediaDataSource {
     }
   }
 
-  async removeTag (mediaUuid: MUUID, destinationId: MUUID): Promise<DeleteTagResult|null> {
-    const rs = await getMediaModel().deleteOne({ mediaUuid, destinationId })
+  async removeTag (mongoIdStr: string): Promise<DeleteTagResult|null> {
+    const _id = new mongoose.Types.ObjectId(mongoIdStr)
+    const rs = await getMediaModel().deleteOne({ _id })
     if (rs?.deletedCount === 1) {
-      return { mediaUuid, destinationId, removed: true }
+      return {
+        id: mongoIdStr,
+        removed: true
+      }
     }
-    return { mediaUuid, destinationId, removed: false }
+    return {
+      id: mongoIdStr,
+      removed: false
+    }
   }
 }

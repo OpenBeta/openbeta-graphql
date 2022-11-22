@@ -1,4 +1,4 @@
-import { MediaListByAuthorType, MediaType, RefModelType, AreaTagType, DeleteTagResult, TagEntryResultType } from '../../db/MediaTypes.js'
+import { AreaTagType, ClimbTagType, MediaListByAuthorType, MediaType, RefModelType, TagEntryResultType } from '../../db/MediaTypes.js'
 const MediaResolvers = {
   MediaTagType: {
     mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
@@ -18,8 +18,7 @@ const MediaResolvers = {
   },
 
   DeleteTagResult: {
-    mediaUuid: (node: DeleteTagResult) => node.mediaUuid.toUUID().toString(),
-    destinationId: (node: DeleteTagResult) => node.destinationId.toUUID().toString()
+    // nothing to override
   },
 
   MediaListByAuthorType: {
@@ -27,10 +26,12 @@ const MediaResolvers = {
   },
 
   ClimbTag: {
-    mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString()
+    id: (node: ClimbTagType) => node._id.toString(),
+    mediaUuid: (node: ClimbTagType) => node.mediaUuid.toUUID().toString()
   },
 
   AreaTag: {
+    id: (node: AreaTagType) => node._id.toString(),
     mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString()
   }
 }

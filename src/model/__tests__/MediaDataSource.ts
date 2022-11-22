@@ -75,6 +75,8 @@ describe('MediaDataSource', () => {
 
     const tag: TagEntryResultType | null = await media.setTag(areaTag1)
 
+    if (tag == null) fail('Tag shouldn\'t be null')
+
     expect(tag).toMatchObject({
       mediaType: areaTag1.mediaType,
       mediaUuid: areaTag1.mediaUuid.toUUID(),
@@ -85,7 +87,7 @@ describe('MediaDataSource', () => {
     })
 
     // remove tag
-    const res = await media.removeTag(areaTag1.mediaUuid, areaTag1.destinationId)
+    const res = await media.removeTag(tag._id.toString())
     expect(res?.removed).toBeTruthy()
   })
 

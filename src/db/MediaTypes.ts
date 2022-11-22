@@ -32,28 +32,25 @@ export interface MediaInputType {
   destType: number
 }
 
-export interface AreaTagType {
+interface BaseTagType {
+  _id: mongoose.Types.ObjectId
   mediaUuid: MUUID
   mediaUrl: string
   mediaType: number
-  area: AreaType
   destType: number
   onModel: RefModelType
 }
+export interface AreaTagType extends BaseTagType {
+  area: AreaType
+}
 
-export interface ClimbTagType {
-  mediaUuid: MUUID
-  mediaUrl: string
-  mediaType: number
+export interface ClimbTagType extends BaseTagType {
   climb: ClimbType
-  destType: number
-  onModel: RefModelType
 }
 
 export type TagEntryResultType = AreaTagType | ClimbTagType
 
 export interface DeleteTagResult {
-  mediaUuid: MUUID
-  destinationId: MUUID
+  id: string
   removed: boolean
 }

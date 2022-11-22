@@ -11,9 +11,9 @@ const MediaMutations = {
     })
   },
 
-  removeTag: async (_: any, { mediaUuid, destinationId }, { dataSources }) => {
+  removeTag: async (_: any, { tagId }, { dataSources }) => {
     const { media }: DataSourcesType = dataSources
-    return await media.removeTag(muid.from(mediaUuid), muid.from(destinationId))
+    return await media.removeTag(tagId)
   }
 }
 
