@@ -6,7 +6,7 @@ import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
 import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation } from '../ChangeLogType.js'
 import { checkVar } from '../index.js'
-import { addArea as addAreaToTypesense } from '../export/Typesense/Client.js'
+import { updateAreaIndex } from '../export/Typesense/Client.js'
 
 export default async function streamListener (db: mongoose.Connection): Promise<any> {
   const resumeId = await mostRecentResumeId()
@@ -88,7 +88,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         kind: 'areas'
       }
       void changelogDataSource.record(newDocument)
-      void addAreaToTypesense(fullDocument, dbOp)
+      void updateAreaIndex(fullDocument, dbOp)
       break
     }
     default:

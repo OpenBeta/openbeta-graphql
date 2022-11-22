@@ -4,6 +4,7 @@ import { MUUID } from 'uuid-mongodb'
 import { AreaType } from './AreaTypes.js'
 import { ClimbType } from './ClimbTypes.js'
 
+// Type for 'Media' collection schema
 export interface MediaType {
   _id?: mongoose.Types.ObjectId
   mediaUuid: MUUID
@@ -32,28 +33,28 @@ export interface MediaInputType {
   destType: number
 }
 
-export interface AreaTagType {
+interface BaseTagType {
+  _id: mongoose.Types.ObjectId
   mediaUuid: MUUID
   mediaUrl: string
   mediaType: number
-  area: AreaType
   destType: number
   onModel: RefModelType
 }
 
-export interface ClimbTagType {
-  mediaUuid: MUUID
-  mediaUrl: string
-  mediaType: number
+export interface AreaTagType extends BaseTagType {
+  area: AreaType
+}
+
+export interface ClimbTagType extends BaseTagType {
   climb: ClimbType
-  destType: number
-  onModel: RefModelType
 }
 
 export type TagEntryResultType = AreaTagType | ClimbTagType
 
 export interface DeleteTagResult {
-  mediaUuid: MUUID
-  destinationId: MUUID
-  removed: boolean
+  id: string
+  mediaUuid: string
+  destType: number
+  destinationId: string
 }

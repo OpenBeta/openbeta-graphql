@@ -5,17 +5,15 @@ import { getMediaModel } from '../db/index.js'
 import { MediaType, MediaListByAuthorType } from '../db/MediaTypes.js'
 
 export default class AreaDataSource extends MongoDataSource<MediaType> {
-  async getTagsByMediaIds (uuidList: string[]): Promise<any> {
+  async getTagsByMediaIds (uuidList: string[]): Promise<any[]> {
     if (uuidList !== undefined && uuidList.length > 0) {
       const muidList = uuidList.map(entry => muid.from(entry))
-      // const rs = await getMediaModel()
-      //   .find({ mediaUuid: { $in: muidList } })
-      //   .populate('destinationId').lean()
       const rs = await getMediaModel()
         .find({ mediaUuid: { $in: muidList } })
         .populate('climb')
-        .populate('area').lean({ virtual: true })
-      return rs
+        .populate('area')
+        .lean({ virtual: true })
+      return rs // type: TagEntryResultType
     }
     return []
   }

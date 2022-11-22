@@ -9,7 +9,7 @@ import sanitizeHtml from 'sanitize-html'
 
 import { AreaType, AreaEditableFieldsType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
-import { createRootNode, getUUID } from '../db/import/usa/AreaTree.js'
+import { createRootNode } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
@@ -328,7 +328,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
 export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: string): AreaType => {
   const _id = new mongoose.Types.ObjectId()
-  const uuid = getUUID(parentPathTokens.join() + areaName, false, undefined)
+  const uuid = genMUIDFromPaths(parentPathTokens, areaName)
 
   const pathTokens = produce(parentPathTokens, draft => {
     draft.push(areaName)
@@ -378,4 +378,16 @@ export const countryCode2Uuid = (code: string): MUUID => {
   }
   const alpha3 = code.length === 2 ? isoCountries.toAlpha3(code) : code
   return muuid.from(uuidv5(alpha3.toUpperCase(), NIL))
+}
+
+/**
+ * Generate a stable UUID from a list of paths. Example: `Canada|Squamish => 8f623793-c2b2-59e0-9e64-d167097e3a3d`
+ * @param parentPathTokens Ancestor paths
+ * @param thisPath Current area
+ * @returns MUUID
+ */
+export const genMUIDFromPaths = (parentPathTokens: string[], thisPath: string): MUUID => {
+  const keys = parentPathTokens.slice() // clone array
+  keys.push(thisPath)
+  return muuid.from(uuidv5(keys.join('|').toUpperCase(), NIL))
 }
