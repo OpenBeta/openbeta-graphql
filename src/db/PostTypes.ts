@@ -20,12 +20,12 @@ export interface PostInputType {
   createdAt: string
   updatedAt: string
   userId: MUUID
-  destinationIds?: MUUID[]
 }
 
 export interface PostMedia {
   mediaUrl: string
   mediaUuid: MUUID
+  destinationIds?: MUUID[]
 }
 
 export interface Comment {

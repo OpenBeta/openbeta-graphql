@@ -27,7 +27,14 @@ const MediaSchema = new Schema<PostMedia>({
     required: true,
     unique: false,
     index: true
-  }
+  },
+  destinationIds: [
+    {
+      type: Schema.Types.Mixed,
+      value: { type: 'Buffer' },
+      refPath: 'onModel'
+    }
+  ]
 })
 
 const PostSchema = new Schema<PostType>(
@@ -46,14 +53,7 @@ const PostSchema = new Schema<PostType>(
       unique: false,
       index: true
     },
-    comments: [CommentSchema],
-    destinationIds: [
-      {
-        type: Schema.Types.Mixed,
-        value: { type: 'Buffer' },
-        refPath: 'onModel'
-      }
-    ]
+    comments: [CommentSchema]
   },
   {
     toObject: {

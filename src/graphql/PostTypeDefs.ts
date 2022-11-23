@@ -15,6 +15,10 @@ export const typeDef = gql`
   input mediaObject {
     mediaUuid: ID!
     mediaUrl: String!
-    destinationId: String!
+    destinationIds: [String]!
+  }
+
+  type CreatePostResult {
+    createdAt: String
   }
 `

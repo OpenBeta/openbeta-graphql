@@ -3,30 +3,28 @@ import { UserInputError } from 'apollo-server'
 
 // import { MediaType, RefModelType } from '../../db/MediaTypes.js'
 import { getPostModel, getClimbModel } from '../../db/index.js'
-import { PostType, PostInputType } from '../../db/PostTypes.js'
+import { PostType, PostInputType, PostMedia } from '../../db/PostTypes.js'
 
-const isValidClimb = async (destinationId: muid.MUUID): Promise<Boolean> => {
-  const climb = await getClimbModel().exists({
-    _id: muid.from(destinationId)
-  })
-  if (climb == null) {
-    throw new UserInputError(
-      `Climb with id: ${destinationId.toString()} doesn't exist`
-    )
+const isValidClimb = async (media: PostMedia): Promise<Boolean> => {
+  if (media.destinationIds != null) {
+    for (const destinationId of media.destinationIds) {
+      const climb = await getClimbModel().exists({
+        _id: muid.from(destinationId)
+      })
+
+      if (climb == null) {
+        throw new UserInputError(
+          `Climb with id: ${destinationId.toString()} doesn't exist`
+        )
+      }
+    }
   }
   return true
 }
 
 const PostMutations = {
   createPost: async (_, { input }) => {
-    // console.log('input from createPost', input)
-    const {
-      media,
-      createdAt,
-      description,
-      userId,
-      destinationIds
-    }: PostInputType = input
+    const { media, createdAt, description, userId }: PostInputType = input
 
     // initially updatedAt is same as creation time
     const updatedAt = createdAt
@@ -41,8 +39,7 @@ const PostMutations = {
       createdAt,
       updatedAt,
       userId,
-      comments: [],
-      destinationIds
+      comments: []
     }
     // console.log('new doc', doc)
 
@@ -51,10 +48,9 @@ const PostMutations = {
     try {
       // Check whether the climb referenced this tag exists before we allow
       // the tag to be added
-      if (destinationIds != null) {
-        for (const item of destinationIds) {
-          await isValidClimb(item)
-        }
+
+      for (const item of media) {
+        await isValidClimb(item)
       }
 
       const res = await PostModel.create({ ...doc }, function (err) {
