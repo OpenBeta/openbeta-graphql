@@ -21,7 +21,7 @@ jobs:
         run: yarn install && yarn lint
 
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.7.0
+        uses: supercharge/mongodb-github-action@1.8.0
         with:
           mongodb-version: 5
           mongodb-replica-set: rs0
