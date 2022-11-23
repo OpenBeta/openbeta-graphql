@@ -34,7 +34,7 @@ jobs:
       - name: Setup test user
         run: |
            source .env && \
-           docker exec -it mongodb mongosh admin --eval "db.createUser({user: '${MONGO_INITDB_ROOT_USERNAME}', pwd: '$${MONGO_INITDB_ROOT_PASSWORD}', roles: ['readWrite']})"
+           docker exec mongodb mongosh admin --eval "db.createUser({user: '${MONGO_INITDB_ROOT_USERNAME}', pwd: '$${MONGO_INITDB_ROOT_PASSWORD}', roles: ['readWrite']})"
 
       - name: Restart mongo
         run: |
