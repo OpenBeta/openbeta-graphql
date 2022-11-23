@@ -25,17 +25,20 @@ jobs:
         with:
           mongodb-version: 5
           mongodb-replica-set: rs0
-          mongodb-db: openbeta
 
       - name: Wait for the database to start
         run: wget -qO- https://raw.githubusercontent.com/eficode/wait-for/$WAIT_FOR_VERSION/wait-for | sh -s -- localhost:27017 -- echo "Database is up"
         env:
           WAIT_FOR_VERSION: 4df3f9262d84cab0039c07bf861045fbb3c20ab7 # v2.2.3
       
-      # - name: Setup test user
-      #   run: |
-      #      source .env && \
-      #      docker container run mongo admin --eval "db.createUser({user: '${MONGO_INITDB_ROOT_USERNAME}', pwd: '$${MONGO_INITDB_ROOT_USERNAME}', roles: ['readWrite']})"
+      - name: Setup test user
+        run: |
+           source .env && \
+           mongosh admin --eval "db.createUser({user: '${MONGO_INITDB_ROOT_USERNAME}', pwd: '$${MONGO_INITDB_ROOT_PASSWORD}', roles: ['readWrite']})"
+
+      - name: Restart mongo
+        run: |
+          docker container restart mongodb
 
       - name: Build and run tests
         run: yarn test
