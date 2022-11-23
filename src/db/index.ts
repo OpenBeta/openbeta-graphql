@@ -48,7 +48,6 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
       }
     )
 
-    // mongodb+srv://doadmin:794xs0E2lj6om8H1@db-openbeta-prod-f9185abe.mongo.ondigitalocean.com/admin?authSource=admin&replicaSet=db-openbeta-prod&tls=true
     await mongoose.connect(
       `${scheme}://${user}:${pass}@${server}/${dbName}?authSource=${authDb}&tls=${tlsFlag}&replicaSet=${rsName}`,
       { autoIndex: false }
