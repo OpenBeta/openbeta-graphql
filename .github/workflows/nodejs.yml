@@ -21,7 +21,7 @@ jobs:
         run: yarn install && yarn lint
 
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.7.0
+        uses: supercharge/mongodb-github-action@1.8.0
         with:
           mongodb-version: 5
           mongodb-replica-set: rs0
@@ -34,7 +34,11 @@ jobs:
       - name: Setup test user
         run: |
            source .env && \
-           mongo admin --eval "db.createUser({user: '${MONGO_INITDB_ROOT_USERNAME}', pwd: '${MONGO_INITDB_ROOT_PASSWORD}', roles: ['readWrite']})"
+           docker exec mongodb mongosh admin --eval "db.createUser({user: '${MONGO_INITDB_ROOT_USERNAME}', pwd: '${MONGO_INITDB_ROOT_PASSWORD}', roles: ['readWrite']})"
+
+      - name: Restart mongo
+        run: |
+          docker container restart mongodb
 
       - name: Build and run tests
         run: yarn test

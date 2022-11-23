@@ -121,20 +121,71 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return rs
   }
 
-  async findMediaByAreaId (areaId: MUUID): Promise<any> {
+  async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<any> {
+    const rs1 = await getMediaModel().aggregate([
+      {
+        // SELECT *
+        // FROM media
+        // LEFT JOIN climbs
+        // ON media.destinationId == areas.metadata.area_id
+        $lookup: {
+          from: 'areas', // other collection name
+          foreignField: 'metadata.area_id',
+          localField: 'destinationId',
+          as: 'taggedArea',
+          pipeline: [{
+            $match: {
+              $expr: {
+                $or: [
+                  { // Case 1: given a child area, inheret its ancestor's photos
+                    //  - input: A,B,C <-- area I want to search for tags
+                    //  - regex: A,B
+                    $regexMatch: {
+                      input: ancestors,
+                      regex: '$ancestors',
+                      options: 'i'
+                    }
+                  },
+                  { // Case 2: given a ancestor area, inherit descendant photos
+                    // - input: A,B,C
+                    // - regex: A,B <-- area I want to search for tags
+                    $regexMatch: {
+                      input: '$ancestors',
+                      regex: ancestors,
+                      options: 'i'
+                    }
+                  }
+                ]
+              }
+            }
+          }]
+        }
+      },
+      {
+        $match: {
+          taggedArea: {
+            $ne: []
+          }
+        }
+      }
+    ])
     const rs = await getMediaModel()
       .aggregate([
         {
+          // SELECT *
+          // FROM media
+          // LEFT OUTER climbs
+          // ON climbs._id == media.destinationId
           $lookup: {
             from: 'climbs', // other collection name
+            foreignField: '_id', // climb._id
             localField: 'destinationId',
-            foreignField: '_id',
-            as: 'climb',
+            as: 'taggedClimb',
             pipeline: [{
-              $lookup: {
+              $lookup: { // also allow ancestor areas to inherent climb photo
                 from: 'areas', // other collection name
-                localField: 'metadata.areaRef',
                 foreignField: 'metadata.area_id',
+                localField: 'metadata.areaRef', // climb.metadata.areaRef
                 as: 'area'
               }
             },
@@ -150,14 +201,19 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
           }
         },
         {
-          $unwind: '$climb'
+          $match: {
+            taggedClimb: {
+              $ne: []
+            }
+          }
         }
       ])
 
     if (rs != null) {
-      return rs
+      return rs.concat(rs1)
+    } else {
+      return rs1
     }
-    return null
   }
 
   /**
