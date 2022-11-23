@@ -26,7 +26,7 @@ jobs:
           mongodb-version: 5
           mongodb-replica-set: rs0
           mongodb-username: ${MONGO_INITDB_ROOT_USERNAME}
-          mongodb-password: ${{MONGO_INITDB_ROOT_USERNAME}
+          mongodb-password: ${MONGO_INITDB_ROOT_USERNAME}
           mongodb-db: openbeta
 
       - name: Wait for the database to start
