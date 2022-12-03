@@ -13,21 +13,54 @@ export const typeDef = gql`
   "A climbing area, wall or crag"
   type Area {
     id: ID!
+    "We use UUID for identification of areas. The id field is used in internal database relations."
     uuid: ID!
+    "The name that this area is commonly identified by"
     area_name: String!
+
     areaName: String!
+
+    "ShortCodes are short, globally uniqe codes that identify significant climbing areas"
     shortCode: String
     metadata: AreaMetadata!
+
+    """
+    The climbs that appear within this area. If this area is a leaf node, then these climbs can be understood
+    as appearing physically on - rather than within - this area.
+    """
     climbs: [Climb]
+    """
+    The areas that appear within this area. If this area is a leaf node, 
+    you will not expect to see any child areas.
+    """
     children: [Area]
+    "UUIDs of this areas parents, traversing up the heirarchy to the root area."
     ancestors: [String]!
+
+    "areaNames of this areas parents, traversing up the heirarchy to the root area."
+    pathTokens: [String]!
+
+    "statistics about this area"
     aggregate: AggregateType
     content: AreaContent
+
+    "pathTokens hashed into a single string"
     pathHash: String!
-    pathTokens: [String]!
+
+    """
+    Grade systems have minor variations between countries.
+    gradeContext is a short abbreviated string that identifies the
+    context in which the grade was assigned.
+
+    Area grade contexts will be inherited by its nearest child climbs.
+    """
     gradeContext: String!
+
+    "total climbs per km sq"
     density: Float!
+    "The total number of climbs in this area"
     totalClimbs: Int!
+    "Media associated with this area, or its child climbs"
     media: [MediaTagType]
     createdAt: Date
     updatedAt: Date
@@ -35,20 +68,37 @@ export const typeDef = gql`
 
   type AreaMetadata {
     isDestination: Boolean!
+    """
+    If this is true, this area has no children and is a leaf node.
+    This means that the area is a crag, boulder or wall that has
+    climbs as its direct decendents.
+    """
     leaf: Boolean!
+    "centroid latitude of this areas bounding box"
     lat: Float!
+    "centroid longitude of this areas bounding box"
     lng: Float!
+    "NE and SW corners of the bounding box for this area"
     bbox: [Float]!
+
     left_right_index: Int!
     leftRightIndex: Int!
+
+    "Mountainproject ID (if associated)"
     mp_id: String!
     area_id: ID!
     areaId: ID!
   }
 
+  """
+  Aggregations of data about this area, its children and its climbs.
+  """
   type AggregateType {
+    """Sums of climbs grouped by arbitrary grade"""
     byGrade: [CountByGroupType]
+    """Sums of climbs grouped by discipline"""
     byDiscipline: CountByDisciplineType
+    """Sums of climbs grouped by grade band (Rough adjective difficulty)"""
     byGradeBand: CountByGradeBand
   }
 
