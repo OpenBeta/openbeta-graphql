@@ -150,7 +150,7 @@ async function processMongoCollection <ChunkType, SourceDataType> (
 async function updateClimbTypesense (client: Client): Promise<void> {
   function mongoToTypeSense (doc: ClimbExtType): ClimbTypeSenseItem {
     return {
-      climbUUID: doc.metadata.climb_id.toUUID().toString(),
+      climbUUID: doc._id.toUUID().toString(),
       climbName: doc.name,
       climbDesc: doc.content.description ?? '',
       fa: doc.fa ?? '',

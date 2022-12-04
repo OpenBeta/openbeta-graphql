@@ -14,6 +14,7 @@ import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { AreaEditTypeDef, AreaQueries, AreaMutations } from './area/index.js'
+import { ClimbMutationTypeDefs, ClimbMutations } from './climb/index.js'
 import TickMutations from './tick/TickMutations.js'
 import TickQueries from './tick/TickQueries.js'
 
@@ -21,6 +22,7 @@ const resolvers = {
   Mutation: {
     ...MediaMutations,
     ...AreaMutations,
+    ...ClimbMutations,
     ...TickMutations
   },
   Query: {
@@ -87,8 +89,8 @@ const resolvers = {
   ...HistoryFieldResolvers,
 
   Climb: {
-    id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
-    uuid: (node: ClimbExtType) => node.metadata.climb_id.toUUID().toString(),
+    id: (node: ClimbExtType) => node._id.toUUID().toString(),
+    uuid: (node: ClimbExtType) => node._id.toUUID().toString(),
 
     type: async (node: ClimbExtType) => {
       if (node.type === undefined) {
@@ -107,8 +109,8 @@ const resolvers = {
     metadata: (node: ClimbExtType) => ({
       ...node.metadata,
       leftRightIndex: node.metadata.left_right_index,
-      climb_id: node.metadata.climb_id.toUUID().toString(),
-      climbId: node.metadata.climb_id.toUUID().toString(),
+      climb_id: node._id.toUUID().toString(),
+      climbId: node._id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
       lng: node.metadata.lnglat.coordinates[0],
       lat: node.metadata.lnglat.coordinates[1]
@@ -180,6 +182,14 @@ const resolvers = {
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [CommonTypeDef, Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef, HistoryTypeDef],
+  typeDefs: [
+    CommonTypeDef,
+    Climb,
+    Area,
+    MediaTypeDef,
+    AreaEditTypeDef,
+    TickTypeDef,
+    HistoryTypeDef,
+    ClimbMutationTypeDefs],
   resolvers
 })

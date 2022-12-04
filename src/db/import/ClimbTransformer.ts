@@ -26,7 +26,6 @@ const transformClimbRecord = (row: any): ClimbType => {
     type: type,
     fa: fa,
     metadata: {
-      climb_id: uuid,
       lnglat: geometry('Point', parent_lnglat) as Point,
       left_right_index: left_right_seq,
       mp_id: mp_route_id,

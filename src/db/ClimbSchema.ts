@@ -30,17 +30,9 @@ const MetadataSchema = new Schema<IClimbMetadata>({
     type: PointSchema,
     index: '2dsphere'
   },
-  left_right_index: { type: Number, required: false },
+  left_right_index: { type: Number, required: true, default: -1 },
   mp_id: { type: String, required: false },
   mp_crag_id: { type: String, required: true },
-  climb_id: {
-    type: 'object',
-    value: { type: 'Buffer' },
-    default: () => muuid.v4(),
-    required: true,
-    unique: false, // unfortunately can't enforce uniqueness here due to limitation of embeded docs
-    index: true
-  },
   areaRef: {
     type: Schema.Types.Mixed,
     value: { type: 'Buffer' },

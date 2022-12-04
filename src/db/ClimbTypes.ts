@@ -1,13 +1,13 @@
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
-import type { WithId, Document } from 'mongodb'
+// import type { WithId, Document } from 'mongodb'
 import { ChangeRecordMetadataType } from './ChangeLogType'
 import { GradeContexts } from '../grade-utils'
 import { GradeScalesTypes } from '@openbeta/sandbag'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
-export type ClimbExtType = ClimbType & WithId<Document> & {
+export type ClimbExtType = ClimbType & {
   ancestors: string
   pathTokens: string[]
 }
@@ -57,12 +57,12 @@ export interface IClimbType {
 }
 export interface IClimbMetadata {
   lnglat: Point
-  left_right_index: number
+  left_right_index?: number
   mp_id?: string
-  mp_crag_id: string
-  climb_id: MUUID
+  mp_crag_id?: string
   areaRef: MUUID
 }
+
 export interface IClimbContent {
   description?: string
   protection?: string
