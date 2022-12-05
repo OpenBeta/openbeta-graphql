@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals'
 import { aggregateCragStats, merge } from '../Aggregate.js'
+import { AggregateType } from '../../AreaTypes.js'
 
 describe('Aggregate merge', () => {
   it('should merge 2 objects', () => {
@@ -93,7 +94,7 @@ describe('Aggregate Crag Stats', () => {
           },
           type: {
             trad: true,
-            boulder: true
+            bouldering: true
           }
         },
         // Mismatch of grade (vscale grade) with grade type (trad : yds scale)
@@ -111,9 +112,9 @@ describe('Aggregate Crag Stats', () => {
       ],
       totalClimbs: 6
     }
-    const expectedStats = {
+    const expectedStats: AggregateType = {
       byDiscipline: {
-        boulder: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }, total: 1 },
+        bouldering: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }, total: 1 },
         sport: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }, total: 1 },
         tr: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 2, unknown: 0 }, total: 3 },
         trad: { bands: { advanced: 1, beginner: 1, expert: 0, intermediate: 2, unknown: 1 }, total: 5 }
@@ -127,6 +128,7 @@ describe('Aggregate Crag Stats', () => {
       ],
       byGradeBand: { advanced: 2, beginner: 1, expert: 0, intermediate: 2, unknown: 1 }
     }
+    // @ts-expect-error
     expect(aggregateCragStats(crag)).toEqual(expectedStats)
     expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining('Climb: mismatched_grade_climb does not have a corresponding grade with expected grade scale: yds')
@@ -144,6 +146,7 @@ describe('Aggregate Crag Stats', () => {
       byGrade: [],
       byGradeBand: { advanced: 0, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }
     }
+    // @ts-expect-error
     expect(aggregateCragStats(crag)).toEqual(expectedStats)
   })
 })

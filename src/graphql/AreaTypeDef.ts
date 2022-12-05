@@ -68,12 +68,20 @@ export const typeDef = gql`
 
   type AreaMetadata {
     isDestination: Boolean!
+
     """
     If this is true, this area has no children and is a leaf node.
     This means that the area is a crag, boulder or wall that has
     climbs as its direct decendents.
+    If both leaf and isBoulder are true:
+    - This area is a boulder.
+    - climbs[] may only contain boulder problems.
     """
     leaf: Boolean!
+
+    "If this is true, this area is a bouldering area or an individual boulder."
+    isBoulder: Boolean
+
     "centroid latitude of this areas bounding box"
     lat: Float!
     "centroid longitude of this areas bounding box"
@@ -105,6 +113,7 @@ export const typeDef = gql`
   type CountByDisciplineType {
     trad: DisciplineStatsType
     sport: DisciplineStatsType
+    bouldering: DisciplineStatsType
     boulder: DisciplineStatsType
     alpine: DisciplineStatsType
     snow: DisciplineStatsType

@@ -3,6 +3,7 @@ import muid, { MUUID } from 'uuid-mongodb'
 import { UserInputError } from 'apollo-server'
 import { ClimbType } from '../db/ClimbTypes.js'
 import ClimbDataSource from './ClimbDataSource.js'
+import { sanitizeDisciplines } from '../GradeUtils.js'
 
 type MinimalClimbType = Pick<ClimbType, 'name'>
 
@@ -25,7 +26,6 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     const newClimbIds = new Array(climbs.length)
     for (let i = 0; i < newClimbIds.length; i++) {
       newClimbIds[i] = muid.v4()
-      climbs[i]._id = newClimbIds[i]
     }
 
     // find the crag node and add the new climb id, fail if not found
@@ -49,6 +49,14 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     }
 
     for (let i = 0; i < climbs.length; i++) {
+      climbs[i]._id = newClimbIds[i]
+      climbs[i].fa = ''
+      climbs[i].type = sanitizeDisciplines(climbs[i].type)
+      climbs[i].content = {
+        description: '',
+        location: '',
+        protection: ''
+      }
       climbs[i].metadata = {
         areaRef: parent.metadata.area_id,
         lnglat: parent.metadata.lnglat,

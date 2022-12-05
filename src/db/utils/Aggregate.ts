@@ -1,6 +1,6 @@
 import _ from 'underscore'
-import { CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType } from '../AreaTypes.js'
-import { gradeContextToGradeScales } from '../../grade-utils.js'
+import { CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType, AreaType } from '../AreaTypes.js'
+import { gradeContextToGradeScales } from '../../GradeUtils.js'
 import { ClimbType } from '../ClimbTypes.js'
 import { getScale, GradeBands, GradeBandTypes, GradeScalesTypes, isVScale } from '@openbeta/sandbag'
 
@@ -69,13 +69,13 @@ const getBand = (discipline: string | undefined, climb: ClimbType, cragGradeScal
     return GradeBands.UNKNOWN
   }
   // Changes yds grade scale and type boulder to V grade scale until v grades are split from yds grades
-  if (climb.type.boulder && gradeScale.name === 'yds' && isVScale(grade)) {
+  if ((climb.type.bouldering ?? false) && gradeScale.name === 'yds' && isVScale(grade)) {
     gradeScale = getScale('vscale')
   }
   return gradeScale?.getGradeBand(grade) ?? GradeBands.UNKNOWN
 }
 
-export const aggregateCragStats = (crag: any): AggregateType => {
+export const aggregateCragStats = (crag: AreaType): AggregateType => {
   const byGrade: Record<string, number> | {} = {}
   const disciplines: CountByDisciplineType = {}
 

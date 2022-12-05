@@ -2,7 +2,7 @@ import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 // import type { WithId, Document } from 'mongodb'
 import { ChangeRecordMetadataType } from './ChangeLogType'
-import { GradeContexts } from '../grade-utils'
+import { GradeContexts } from '../GradeUtils'
 import { GradeScalesTypes } from '@openbeta/sandbag'
 
 // For search climb by id queries
@@ -47,7 +47,7 @@ export interface IGradeType {
 export interface IClimbType {
   trad: boolean
   sport: boolean
-  boulder: boolean
+  bouldering: boolean
   alpine: boolean
   snow: boolean
   ice: boolean
@@ -67,4 +67,9 @@ export interface IClimbContent {
   description?: string
   protection?: string
   location?: string
+}
+
+export interface NewClimbInputType {
+  name: string
+  disciplines: IClimbType
 }

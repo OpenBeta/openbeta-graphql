@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
-import muid, { MUUID } from 'uuid-mongodb'
+import muid from 'uuid-mongodb'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { typeDef as Climb } from './ClimbTypeDef.js'
@@ -9,7 +9,7 @@ import { typeDef as MediaTypeDef } from './media/MediaTypeDef.js'
 import { typeDef as TickTypeDef } from './TickTypeDef.js'
 import { HistoryTypeDef, HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
 import { QueryByIdType, GQLFilter, Sort } from '../types'
-import { AreaType } from '../db/AreaTypes.js'
+import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
@@ -101,8 +101,8 @@ const resolvers = {
       // a hack to return 'bouldering' field instead of boulder bc
       // the client is hard-coded to use 'bouldering'
       return {
-        ...node.type,
-        bouldering: node.type.boulder || null
+        ...node.type
+        // bouldering: node.type.bouldering || null
       }
     },
 
@@ -178,6 +178,10 @@ const resolvers = {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
     }
+  },
+
+  CountByDisciplineType: {
+    boulder: (node: CountByDisciplineType) => node.bouldering
   }
 }
 
