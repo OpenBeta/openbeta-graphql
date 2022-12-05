@@ -60,7 +60,7 @@ const getBand = (discipline: string | undefined, climb: ClimbType, cragGradeScal
   }
   const gradeScaleValue: GradeScalesTypes = cragGradeScales[discipline]
   let gradeScale = getScale(gradeScaleValue)
-  const grade = climb.grades[gradeScaleValue]
+  const grade = climb.grades?.[gradeScaleValue]
   if (grade === undefined) {
     console.warn(`Climb: ${climb.name} does not have a corresponding grade with expected grade scale: ${gradeScaleValue}`)
     return GradeBands.UNKNOWN
@@ -89,7 +89,7 @@ export const aggregateCragStats = (crag: AreaType): AggregateType => {
     const cragGradeType = Object.keys(type).find(t => type[t] === true && cragGradeScales[t] !== undefined)
     if (cragGradeType !== undefined) {
       const gradeScaleValue: GradeScalesTypes = cragGradeScales[cragGradeType]
-      const grade = grades[gradeScaleValue] ?? 'Unknown'
+      const grade = grades?.[gradeScaleValue] ?? 'Unknown'
       if (grade === 'Unknown') {
         console.warn(`Climb: ${name} does not have a corresponding grade with expected grade scale: ${gradeScaleValue}`)
       }

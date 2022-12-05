@@ -53,7 +53,7 @@ export const typeDef = gql`
     "Media associated with this climb"
     media: [MediaTagType]
 
-    yds: String @deprecated(reason: "migrating to grades field")
+    yds: String @deprecated(reason: "Migrating to 'grades' field")
   }
 
   type ClimbMetadata {

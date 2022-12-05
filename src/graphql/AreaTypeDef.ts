@@ -114,7 +114,7 @@ export const typeDef = gql`
     trad: DisciplineStatsType
     sport: DisciplineStatsType
     bouldering: DisciplineStatsType
-    boulder: DisciplineStatsType
+    boulder: DisciplineStatsType @deprecated(reason: "Migrating to 'bouldering'")
     alpine: DisciplineStatsType
     snow: DisciplineStatsType
     ice: DisciplineStatsType

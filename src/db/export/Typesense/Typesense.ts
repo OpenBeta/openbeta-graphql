@@ -3,7 +3,7 @@ import { Client } from 'typesense'
 import typesenseClient from './Client.js'
 import { connectDB, gracefulExit, getClimbModel, getAreaModel } from '../../index.js'
 import { disciplinesToArray, geoToLatLng } from './Utils.js'
-import { ClimbExtType } from '../../ClimbTypes.js'
+import { ClimbExtType, SafetyType } from '../../ClimbTypes.js'
 import { logger } from '../../../logger.js'
 import { climbSchema, areaSchema, ClimbTypeSenseItem, AreaTypeSenseItem } from './TypesenseSchemas.js'
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js'
@@ -156,8 +156,8 @@ async function updateClimbTypesense (client: Client): Promise<void> {
       fa: doc.fa ?? '',
       areaNames: doc.pathTokens,
       disciplines: disciplinesToArray(doc.type),
-      grade: doc.yds,
-      safety: doc.safety,
+      grade: doc?.yds ?? '',
+      safety: doc?.safety ?? SafetyType.UNSPECIFIED.toString(),
       cragLatLng: geoToLatLng(doc.metadata.lnglat)
     }
   }

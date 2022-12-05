@@ -391,3 +391,5 @@ export const genMUIDFromPaths = (parentPathTokens: string[], thisPath: string): 
   keys.push(thisPath)
   return muuid.from(uuidv5(keys.join('|').toUpperCase(), NIL))
 }
+
+export const createInstance = (): MutableAreaDataSource => new MutableAreaDataSource(mongoose.connection.db.collection('areas'))

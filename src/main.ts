@@ -4,10 +4,10 @@ import { applyMiddleware } from 'graphql-middleware'
 import { graphqlSchema } from './graphql/resolvers.js'
 
 import { connectDB, defaultPostConnect } from './db/index.js'
-import MutableAreaDataSource from './model/MutableAreaDataSource.js'
+import { createInstance as createNewAreaDS } from './model/MutableAreaDataSource.js'
 import { changelogDataSource } from './model/ChangeLogDataSource.js'
 import MutableMediaDataSource from './model/MutableMediaDataSource.js'
-import MutableClimbDataSource from './model/MutableClimbDataSource.js'
+import { createInstance as createNewClimbDS } from './model/MutableClimbDataSource.js'
 import TickDataSource from './model/TickDataSource.js'
 import { createContext, permissions } from './auth/index.js'
 import { logger } from './logger.js'
@@ -20,8 +20,8 @@ import { logger } from './logger.js'
     schema,
     context: createContext,
     dataSources: () => ({
-      climbs: new MutableClimbDataSource(mongoose.connection.db.collection('climbs')),
-      areas: new MutableAreaDataSource(mongoose.connection.db.collection('areas')),
+      climbs: createNewClimbDS(),
+      areas: createNewAreaDS(),
       ticks: new TickDataSource(mongoose.connection.db.collection('ticks')),
       history: changelogDataSource, // see source for explantion why we don't instantiate the object
       media: new MutableMediaDataSource(mongoose.connection.db.collection('media'))

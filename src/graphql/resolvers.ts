@@ -181,6 +181,7 @@ const resolvers = {
   },
 
   CountByDisciplineType: {
+    // Frontend code still uses "boulder"
     boulder: (node: CountByDisciplineType) => node.bouldering
   }
 }

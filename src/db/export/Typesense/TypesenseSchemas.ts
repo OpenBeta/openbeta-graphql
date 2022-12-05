@@ -7,7 +7,7 @@ export interface ClimbTypeSenseItem {
   fa: string
   areaNames: string[]
   disciplines: string[]
-  grade: string
+  grade?: string // Todo: switch to grade context
   safety: string
   cragLatLng: [number, number]
 }

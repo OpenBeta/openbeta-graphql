@@ -20,7 +20,6 @@ describe('Test grade utilities', () => {
       aid: false,
       tr: false
     }
-    // @ts-expect-error
     expect(sanitizeDisciplines(input)).toEqual(expected)
   })
 

@@ -22,11 +22,11 @@ export interface IClimbProps {
   _id: MUUID
   name: string
   fa?: string
-  yds: string
-  grades: Partial<Record<GradeScalesTypes, string>>
+  yds?: string
+  grades?: Partial<Record<GradeScalesTypes, string>>
   gradeContext?: GradeContexts
   type: IClimbType
-  safety: SafetyType
+  safety?: SafetyType
   _change?: ChangeRecordMetadataType
 }
 
@@ -45,15 +45,15 @@ export interface IGradeType {
 }
 
 export interface IClimbType {
-  trad: boolean
-  sport: boolean
-  bouldering: boolean
-  alpine: boolean
-  snow: boolean
-  ice: boolean
-  mixed: boolean
-  aid: boolean
-  tr: boolean
+  trad?: boolean
+  sport?: boolean
+  bouldering?: boolean
+  alpine?: boolean
+  snow?: boolean
+  ice?: boolean
+  mixed?: boolean
+  aid?: boolean
+  tr?: boolean
 }
 export interface IClimbMetadata {
   lnglat: Point
@@ -73,3 +73,10 @@ export interface NewClimbInputType {
   name: string
   disciplines: IClimbType
 }
+
+/**
+ * Minimum required fields when adding a new climb or boulder problem
+ */
+export type MinimumClimbType =
+  Pick<ClimbType, '_id'|'fa'|'name'|'type' |'content'>
+  & { metadata: Pick<ClimbType['metadata'], 'areaRef' | 'left_right_index' | 'lnglat'> }
