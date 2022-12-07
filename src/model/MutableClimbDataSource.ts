@@ -1,9 +1,9 @@
 import muid, { MUUID } from 'uuid-mongodb'
-import mongoose from 'mongoose'
 import { UserInputError } from 'apollo-server'
 import { MinimumClimbType, NewClimbInputType } from '../db/ClimbTypes.js'
 import ClimbDataSource from './ClimbDataSource.js'
 import { sanitizeDisciplines } from '../GradeUtils.js'
+import { getClimbModel } from '../db/ClimbSchema.js'
 
 export default class MutableClimbDataSource extends ClimbDataSource {
   /**
@@ -12,9 +12,9 @@ export default class MutableClimbDataSource extends ClimbDataSource {
    * @param climbs
    * @returns a list of newly added climb IDs
    */
-  async addClimbs (parentId: MUUID, climbs: NewClimbInputType[]): Promise<MUUID[]|null> {
+  async addClimbs (parentId: MUUID, climbs: NewClimbInputType[]): Promise<MUUID[]> {
     const session = await this.areaModel.startSession()
-    let ret: MUUID[] | null = null
+    let ret: MUUID[]
 
     // withTransaction() doesn't return the callback result
     // see https://jira.mongodb.org/browse/NODE-2014
@@ -23,10 +23,11 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ret = await this._addClimbs(session, parentId, climbs)
         return ret
       })
+    // @ts-expect-error
     return ret
   }
 
-  async _addClimbs (session, parentId: MUUID, climbs: NewClimbInputType[]): Promise<MUUID[]|null> {
+  async _addClimbs (session, parentId: MUUID, climbs: NewClimbInputType[]): Promise<MUUID[]> {
     const newClimbIds = new Array(climbs.length)
     for (let i = 0; i < newClimbIds.length; i++) {
       newClimbIds[i] = muid.v4()
@@ -48,7 +49,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       .orFail(new UserInputError(`Area with id: ${parentId.toUUID().toString()} not found`))
 
     if (parent.children.length > 0) {
-      throw new UserInputError('You can only add climbs to a crag (an area that doesn\'t contain other areas)')
+      throw new UserInputError('You can only add climbs to a crag or bouldering area (an area that doesn\'t contain other areas)')
     }
 
     if (!parent.metadata.leaf) {
@@ -57,10 +58,25 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       await parent.save()
     }
 
+    // is there at least 1 boulder problem in the input?
     const hasBouldering = climbs.some(entry => entry.disciplines?.bouldering ?? false)
 
+    // input has at least 1 boulder problem AND area is not a bouldering area
     if (hasBouldering && !(parent.metadata?.isBoulder ?? false)) {
-      throw new UserInputError('Adding boulder problems to a route-only area is not allowed')
+      if (parent.climbs.length === 0) {
+        // if an area is empty, we're allowed to turn to into a bouldering area
+        parent.metadata.isBoulder = true
+        await parent.save()
+      } else {
+        throw new UserInputError('Adding boulder problems to a route-only area is not allowed')
+      }
+    }
+
+    // is there at least 1 non-boulder problem in the input?
+    const hasARouteClimb = climbs.some(entry => !(entry.disciplines?.bouldering ?? false))
+
+    if (hasARouteClimb && (parent.metadata?.isBoulder ?? false)) {
+      throw new UserInputError('Adding route climbs to a bouldering area is not allowed')
     }
 
     const newDocs: MinimumClimbType[] = []
@@ -93,4 +109,6 @@ export default class MutableClimbDataSource extends ClimbDataSource {
   }
 }
 
-export const createInstance = (): MutableClimbDataSource => new MutableClimbDataSource(mongoose.connection.db.collection('climbs'))
+// Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
+// @ts-expect-error
+export const createInstance = (): MutableClimbDataSource => new MutableClimbDataSource(getClimbModel())

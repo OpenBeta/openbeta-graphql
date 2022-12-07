@@ -99,7 +99,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param parentUuid
    * @param countryCode
    */
-  async addArea (user: MUUID, areaName: string, parentUuid: MUUID | null, countryCode?: string): Promise<AreaType | null> {
+  async addArea (user: MUUID, areaName: string, parentUuid: MUUID | null, countryCode?: string): Promise<AreaType> {
     if (parentUuid == null && countryCode == null) {
       throw new Error('Adding area failed. Must provide parent Id or country code')
     }
@@ -113,7 +113,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const session = await this.areaModel.startSession()
 
-    let ret: AreaType | null = null
+    let ret: AreaType
 
     // withTransaction() doesn't return the callback result
     // see https://jira.mongodb.org/browse/NODE-2014
@@ -122,6 +122,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
         ret = await this._addArea(session, user, areaName, uuid)
         return ret
       })
+    // @ts-expect-error
     return ret
   }
 

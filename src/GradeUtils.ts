@@ -156,9 +156,9 @@ export const sanitizeDisciplines = (disciplineObj: IClimbType): IClimbType => {
     }
     return acc
   }, {})
-  // @ts-expect-error-error
+  // @ts-expect-error
   if (disciplineObj?.boulder != null) {
-    // @ts-expect-error-error
+    // @ts-expect-error
     output.bouldering = disciplineObj.boulder
   }
   return output as IClimbType

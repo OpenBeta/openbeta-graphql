@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { geometry } from '@turf/helpers'
 
-import MutableAreaDataSource from '../MutableAreaDataSource.js'
+import MutableAreaDataSource, { createInstance } from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { AreaEditableFieldsType } from '../../db/AreaTypes.js'
 
@@ -17,11 +17,11 @@ describe('Areas', () => {
     try {
       await getAreaModel().collection.drop()
       await getClimbModel().collection.drop()
+      await createIndexes()
     } catch (e) {
       console.log('Cleaning up db before test')
     }
-    areas = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
-    await createIndexes()
+    areas = createInstance()
   })
 
   afterAll(async () => {
@@ -138,8 +138,10 @@ describe('Areas', () => {
       fail('Child area is null')
     }
 
-    let usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 3000))
 
+    let usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
     // verify number of child areas in parent
     expect(usaInDB.children as any[]).toHaveLength(3)
 
