@@ -17,10 +17,10 @@ describe('Areas', () => {
     try {
       await getAreaModel().collection.drop()
       await getClimbModel().collection.drop()
-      await createIndexes()
     } catch (e) {
       console.log('Cleaning up db before test', e)
     }
+    await createIndexes()
     areas = createInstance()
   })
 
