@@ -45,16 +45,18 @@ export const typeDef = gql`
      which stand for Mountain Project, or Open Beta respectively
      """
     type TickType {
-        _id: ID
-        userId: String
-        name: String
-        notes: String
-        climbId: String
-        style: String
+        _id: ID!
+        userId: String!
+        name: String!
+        climbId: String!
         attemptType: String
-        dateClimbed: String
-        grade: String
-        source: String
+        dateClimbed: String!
+        dateAdded: Date!
+        grade: String!
+        source: String!
+        dateUpdated: Date
+        notes: String
+        style: String
     }
     """This is our tick type input, containing the name,
      notes climbId, etc of the ticked climb, all fields are required
@@ -65,7 +67,6 @@ export const typeDef = gql`
         name: String!
         notes: String
         climbId: String!
-        userId: String!
         style: String
         attemptType: String
         dateClimbed: String!
