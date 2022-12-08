@@ -1,7 +1,7 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { TickType, UnindentifiedTick } from '../db/TickTypes'
 import { getTickModel } from '../db/index.js'
-import mongoose, { ObjectId } from 'mongoose'
+import mongoose from 'mongoose'
 
 interface DeleteResult {
   /** Indicates whether this write result was acknowledged. If not, then all other members of this result will be undefined. */

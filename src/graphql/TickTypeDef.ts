@@ -3,10 +3,18 @@ import { gql } from 'apollo-server'
 export const typeDef = gql`
     type Query {
         """Gets all of the users current ticks by their Auth-0 userId"""
-        userTicks(userId: String): [TickType]
+        userTicks(userId: String): [TickType!]
         """Gets all of the users current ticks for a specific climb by their 
         Auth-0 userId and Open-Beta ClimbId"""
-        userTicksByClimbId(userId: String, climbId: String): [TickType]
+        userTicksByClimbId(userId: String, climbId: String): [TickType!]
+
+        """
+        Get recently created ticks, using simple limit and pagination.
+        Limit may be between 0 and 100, and page may scroll 0 through 100.
+        As a result, this is not an appropriate query for a large number of ticks
+        (at this time - you could refactor the code to extend or improve these limits)
+        """
+        recentTicks(limit: Int, page: Int): [TickType!]
     }
 
     type Mutation {
