@@ -18,7 +18,8 @@ import { gql } from 'apollo-server'
 import { DocumentNode } from 'graphql'
 
 /**
- * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode
+ * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode.
+ * A documentnode represents a validated GraphQL schema document (or part thereof)
  * @param {string} file - The name of the file to load.
  * @returns A DocumentNode
  */
