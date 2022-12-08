@@ -1,0 +1,151 @@
+type Query {
+  """
+  Gets all of the users current ticks by their Auth-0 userId
+  """
+  userTicks(userId: String): [TickType]
+  """
+  Gets all of the users current ticks for a specific climb by their
+  Auth-0 userId and Open-Beta ClimbId
+  """
+  userTicksByClimbId(userId: String, climbId: String): [TickType]
+}
+
+type Mutation {
+  """
+  Adds a tick to the MongoDB
+
+  NOTE: climbId is created from the hash function on the backend,
+  input the MP id into the function to create it, or just search for the climb on open beta
+
+  NOTE: source is either MP or OB, which stand for Mountain project and open beta respectively
+  the database will reject anything else. This allows us to determine where the tick was created
+  """
+  addTick(input: Tick): TickType
+  """
+  Deletes a tick from MongoDB by the _id property created in the database
+  """
+  deleteTick(_id: ID): DeleteSingleTickResult
+  """
+  Deletes all ticks created by a user by the userId,
+  mainly a dev feature for while we are working on getting the schema correct
+  """
+  deleteAllTicks(userId: String): DeleteAllTickResult
+  """
+  Imports a users ticks from mountain project, this feature also deletes all ticks previously imported from mountain project
+  before importing them, allowing users to constantly update their ticks without creating duplicates
+  """
+  importTicks(input: [Tick]): [TickType]
+  editTick(input: TickFilter): TickType
+}
+
+"""
+This is our tick type, containing the name, notes climbId,
+etc of the ticked climb NOTE: source must either be MP or OB
+which stand for Mountain Project, or Open Beta respectively
+"""
+type TickType {
+  _id: ID
+  "User that this tick belongs to "
+  userId: String
+  """
+  The name of this climb.
+
+  When the tick is imported from an external data source, there is no relational guarentee,
+  and as such we need this field filled out to be able to display the name of the climb.
+
+  Native ticks may have this field enforced against the climb that it relates to.
+  If the name changes in its related climb document, the value stored here may be back-updated
+  to reflect the new name.
+  """
+  name: String
+  """
+  freeform text field that a user fills out as commentary on this tick. This unstructured data
+  is one of the most important ones on the tick, as users may give their human opinion on the
+  climb attempt that they made.
+
+  Sandbagged, Chipped, bad conditions, may all be examples of notes that a user may submit to accompany
+  the tick.
+  """
+  notes: String
+  """
+  Which climb is ascociated with this tick? There is weak-relationship between this ID
+  and a climb document in the climbs collection. This is because we support importing
+  climbs from external sources, and we may not have a climb document for every climb
+
+  When source is OpenBeta, this can be understood as a foreign key to the climbs collection uuid.
+  """
+  climbId: String
+  """
+  Arbitrary string that represents the style of the climb.
+  Lead, toprope, bouldering, would be examples of values you might find here.
+  If this is a native tick, you can enforce updated values here by referencing
+  the climb document (climbId -> climbs:uuid)
+  """
+  style: String
+  """
+  Describe the type of successful attempt that was made here.
+  Fell/Hung, Flash, Redpoint, Onsight, would be examples of values you might find here.
+  This is again a free-form field. Data of practically any descriptive nature may find
+  itself here.
+  """
+  attemptType: String
+  """
+  Not the same as date created. Ticks can be back-filled by the user, and do
+  not need to be logged at the time that the tick is created inside the mongo
+  database.
+  This is a string because we do not enforce any particular date format at this time.
+  """
+  dateClimbed: String
+  """
+  What grade is this tick ascociated with?
+  This exists in the tick document both for easy-fetching and to ensure
+  proper operation when importing ticks for entities that cannot be located
+  within OpenBeta's database.
+  """
+  grade: String
+  source: TickSource
+}
+
+"The tick sources that openbeta supports."
+enum TickSource {
+  "OpenBeta (native tick)"
+  OB
+  "MountainProject (imported tick)"
+  MP
+}
+
+"""
+This is our tick type input, containing the name,
+notes climbId, etc of the ticked climb, all fields are required
+
+NOTE: source must either be MP or OB which stand for Mountain Project, or Open Beta respectively
+"""
+input Tick {
+  name: String!
+  notes: String
+  climbId: String!
+  userId: String!
+  style: String
+  attemptType: String
+  dateClimbed: String!
+  grade: String!
+  source: TickSource!
+}
+
+"""
+Takes in the MongoId and a tick object to replace the old tick object with
+"""
+input TickFilter {
+  _id: String
+  updatedTick: Tick
+}
+
+type DeleteSingleTickResult {
+  _id: ID!
+  removed: Boolean!
+}
+
+type DeleteAllTickResult {
+  removed: Boolean!
+  deletedCount: Int
+}
