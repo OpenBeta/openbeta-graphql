@@ -3,19 +3,36 @@ import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import muid, { MUUID } from 'uuid-mongodb'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
-import { typeDef as Climb } from './ClimbTypeDef.js'
-import { typeDef as Area } from './AreaTypeDef.js'
-import { typeDef as MediaTypeDef } from './media/MediaTypeDef.js'
-import { typeDef as TickTypeDef } from './TickTypeDef.js'
-import { HistoryTypeDef, HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
+import { HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
 import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
-import { AreaEditTypeDef, AreaQueries, AreaMutations } from './area/index.js'
+import { AreaQueries, AreaMutations } from './area/index.js'
 import TickMutations from './tick/TickMutations.js'
 import TickQueries from './tick/TickQueries.js'
+import fs from 'fs'
+
+import { gql } from 'apollo-server'
+import { DocumentNode } from 'graphql'
+
+/**
+ * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode
+ * @param {string} file - The name of the file to load.
+ * @returns A DocumentNode
+ */
+function loadSchema (file: string): DocumentNode {
+  return gql(fs.readFileSync(`src/graphql/schema/${file}`).toString())
+}
+
+/** Load in the type definitions in the schema directory */
+const TickTypeDef = loadSchema('Tick.gql')
+const ClimbTypeDef = loadSchema('Climb.gql')
+const AreaTypeDef = loadSchema('Area.gql')
+const MediaTypeDef = loadSchema('Media.gql')
+const HistoryTypeDef = loadSchema('History.gql')
+const AreaEditTypeDef = loadSchema('AreaEdit.gql')
 
 const resolvers = {
   Mutation: {
@@ -180,6 +197,6 @@ const resolvers = {
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [CommonTypeDef, Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef, HistoryTypeDef],
+  typeDefs: [CommonTypeDef, ClimbTypeDef, AreaTypeDef, MediaTypeDef, AreaEditTypeDef, TickTypeDef, HistoryTypeDef],
   resolvers
 })
