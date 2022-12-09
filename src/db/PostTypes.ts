@@ -8,6 +8,7 @@ export interface PostType {
   createdAt: string
   updatedAt: string
   userId: MUUID
+  comments: Comment[]
   destinationIds?: MUUID[]
   // destType: number // 0: climb, 1: area
   // onModel: RefModelType
@@ -26,3 +27,15 @@ export interface PostMedia {
   mediaUuid: MUUID
   destinationIds?: MUUID[]
 }
+
+export interface Comment {
+  userId: MUUID
+  createdAt: string
+  updatedAt: string
+  content: string
+}
+
+// export enum RefModelType {
+//   climbs = 'climbs',
+//   areas = 'areas'
+// }
