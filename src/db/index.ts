@@ -6,6 +6,7 @@ import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
 import { getTickModel } from './TickSchema.js'
+import { getCommentModel } from './CommentSchema'
 import { getChangeLogModel } from './ChangeLogSchema.js'
 import { logger } from '../logger.js'
 import streamListener from './edit/streamListener.js'
@@ -64,6 +65,7 @@ export const createIndexes = async (): Promise<void> => {
   await getMediaModel().ensureIndexes()
   await getTickModel().ensureIndexes()
   await getPostModel().ensureIndexes()
+  await getCommentModel().ensureIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
@@ -87,5 +89,6 @@ export {
   getTickModel,
   getClimbModel,
   getChangeLogModel,
-  getPostModel
+  getPostModel,
+  getCommentModel
 }

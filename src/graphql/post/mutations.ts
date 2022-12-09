@@ -38,8 +38,7 @@ const PostMutations = {
       description,
       createdAt,
       updatedAt,
-      userId,
-      comments: []
+      userId
     }
     // console.log('new doc', doc)
 
