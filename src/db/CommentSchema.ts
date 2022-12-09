@@ -1,9 +1,22 @@
-import mongoose, { Schema } from 'mongoose'
+import mongoose from 'mongoose'
 import muuid, { MUUID } from 'uuid-mongodb'
+const { Schema } = mongoose
 
-/** Parse a given content, and extract all tags from it  */
-export function getTagsFromContent (content: string): CommentTags {
-  throw new Error('Not implemented')
+/** This enum represents entities for which comments are supported.
+ * Implementations of comment interfaces (Like GQL, not type interfaces)
+ * should lean on this enumeration to ensure that typescript will catch
+ * incomplete implementations.
+ *
+ * Creation / fetching of comments should have an entirely flat implementation.
+ * As a result, adding new supported entities should be trivial.
+ */
+export const _SupportedCommentEntity = {
+  tick: 'tick',
+  climb: 'climb',
+  post: 'post',
+  user: 'user',
+  media: 'media',
+  area: 'area'
 }
 
 /** This enum represents entities for which comments are supported.
@@ -14,14 +27,8 @@ export function getTagsFromContent (content: string): CommentTags {
  * Creation / fetching of comments should have an entirely flat implementation.
  * As a result, adding new supported entities should be trivial.
  */
-export enum SupportedCommentEntity {
-  tick = 'tick',
-  climb = 'climb',
-  post = 'post',
-  user = 'user',
-  media = 'media',
-  area = 'area'
-}
+export type SupportedCommentEntity = keyof typeof _SupportedCommentEntity
+export const SupportedCommentEntities: SupportedCommentEntity[] = Object.keys(_SupportedCommentEntity) as any
 
 /** For moderation purposes, we record the history of each comment edit.
  * This presents as a list of edits, with the date of the edit and the content.
@@ -58,7 +65,7 @@ export interface CommentType {
    * What entity TYPE does this comment appear on. Comments can appear on a
    * supported set of entity types
    */
-  onEntity: SupportedCommentEntity
+  onEntityType: SupportedCommentEntity
   /** The ID of the entity that this comment appears on. */
   onEntityId: string | MUUID
   /** The date at which this comment was created in the database */
@@ -129,9 +136,9 @@ const CommentSchema = new Schema<CommentType>({
     // prohibit disowning of comments. users who create a comment may not transfer ownership
     immutable: true
   },
-  onEntity: {
+  onEntityType: {
     type: String,
-    enum: SupportedCommentEntity, // One of these supported entities
+    enum: Object.keys(_SupportedCommentEntity), // One of these supported entities
     required: true, // comments must be on an entity
     index: true // we want to be able to query comments by entity type quickly
   },
@@ -143,7 +150,7 @@ const CommentSchema = new Schema<CommentType>({
     type: 'object',
     value: { type: 'Buffer' },
     required: true,
-    index: true // need to find comments by entity ID quickly
+    index: true // need to find comments by entity ID quickly\
   },
   createdAt: { type: Date, required: true, immutable: true, default: Date.now },
   lastUpdated: { type: Date, required: false }, // last date in the history array

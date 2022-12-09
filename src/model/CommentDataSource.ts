@@ -1,30 +1,36 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { getCommentModel } from '../db/index.js'
-import { CommentHistory, CommentType, getTagsFromContent, SupportedCommentEntity } from '../db/CommentSchema'
+import { CommentHistory, CommentType, SupportedCommentEntity } from '../db/CommentSchema'
 import { MUUID } from 'uuid-mongodb'
 
 export default class TickDataSource extends MongoDataSource<CommentType> {
   commentModel = getCommentModel()
 
+  async getComment (commentId: string | MUUID): Promise<CommentType> {
+    const x = await this.commentModel.findOne({ _id: commentId })
+    if (x == null) { throw new Error('Comment not found') }
+    return x
+  }
+
   /** Create a comment on an entity
    * (No auth check is done in this function. NEVER implement this function without checking
    * the user's identity and matching it against this ID)
    */
-  async addComment (
-    /** The ID of the user that has authored this comment */
-    userId: string | MUUID,
+  async addComment (props:
+  {/** The ID of the user that has authored this comment */
+    userId: MUUID
     /** The raw content to enter. This will be validated */
-    content: string,
+    content: string
     /** The type of entity this comment will be created on */
-    onEntityType: SupportedCommentEntity,
+    onEntityType: SupportedCommentEntity
     /** The entity ID for which this comment will be created on */
-    onEntityId: string | MUUID): Promise<CommentType> {
+    onEntityId: MUUID
+  }): Promise<CommentType> {
     return await this.commentModel.create({
-      authorId: userId,
-      onEntity: onEntityType,
-      onEntityId: onEntityId,
-      content: content,
-      tags: getTagsFromContent(content)
+      authorId: props.userId,
+      onEntityType: props.onEntityType,
+      onEntityId: props.onEntityId,
+      content: props.content
     })
   }
 
@@ -32,7 +38,7 @@ export default class TickDataSource extends MongoDataSource<CommentType> {
    * (No auth check is done in this function. NEVER implement this function without checking
    * the user's identity and matching it against this ID)
    */
-  async editComment (commentId: string | MUUID, newContent: string): Promise<CommentType> {
+  async editComment (commentId: MUUID, newContent: string): Promise<CommentType> {
     const comment = await this.commentModel.findOne({ _id: commentId })
     if (comment === null) {
       throw new Error('Comment not found')
@@ -60,7 +66,7 @@ export default class TickDataSource extends MongoDataSource<CommentType> {
     // refresh the last updated date
     comment.lastUpdated = historyEntry.date
     // update the tag references, as they may have changed
-    comment.tags = getTagsFromContent(formattedContent)
+    // comment.tags = getTagsFromContent(formattedContent)
 
     // save the comment in place
     await comment.save()
@@ -75,7 +81,7 @@ export default class TickDataSource extends MongoDataSource<CommentType> {
    * Only moderators and the author of the comment can delete a comment. There may be other contexts
    * in which a comment can be deleted, and they should be documented in their respective functions.
    */
-  async deleteComment (commentId: string | MUUID): Promise<boolean> {
+  async deleteComment (commentId: MUUID): Promise<boolean> {
     const deleteResult = await this.commentModel.deleteOne({ _id: commentId })
     if (deleteResult.deletedCount === 0) {
       throw new Error('Comment not deleted')
@@ -85,69 +91,43 @@ export default class TickDataSource extends MongoDataSource<CommentType> {
   }
 
   /**
-   * Mark a user as having upvoted a comment. behavior is set with the toggle parameter.
+   * Mark a user as having upvoted a comment.
    * If the user previously downvoted the comment, then this will remove the downvote
    */
-  async upvoteComment (
+  async upvoteComment ({ userId, commentId }: {
     /** Who is upvoting this comment? */
-    userId: string | MUUID,
+    userId: MUUID
     /** which comment is being voted on */
-    commentId: string | MUUID,
-    /**
-     * If true, this will toggle the upvote state between true and false
-     * If false, then this will set the upvote state to true (idempotent)
-     */
-    toggle?: boolean): Promise<CommentType> {
-    if (toggle === true) {
-      const comment = await this.commentModel.findOne({ _id: commentId, upvotes: userId })
-
-      // toggle upvote off, as it is already set
-      if (comment !== null) {
-        return await this.setVoteState(userId, commentId, null)
-      }
-    }
-
+    commentId: MUUID
+  }): Promise<CommentType> {
     // set upvote to true for this user on this comment
-    return await this.setVoteState(userId, commentId, true)
+    return await this.setVoteState({ userId, commentId, upvote: true })
   }
 
   /**
-   * Mark a user as having downvoted a comment. behavior is set with the toggle parameter.
+   * Mark a user as having downvoted a comment
    * If the user previously upvote the comment, then this will remove the upvote
    */
   async downvoteComment (
+    { userId, commentId }: {
     /** Who is downvoting this comment? */
-    userId: string | MUUID,
-    /** which comment is being voted on */
-    commentId: string | MUUID,
-    /**
-     * If true, this will toggle the downvote state between true and false.
-     * If false, then this will set the downvote state to true (idempotent)
-     */
-    toggle?: boolean): Promise<CommentType> {
-    if (toggle === true) {
-      const comment = await this.commentModel.findOne({ _id: commentId, downvotes: userId })
-
-      // toggle downvote off
-      if (comment !== null) {
-        return await this.setVoteState(userId, commentId, null)
-      }
-    }
-
+      userId: MUUID
+      /** which comment is being voted on */
+      commentId: MUUID}): Promise<CommentType> {
     // set upvote for this user on this comment
-    return await this.setVoteState(userId, commentId, false)
+    return await this.setVoteState({ userId, commentId, upvote: false })
   }
 
-  async setVoteState (
+  async setVoteState ({ userId, commentId, upvote }: {
     /** user setting their vote state */
-    userId: string | MUUID,
+    userId: MUUID
     /** which comment to operate on */
-    commentId: string | MUUID,
+    commentId: MUUID
     /**
      * if true, then upvote. if false, downvote. if set to null,
      * then remove all sentiment signals and set to neutral
      */
-    upvote: boolean | null
+    upvote: boolean | null}
   ): Promise<CommentType> {
     const comment = await this.commentModel.findOne({ _id: commentId })
 
@@ -202,7 +182,7 @@ export default class TickDataSource extends MongoDataSource<CommentType> {
    * such scopes.
    * */
   async commentsByUser (userId: string | MUUID): Promise<CommentType[]> {
-    return await this.commentModel.find({ author: userId.toString() })
+    return await this.commentModel.find({ authorId: userId })
   }
 
   /**
@@ -212,11 +192,15 @@ export default class TickDataSource extends MongoDataSource<CommentType> {
    * recommend not overriding it, as the enum defines the guiderails. anything outside of it WILL
    * fail validation.
    **/
-  async commentsBy (entityType: SupportedCommentEntity, id?: string): Promise<CommentType[]> {
-    if (id === undefined) {
+  async getCommentByEntity (
+    { entityType, onEntityId }:
+    {entityType: SupportedCommentEntity, onEntityId?: MUUID}
+  ): Promise<CommentType[]> {
+    if (onEntityId === undefined) {
       return await this.commentModel.find({ onEntityType: entityType })
     }
 
-    return await this.commentModel.find({ onEntityId: id.toString(), onEntityType: entityType })
+    // return comments that match both type and ID
+    return await this.commentModel.find({ onEntityId, onEntityType: entityType })
   }
 }
