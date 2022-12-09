@@ -181,7 +181,25 @@ export default class TickDataSource extends MongoDataSource<CommentType> {
    * the model directly inside resolvers so that you can specify sensible limits and other
    * such scopes.
    * */
-  async commentsByUser (userId: string | MUUID): Promise<CommentType[]> {
+  async commentsByUser (
+    /** Which user to filter out */
+    userId: string | MUUID,
+    /** Options for returning this data */
+    options?: {
+      /** How many items to return each page, 100 by default  */
+      limit?: number
+      /** Pagination, zero by default */
+      page?: number
+    }): Promise<CommentType[]> {
+    if (options !== undefined) {
+      const { limit = 100, page = 0 } = options
+
+      return await this.commentModel
+        .find({ authorId: userId })
+        .limit(limit)
+        .skip(page * limit)
+    }
+
     return await this.commentModel.find({ authorId: userId })
   }
 

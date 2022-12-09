@@ -165,7 +165,9 @@ const CommentSchema = new Schema<CommentType>({
     validate: {
       validator: validateCommentContent,
       message: 'Comment content did not satisfy tagging validation'
-    }
+    },
+    maxLength: 2000, // we limit comment length to 2000 characters (similar to discord limits, if you don't have a reference point)
+    minLength: 1 // we don't allow empty (or single-character) comments
   },
   // is this comment hidden from regular users?
   // resolvers will not send these back to users unless they are moderators

@@ -8,6 +8,8 @@ import { typeDef as Area } from './AreaTypeDef.js'
 import { typeDef as MediaTypeDef } from './MediaTypeDef.js'
 import { typeDef as PostTypeDef } from './PostTypeDefs.js'
 import { typeDef as TickTypeDef } from './TickTypeDef.js'
+import { typeDef as CommentTypeDef } from './comment/CommentTypeDef.js'
+
 import {
   HistoryTypeDef,
   HistoryQueries,
@@ -22,13 +24,16 @@ import { AreaEditTypeDef, AreaQueries, AreaMutations } from './area/index.js'
 import { PostMutations, PostQueries, PostResolvers } from './post/index.js'
 import TickMutations from './tick/TickMutations.js'
 import TickQueries from './tick/TickQueries.js'
+import CommentQueries from './comment/commentQueries.js'
+import CommentMutations from './comment/commentMutations.js'
 
 const resolvers = {
   Mutation: {
     ...MediaMutations,
     ...AreaMutations,
     ...TickMutations,
-    ...PostMutations
+    ...PostMutations,
+    ...CommentMutations
   },
   Query: {
     ...MediaQueries,
@@ -36,6 +41,7 @@ const resolvers = {
     ...TickQueries,
     ...HistoryQueries,
     ...PostQueries,
+    ...CommentQueries,
 
     // Future To-do: Move climbs and areas' mutations/queries to their own folder Media, Tick, History
     climb: async (_, { uuid }: QueryByIdType, { dataSources }) => {
@@ -194,7 +200,8 @@ export const graphqlSchema = makeExecutableSchema({
     AreaEditTypeDef,
     TickTypeDef,
     HistoryTypeDef,
-    PostTypeDef
+    PostTypeDef,
+    CommentTypeDef
   ],
   resolvers
 })
