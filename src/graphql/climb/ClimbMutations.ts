@@ -7,6 +7,7 @@ const ClimbMutations = {
     const { climbs, parentId } = input
 
     // permission middleware shouldn't send undefined uuid
+    // Temporarily disable Auth check
     // if (user?.uuid == null) throw new Error('Missing user uuid')
 
     const uidList = await ds.addClimbs(muid.from(parentId), climbs)

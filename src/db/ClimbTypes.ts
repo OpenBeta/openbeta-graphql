@@ -1,6 +1,5 @@
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
-// import type { WithId, Document } from 'mongodb'
 import { ChangeRecordMetadataType } from './ChangeLogType'
 import { GradeContexts } from '../GradeUtils'
 import { GradeScalesTypes } from '@openbeta/sandbag'

@@ -40,11 +40,11 @@ describe('Area history', () => {
     try {
       await getAreaModel().collection.drop()
       await getClimbModel().collection.drop()
-
-      await createIndexes()
     } catch (e) {
       logger.info('Expected exception')
     }
+
+    await createIndexes()
 
     climbs = createNewClimbDS()
     areas = createNewAreaDS()
