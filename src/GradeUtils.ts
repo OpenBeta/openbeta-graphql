@@ -1,6 +1,6 @@
 import { GradeScales, GradeScalesTypes } from '@openbeta/sandbag'
 import isoCountries from 'i18n-iso-countries'
-import { IClimbType } from './db/ClimbTypes'
+import { IClimbType } from './db/ClimbTypes.js'
 
 export enum GradeContexts {
   ALSK = 'ALSK',
@@ -26,7 +26,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, Partial<Re
   [GradeContexts.US]: {
     trad: GradeScales.YDS,
     sport: GradeScales.YDS,
-    boulder: GradeScales.YDS,
+    bouldering: GradeScales.YDS,
     tr: GradeScales.YDS,
     alpine: GradeScales.YDS,
     mixed: GradeScales.YDS,
@@ -37,7 +37,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, Partial<Re
   [GradeContexts.FR]: {
     trad: GradeScales.FRENCH,
     sport: GradeScales.FRENCH,
-    boulder: GradeScales.FONT,
+    bouldering: GradeScales.FONT,
     tr: GradeScales.FRENCH,
     alpine: GradeScales.FRENCH,
     mixed: GradeScales.FRENCH,
@@ -139,4 +139,27 @@ export const getCountriesDefaultGradeContext = (): { [x: string]: GradeContexts 
     }
   }
   return countries
+}
+
+export const validDisciplines = ['trad', 'sport', 'bouldering', 'alpine', 'snow', 'ice', 'mixed', 'aid', 'tr']
+
+/**
+ * Perform runtime validation of climb discipline object
+ * @param disciplineObj IClimbType
+ */
+export const sanitizeDisciplines = (disciplineObj: IClimbType): IClimbType => {
+  const output = validDisciplines.reduce((acc, current) => {
+    if (disciplineObj[current] != null) {
+      acc[current] = disciplineObj[current]
+    } else {
+      acc[current] = false
+    }
+    return acc
+  }, {})
+  // @ts-expect-error
+  if (disciplineObj?.boulder != null) {
+    // @ts-expect-error
+    output.bouldering = disciplineObj.boulder
+  }
+  return output as IClimbType
 }
