@@ -29,6 +29,7 @@ export interface IAreaProps {
 export interface IAreaMetadata {
   isDestination: boolean
   leaf: boolean
+  isBoulder?: boolean
   lnglat: Point
   bbox: BBox
   left_right_index: number
@@ -60,7 +61,7 @@ export interface AggregateType {
 export interface CountByDisciplineType {
   trad?: DisciplineStatsType
   sport?: DisciplineStatsType
-  boulder?: DisciplineStatsType
+  bouldering?: DisciplineStatsType
   alpine?: DisciplineStatsType
   snow?: DisciplineStatsType
   ice?: DisciplineStatsType

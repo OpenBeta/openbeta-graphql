@@ -6,6 +6,7 @@ import type MutableAreaDataSource from './model/MutableAreaDataSource.js'
 import type TickDataSource from './model/TickDataSource.js'
 import type HistoryDataSouce from './model/ChangeLogDataSource.js'
 import type MutableMediaDataSource from './model/MutableMediaDataSource.js'
+import MutableClimbDataSource from './model/MutableClimbDataSource.js'
 
 export enum SortDirection {
   ASC = 1,
@@ -70,11 +71,11 @@ export interface DataSourcesType {
   ticks: TickDataSource
   history: HistoryDataSouce
   media: MutableMediaDataSource
+  climbs: MutableClimbDataSource
 }
 
 export interface Context {
   dataSources: DataSourcesType
-  // areas: MutableAreaDataSource
 }
 
 export interface ContextWithAuth extends Context {

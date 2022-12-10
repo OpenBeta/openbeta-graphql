@@ -4,7 +4,7 @@ import muuid from 'uuid-mongodb'
 import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType, OperationType } from './AreaTypes.js'
 import { PointSchema } from './ClimbSchema.js'
 import { ChangeRecordMetadataType } from './ChangeLogType.js'
-import { GradeContexts } from '../grade-utils.js'
+import { GradeContexts } from '../GradeUtils.js'
 
 const { Schema, connection } = mongoose
 
@@ -27,6 +27,7 @@ const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
 const MetadataSchema = new Schema<IAreaMetadata>({
   isDestination: { type: Boolean, sparse: true },
   leaf: { type: Boolean, sparse: true },
+  isBoulder: { type: Boolean, default: false },
   lnglat: {
     type: PointSchema,
     index: '2dsphere'
@@ -71,7 +72,7 @@ export const DisciplineStatsSchema = new Schema<DisciplineStatsType>({
 export const CountByDisciplineSchema = new Schema<CountByDisciplineType>({
   trad: { type: DisciplineStatsSchema, required: false },
   sport: { type: DisciplineStatsSchema, required: false },
-  boulder: { type: DisciplineStatsSchema, required: false },
+  bouldering: { type: DisciplineStatsSchema, required: false },
   alpine: { type: DisciplineStatsSchema, required: false },
   snow: { type: DisciplineStatsSchema, required: false },
   ice: { type: DisciplineStatsSchema, required: false },

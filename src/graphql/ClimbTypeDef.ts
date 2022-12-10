@@ -17,7 +17,7 @@ export const typeDef = gql`
     "The name that this climb is commonly identified by"
     name: String!
     "First ascent, if known. Who was the first person to climb this route?"
-    fa: String!
+    fa: String
     "The grade(s) assigned to this climb. See GradeType documentation"
     grades: GradeType!
 
@@ -29,7 +29,7 @@ export const typeDef = gql`
     gradeContext: String
 
     type: ClimbType!
-    safety: SafetyEnum!
+    safety: SafetyEnum
     metadata: ClimbMetadata!
 
     """
@@ -53,7 +53,7 @@ export const typeDef = gql`
     "Media associated with this climb"
     media: [MediaTagType]
 
-    yds: String! @deprecated(reason: "migrating to grades field")
+    yds: String @deprecated(reason: "Migrating to 'grades' field")
   }
 
   type ClimbMetadata {

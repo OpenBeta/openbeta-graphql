@@ -7,8 +7,7 @@ rm -rf tmp
 mkdir tmp
 cd tmp
 
-GITHUB="https://raw.githubusercontent.com/OpenBeta/climbing-data/next"
-
+GITHUB="https://raw.githubusercontent.com/OpenBeta/climbing-data/main"
 wget --content-disposition \
   ${GITHUB}/openbeta-routes-westcoast.zip
 

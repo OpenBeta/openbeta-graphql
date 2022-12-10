@@ -19,7 +19,7 @@ export const flattenDisciplines = (type: IClimbType): IFlatClimbTypes => {
     typeSport: type?.sport ?? false,
     typeTrad: type?.trad ?? false,
     typeTR: type?.tr ?? false,
-    typeBouldering: type?.boulder ?? false,
+    typeBouldering: type?.bouldering ?? false,
     typeMixed: type?.mixed ?? false,
     typeAlpine: type?.alpine ?? false,
     typeSnow: type?.snow ?? false,
