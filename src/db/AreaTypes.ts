@@ -11,9 +11,28 @@ export type AreaType = IAreaProps & {
 
 export interface IAreaProps {
   _id: mongoose.Types.ObjectId
+  /**
+   * ShortCodes are short, globally uniqe codes that identify significant climbing areas
+   **/
   shortCode?: string
+  /**
+   * What name is considered most popular for this area?
+   * Areas occasionally have multiple valid names, but this one is the one
+   * that might be considered as the 'most popular'.
+   *
+   * It's not a great idea to identify by this field, as area names are not
+   * unique and are subject to change.
+   **/
   area_name: string
+  /**
+   * The climbs that appear within this area. (Only applies for leaf nodes)
+   */
   climbs: Array<MUUID | ClimbType>
+  /**
+   * All child area documents that are contained within this area.
+   * This has a strong relation to the areas collection, and contains only direct
+   * child areas - rather than all descendents.
+   */
   children: mongoose.Types.ObjectId[]
   ancestors: string
   pathTokens: string[]
@@ -21,6 +40,7 @@ export interface IAreaProps {
   aggregate?: AggregateType
   content: IAreaContent
   density: number
+  /** The total number of climbs in this area. */
   totalClimbs: number
   _change?: ChangeRecordMetadataType
   _deleting?: Date
