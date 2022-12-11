@@ -126,14 +126,23 @@ describe('Area history', () => {
 
     expect(newIDs).toHaveLength(2)
 
-    await climbs.deleteClimbs(testUser, [newIDs[0].toUUID().toString()])
+    // try delete a correct climb and a non-existent one
+    const count = await climbs.deleteClimbs(
+      testUser,
+      [newIDs[0].toUUID().toString(), muid.v4().toUUID().toString()])
 
+    expect(count).toEqual(1)
+
+    // A delay is needed due to how TTL index works
     // eslint-disable-next-line
     await new Promise(res => setTimeout(res, 2000))
+
+    // make sure the right one is deleted
     let rs = await climbs.findOneClimbByMUUID(newIDs[0])
     expect(rs).toBeNull()
 
+    // expect one to remain
     rs = await climbs.findOneClimbByMUUID(newIDs[1])
-    if (rs == null) fail('Expect climb2 to exist')
+    if (rs == null) fail('Expect climb 2 to exist')
   })
 })
