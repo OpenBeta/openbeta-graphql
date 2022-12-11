@@ -27,8 +27,15 @@ describe('Area history', () => {
     }
   ]
 
-  const newBoulderProblem: NewClimbInputType = {
-    name: 'Cool trad one',
+  const newBoulderProblem1: NewClimbInputType = {
+    name: 'Cool boulder 1',
+    disciplines: {
+      bouldering: true
+    }
+  }
+
+  const newBoulderProblem2: NewClimbInputType = {
+    name: 'Cool boulder 2',
     disciplines: {
       bouldering: true
     }
@@ -73,12 +80,12 @@ describe('Area history', () => {
 
     // California contains subareas.  Should fail.
     await expect(
-      climbs.addClimbs(newDestination.metadata.area_id, [newBoulderProblem])
+      climbs.addClimbs(newDestination.metadata.area_id, [newBoulderProblem1])
     ).rejects.toThrowError(/You can only add climbs to a crag/)
 
     // Route-only area should not accept new boulder problems
     await expect(
-      climbs.addClimbs(routesArea.metadata.area_id, [newBoulderProblem])
+      climbs.addClimbs(routesArea.metadata.area_id, [newBoulderProblem1])
     ).rejects.toThrowError(/Adding boulder problems to a route-only area/)
   })
 
@@ -94,17 +101,58 @@ describe('Area history', () => {
 
     const newIDs = await climbs.addClimbs(
       boulderingArea.metadata.area_id,
-      [newBoulderProblem])
+      [newBoulderProblem1, newBoulderProblem2])
 
-    expect(newIDs).toHaveLength(1)
+    expect(newIDs).toHaveLength(2)
 
     const newClimb = await climbs.findOneClimbByMUUID(newIDs[0])
 
     if (newClimb == null) fail('Expecting new boulder problem to be added, but didn\'t find one')
-    expect(newClimb.name).toBe(newBoulderProblem.name)
+    expect(newClimb.name).toBe(newBoulderProblem1.name)
 
     // Adding a boulder problem into an empty area will set isBoulder flag
     const updatedArea = await areas.findOneAreaByUUID(boulderingArea.metadata.area_id)
     expect(updatedArea.metadata.isBoulder).toBeTruthy()
+  })
+
+  it('can delete new boulder problems', async () => {
+    await areas.addCountry('can')
+    const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'can')
+    if (newBoulderingArea == null) fail('Expect new area to be created')
+
+    const newIDs = await climbs.addClimbs(
+      newBoulderingArea.metadata.area_id,
+      [newBoulderProblem1, newBoulderProblem2])
+
+    expect(newIDs).toHaveLength(2)
+
+    // delete a non-existing climb
+    const count0 = await climbs.deleteClimbs(testUser, [muid.v4().toUUID().toString()])
+    expect(count0).toEqual(0)
+
+    // try delete a correct climb and a non-existent one
+    const count1 = await climbs.deleteClimbs(
+      testUser,
+      [newIDs[0].toUUID().toString(), muid.v4().toUUID().toString()])
+
+    // immediately delete a previously deleted climb.  Should be a no op.
+    const count2 = await climbs.deleteClimbs(
+      testUser,
+      [newIDs[0].toUUID().toString(), muid.v4().toUUID().toString()])
+
+    expect(count1).toEqual(1)
+    expect(count2).toEqual(0)
+
+    // A delay is needed here due to how TTL index works
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 2000))
+
+    // make sure the right one is deleted
+    let rs = await climbs.findOneClimbByMUUID(newIDs[0])
+    expect(rs).toBeNull()
+
+    // expect one to remain
+    rs = await climbs.findOneClimbByMUUID(newIDs[1])
+    if (rs == null) fail('Expect climb 2 to exist')
   })
 })
