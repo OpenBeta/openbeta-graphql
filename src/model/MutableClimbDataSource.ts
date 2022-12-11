@@ -118,19 +118,20 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     await session.withTransaction(
       async (session) => {
         const filter = {
-          _id: { $in: toBeDeletedList }
+          _id: { $in: toBeDeletedList },
+          _deleting: { $exists: false }
         }
         const rs = await this.climbModel.updateMany(
           filter,
-          {
+          [{
             $set: {
               _deleting: new Date()
             }
-          },
+          }],
           {
             upserted: false,
             session
-          }).lean().orFail()
+          }).lean()
         ret = rs.modifiedCount
       })
     return ret

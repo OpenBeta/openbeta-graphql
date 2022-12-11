@@ -126,14 +126,24 @@ describe('Area history', () => {
 
     expect(newIDs).toHaveLength(2)
 
+    // delete a non-existing climb
+    const count0 = await climbs.deleteClimbs(testUser, [muid.v4().toUUID().toString()])
+    expect(count0).toEqual(0)
+
     // try delete a correct climb and a non-existent one
-    const count = await climbs.deleteClimbs(
+    const count1 = await climbs.deleteClimbs(
       testUser,
       [newIDs[0].toUUID().toString(), muid.v4().toUUID().toString()])
 
-    expect(count).toEqual(1)
+    // immediately delete a previously deleted climb.  Should be a no op.
+    const count2 = await climbs.deleteClimbs(
+      testUser,
+      [newIDs[0].toUUID().toString(), muid.v4().toUUID().toString()])
 
-    // A delay is needed due to how TTL index works
+    expect(count1).toEqual(1)
+    expect(count2).toEqual(0)
+
+    // A delay is needed here due to how TTL index works
     // eslint-disable-next-line
     await new Promise(res => setTimeout(res, 2000))
 
