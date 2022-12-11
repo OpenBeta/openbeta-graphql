@@ -2,6 +2,10 @@ type Mutation {
   addClimbs(input: NewClimbsInput): [ID]
 }
 
+type Mutation {
+  deleteClimbs(idList: [ID]): Number
+}
+
 input NewClimbsInput {
   parentId: ID!
   climbs: [SingleClimbInput]!

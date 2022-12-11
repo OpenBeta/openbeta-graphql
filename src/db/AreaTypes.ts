@@ -43,6 +43,7 @@ export interface IAreaProps {
   /** The total number of climbs in this area. */
   totalClimbs: number
   _change?: ChangeRecordMetadataType
+  /** Used to delete an area.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
   _deleting?: Date
 }
 

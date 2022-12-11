@@ -65,10 +65,13 @@ export const ClimbSchema = new Schema<ClimbType>({
     required: true
   },
   metadata: MetadataSchema,
-  content: ContentSchema
+  content: ContentSchema,
+  _deleting: { type: Date }
 }, {
   _id: false
 })
+
+ClimbSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
 
 ClimbSchema.pre('validate', function (next) {
   if (this.safety as string === '') { this.safety = SafetyType.UNSPECIFIED }

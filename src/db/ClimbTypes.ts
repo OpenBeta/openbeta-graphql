@@ -27,6 +27,8 @@ export interface IClimbProps {
   type: IClimbType
   safety?: SafetyType
   _change?: ChangeRecordMetadataType
+  /** Used to delete a climb.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
+  _deleting?: Date
 }
 
 export enum SafetyType {

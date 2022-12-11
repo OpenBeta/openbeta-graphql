@@ -12,7 +12,15 @@ const ClimbMutations = {
 
     const uidList = await ds.addClimbs(muid.from(parentId), climbs)
     return uidList?.map(id => id.toUUID().toString()) ?? null
+  },
+
+  deleteClimbs: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<number> => {
+    const { climbs: ds } = dataSources
+
+    // if (user?.uuid == null) throw new Error('Missing user uuid')
+    return await ds.deleteClimbs(muid.v4(), input as string[])
   }
+
 }
 
 export default ClimbMutations

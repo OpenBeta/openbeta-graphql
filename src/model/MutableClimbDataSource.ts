@@ -107,6 +107,34 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     const rs = await this.collection.insertMany(newDocs, { session })
     return Object.values(rs.insertedIds)
   }
+
+  async deleteClimbs (userId: MUUID, idListStr: string[]): Promise<number> {
+    const toBeDeletedList = idListStr.map(entry => muid.from(entry))
+    const session = await this.areaModel.startSession()
+    let ret = 0
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async (session) => {
+        const filter = {
+          _id: { $in: toBeDeletedList }
+        }
+        const rs = await this.climbModel.updateMany(
+          filter,
+          {
+            $set: {
+              _deleting: new Date()
+            }
+          },
+          {
+            upserted: false,
+            session
+          }).lean().orFail()
+        ret = rs.modifiedCount
+      })
+    return ret
+  }
 }
 
 // Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
