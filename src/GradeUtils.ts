@@ -19,12 +19,12 @@ export enum GradeContexts {
   US = 'US'
 }
 
-type ClimbGradeContext = Record<keyof IClimbType, GradeScalesTypes>
+export type ClimbGradeContextType = Record<keyof IClimbType, GradeScalesTypes>
 
 /**
  * A conversion from grade context to corresponding grade type / scale
  */
-export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGradeContext>> = {
+export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGradeContextType>> = {
   [GradeContexts.US]: {
     trad: GradeScales.YDS,
     sport: GradeScales.YDS,
@@ -56,7 +56,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
  * @param context grade context
  * @returns grade object
  */
-export const createGradeObject = (gradeStr: string, disciplines: IClimbType, context: ClimbGradeContext): Partial<Record<GradeScalesTypes, string>> => {
+export const createGradeObject = (gradeStr: string, disciplines: IClimbType, context: ClimbGradeContextType): Partial<Record<GradeScalesTypes, string>> => {
   const ret: Partial<Record<GradeScalesTypes, string>> = Object.keys(disciplines).reduce((acc, curr) => {
     if (disciplines[curr] === true) {
       const scaleTxt = context[curr]
