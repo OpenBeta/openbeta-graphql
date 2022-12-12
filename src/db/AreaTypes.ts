@@ -2,8 +2,9 @@ import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
 import { BBox, Point } from '@turf/helpers'
-import { ClimbType } from './ClimbTypes'
-import { ChangeRecordMetadataType } from './ChangeLogType'
+import { ClimbType } from './ClimbTypes.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
+import { GradeContexts } from '../GradeUtils.js'
 
 export type AreaType = IAreaProps & {
   metadata: IAreaMetadata
@@ -36,7 +37,7 @@ export interface IAreaProps {
   children: mongoose.Types.ObjectId[]
   ancestors: string
   pathTokens: string[]
-  gradeContext: string
+  gradeContext: GradeContexts
   aggregate?: AggregateType
   content: IAreaContent
   density: number

@@ -14,6 +14,7 @@ input NewClimbsInput {
 input SingleClimbInput {
   name: String!
   disciplines: DisciplineType
+  grade: String
 }
 
 input DisciplineType {

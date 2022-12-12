@@ -73,11 +73,12 @@ export interface IClimbContent {
 export interface NewClimbInputType {
   name: string
   disciplines: IClimbType
+  grade?: string
 }
 
 /**
  * Minimum required fields when adding a new climb or boulder problem
  */
 export type MinimumClimbType =
-  Pick<ClimbType, '_id'|'fa'|'name'|'type' |'content'>
+  Pick<ClimbType, '_id'|'fa'|'name'|'type' | 'gradeContext' |'grades' | 'content'>
   & { metadata: Pick<ClimbType['metadata'], 'areaRef' | 'left_right_index' | 'lnglat'> }

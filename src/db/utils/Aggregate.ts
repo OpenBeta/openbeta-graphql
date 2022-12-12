@@ -3,6 +3,7 @@ import { CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStats
 import { gradeContextToGradeScales } from '../../GradeUtils.js'
 import { ClimbType } from '../ClimbTypes.js'
 import { getScale, GradeBands, GradeBandTypes, GradeScalesTypes, isVScale } from '@openbeta/sandbag'
+import { logger } from '../../logger.js'
 
 export const mergeAggregates = (lhs: AggregateType, rhs: AggregateType): AggregateType => {
   return {
@@ -81,17 +82,32 @@ export const aggregateCragStats = (crag: AreaType): AggregateType => {
 
   // Assumption: all climbs use the crag's grade context
   const cragGradeScales = gradeContextToGradeScales[crag.gradeContext]
+  if (cragGradeScales == null) {
+    logger.warn(`Area ${crag.area_name} (${crag.metadata.area_id.toUUID().toString()}) has  invalid grade context: '${crag.gradeContext}'`)
+    return {
+      byGrade: [],
+      byDiscipline: disciplines,
+      byGradeBand: {
+        unknown: 0,
+        beginner: 0,
+        intermediate: 0,
+        advanced: 0,
+        expert: 0
+      }
+    }
+  }
+
   const climbs = crag.climbs as ClimbType[]
   climbs.forEach((climb: ClimbType) => {
     const { grades, type = {}, name } = climb
     // Grade
     // Assumption: all types provided from a climb use the same grade scale
     const cragGradeType = Object.keys(type).find(t => type[t] === true && cragGradeScales[t] !== undefined)
-    if (cragGradeType !== undefined) {
+    if (cragGradeType != null) {
       const gradeScaleValue: GradeScalesTypes = cragGradeScales[cragGradeType]
       const grade = grades?.[gradeScaleValue] ?? 'Unknown'
       if (grade === 'Unknown') {
-        console.warn(`Climb: ${name} does not have a corresponding grade with expected grade scale: ${gradeScaleValue}`)
+        logger.warn(`Climb: ${name} does not have a corresponding grade with expected grade scale: ${gradeScaleValue}`)
       }
       const entry: CountByGroupType = typeof byGrade[grade] === 'undefined' ? { label: grade, count: 0 } : byGrade[grade]
       entry.count = entry.count + 1

@@ -15,6 +15,7 @@ import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import CountriesLngLat from '../data/countries-with-lnglat.json' assert { type: 'json' }
 import { logger } from '../logger.js'
+import { GradeContexts } from '../GradeUtils.js'
 
 isoCountries.registerLocale(enJson)
 
@@ -327,7 +328,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 }
 
-export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: string): AreaType => {
+export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: GradeContexts): AreaType => {
   const _id = new mongoose.Types.ObjectId()
   const uuid = genMUIDFromPaths(parentPathTokens, areaName)
 

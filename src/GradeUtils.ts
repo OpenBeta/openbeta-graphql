@@ -1,4 +1,4 @@
-import { GradeScales, GradeScalesTypes } from '@openbeta/sandbag'
+import { getScale, GradeScales, GradeScalesTypes } from '@openbeta/sandbag'
 import isoCountries from 'i18n-iso-countries'
 import { IClimbType } from './db/ClimbTypes.js'
 
@@ -19,14 +19,16 @@ export enum GradeContexts {
   US = 'US'
 }
 
+type ClimbGradeContext = Record<keyof IClimbType, GradeScalesTypes>
+
 /**
  * A conversion from grade context to corresponding grade type / scale
  */
-export const gradeContextToGradeScales: Partial<Record<GradeContexts, Partial<Record<keyof IClimbType, GradeScalesTypes>>>> = {
+export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGradeContext>> = {
   [GradeContexts.US]: {
     trad: GradeScales.YDS,
     sport: GradeScales.YDS,
-    bouldering: GradeScales.YDS,
+    bouldering: GradeScales.VSCALE,
     tr: GradeScales.YDS,
     alpine: GradeScales.YDS,
     mixed: GradeScales.YDS,
@@ -45,6 +47,29 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, Partial<Re
     snow: GradeScales.FRENCH, // is this the same as alpine?
     ice: GradeScales.FRENCH // is this the same as alpine?
   }
+}
+
+/**
+ * Convert a human-readable grade to the appropriate grade object.
+ * @param gradeStr human-readable. Example: 5.9 or 5c
+ * @param disciplines the climb disciplines
+ * @param context grade context
+ * @returns grade object
+ */
+export const createGradeObject = (gradeStr: string, disciplines: IClimbType, context: ClimbGradeContext): Partial<Record<GradeScalesTypes, string>> => {
+  const ret: Partial<Record<GradeScalesTypes, string>> = Object.keys(disciplines).reduce((acc, curr) => {
+    if (disciplines[curr] === true) {
+      const scaleTxt = context[curr]
+      const scaleApi = getScale(scaleTxt)
+      if (scaleApi != null && !(scaleApi.getScore(gradeStr) < 0)) {
+        // only assign valid grade
+        acc[scaleTxt] = gradeStr
+      }
+    }
+    return acc
+  }, {})
+
+  return ret
 }
 
 /**

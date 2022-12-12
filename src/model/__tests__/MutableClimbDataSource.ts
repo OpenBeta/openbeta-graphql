@@ -38,7 +38,8 @@ describe('Area history', () => {
     name: 'Cool boulder 2',
     disciplines: {
       bouldering: true
-    }
+    },
+    grade: '5c'
   }
 
   beforeAll(async () => {
@@ -116,8 +117,8 @@ describe('Area history', () => {
   })
 
   it('can delete new boulder problems', async () => {
-    await areas.addCountry('can')
-    const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'can')
+    await areas.addCountry('fr')
+    const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'fr')
     if (newBoulderingArea == null) fail('Expect new area to be created')
 
     const newIDs = await climbs.addClimbs(
@@ -154,5 +155,24 @@ describe('Area history', () => {
     // expect one to remain
     rs = await climbs.findOneClimbByMUUID(newIDs[1])
     if (rs == null) fail('Expect climb 2 to exist')
+  })
+
+  it('handles grades correctly', async () => {
+    await areas.addCountry('can')
+    const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'can')
+    if (newBoulderingArea == null) fail('Expect new area to be created')
+
+    const newIDs = await climbs.addClimbs(
+      newBoulderingArea.metadata.area_id,
+      [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
+        { ...newBoulderProblem2, grade: '5.9' }]) // invalid grade (YDS grade for a boulder problem)
+
+    expect(newIDs).toHaveLength(2)
+
+    const climb1 = await climbs.findOneClimbByMUUID(newIDs[0])
+    expect(climb1?.grades).toEqual({ vscale: 'V3' })
+
+    const climb2 = await climbs.findOneClimbByMUUID(newIDs[1])
+    expect(climb2?.grades).toEqual({})
   })
 })
