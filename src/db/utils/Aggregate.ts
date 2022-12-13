@@ -1,7 +1,7 @@
 import _ from 'underscore'
 import { CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType, AreaType } from '../AreaTypes.js'
-import { gradeContextToGradeScales, ClimbGradeContextType } from '../../GradeUtils.js'
-import { ClimbType } from '../ClimbTypes.js'
+import { gradeContextToGradeScales } from '../../GradeUtils.js'
+import { ClimbType, ClimbGradeContextType } from '../ClimbTypes.js'
 import { getScale, GradeBands, GradeBandTypes, GradeScalesTypes, isVScale } from '@openbeta/sandbag'
 import { logger } from '../../logger.js'
 

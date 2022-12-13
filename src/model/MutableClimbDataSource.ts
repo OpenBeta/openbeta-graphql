@@ -79,12 +79,12 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       throw new UserInputError('Adding route climbs to a bouldering area is not allowed')
     }
 
-    const newDocs: MinimumClimbType[] = []
-
     const cragGradeScales = gradeContextToGradeScales[parent.gradeContext]
     if (cragGradeScales == null) {
       throw new Error(`Area ${parent.area_name} (${parent.metadata.area_id.toUUID().toString()}) has  invalid grade context: '${parent.gradeContext}'`)
     }
+
+    const newDocs: MinimumClimbType[] = []
 
     for (let i = 0; i < climbs.length; i++) {
       if (climbs[i].disciplines == null) {
@@ -92,6 +92,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       }
 
       const typeSafeDisciplines = sanitizeDisciplines(climbs[i].disciplines)
+
       const grade = climbs[i].grade
       const doc: MinimumClimbType = {
         _id: newClimbIds[i],

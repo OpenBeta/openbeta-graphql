@@ -15,12 +15,15 @@ describe('Area history', () => {
   const newClimbsToAdd: NewClimbInputType[] = [
     {
       name: 'Sport 1',
+      // Intentionally disable TS check to make sure input is sanitized
+      // @ts-expect-error
       disciplines: {
         sport: true
       }
     },
     {
       name: 'Cool trad one',
+      // @ts-expect-error
       disciplines: {
         trad: true
       }
@@ -29,6 +32,7 @@ describe('Area history', () => {
 
   const newBoulderProblem1: NewClimbInputType = {
     name: 'Cool boulder 1',
+    // @ts-expect-error
     disciplines: {
       bouldering: true
     }
@@ -36,6 +40,7 @@ describe('Area history', () => {
 
   const newBoulderProblem2: NewClimbInputType = {
     name: 'Cool boulder 2',
+    // @ts-expect-error
     disciplines: {
       bouldering: true
     },

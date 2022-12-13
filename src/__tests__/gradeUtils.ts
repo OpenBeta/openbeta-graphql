@@ -1,4 +1,4 @@
-import { IClimbType } from '../db/ClimbTypes.js'
+import { DisciplineType } from '../db/ClimbTypes.js'
 import { sanitizeDisciplines, createGradeObject, gradeContextToGradeScales } from '../GradeUtils.js'
 
 describe('Test grade utilities', () => {
@@ -9,7 +9,7 @@ describe('Test grade utilities', () => {
       pets: ['cat', 'dog']
     }
 
-    const expected: IClimbType = {
+    const expected: DisciplineType = {
       trad: true,
       sport: false,
       bouldering: false,
@@ -24,7 +24,7 @@ describe('Test grade utilities', () => {
   })
 
   it('preserves all disciplines', () => {
-    const input: IClimbType = {
+    const input: DisciplineType = {
       trad: false,
       sport: false,
       bouldering: true,
@@ -41,22 +41,23 @@ describe('Test grade utilities', () => {
   it('creates USA grade object correctly', () => {
     const context = gradeContextToGradeScales.US
     if (context == null) fail('Bad grade context.  Should not happen.')
-    let actual = createGradeObject('5.9', { sport: true }, context)
+
+    let actual = createGradeObject('5.9', sanitizeDisciplines({ sport: true }), context)
     expect(actual).toEqual({
       yds: '5.9'
     })
 
-    actual = createGradeObject('V4', { bouldering: true }, context)
+    actual = createGradeObject('V4', sanitizeDisciplines({ bouldering: true }), context)
     expect(actual).toEqual({
       vscale: 'V4'
     })
 
     // mismatch input and discipline
-    actual = createGradeObject('V4', { trad: true }, context)
+    actual = createGradeObject('V4', sanitizeDisciplines({ trad: true }), context)
     expect(actual).toEqual({})
 
     // invalid input
-    actual = createGradeObject('6a', { trad: true }, context)
+    actual = createGradeObject('6a', sanitizeDisciplines({ trad: true }), context)
     expect(actual).toEqual({})
   })
 
@@ -64,18 +65,18 @@ describe('Test grade utilities', () => {
     const context = gradeContextToGradeScales.FR
     if (context == null) fail('Bad grade context.  Should not happen.')
 
-    let actual = createGradeObject('5a', { sport: true }, context)
+    let actual = createGradeObject('5a', sanitizeDisciplines({ sport: true }), context)
     expect(actual).toEqual({
       french: '5a'
     })
 
-    actual = createGradeObject('7c', { bouldering: true }, context)
+    actual = createGradeObject('7c', sanitizeDisciplines({ bouldering: true }), context)
     expect(actual).toEqual({
       font: '7c'
     })
 
     // Invalid input
-    actual = createGradeObject('5.9', { bouldering: true }, context)
+    actual = createGradeObject('5.9', sanitizeDisciplines({ bouldering: true }), context)
     expect(actual).toEqual({})
   })
 })

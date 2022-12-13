@@ -1,8 +1,9 @@
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
-import { ChangeRecordMetadataType } from './ChangeLogType'
-import { GradeContexts } from '../GradeUtils'
 import { GradeScalesTypes } from '@openbeta/sandbag'
+
+import { ChangeRecordMetadataType } from './ChangeLogType'
+import { GradeContexts } from '../GradeUtils.js'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
@@ -24,7 +25,7 @@ export interface IClimbProps {
   yds?: string
   grades?: Partial<Record<GradeScalesTypes, string>>
   gradeContext?: GradeContexts
-  type: IClimbType
+  type: DisciplineType
   safety?: SafetyType
   _change?: ChangeRecordMetadataType
   /** Used to delete a climb.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
@@ -45,16 +46,16 @@ export interface IGradeType {
   font?: string
 }
 
-export interface IClimbType {
-  trad?: boolean
-  sport?: boolean
-  bouldering?: boolean
-  alpine?: boolean
-  snow?: boolean
-  ice?: boolean
-  mixed?: boolean
-  aid?: boolean
-  tr?: boolean
+export interface DisciplineType {
+  trad: boolean
+  sport: boolean
+  bouldering: boolean
+  alpine: boolean
+  snow: boolean
+  ice: boolean
+  mixed: boolean
+  aid: boolean
+  tr: boolean
 }
 export interface IClimbMetadata {
   lnglat: Point
@@ -70,9 +71,11 @@ export interface IClimbContent {
   location?: string
 }
 
+export type ClimbGradeContextType = Record<keyof DisciplineType, GradeScalesTypes>
+
 export interface NewClimbInputType {
   name: string
-  disciplines: IClimbType
+  disciplines: DisciplineType
   grade?: string
 }
 

@@ -14,18 +14,20 @@ const transformClimbRecord = (row: any): ClimbType => {
   // in case mp_route_id is empty
   const pkeyStr = mp_route_id === '' ? `${mp_sector_id as string}.${left_right_seq as string}` : mp_route_id
   const uuid = muuid.from(uuidv5(pkeyStr, NIL))
+  const disciplines = sanitizeDisciplines(type)
   return {
     _id: uuid,
     name: route_name,
     yds: grade.YDS,
     grades: {
+      ...disciplines.bouldering && { vscale: grade.YDS },
       yds: grade.YDS,
       font: grade.Font,
       french: grade.French
     },
     gradeContext: gradeContext,
     safety: safety,
-    type: sanitizeDisciplines(type),
+    type: disciplines,
     fa: fa,
     metadata: {
       lnglat: geometry('Point', parent_lnglat) as Point,

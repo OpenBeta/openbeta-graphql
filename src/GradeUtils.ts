@@ -1,6 +1,6 @@
 import { getScale, GradeScales, GradeScalesTypes } from '@openbeta/sandbag'
 import isoCountries from 'i18n-iso-countries'
-import { IClimbType } from './db/ClimbTypes.js'
+import { DisciplineType, ClimbGradeContextType } from './db/ClimbTypes.js'
 
 export enum GradeContexts {
   ALSK = 'ALSK',
@@ -18,8 +18,6 @@ export enum GradeContexts {
   UK = 'UK',
   US = 'US'
 }
-
-export type ClimbGradeContextType = Record<keyof IClimbType, GradeScalesTypes>
 
 /**
  * A conversion from grade context to corresponding grade type / scale
@@ -51,12 +49,12 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
 
 /**
  * Convert a human-readable grade to the appropriate grade object.
- * @param gradeStr human-readable. Example: 5.9 or 5c
+ * @param gradeStr human-readable, eg: '5.9' or '5c'.
  * @param disciplines the climb disciplines
  * @param context grade context
  * @returns grade object
  */
-export const createGradeObject = (gradeStr: string, disciplines: IClimbType, context: ClimbGradeContextType): Partial<Record<GradeScalesTypes, string>> => {
+export const createGradeObject = (gradeStr: string, disciplines: DisciplineType, context: ClimbGradeContextType): Partial<Record<GradeScalesTypes, string>> => {
   const ret: Partial<Record<GradeScalesTypes, string>> = Object.keys(disciplines).reduce((acc, curr) => {
     if (disciplines[curr] === true) {
       const scaleTxt = context[curr]
@@ -172,7 +170,7 @@ export const validDisciplines = ['trad', 'sport', 'bouldering', 'alpine', 'snow'
  * Perform runtime validation of climb discipline object
  * @param disciplineObj IClimbType
  */
-export const sanitizeDisciplines = (disciplineObj: IClimbType): IClimbType => {
+export const sanitizeDisciplines = (disciplineObj: Partial<DisciplineType>): DisciplineType => {
   const output = validDisciplines.reduce((acc, current) => {
     if (disciplineObj[current] != null) {
       acc[current] = disciplineObj[current]
@@ -186,5 +184,5 @@ export const sanitizeDisciplines = (disciplineObj: IClimbType): IClimbType => {
     // @ts-expect-error
     output.bouldering = disciplineObj.boulder
   }
-  return output as IClimbType
+  return output as DisciplineType
 }
