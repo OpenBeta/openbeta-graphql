@@ -14,6 +14,18 @@ type Query {
   getRecentTags(userLimit: Int): [MediaListByAuthorType]
 }
 
+type Query {
+  """
+  Get a list of users and number of photos with tags
+  """
+  getTagsLeaderboard(limit: Int): [TagsLeaderboardType]
+}
+
+type TagsLeaderboardType {
+  userUuid: ID!
+  total: Int!
+}
+
 "A tag linking the media with a climb or an area"
 type MediaTagType {
   mediaUuid: ID!

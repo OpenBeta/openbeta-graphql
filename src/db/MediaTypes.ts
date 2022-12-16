@@ -58,3 +58,8 @@ export interface DeleteTagResult {
   destType: number
   destinationId: string
 }
+
+export interface TagsLeaderboardType {
+  userUuid: string
+  total: number
+}
