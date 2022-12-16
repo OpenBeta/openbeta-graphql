@@ -5,14 +5,14 @@ import MutableAreaDataSource, { createInstance as createNewAreaDS } from '../Mut
 
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { logger } from '../../logger.js'
-import { NewClimbInputType } from '../../db/ClimbTypes.js'
+import { ClimbChangeDocType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
 
 describe('Area history', () => {
   let climbs: MutableClimbDataSource
   let areas: MutableAreaDataSource
   const testUser = muid.v4()
 
-  const newClimbsToAdd: NewClimbInputType[] = [
+  const newClimbsToAdd: ClimbChangeDocType[] = [
     {
       name: 'Sport 1',
       // Intentionally disable TS check to make sure input is sanitized
@@ -30,7 +30,7 @@ describe('Area history', () => {
     }
   ]
 
-  const newBoulderProblem1: NewClimbInputType = {
+  const newBoulderProblem1: ClimbChangeInputType = {
     name: 'Cool boulder 1',
     // @ts-expect-error
     disciplines: {
@@ -38,7 +38,7 @@ describe('Area history', () => {
     }
   }
 
-  const newBoulderProblem2: NewClimbInputType = {
+  const newBoulderProblem2: ClimbChangeInputType = {
     name: 'Cool boulder 2',
     // @ts-expect-error
     disciplines: {
@@ -163,6 +163,8 @@ describe('Area history', () => {
   })
 
   it('handles grades correctly', async () => {
+    jest.setTimeout(60000)
+
     await areas.addCountry('can')
     const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'can')
     if (newBoulderingArea == null) fail('Expect new area to be created')

@@ -73,15 +73,26 @@ export interface IClimbContent {
 
 export type ClimbGradeContextType = Record<keyof DisciplineType, GradeScalesTypes>
 
-export interface NewClimbInputType {
-  name: string
-  disciplines: DisciplineType
+// export interface NewClimbInputType {
+//   name: string
+//   disciplines: DisciplineType
+//   grade?: string
+// }
+
+export interface ClimbChangeInputType {
+  id?: string
+  name?: string
+  disciplines?: DisciplineType
   grade?: string
+  leftRightIndex?: number
 }
 
+// export type ClimbDBChangeType = ClimbChangeInputType
+
+type UpdatableClimbFieldsType = Pick<ClimbType, 'fa'|'name'|'type' | 'gradeContext' |'grades' | 'content'>
 /**
  * Minimum required fields when adding a new climb or boulder problem
  */
-export type MinimumClimbType =
-  Pick<ClimbType, '_id'|'fa'|'name'|'type' | 'gradeContext' |'grades' | 'content'>
-  & { metadata: Pick<ClimbType['metadata'], 'areaRef' | 'left_right_index' | 'lnglat'> }
+export type ClimbChangeDocType =
+  Partial<UpdatableClimbFieldsType>
+  & { _id: MUUID, metadata: Pick<ClimbType['metadata'], 'areaRef' | 'left_right_index' | 'lnglat'> }

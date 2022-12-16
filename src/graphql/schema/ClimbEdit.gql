@@ -3,6 +3,10 @@ type Mutation {
 }
 
 type Mutation {
+  updateClimbs(input: ChangesInput): [Climb]
+}
+
+type Mutation {
   deleteClimbs(idList: [ID]): Int
 }
 
@@ -16,6 +20,20 @@ input SingleClimbInput {
   disciplines: DisciplineType
   grade: String
 }
+
+input ChangesInput {
+  parentId: ID!
+  changes: [ClimbChangeInput]
+}
+
+input ClimbChangeInput {
+  id: ID!
+  name: String
+  disciplines: DisciplineType
+  grade: String
+  leftRightIndex: Int
+}
+
 
 input DisciplineType {
   "https://en.wikipedia.org/wiki/Traditional_climbing"

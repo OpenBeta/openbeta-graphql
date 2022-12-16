@@ -170,9 +170,11 @@ export const validDisciplines = ['trad', 'sport', 'bouldering', 'alpine', 'snow'
  * Perform runtime validation of climb discipline object
  * @param disciplineObj IClimbType
  */
-export const sanitizeDisciplines = (disciplineObj: Partial<DisciplineType>): DisciplineType => {
+export const sanitizeDisciplines = (disciplineObj: Partial<DisciplineType> | undefined): DisciplineType => {
+  // if (disciplineObj == null) return validDisciplines.reduce(curr, acc)
+
   const output = validDisciplines.reduce((acc, current) => {
-    if (disciplineObj[current] != null) {
+    if (disciplineObj?.[current] != null) {
       acc[current] = disciplineObj[current]
     } else {
       acc[current] = false
