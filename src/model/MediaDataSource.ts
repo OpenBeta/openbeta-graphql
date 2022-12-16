@@ -61,7 +61,7 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
 
   /**
    * Get a list of users and their tagged photo count
-   * @param limit how my entries
+   * @param limit how many entries
    * @returns Array of TagsLeaderboardType
    */
   async getTagsLeaderboard (limit = 30): Promise<TagsLeaderboardType[]> {

@@ -16,7 +16,7 @@ type Query {
 
 type Query {
   """
-  Get a list of users and number of photos with tags
+  Get a list of users and their tagged photo count
   """
   getTagsLeaderboard(limit: Int): [TagsLeaderboardType]
 }
