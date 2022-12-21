@@ -73,12 +73,6 @@ export interface IClimbContent {
 
 export type ClimbGradeContextType = Record<keyof DisciplineType, GradeScalesTypes>
 
-// export interface NewClimbInputType {
-//   name: string
-//   disciplines: DisciplineType
-//   grade?: string
-// }
-
 export interface ClimbChangeInputType {
   id?: string
   name?: string

@@ -31,8 +31,11 @@ export default class MutableClimbDataSource extends ClimbDataSource {
   async _addClimbs (session, isNew: boolean, parentId: MUUID, climbs: ClimbChangeInputType[]): Promise<MUUID[]> {
     const newClimbIds = new Array(climbs.length)
     for (let i = 0; i < newClimbIds.length; i++) {
-      if (climbs[i]?.id == null) {
+      if (isNew) {
         newClimbIds[i] = muid.v4()
+      } else {
+        // @ts-expect-error
+        newClimbIds[i] = muid.from(climbs[i].id)
       }
     }
 
@@ -58,7 +61,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     } else {
       // Updating existing climbs:  simply get the parent node
       parent = await this.areaModel
-        .findOne(parentFilter, { session })
+        .findOne(parentFilter, null, { session })
         .orFail(new UserInputError(`Area with id: ${parentId.toUUID().toString()} not found`))
     }
 
@@ -84,14 +87,16 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         // @ts-expect-error
         await parent.save()
       } else {
-        throw new UserInputError('Adding boulder problems to a route-only area is not allowed')
+        if (isNew) {
+          throw new UserInputError('Adding boulder problems to a route-only area is not allowed')
+        }
       }
     }
 
     // is there at least 1 non-boulder problem in the input?
     const hasARouteClimb = climbs.some(entry => !(entry.disciplines?.bouldering ?? false))
 
-    if (hasARouteClimb && (parent.metadata?.isBoulder ?? false)) {
+    if (isNew && hasARouteClimb && (parent.metadata?.isBoulder ?? false)) {
       throw new UserInputError('Adding route climbs to a bouldering area is not allowed')
     }
 
@@ -114,13 +119,13 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
       const newGradeObj = grade != null && climbs[i]?.disciplines != null // only update grades when both grade str and disciplines obj exist
         ? createGradeObject(grade, typeSafeDisciplines, cragGradeScales)
-        : {}
+        : null
 
       const doc: ClimbChangeDocType = {
         _id: newClimbIds[i],
         ...climbs[i]?.name != null && { name: climbs[i]?.name },
         fa: '',
-        grades: newGradeObj,
+        ...newGradeObj != null && { grades: newGradeObj },
         ...typeSafeDisciplines != null && { type: typeSafeDisciplines },
         gradeContext: parent.gradeContext,
         content: {
@@ -141,11 +146,19 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       const rs = await this.climbModel.insertMany(newDocs, { session, lean: true })
       return rs.map(entry => entry._id)
     } else {
-      const filter = {
-        _id: { $in: newClimbIds },
-        _deleting: { $exists: false }
+      // bulk update
+      const bulk = newDocs.map(doc => ({
+        updateOne: {
+          filter: { _id: doc._id },
+          update: doc
+        }
+      }))
+
+      const rs = await this.climbModel.bulkWrite(bulk, { session })
+      // return original climb IDs if all climbs are updated
+      if (rs.nModified === rs.nMatched && rs.nMatched === newClimbIds.length) {
+        return newClimbIds
       }
-      const rs = await this.climbModel.updateMany(filter, newDocs, { session, upsert: !isNew })
       return []
     }
   }

@@ -6,6 +6,7 @@ import MutableAreaDataSource, { createInstance as createNewAreaDS } from '../Mut
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { logger } from '../../logger.js'
 import { ClimbChangeDocType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
+import { sanitizeDisciplines } from '../../GradeUtils.js'
 
 describe('Area history', () => {
   let climbs: MutableClimbDataSource
@@ -163,8 +164,6 @@ describe('Area history', () => {
   })
 
   it('handles grades correctly', async () => {
-    jest.setTimeout(60000)
-
     await areas.addCountry('can')
     const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'can')
     if (newBoulderingArea == null) fail('Expect new area to be created')
@@ -180,6 +179,32 @@ describe('Area history', () => {
     expect(climb1?.grades).toEqual({ vscale: 'V3' })
 
     const climb2 = await climbs.findOneClimbByMUUID(newIDs[1])
-    expect(climb2?.grades).toEqual({})
+    expect(climb2?.grades).toEqual(undefined)
+  })
+
+  it('can add update boulder problems', async () => {
+    const newDestination = await areas.addArea(testUser, 'Bouldering area A100', null, 'fr')
+
+    if (newDestination == null) fail('Expect new area to be created')
+
+    const newIDs = await climbs.addClimbs(
+      newDestination.metadata.area_id,
+      [newBoulderProblem1, newBoulderProblem2])
+
+    const changes: ClimbChangeInputType[] = [
+      {
+        id: newIDs[0].toUUID().toString(),
+        name: 'new name A100',
+        grade: '6b',
+        disciplines: sanitizeDisciplines({ bouldering: true })
+      },
+      {
+        id: newIDs[1].toUUID().toString(),
+        name: 'new name A200'
+      }
+    ]
+    const updated = await climbs.updateClimbs(testUser, newDestination.metadata.area_id, changes)
+
+    expect(updated).toHaveLength(2)
   })
 })
