@@ -206,5 +206,15 @@ describe('Area history', () => {
     const updated = await climbs.updateClimbs(testUser, newDestination.metadata.area_id, changes)
 
     expect(updated).toHaveLength(2)
+
+    const actual1 = await climbs.findOneClimbByMUUID(newIDs[0])
+
+    expect(actual1).toMatchObject({
+      name: changes[0].name,
+      grades: {
+        font: changes[0].grade
+      },
+      type: sanitizeDisciplines(changes[0].disciplines)
+    })
   })
 })

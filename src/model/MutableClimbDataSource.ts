@@ -34,8 +34,10 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       if (isNew) {
         newClimbIds[i] = muid.v4()
       } else {
-        // @ts-expect-error
-        newClimbIds[i] = muid.from(climbs[i].id)
+        const userinputId = climbs[i]?.id
+        if (userinputId == null) throw new Error('Climb.id is required for update operation')
+        // for update operation -> uuid string to MUUID
+        newClimbIds[i] = muid.from(userinputId)
       }
     }
 
