@@ -48,6 +48,8 @@ export interface WithDiscriminator {
 export type AreaChangeLogType = ChangeLogType<AreaType>
 export type AreaChangeRecordType = BaseChangeRecordType<AreaType>
 
+export type ClimbChangeLogType = ChangeLogType<ClimbType>
+
 export type SupportedCollectionTypes = AreaType | ClimbType
 
 export interface GetHistoryInputFilterType {
