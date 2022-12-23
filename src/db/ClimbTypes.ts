@@ -30,6 +30,10 @@ export interface IClimbProps {
   _change?: ChangeRecordMetadataType
   /** Used to delete a climb.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
   _deleting?: Date
+  createdAt?: Date
+  updatedAt?: Date
+  updatedBy?: MUUID
+  createdBy?: MUUID
 }
 
 export enum SafetyType {
@@ -89,4 +93,10 @@ type UpdatableClimbFieldsType = Pick<ClimbType, 'fa'|'name'|'type' | 'gradeConte
  */
 export type ClimbChangeDocType =
   Partial<UpdatableClimbFieldsType>
-  & { _id: MUUID, metadata: Pick<ClimbType['metadata'], 'areaRef' | 'left_right_index' | 'lnglat'> }
+  & { _id: MUUID, metadata: Pick<ClimbType['metadata'], 'areaRef' | 'left_right_index' | 'lnglat'> } & { _change: ChangeRecordMetadataType }
+
+export enum ClimbEditOperationType {
+  addClimb = 'addClimb',
+  deleteClimb = 'deleteClimb',
+  updateClimb = 'updateClimb'
+}

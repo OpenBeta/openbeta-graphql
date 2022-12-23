@@ -140,7 +140,10 @@ const resolvers = {
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByClimbId(node._id)
-    }
+    },
+
+    createdBy: (node: ClimbExtType) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: ClimbExtType) => node?.updatedBy?.toUUID().toString()
   },
 
   Area: {
@@ -196,7 +199,10 @@ const resolvers = {
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
-    }
+    },
+
+    createdBy: (node: AreaType) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: AreaType) => node?.updatedBy?.toUUID().toString()
   },
 
   CountByDisciplineType: {

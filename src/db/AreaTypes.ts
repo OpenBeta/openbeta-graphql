@@ -46,6 +46,10 @@ export interface IAreaProps {
   _change?: ChangeRecordMetadataType
   /** Used to delete an area.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
   _deleting?: Date
+  createdAt?: Date
+  updatedAt?: Date
+  updatedBy?: MUUID
+  createdBy?: MUUID
 }
 
 export interface IAreaMetadata {

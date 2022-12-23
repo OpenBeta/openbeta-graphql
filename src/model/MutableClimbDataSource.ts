@@ -1,10 +1,13 @@
 import muid, { MUUID } from 'uuid-mongodb'
 import { UserInputError } from 'apollo-server'
-import { ClimbChangeDocType, ClimbChangeInputType } from '../db/ClimbTypes.js'
+import { ClientSession } from 'mongoose'
+
+import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType } from '../db/ClimbTypes.js'
 import ClimbDataSource from './ClimbDataSource.js'
 import { sanitizeDisciplines, gradeContextToGradeScales, createGradeObject } from '../GradeUtils.js'
 import { getClimbModel } from '../db/ClimbSchema.js'
-import { AreaType } from '../db/AreaTypes.js'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
+import { changelogDataSource } from './ChangeLogDataSource.js'
 
 export default class MutableClimbDataSource extends ClimbDataSource {
   /**
@@ -13,7 +16,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
    * @param climbs
    * @returns a list of newly added climb IDs
    */
-  async addClimbs (parentId: MUUID, climbs: ClimbChangeInputType[]): Promise<MUUID[]> {
+  async addClimbs (userId: MUUID, parentId: MUUID, climbs: ClimbChangeInputType[]): Promise<MUUID[]> {
     const session = await this.areaModel.startSession()
     let ret: MUUID[]
 
@@ -21,15 +24,15 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addClimbs(session, true, parentId, climbs)
+        ret = await this._addClimbs(userId, session, true, parentId, climbs)
         return ret
       })
     // @ts-expect-error
     return ret
   }
 
-  async _addClimbs (session, isNew: boolean, parentId: MUUID, climbs: ClimbChangeInputType[]): Promise<MUUID[]> {
-    const newClimbIds = new Array(climbs.length)
+  async _addClimbs (userId: MUUID, session: ClientSession, isNew: boolean, parentId: MUUID, climbs: ClimbChangeInputType[]): Promise<MUUID[]> {
+    const newClimbIds = new Array<MUUID>(climbs.length)
     for (let i = 0; i < newClimbIds.length; i++) {
       if (isNew) {
         newClimbIds[i] = muid.v4()
@@ -41,32 +44,25 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       }
     }
 
+    const opType = isNew ? ClimbEditOperationType.addClimb : ClimbEditOperationType.updateClimb
+    const change = await changelogDataSource.create(session, userId, opType)
+
     const parentFilter = { 'metadata.area_id': parentId }
 
-    let parent: AreaType
-    if (isNew) {
-      // Adding new climbs:
-      // - find the crag node and add the new climb IDs, fail if not found
-      parent = await this.areaModel
-        .findOneAndUpdate(
-          parentFilter,
-          {
-            $push: {
-              climbs: {
-                $each: newClimbIds // use $each to insert array of IDs
-              }
-            }
-          }, {
-            session
-          })
-        .orFail(new UserInputError(`Area with id: ${parentId.toUUID().toString()} not found`))
-    } else {
-      // Updating existing climbs:  simply get the parent node
-      parent = await this.areaModel
-        .findOne(parentFilter, null, { session })
-        .orFail(new UserInputError(`Area with id: ${parentId.toUUID().toString()} not found`))
-    }
+    const parent = await this.areaModel
+      .findOne(parentFilter).session(session)
+      .orFail(new UserInputError(`Area with id: ${parentId.toUUID().toString()} not found`))
 
+    const _change: ChangeRecordMetadataType = {
+      user: userId,
+      historyId: change._id,
+      prevHistoryId: parent._change?.historyId,
+      operation: opType,
+      seq: 0
+    }
+    parent.set({ _change })
+
+    // does the parent area have subareas?
     if (parent.children.length > 0) {
       throw new UserInputError('You can only add climbs to a crag or a bouldering area (an area that doesn\'t contain other areas)')
     }
@@ -74,8 +70,6 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     if (!parent.metadata.leaf) {
       // this is the first time we're adding climbs to an area so 'leaf' hasn't been set yet
       parent.metadata.leaf = true
-      // @ts-expect-error
-      await parent.save()
     }
 
     // is there at least 1 boulder problem in the input?
@@ -86,8 +80,6 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       if (parent.climbs.length === 0) {
         // if an area is empty, we're allowed to turn to into a bouldering area
         parent.metadata.isBoulder = true
-        // @ts-expect-error
-        await parent.save()
       } else {
         if (isNew) {
           throw new UserInputError('Adding boulder problems to a route-only area is not allowed')
@@ -106,6 +98,11 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     if (cragGradeScales == null) {
       throw new Error(`Area ${parent.area_name} (${parent.metadata.area_id.toUUID().toString()}) has  invalid grade context: '${parent.gradeContext}'`)
     }
+
+    if (isNew) {
+      parent.climbs = parent.climbs.concat(newClimbIds)
+    }
+    await parent.save()
 
     const newDocs: ClimbChangeDocType[] = []
 
@@ -139,6 +136,15 @@ export default class MutableClimbDataSource extends ClimbDataSource {
           areaRef: parent.metadata.area_id,
           lnglat: parent.metadata.lnglat,
           left_right_index: climbs[i]?.leftRightIndex != null ? climbs[i].leftRightIndex : i
+        },
+        ...isNew && { createdBy: userId },
+        ...!isNew && { updatedBy: userId },
+        _change: {
+          user: userId,
+          historyId: change._id,
+          prevHistoryId: undefined,
+          operation: opType,
+          seq: 0
         }
       }
       newDocs.push(doc)
@@ -152,7 +158,15 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       const bulk = newDocs.map(doc => ({
         updateOne: {
           filter: { _id: doc._id },
-          update: doc
+          update: [{
+            $set: {
+              ...doc,
+              _change: {
+                ...doc._change,
+                prevHistoryId: '$_change.historyId'
+              }
+            }
+          }]
         }
       }))
 
@@ -165,7 +179,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     }
   }
 
-  async updateClimbs (user, parentId, changes): Promise<MUUID[]> {
+  async updateClimbs (userId, parentId, changes): Promise<MUUID[]> {
     const session = await this.areaModel.startSession()
     let ret: MUUID[]
 
@@ -173,7 +187,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addClimbs(session, false, parentId, changes)
+        ret = await this._addClimbs(userId, session, false, parentId, changes)
         return ret
       })
     // @ts-expect-error
@@ -203,7 +217,8 @@ export default class MutableClimbDataSource extends ClimbDataSource {
           filter,
           [{
             $set: {
-              _deleting: new Date()
+              _deleting: new Date(),
+              updatedBy: userId
             }
           }],
           {

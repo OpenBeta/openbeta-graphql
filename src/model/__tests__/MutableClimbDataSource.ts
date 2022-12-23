@@ -1,5 +1,7 @@
 import mongoose from 'mongoose'
 import muid from 'uuid-mongodb'
+import { ChangeStream } from 'mongodb'
+
 import MutableClimbDataSource, { createInstance as createNewClimbDS } from '../MutableClimbDataSource.js'
 import MutableAreaDataSource, { createInstance as createNewAreaDS } from '../MutableAreaDataSource.js'
 
@@ -7,10 +9,13 @@ import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/
 import { logger } from '../../logger.js'
 import { ClimbChangeDocType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
 import { sanitizeDisciplines } from '../../GradeUtils.js'
+import streamListener from '../../db/edit/streamListener.js'
+import { changelogDataSource } from '../ChangeLogDataSource.js'
 
-describe('Area history', () => {
+describe('Climb CRUD', () => {
   let climbs: MutableClimbDataSource
   let areas: MutableAreaDataSource
+  let stream: ChangeStream
   const testUser = muid.v4()
 
   const newClimbsToAdd: ClimbChangeDocType[] = [
@@ -50,6 +55,7 @@ describe('Area history', () => {
 
   beforeAll(async () => {
     await connectDB()
+    stream = await streamListener()
 
     try {
       await getAreaModel().collection.drop()
@@ -62,10 +68,13 @@ describe('Area history', () => {
 
     climbs = createNewClimbDS()
     areas = createNewAreaDS()
+    await changelogDataSource._testRemoveAll()
+    await areas.addCountry('fr')
   })
 
   afterAll(async () => {
     try {
+      await stream.close()
       await mongoose.disconnect()
     } catch (e) {
       console.log('closing mongoose', e)
@@ -80,6 +89,7 @@ describe('Area history', () => {
 
     const routesArea = await areas.addArea(testUser, 'Sport & Trad', newDestination.metadata.area_id)
     const newIDs = await climbs.addClimbs(
+      testUser,
       routesArea.metadata.area_id,
       newClimbsToAdd)
 
@@ -87,12 +97,12 @@ describe('Area history', () => {
 
     // California contains subareas.  Should fail.
     await expect(
-      climbs.addClimbs(newDestination.metadata.area_id, [newBoulderProblem1])
+      climbs.addClimbs(testUser, newDestination.metadata.area_id, [newBoulderProblem1])
     ).rejects.toThrowError(/You can only add climbs to a crag/)
 
     // Route-only area should not accept new boulder problems
     await expect(
-      climbs.addClimbs(routesArea.metadata.area_id, [newBoulderProblem1])
+      climbs.addClimbs(testUser, routesArea.metadata.area_id, [newBoulderProblem1])
     ).rejects.toThrowError(/Adding boulder problems to a route-only area/)
   })
 
@@ -107,6 +117,7 @@ describe('Area history', () => {
     expect(boulderingArea.metadata.isBoulder).toBeFalsy()
 
     const newIDs = await climbs.addClimbs(
+      testUser,
       boulderingArea.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
 
@@ -123,11 +134,11 @@ describe('Area history', () => {
   })
 
   it('can delete new boulder problems', async () => {
-    await areas.addCountry('fr')
     const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'fr')
     if (newBoulderingArea == null) fail('Expect new area to be created')
 
     const newIDs = await climbs.addClimbs(
+      testUser,
       newBoulderingArea.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
 
@@ -169,6 +180,7 @@ describe('Area history', () => {
     if (newBoulderingArea == null) fail('Expect new area to be created')
 
     const newIDs = await climbs.addClimbs(
+      testUser,
       newBoulderingArea.metadata.area_id,
       [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
         { ...newBoulderProblem2, grade: '5.9' }]) // invalid grade (YDS grade for a boulder problem)
@@ -182,12 +194,13 @@ describe('Area history', () => {
     expect(climb2?.grades).toEqual(undefined)
   })
 
-  it('can add update boulder problems', async () => {
+  it('can update boulder problems', async () => {
     const newDestination = await areas.addArea(testUser, 'Bouldering area A100', null, 'fr')
 
     if (newDestination == null) fail('Expect new area to be created')
 
     const newIDs = await climbs.addClimbs(
+      testUser,
       newDestination.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
 
@@ -203,7 +216,9 @@ describe('Area history', () => {
         name: 'new name A200'
       }
     ]
-    const updated = await climbs.updateClimbs(testUser, newDestination.metadata.area_id, changes)
+
+    const otherUser = muid.v4()
+    const updated = await climbs.updateClimbs(otherUser, newDestination.metadata.area_id, changes)
 
     expect(updated).toHaveLength(2)
 
@@ -214,7 +229,9 @@ describe('Area history', () => {
       grades: {
         font: changes[0].grade
       },
-      type: sanitizeDisciplines(changes[0].disciplines)
+      type: sanitizeDisciplines(changes[0].disciplines),
+      createdBy: testUser.toUUID(),
+      updatedBy: otherUser.toUUID()
     })
   })
 })
