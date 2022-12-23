@@ -9,6 +9,7 @@ import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
+import { PostMutations, PostQueries, PostResolvers } from './posts/index.js'
 import { AreaQueries, AreaMutations } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
 import TickMutations from './tick/TickMutations.js'
@@ -36,15 +37,18 @@ const MediaTypeDef = loadSchema('Media.gql')
 const HistoryTypeDef = loadSchema('History.gql')
 const AreaEditTypeDef = loadSchema('AreaEdit.gql')
 const ClimbMutationTypeDefs = loadSchema('ClimbEdit.gql')
+const PostTypeDef = loadSchema('Post.gql')
 
 const resolvers = {
   Mutation: {
+    ...PostMutations,
     ...MediaMutations,
     ...AreaMutations,
     ...ClimbMutations,
     ...TickMutations
   },
   Query: {
+    ...PostQueries,
     ...MediaQueries,
     ...AreaQueries,
     ...TickQueries,
@@ -106,6 +110,7 @@ const resolvers = {
   ...CommonResolvers,
   ...MediaResolvers,
   ...HistoryFieldResolvers,
+  ...PostResolvers,
 
   Climb: {
     id: (node: ClimbExtType) => node._id.toUUID().toString(),
@@ -214,7 +219,8 @@ export const graphqlSchema = makeExecutableSchema({
     AreaEditTypeDef,
     TickTypeDef,
     HistoryTypeDef,
-    ClimbMutationTypeDefs
+    ClimbMutationTypeDefs,
+    PostTypeDef
   ],
   resolvers
 })
