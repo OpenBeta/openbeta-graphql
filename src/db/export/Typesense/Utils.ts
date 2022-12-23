@@ -1,6 +1,6 @@
 import { Point } from '@turf/helpers'
 
-import { IClimbType } from '../../ClimbTypes'
+import { DisciplineType } from '../../ClimbTypes'
 
 export interface IFlatClimbTypes {
   typeSport: boolean
@@ -14,7 +14,7 @@ export interface IFlatClimbTypes {
   typeAid: boolean
 }
 
-export const flattenDisciplines = (type: IClimbType): IFlatClimbTypes => {
+export const flattenDisciplines = (type: DisciplineType): IFlatClimbTypes => {
   return {
     typeSport: type?.sport ?? false,
     typeTrad: type?.trad ?? false,
@@ -28,7 +28,7 @@ export const flattenDisciplines = (type: IClimbType): IFlatClimbTypes => {
   }
 }
 
-export const disciplinesToArray = (type: IClimbType): any => {
+export const disciplinesToArray = (type: DisciplineType): any => {
   const z: string[] = []
   for (const property in type) {
     if (type[property] as boolean) {

@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals'
+import { logger } from '../../../logger.js'
 import { aggregateCragStats, merge } from '../Aggregate.js'
 import { AggregateType } from '../../AreaTypes.js'
 
@@ -39,7 +40,7 @@ describe('Aggregate merge', () => {
 
 describe('Aggregate Crag Stats', () => {
   it('Provides crag stat aggregates in US grade context', () => {
-    jest.spyOn(console, 'warn').mockImplementation(() => {})
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const crag = {
       gradeContext: 'US',
       climbs: [
@@ -89,11 +90,10 @@ describe('Aggregate Crag Stats', () => {
         {
           yds: 'V5',
           grades: {
-            yds: 'V5',
+            vscale: 'V5',
             font: '6C'
           },
           type: {
-            trad: true,
             bouldering: true
           }
         },
@@ -117,7 +117,7 @@ describe('Aggregate Crag Stats', () => {
         bouldering: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }, total: 1 },
         sport: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }, total: 1 },
         tr: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 2, unknown: 0 }, total: 3 },
-        trad: { bands: { advanced: 1, beginner: 1, expert: 0, intermediate: 2, unknown: 1 }, total: 5 }
+        trad: { bands: { advanced: 0, beginner: 1, expert: 0, intermediate: 2, unknown: 1 }, total: 4 }
       },
       byGrade: [
         { count: 2, label: '5.9' },
@@ -130,11 +130,13 @@ describe('Aggregate Crag Stats', () => {
     }
     // @ts-expect-error
     expect(aggregateCragStats(crag)).toEqual(expectedStats)
-    expect(console.warn).toHaveBeenCalledWith(
+    expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('Climb: mismatched_grade_climb does not have a corresponding grade with expected grade scale: yds')
     )
   })
+
   it.todo('Provides crag stat aggregates in FR grade context')
+
   it('Provides defaults for no climbs in crag', () => {
     const crag = {
       gradeContext: 'US',

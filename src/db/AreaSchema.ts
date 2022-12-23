@@ -105,7 +105,15 @@ export const AreaSchema = new Schema<AreaType>({
   density: { type: Number },
   totalClimbs: { type: Number },
   _change: ChangeRecordMetadata,
-  _deleting: { type: Date }
+  _deleting: { type: Date },
+  updatedBy: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  },
+  createdBy: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  }
 }, { timestamps: true })
 
 AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })

@@ -8,7 +8,10 @@ import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation } fro
 import { checkVar } from '../index.js'
 import { updateAreaIndex } from '../export/Typesense/Client.js'
 
-export default async function streamListener (db: mongoose.Connection): Promise<any> {
+/**
+ * Start a new stream listener to track changes
+ */
+export default async function streamListener (): Promise<any> {
   const resumeId = await mostRecentResumeId()
   logger.info({ resumeId }, 'Starting stream listener')
 
@@ -34,7 +37,7 @@ export default async function streamListener (db: mongoose.Connection): Promise<
     }
   }]
 
-  const changeStream = db.watch(pipeline, opts)
+  const changeStream = mongoose.connection.watch(pipeline, opts)
   return changeStream.on('change', onChange)
 }
 
@@ -75,7 +78,15 @@ interface ChangeRecordType {
 const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
   switch (source) {
     case 'climbs': {
-      // TBD
+      fullDocument.kind = source
+      const newDocument: BaseChangeRecordType = {
+        _id,
+        dbOp,
+        fullDocument,
+        updateDescription: dotifyUpdateDescription(updateDescription),
+        kind: 'climbs'
+      }
+      void changelogDataSource.record(newDocument)
       break
     }
     case 'areas': {
