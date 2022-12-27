@@ -83,6 +83,9 @@ export interface ClimbChangeInputType {
   disciplines?: DisciplineType
   grade?: string
   leftRightIndex?: number
+  description?: string
+  location?: string
+  protection?: string
 }
 
 // export type ClimbDBChangeType = ClimbChangeInputType

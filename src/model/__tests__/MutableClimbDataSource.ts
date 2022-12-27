@@ -123,7 +123,7 @@ describe('Climb CRUD', () => {
 
     expect(newIDs).toHaveLength(2)
 
-    const newClimb = await climbs.findOneClimbByMUUID(newIDs[0])
+    const newClimb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
 
     if (newClimb == null) fail('Expecting new boulder problem to be added, but didn\'t find one')
     expect(newClimb.name).toBe(newBoulderProblem1.name)
@@ -151,12 +151,12 @@ describe('Climb CRUD', () => {
     // try delete a correct climb and a non-existent one
     const count1 = await climbs.deleteClimbs(
       testUser,
-      [newIDs[0].toUUID().toString(), muid.v4().toUUID().toString()])
+      [newIDs[0], muid.v4().toUUID().toString()])
 
     // immediately delete a previously deleted climb.  Should be a no op.
     const count2 = await climbs.deleteClimbs(
       testUser,
-      [newIDs[0].toUUID().toString(), muid.v4().toUUID().toString()])
+      [newIDs[0], muid.v4().toUUID().toString()])
 
     expect(count1).toEqual(1)
     expect(count2).toEqual(0)
@@ -166,11 +166,11 @@ describe('Climb CRUD', () => {
     await new Promise(res => setTimeout(res, 2000))
 
     // make sure the right one is deleted
-    let rs = await climbs.findOneClimbByMUUID(newIDs[0])
+    let rs = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
     expect(rs).toBeNull()
 
     // expect one to remain
-    rs = await climbs.findOneClimbByMUUID(newIDs[1])
+    rs = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
     if (rs == null) fail('Expect climb 2 to exist')
   })
 
@@ -187,10 +187,10 @@ describe('Climb CRUD', () => {
 
     expect(newIDs).toHaveLength(2)
 
-    const climb1 = await climbs.findOneClimbByMUUID(newIDs[0])
+    const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
     expect(climb1?.grades).toEqual({ vscale: 'V3' })
 
-    const climb2 = await climbs.findOneClimbByMUUID(newIDs[1])
+    const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
     expect(climb2?.grades).toEqual(undefined)
   })
 
@@ -206,13 +206,13 @@ describe('Climb CRUD', () => {
 
     const changes: ClimbChangeInputType[] = [
       {
-        id: newIDs[0].toUUID().toString(),
+        id: newIDs[0],
         name: 'new name A100',
         grade: '6b',
         disciplines: sanitizeDisciplines({ bouldering: true })
       },
       {
-        id: newIDs[1].toUUID().toString(),
+        id: newIDs[1],
         name: 'new name A200'
       }
     ]
@@ -222,7 +222,7 @@ describe('Climb CRUD', () => {
 
     expect(updated).toHaveLength(2)
 
-    const actual1 = await climbs.findOneClimbByMUUID(newIDs[0])
+    const actual1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
 
     expect(actual1).toMatchObject({
       name: changes[0].name,
