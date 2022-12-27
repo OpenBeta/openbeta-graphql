@@ -127,18 +127,21 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
       const { description, location, protection, name } = userInput[i]
 
+      // Make sure we don't update content = {}
+      // See https://www.mongodb.com/community/forums/t/mongoservererror-invalid-set-caused-by-an-empty-object-is-not-a-valid-value/148344/2
+      const content = {
+        ...description != null && { description: sanitize(description) },
+        ...location != null && { location: sanitize(location) },
+        ...protection != null && { protection: sanitize(protection) }
+      }
+
       const doc: ClimbChangeDocType = {
         _id: newClimbIds[i],
         ...name != null && { name: sanitizeStrict(name) },
-        fa: '',
         ...newGradeObj != null && { grades: newGradeObj },
         ...typeSafeDisciplines != null && { type: typeSafeDisciplines },
         gradeContext: parent.gradeContext,
-        content: {
-          ...description != null && { description: sanitize(description) },
-          ...location != null && { location: sanitize(location) },
-          ...protection != null && { protection: sanitize(protection) }
-        },
+        content: Object.keys(content).length === 0 ? undefined : content,
         metadata: {
           areaRef: parent.metadata.area_id,
           lnglat: parent.metadata.lnglat,
