@@ -14,3 +14,7 @@ export interface AddPostInputType {
 export interface RemovePostInputType {
   postId: mongoose.Types.ObjectId
 }
+
+export interface GetPostsInputType {
+  postIds: mongoose.Types.ObjectId[]
+}

@@ -1,9 +1,15 @@
 type Mutation {
   addPost(input: AddPostInput): AddPostResponse
+  removePost(input: RemovePostInput): RemovePostResponse
 }
 
-type Mutation {
-  removePost(input: RemovePostInput): RemovePostResponse
+type Query {
+  getPosts(input: GetPostsInput): GetPostsResponse
+}
+
+"Input params for getting posts by ID"
+input GetPostsInput {
+  postIds: [ID]!
 }
 
 "Input params for creating a new post"
@@ -24,4 +30,15 @@ input RemovePostInput {
 
 type RemovePostResponse {
   numDeleted: String
+}
+
+type GetPostsResponse {
+  posts: [Post]
+}
+
+"Posts are created by users. They are displayed on the posts page."
+type Post {
+  userId: ID!
+  mediaIds: [ID]!
+  description: String
 }
