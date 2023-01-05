@@ -21,7 +21,6 @@ const PostMutations = {
   removePost: async (_: any, { input }: {input: RemovePostInputType}) => {
     const PostModel = getPostModel()
     const res = await PostModel.deleteOne({ _id: input.postId })
-
     return { numDeleted: res.deletedCount }
   }
 }
