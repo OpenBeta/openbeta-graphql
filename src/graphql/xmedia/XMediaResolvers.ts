@@ -1,5 +1,3 @@
-const XMediaResolvers = {
-  
-}
+const XMediaResolvers = {}
 
 export default XMediaResolvers
