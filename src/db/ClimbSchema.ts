@@ -1,11 +1,29 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
-import { ClimbType, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
-import { GradeContexts } from '../GradeUtils.js'
 import { GradeScalesTypes } from '@openbeta/sandbag'
 
+import { ClimbType, IClimbMetadata, IClimbContent, SafetyType, ClimbEditOperationType } from './ClimbTypes.js'
+import { GradeContexts } from '../GradeUtils.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
+
 const { Schema } = mongoose
+
+const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
+  user: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    required: true
+  },
+  historyId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  prevHistoryId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  operation: {
+    type: Schema.Types.Mixed,
+    enum: Object.values(ClimbEditOperationType),
+    required: true
+  },
+  seq: { type: Number, required: true, default: 0 }
+}, { _id: false, timestamps: false })
 
 export const PointSchema = new mongoose.Schema<Point>({
   type: {
@@ -42,6 +60,7 @@ const MetadataSchema = new Schema<IClimbMetadata>({
 }, { _id: false })
 
 const GradeTypeSchema = new Schema<GradeScalesTypes>({
+  vscale: Schema.Types.String,
   yds: { type: Schema.Types.String, required: false },
   french: { type: Schema.Types.String, required: false },
   font: { type: Schema.Types.String, required: false }
@@ -66,9 +85,19 @@ export const ClimbSchema = new Schema<ClimbType>({
   },
   metadata: MetadataSchema,
   content: ContentSchema,
-  _deleting: { type: Date }
+  _deleting: { type: Date },
+  updatedBy: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  },
+  createdBy: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  },
+  _change: ChangeRecordMetadata
 }, {
-  _id: false
+  _id: false,
+  timestamps: true
 })
 
 ClimbSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
