@@ -38,6 +38,7 @@ type GetPostsResponse {
 
 "Posts are created by users. They are displayed on the posts page."
 type Post {
+  _id: ID
   userId: ID!
   mediaIds: [ID]!
   description: String

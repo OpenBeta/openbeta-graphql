@@ -1,0 +1,54 @@
+# XMedia stands for extendend media. It should support photos, links, videos, etc.
+# It is used to link media to the Post documents.
+
+type Mutation {
+  # addXMedia
+  addXMedia(input: AddXMediaInput): AddXMediaResponse
+
+  # removeXMedia
+  removeXMedia(input: RemoveXMediaInput): RemoveXMediaResponse
+}
+
+type Query {
+  # getXMedia
+  getXMedia(input: GetXMediaInput): GetXMediaResponse
+}
+
+"Input for adding a new media input. mediaType - 0: photo"
+input AddXMediaInput {
+  userId: ID!
+  mediaType: Int!
+  mediaUuid: ID!
+  mediaUrl: String!
+  tagIds: [ID]
+}
+
+type AddXMediaResponse {
+  xMediaId: ID
+}
+
+input RemoveXMediaInput {
+  xMediaId: ID!
+}
+
+type RemoveXMediaResponse {
+  numDeleted: String
+}
+
+input GetXMediaInput {
+  xMediaIds: [ID]!
+}
+
+type GetXMediaResponse {
+  xMedia: [XMedia]
+}
+
+"XMedia is created as a result of a new Post. They are a child of Post documents."
+type XMedia {
+  _id: ID
+  userId: ID!
+  mediaType: Int!
+  mediaUuid: ID!
+  mediaUrl: String!
+  tagIds: [ID]
+}

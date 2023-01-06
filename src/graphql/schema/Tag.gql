@@ -1,0 +1,51 @@
+# Tag stands for extendend media. It should support photos, links, videos, etc.
+# It is used to link media to the Post documents.
+
+type Mutation {
+  # addTag
+  addTag(input: AddTagInput): AddTagResponse
+
+  # deleteTag
+  deleteTag(input: RemoveTagInput): RemoveTagResponse
+}
+
+type Query {
+  getTags(input: GetTagInput): GetTagResponse
+}
+
+"Input for adding a new tag input."
+input AddTagInput {
+  mediaUrl: String!
+  mediaUuid: ID!
+  destinationId: ID!
+  destinationType: Int!
+}
+
+type AddTagResponse {
+  tagId: ID
+}
+
+input RemoveTagInput {
+  tagId: ID!
+}
+
+type RemoveTagResponse {
+  numDeleted: String
+}
+
+input GetTagInput {
+  tagIds: [ID]!
+}
+
+type GetTagResponse {
+  tag: [Tag]
+}
+
+"Tags are what link a post & photo to climb(s) and area(s). XMedia contains an array of TagIds."
+type Tag {
+  _id: ID
+  mediaUrl: String!
+  mediaUuid: ID!
+  destinationId: ID!
+  destinationType: Int!
+}
