@@ -160,6 +160,8 @@ export interface AreaEditableFieldsType {
   areaName?: string
   description?: string
   isDestination?: boolean
+  isLeaf?: boolean
+  isBoulder?: boolean
   shortCode?: string
   lat?: number
   lng?: number

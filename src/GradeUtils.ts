@@ -6,7 +6,9 @@ import { DisciplineType, ClimbGradeContextType } from './db/ClimbTypes.js'
  * Grade systems have minor variations between countries. gradeContext is a
  * short abbreviated string that identifies the context in which the grade was assigned
  * and should signify a regional or national variation that may be considered within
- * grade comparisons
+ * grade comparisons.
+ *
+ * Todo:  move this to @openbeta/sandbag library
  */
 export enum GradeContexts {
   /** Alaska (United States) */
@@ -32,6 +34,7 @@ export enum GradeContexts {
 
 /**
  * A conversion from grade context to corresponding grade type / scale
+ * Todo: move this to @openbeta/sandbag
  */
 export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGradeContextType>> = {
   [GradeContexts.US]: {
@@ -65,20 +68,24 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
  * @param context grade context
  * @returns grade object
  */
-export const createGradeObject = (gradeStr: string, disciplines: DisciplineType, context: ClimbGradeContextType): Partial<Record<GradeScalesTypes, string>> => {
-  const ret: Partial<Record<GradeScalesTypes, string>> = Object.keys(disciplines).reduce((acc, curr) => {
+export const createGradeObject = (gradeStr: string, disciplines: DisciplineType, context: ClimbGradeContextType): Partial<Record<GradeScalesTypes, string>> | null => {
+  return Object.keys(disciplines).reduce<Partial<Record<GradeScalesTypes, string>> | null>((acc, curr) => {
     if (disciplines[curr] === true) {
       const scaleTxt = context[curr]
       const scaleApi = getScale(scaleTxt)
       if (scaleApi != null && !(scaleApi.getScore(gradeStr) < 0)) {
         // only assign valid grade
-        acc[scaleTxt] = gradeStr
+        if (acc == null) {
+          acc = {
+            [scaleTxt]: gradeStr
+          }
+        } else {
+          acc[scaleTxt] = gradeStr
+        }
       }
     }
     return acc
-  }, {})
-
-  return ret
+  }, null)
 }
 
 /**

@@ -11,45 +11,39 @@ import { changelogDataSource } from './ChangeLogDataSource.js'
 import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
 
 export default class MutableClimbDataSource extends ClimbDataSource {
-  /**
-   * Add one or climbs (or boulder problems) to an area
-   * @param parentId parent area id
-   * @param climbs
-   * @returns a list of newly added climb IDs
-   */
-  async addClimbs (userId: MUUID, parentId: MUUID, climbs: ClimbChangeInputType[]): Promise<string[]> {
-    const session = await this.areaModel.startSession()
-    let ret: string[]
-
-    // withTransaction() doesn't return the callback result
-    // see https://jira.mongodb.org/browse/NODE-2014
-    await session.withTransaction(
-      async (session) => {
-        ret = await this._addClimbs(userId, session, true, parentId, climbs)
-        return ret
-      })
-    // @ts-expect-error
-    return ret
-  }
-
-  async _addClimbs (userId: MUUID, session: ClientSession, isNew: boolean, parentId: MUUID, userInput: ClimbChangeInputType[]): Promise<string[]> {
+  async _addOrUpdateClimbs (userId: MUUID, session: ClientSession, parentId: MUUID, userInput: ClimbChangeInputType[]): Promise<string[]> {
     const newClimbIds = new Array<MUUID>(userInput.length)
     for (let i = 0; i < newClimbIds.length; i++) {
       // make sure there's some input
-      if (Object.keys(userInput[i]).length <= 1) {
+      if (Object.keys(userInput[i]).length === 0) {
         throw new UserInputError(`Climb ${userInput[i]?.id ?? ''} doesn't have any updated fields.`)
       }
-      if (isNew) {
+      const userinputId = userInput[i]?.id
+
+      if (userinputId == null) {
         newClimbIds[i] = muid.v4()
       } else {
-        const userinputId = userInput[i]?.id
-        if (userinputId == null) throw new Error('Climb.id is required for update operation')
-        // for update operation -> uuid string to MUUID
         newClimbIds[i] = muid.from(userinputId)
       }
     }
 
-    const opType = isNew ? ClimbEditOperationType.addClimb : ClimbEditOperationType.updateClimb
+    const existingIds = await this.climbModel.find({ _id: { $in: newClimbIds } }).select('_id')
+
+    interface IdMapType {
+      id: MUUID
+      existed: boolean
+    }
+    // A list of ID objects to track whether the ID exists in the DB
+    const idList = newClimbIds.reduce<IdMapType[]>((acc, curr) => {
+      if (existingIds.some(item => item._id.toUUID().toString() === curr.toUUID().toString())) {
+        acc.push({ id: curr, existed: true })
+      } else {
+        acc.push({ id: curr, existed: false })
+      }
+      return acc
+    }, [])
+
+    const opType = ClimbEditOperationType.updateClimb
     const change = await changelogDataSource.create(session, userId, opType)
 
     const parentFilter = { 'metadata.area_id': parentId }
@@ -62,7 +56,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       user: userId,
       historyId: change._id,
       prevHistoryId: parent._change?.historyId,
-      operation: opType,
+      operation: ClimbEditOperationType.updateClimb,
       seq: 0
     }
     parent.set({ _change })
@@ -86,16 +80,17 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         // if an area is empty, we're allowed to turn to into a bouldering area
         parent.metadata.isBoulder = true
       } else {
-        if (isNew) {
-          throw new UserInputError('Adding boulder problems to a route-only area is not allowed')
-        }
+        throw new UserInputError('Adding boulder problems to a route-only area is not allowed')
       }
     }
 
-    // is there at least 1 non-boulder problem in the input?
-    const hasARouteClimb = userInput.some(entry => !(entry.disciplines?.bouldering ?? false))
+    // It's ok to have empty disciplines obj in the input in case
+    // we just want to update other fields.
+    // However, if disciplines is non-empty, is there 1 non-boulder problem in the input?
+    const hasARouteClimb = userInput.some(({ disciplines }) =>
+      disciplines != null && Object.keys(disciplines).length > 0 && !disciplines?.bouldering)
 
-    if (isNew && hasARouteClimb && (parent.metadata?.isBoulder ?? false)) {
+    if (hasARouteClimb && (parent.metadata?.isBoulder ?? false)) {
       throw new UserInputError('Adding route climbs to a bouldering area is not allowed')
     }
 
@@ -104,17 +99,12 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       throw new Error(`Area ${parent.area_name} (${parent.metadata.area_id.toUUID().toString()}) has  invalid grade context: '${parent.gradeContext}'`)
     }
 
-    if (isNew) {
-      parent.climbs = parent.climbs.concat(newClimbIds)
-    }
-    await parent.save()
-
     const newDocs: ClimbChangeDocType[] = []
 
     for (let i = 0; i < userInput.length; i++) {
       // when adding new climbs we require name and disciplines
-      if (isNew && (userInput[i].disciplines == null || userInput[i].name == null)) {
-        throw new UserInputError(`Climb '${userInput[i]?.name ?? ''}' [index=${i}] missing 'disciplines' field`)
+      if (!idList[i].existed && userInput[i].name == null) {
+        throw new UserInputError(`Can't add new climbs without name.  (Index[index=${i}])`)
       }
 
       const typeSafeDisciplines = sanitizeDisciplines(userInput[i]?.disciplines)
@@ -147,8 +137,8 @@ export default class MutableClimbDataSource extends ClimbDataSource {
           lnglat: parent.metadata.lnglat,
           left_right_index: userInput[i]?.leftRightIndex != null ? userInput[i].leftRightIndex : i
         },
-        ...isNew && { createdBy: userId },
-        ...!isNew && { updatedBy: userId },
+        ...!idList[i].existed && { createdBy: userId },
+        ...idList[i].existed && { updatedBy: userId },
         _change: {
           user: userId,
           historyId: change._id,
@@ -160,36 +150,53 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       newDocs.push(doc)
     }
 
-    if (isNew) {
-      const rs = await this.climbModel.insertMany(newDocs, { session, lean: true })
-      return rs.map(entry => entry._id.toUUID().toString())
-    } else {
-      // bulk update
-      const bulk = newDocs.map(doc => ({
-        updateOne: {
-          filter: { _id: doc._id },
-          update: [{
-            $set: {
-              ...doc,
-              _change: {
-                ...doc._change,
-                prevHistoryId: '$_change.historyId'
-              }
+    const bulk = newDocs.map(doc => ({
+      updateOne: {
+        filter: { _id: doc._id },
+        update: [{
+          $set: {
+            ...doc,
+            _change: {
+              ...doc._change,
+              prevHistoryId: '$_change.historyId'
             }
-          }]
-        }
-      }))
-
-      const rs = await this.climbModel.bulkWrite(bulk, { session })
-      // return original climb IDs if all climbs are updated
-      if (rs.nModified === rs.nMatched && rs.nMatched === newClimbIds.length) {
-        return newClimbIds.map(entry => entry.toUUID().toString())
+          }
+        }],
+        upsert: true
       }
+    }))
+
+    const rs = await (await this.climbModel.bulkWrite(bulk, { session })).toJSON()
+
+    if (rs.ok === 1) {
+      const idList: MUUID[] = []
+      const idStrList: string[] = []
+      rs.upserted.forEach(({ _id }) => {
+        idList.push(_id)
+        idStrList.push(_id.toUUID().toString())
+      })
+
+      if (idList.length > 0) {
+        parent.set({ climbs: parent.climbs.concat(idList) })
+      }
+      await parent.save()
+
+      if (idStrList.length === newClimbIds.length) {
+        return idStrList
+      }
+      return newClimbIds.map(entry => entry.toUUID().toString())
+    } else {
       return []
     }
   }
 
-  async updateClimbs (userId: MUUID, parentId, changes): Promise<string[]> {
+  /**
+   * Update one or climbs (or boulder problems).  Add climb to the area if it doesn't exist.
+   * @param parentId parent area id
+   * @param changes
+   * @returns a list of updated (or newly added) climb IDs
+   */
+  async addOrUpdateClimbs (userId: MUUID, parentId, changes): Promise<string[]> {
     const session = await this.areaModel.startSession()
     let ret: string[]
 
@@ -197,7 +204,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addClimbs(userId, session, false, parentId, changes)
+        ret = await this._addOrUpdateClimbs(userId, session, parentId, changes)
         return ret
       })
     // @ts-expect-error

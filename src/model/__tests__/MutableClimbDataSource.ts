@@ -86,7 +86,8 @@ describe('Climb CRUD', () => {
     if (newDestination == null) fail('Expect new area to be created')
 
     const routesArea = await areas.addArea(testUser, 'Sport & Trad', newDestination.metadata.area_id)
-    const newIDs = await climbs.addClimbs(
+
+    const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       routesArea.metadata.area_id,
       newClimbsToAdd)
@@ -95,12 +96,12 @@ describe('Climb CRUD', () => {
 
     // California contains subareas.  Should fail.
     await expect(
-      climbs.addClimbs(testUser, newDestination.metadata.area_id, [newBoulderProblem1])
+      climbs.addOrUpdateClimbs(testUser, newDestination.metadata.area_id, [newBoulderProblem1])
     ).rejects.toThrowError(/You can only add climbs to a crag/)
 
     // Route-only area should not accept new boulder problems
     await expect(
-      climbs.addClimbs(testUser, routesArea.metadata.area_id, [newBoulderProblem1])
+      climbs.addOrUpdateClimbs(testUser, routesArea.metadata.area_id, [newBoulderProblem1])
     ).rejects.toThrowError(/Adding boulder problems to a route-only area/)
   })
 
@@ -114,7 +115,7 @@ describe('Climb CRUD', () => {
 
     expect(boulderingArea.metadata.isBoulder).toBeFalsy()
 
-    const newIDs = await climbs.addClimbs(
+    const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       boulderingArea.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
@@ -135,7 +136,7 @@ describe('Climb CRUD', () => {
     const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'fr')
     if (newBoulderingArea == null) fail('Expect new area to be created')
 
-    const newIDs = await climbs.addClimbs(
+    const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       newBoulderingArea.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
@@ -172,12 +173,12 @@ describe('Climb CRUD', () => {
     if (rs == null) fail('Expect climb 2 to exist')
   })
 
-  it('handles grades correctly', async () => {
+  it('handles mixed grades and disciplines correctly', async () => {
     await areas.addCountry('can')
     const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'can')
     if (newBoulderingArea == null) fail('Expect new area to be created')
 
-    const newIDs = await climbs.addClimbs(
+    const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       newBoulderingArea.metadata.area_id,
       [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
@@ -197,10 +198,20 @@ describe('Climb CRUD', () => {
 
     if (newDestination == null) fail('Expect new area to be created')
 
-    const newIDs = await climbs.addClimbs(
+    const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       newDestination.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
+
+    const actual0 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+
+    expect(actual0).toMatchObject({
+      name: newBoulderProblem1.name,
+      type: sanitizeDisciplines(newBoulderProblem1.disciplines)
+    })
+
+    expect(actual0?.createdBy?.toUUID().toString()).toEqual(testUser.toString())
+    expect(actual0?.updatedBy).toBeUndefined()
 
     const changes: ClimbChangeInputType[] = [
       {
@@ -216,7 +227,8 @@ describe('Climb CRUD', () => {
     ]
 
     const otherUser = muid.v4()
-    const updated = await climbs.updateClimbs(otherUser, newDestination.metadata.area_id, changes)
+
+    const updated = await climbs.addOrUpdateClimbs(otherUser, newDestination.metadata.area_id, changes)
 
     expect(updated).toHaveLength(2)
 
@@ -227,9 +239,10 @@ describe('Climb CRUD', () => {
       grades: {
         font: changes[0].grade
       },
-      type: sanitizeDisciplines(changes[0].disciplines),
-      createdBy: testUser.toUUID(),
-      updatedBy: otherUser.toUUID()
+      type: sanitizeDisciplines(changes[0].disciplines)
     })
+
+    expect(actual1?.createdBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())
+    expect(actual1?.updatedBy?.toUUID().toString()).toEqual(otherUser.toUUID().toString())
   })
 })
