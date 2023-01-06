@@ -3,7 +3,7 @@ import { MUUID } from 'uuid-mongodb'
 
 export interface XMediaType {
   _id?: mongoose.Types.ObjectId
-  userId: mongoose.Types.ObjectId
+  userId: MUUID
   mediaType: number // 0: photo
   mediaUuid: MUUID
   mediaUrl: string

@@ -8,8 +8,12 @@ const { Schema } = mongoose
 
 const XMediaSchema = new Schema<XMediaType>({
   userId: {
-    type: Schema.Types.ObjectId,
-    required: true
+    type: 'object',
+    value: { type: 'Buffer' },
+    default: () => muuid.v4(),
+    required: true,
+    unique: false,
+    index: true
   },
   mediaType: {
     type: Schema.Types.Number,

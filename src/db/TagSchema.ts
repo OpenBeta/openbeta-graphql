@@ -2,15 +2,10 @@ import mongoose from 'mongoose'
 import mongooseLeanVirtuals from 'mongoose-lean-virtuals'
 import muuid from 'uuid-mongodb'
 
-import { TagType } from './TagTypes.js'
+import { TagType, RefModelType } from './TagTypes.js'
 
 const { Schema } = mongoose
 
-// _id?: mongoose.Types.ObjectId
-//   mediaUuid: MUUID
-//   mediaUrl: string
-//   destinationId: mongoose.Types.ObjectId
-//   destinationType: number
 const TagSchema = new Schema<TagType>({
   mediaUrl: {
     type: Schema.Types.String,
@@ -33,6 +28,11 @@ const TagSchema = new Schema<TagType>({
   destinationType: {
     type: Number,
     required: true
+  },
+  onModel: {
+    type: String,
+    required: true,
+    enum: Object.values(RefModelType)
   }
 }, {
   _id: true,
@@ -41,6 +41,20 @@ const TagSchema = new Schema<TagType>({
     virtuals: true
   },
   toJSON: { virtuals: true }
+})
+
+TagSchema.virtual('climb', {
+  ref: 'climbs',
+  localField: 'destinationId',
+  foreignField: '_id',
+  justOne: true
+})
+
+TagSchema.virtual('area', {
+  ref: 'areas',
+  localField: 'destinationId',
+  foreignField: 'metadata.area_id',
+  justOne: true
 })
 
 TagSchema.plugin(mongooseLeanVirtuals)

@@ -1,11 +1,16 @@
 import { XMediaType, RemoveXMediaInputType } from '../../db/XMediaTypes'
 import { getXMediaModel } from '../../db/XMediaSchema.js'
+import muid from 'uuid-mongodb'
 
 const XMediaMutations = {
   // addXMedia
   addXMedia: async (_: any, { input }: {input: XMediaType}) => {
     const XMediaModel = getXMediaModel()
-    const newXMedia = new XMediaModel(input)
+    const newXMedia = new XMediaModel({
+      ...input,
+      userId: muid.from(input.userId),
+      mediaUuid: muid.from(input.mediaUuid)
+    })
     const res = await XMediaModel.create(newXMedia)
     return { xMediaId: res.id }
   },

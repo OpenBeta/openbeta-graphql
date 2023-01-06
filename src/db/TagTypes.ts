@@ -5,9 +5,14 @@ export interface TagType {
   _id?: mongoose.Types.ObjectId
   mediaUrl: string
   mediaUuid: MUUID
-  destinationId: mongoose.Types.ObjectId
+  destinationId: MUUID
   destinationType: number
-  // onModel: RefModelType
+  onModel: RefModelType
+}
+
+export enum RefModelType {
+  climbs = 'climbs',
+  areas = 'areas'
 }
 
 export interface RemoveTagInputType {
