@@ -38,7 +38,6 @@ describe('Climb CRUD', () => {
 
   const newBoulderProblem1: ClimbChangeInputType = {
     name: 'Cool boulder 1',
-    // @ts-expect-error
     disciplines: {
       bouldering: true
     }
@@ -46,7 +45,6 @@ describe('Climb CRUD', () => {
 
   const newBoulderProblem2: ClimbChangeInputType = {
     name: 'Cool boulder 2',
-    // @ts-expect-error
     disciplines: {
       bouldering: true
     },
