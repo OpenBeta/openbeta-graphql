@@ -37,9 +37,9 @@ type Area {
   you will not expect to see any child areas.
   """
   children: [Area]
+
   "UUIDs of this areas parents, traversing up the heirarchy to the root area."
   ancestors: [String]!
-
   "areaNames of this areas parents, traversing up the heirarchy to the root area."
   pathTokens: [String]!
 

@@ -2,8 +2,16 @@ import { GradeScales, GradeScalesTypes } from '@openbeta/sandbag'
 import isoCountries from 'i18n-iso-countries'
 import { IClimbType } from './db/ClimbTypes.js'
 
+/**
+ * Grade systems have minor variations between countries. gradeContext is a
+ * short abbreviated string that identifies the context in which the grade was assigned
+ * and should signify a regional or national variation that may be considered within
+ * grade comparisons
+ */
 export enum GradeContexts {
+  /** Alaska (United States) */
   ALSK = 'ALSK',
+  /** Australia */
   AU = 'AU',
   BRZ = 'BRZ',
   FIN = 'FIN',
@@ -12,10 +20,13 @@ export enum GradeContexts {
   NWG = 'NWG',
   POL = 'POL',
   SA = 'SA',
+  /** Sweden */
   SWE = 'SWE',
   SX = 'SX',
   UIAA = 'UIAA',
+  /** United Kingdom */
   UK = 'UK',
+  /** United States of Ameria */
   US = 'US'
 }
 

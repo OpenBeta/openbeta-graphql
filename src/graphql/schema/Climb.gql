@@ -150,10 +150,17 @@ enum SafetyEnum {
   PG
   "Fair protection that may result in long, potentially dangerous falls"
   PG13
-  "Loosely refers to "
+  """
+  a part of a route where there isn’t any protection for a while below you.
+  It happens when a route is sparsely bolted or there isn’t be anywhere to
+  place a cam. “Running it out” is common on classic routes and
+  sometimes hard sport overhangs.
+  [source](https://www.climbernews.com/what-is-a-runout-in-climbing/)
+  """
   runout
+
   terrain
-  " where there's limited protection and the possibility of serious injury"
+  "where there's limited protection and the possibility of serious injury"
   R
   "No protection and overall the route is extremely dangerous."
   X

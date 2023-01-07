@@ -34,8 +34,12 @@ export interface BaseChangeRecordType<FullDocumentType = SupportedCollectionType
 export type OpType = AreaOpType
 
 export interface ChangeRecordMetadataType {
+  /** The UUID of the user to whom this change of the document is attributed  */
   user: MUUID
   operation: OpType
+  /**
+   * We identify history entries in the audit trail by assigning it an ObjectID.
+   **/
   historyId: mongose.Types.ObjectId
   prevHistoryId?: mongose.Types.ObjectId
   seq: number
