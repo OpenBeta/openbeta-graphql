@@ -15,6 +15,7 @@ import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import CountriesLngLat from '../data/countries-with-lnglat.json' assert { type: 'json' }
 import { logger } from '../logger.js'
+import { GradeContexts } from '../GradeUtils.js'
 
 isoCountries.registerLocale(enJson)
 
@@ -152,6 +153,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parentGradeContext = parent.gradeContext
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens, parentGradeContext)
     newArea.metadata.lnglat = parent.metadata.lnglat
+    newArea.createdBy = user
     newArea._change = produce(newChangeMeta, draft => {
       draft.seq = 1
     })
@@ -159,6 +161,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     // Make sure parent knows about this new area
     parent.children.push(newArea._id)
+    parent.updatedBy = user
     await parent.save({ timestamps: false })
     return rs1[0].toObject()
   }
@@ -219,10 +222,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
               cond: { $ne: ['$$child', area._id] }
             }
           },
+          updatedBy: user,
           '_change.prevHistoryId': '$_change.historyId',
           _change: produce(_change, draft => {
             draft.seq = 0
-            // draft.updatedAt = Date.now()
           })
         }
       }]
@@ -238,11 +241,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
       { 'metadata.area_id': uuid },
       [{
         $set: {
+          updatedBy: user,
           _deleting: new Date(), // TTL index = now
           '_change.prevHistoryId': '$_change.historyId',
           _change: produce(_change, draft => {
             draft.seq = 1
-            // draft.updatedAt = Date.now()
           })
         }
       }], {
@@ -309,6 +312,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
         seq: 0
       }
       area.set({ _change })
+      area.updatedBy = user
       const cursor = await area.save()
       return cursor.toObject()
     }
@@ -327,7 +331,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 }
 
-export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: string): AreaType => {
+export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: GradeContexts): AreaType => {
   const _id = new mongoose.Types.ObjectId()
   const uuid = genMUIDFromPaths(parentPathTokens, areaName)
 

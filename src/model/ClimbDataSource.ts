@@ -9,9 +9,13 @@ export default class ClimbDataSource extends MongoDataSource<ClimbType> {
   areaModel = getAreaModel()
   climbModel = getClimbModel()
 
-  async findOneClimbByMUUID (id: MUUID): Promise<ClimbType> {
-    const rs = await this.climbModel.findOne({ _id: id }).lean()
-    if (rs == null) throw new Error(`Climb with id ${id.toUUID().toString()}`)
+  /**
+   * Helper look up method.  This is mainly used for testing.  See `AreaDataSource.findOneClimbByUUID()` for public API method.
+   * @param id climb uuid
+   * @returns ClimbType object or null if not found
+   */
+  async findOneClimbByMUUID (id: MUUID): Promise<ClimbType | null> {
+    const rs = await this.climbModel.findOne({ _id: id, _deleting: { $eq: null } }).lean()
     return rs
   }
 }

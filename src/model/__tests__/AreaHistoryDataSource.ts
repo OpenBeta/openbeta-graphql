@@ -5,10 +5,10 @@ import muuid from 'uuid-mongodb'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes, getAreaModel } from '../../db/index.js'
-import streamListener from '../../db/edit/streamListener'
+import streamListener from '../../db/edit/streamListener.js'
 import { logger } from '../../logger.js'
-import { changelogDataSource } from '../ChangeLogDataSource'
-import { OperationType } from '../../db/AreaTypes'
+import { changelogDataSource } from '../ChangeLogDataSource.js'
+import { OperationType } from '../../db/AreaTypes.js'
 
 jest.setTimeout(120000)
 
@@ -20,7 +20,7 @@ describe('Area history', () => {
   beforeAll(async () => {
     await connectDB()
 
-    stream = await streamListener(mongoose.connection)
+    stream = await streamListener()
 
     try {
       await getAreaModel().collection.drop()

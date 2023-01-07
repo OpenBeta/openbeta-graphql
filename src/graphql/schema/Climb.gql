@@ -51,6 +51,11 @@ type Climb {
   media: [MediaTagType]
 
   yds: String @deprecated(reason: "Migrating to 'grades' field")
+
+  createdAt: Date
+  updatedAt: Date
+  updatedBy: ID
+  createdBy: ID
 }
 
 type ClimbMetadata {

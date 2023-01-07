@@ -2,6 +2,14 @@ type Mutation {
   addClimbs(input: NewClimbsInput): [ID]
 }
 
+type Mutation {
+  updateClimbs(input: UpdateClimbsInput): [ID]
+}
+
+type Mutation {
+  deleteClimbs(idList: [ID]): Int
+}
+
 input NewClimbsInput {
   parentId: ID!
   climbs: [SingleClimbInput]!
@@ -10,6 +18,23 @@ input NewClimbsInput {
 input SingleClimbInput {
   name: String!
   disciplines: DisciplineType
+  grade: String
+}
+
+input UpdateClimbsInput {
+  parentId: ID!
+  changes: [SingleClimbChangeInput]
+}
+
+input SingleClimbChangeInput {
+  id: ID!
+  name: String
+  disciplines: DisciplineType
+  grade: String
+  leftRightIndex: Int
+  description: String
+  location: String
+  protection: String
 }
 
 input DisciplineType {

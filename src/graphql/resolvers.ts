@@ -9,6 +9,9 @@ import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
+import { PostMutations, PostQueries, PostResolvers } from './posts/index.js'
+import { XMediaMutations, XMediaQueries, XMediaResolvers } from './xmedia/index.js'
+import { TagMutations, TagQueries, TagResolvers } from './tag/index.js'
 import { AreaQueries, AreaMutations } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
 import TickMutations from './tick/TickMutations.js'
@@ -36,15 +39,25 @@ const MediaTypeDef = loadSchema('Media.gql')
 const HistoryTypeDef = loadSchema('History.gql')
 const AreaEditTypeDef = loadSchema('AreaEdit.gql')
 const ClimbMutationTypeDefs = loadSchema('ClimbEdit.gql')
+const PostTypeDef = loadSchema('Post.gql')
+
+const XMediaTypeDef = loadSchema('XMedia.gql')
+const TagTypeDef = loadSchema('Tag.gql')
 
 const resolvers = {
   Mutation: {
+    ...TagMutations,
+    ...XMediaMutations,
+    ...PostMutations,
     ...MediaMutations,
     ...AreaMutations,
     ...ClimbMutations,
     ...TickMutations
   },
   Query: {
+    ...TagQueries,
+    ...XMediaQueries,
+    ...PostQueries,
     ...MediaQueries,
     ...AreaQueries,
     ...TickQueries,
@@ -106,6 +119,9 @@ const resolvers = {
   ...CommonResolvers,
   ...MediaResolvers,
   ...HistoryFieldResolvers,
+  ...PostResolvers,
+  ...XMediaResolvers,
+  ...TagResolvers,
 
   Climb: {
     id: (node: ClimbExtType) => node._id.toUUID().toString(),
@@ -140,7 +156,10 @@ const resolvers = {
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByClimbId(node._id)
-    }
+    },
+
+    createdBy: (node: ClimbExtType) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: ClimbExtType) => node?.updatedBy?.toUUID().toString()
   },
 
   Area: {
@@ -196,7 +215,10 @@ const resolvers = {
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
-    }
+    },
+
+    createdBy: (node: AreaType) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: AreaType) => node?.updatedBy?.toUUID().toString()
   },
 
   CountByDisciplineType: {
@@ -214,7 +236,10 @@ export const graphqlSchema = makeExecutableSchema({
     AreaEditTypeDef,
     TickTypeDef,
     HistoryTypeDef,
-    ClimbMutationTypeDefs
+    ClimbMutationTypeDefs,
+    PostTypeDef,
+    XMediaTypeDef,
+    TagTypeDef
   ],
   resolvers
 })

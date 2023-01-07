@@ -2,8 +2,9 @@ import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
 import { BBox, Point } from '@turf/helpers'
-import { ClimbType } from './ClimbTypes'
-import { ChangeRecordMetadataType } from './ChangeLogType'
+import { ClimbType } from './ClimbTypes.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
+import { GradeContexts } from '../GradeUtils.js'
 
 /**
  * Areas are a grouping mechanism in the OpenBeta data model that allow
@@ -64,8 +65,8 @@ export interface IAreaProps {
   ancestors: string
   /** UUIDs of this areas parents, traversing up the heirarchy to the root area. */
   pathTokens: string[]
-  /**  */
-  gradeContext: string
+
+  gradeContext: GradeContexts
   /**
    * computed aggregations on this document. See the AggregateType documentation for
    * more information.
@@ -74,7 +75,7 @@ export interface IAreaProps {
   /**
    * User-composed content that makes up most of the user-readable data in the system.
    * See the IAreaContent documentation for more information.
-   * */
+   **/
   content: IAreaContent
   /**
    * how many climbs are in this area per square kilometer.
@@ -88,18 +89,19 @@ export interface IAreaProps {
    * Meaning that for a country, even though the document may not contain any
    * direct children
    * */
+  /** The total number of climbs in this area. */
   totalClimbs: number
   /**
    * If this area has been edited, this field will contain the metadata about the
    * last edit that was made.
    */
   _change?: ChangeRecordMetadataType
-  /**
-   * Areas are soft deleted (when asserted as such) which allows users to un-delete
-   * them if they make a mistake. If this field is unset we expect that this area
-   * has been set as not-deleted.
-   */
+  /** Used to delete an area.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
   _deleting?: Date
+  createdAt?: Date
+  updatedAt?: Date
+  updatedBy?: MUUID
+  createdBy?: MUUID
 }
 
 export interface IAreaMetadata {

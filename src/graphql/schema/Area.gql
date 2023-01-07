@@ -40,6 +40,7 @@ type Area {
 
   "UUIDs of this areas parents, traversing up the heirarchy to the root area."
   ancestors: [String]!
+
   "areaNames of this areas parents, traversing up the heirarchy to the root area."
   pathTokens: [String]!
 
@@ -66,7 +67,9 @@ type Area {
   "Media associated with this area, or its child climbs"
   media: [MediaTagType]
   createdAt: Date
+  createdBy: ID
   updatedAt: Date
+  updatedBy: ID
 }
 
 type AreaMetadata {

@@ -1,8 +1,9 @@
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
-import { ChangeRecordMetadataType } from './ChangeLogType'
-import { GradeContexts } from '../GradeUtils'
 import { GradeScalesTypes } from '@openbeta/sandbag'
+
+import { ChangeRecordMetadataType } from './ChangeLogType'
+import { GradeContexts } from '../GradeUtils.js'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
@@ -37,9 +38,7 @@ export interface IClimbProps {
    * climb. This context can be used in the consideration of a grade's true value.
    */
   gradeContext?: GradeContexts
-
-  type: IClimbType
-
+  type: DisciplineType
   safety?: SafetyType
 
   /**
@@ -47,6 +46,12 @@ export interface IClimbProps {
    * last edit that was made to the document.
    */
   _change?: ChangeRecordMetadataType
+  /** Used to delete a climb.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
+  _deleting?: Date
+  createdAt?: Date
+  updatedAt?: Date
+  updatedBy?: MUUID
+  createdBy?: MUUID
 }
 
 /**
@@ -77,7 +82,7 @@ export interface IGradeType {
  * this is not an enumeration.
  * For example, a route may be a sport route, but also a top rope route.
  */
-export interface IClimbType {
+export interface DisciplineType {
   /** https://en.wikipedia.org/wiki/Traditional_climbing */
   trad?: boolean
   /** https://en.wikipedia.org/wiki/Sport_climbing */
@@ -123,14 +128,31 @@ export interface IClimbContent {
   location?: string
 }
 
-export interface NewClimbInputType {
-  name: string
-  disciplines: IClimbType
+export type ClimbGradeContextType = Record<keyof DisciplineType, GradeScalesTypes>
+
+export interface ClimbChangeInputType {
+  id?: string
+  name?: string
+  disciplines?: DisciplineType
+  grade?: string
+  leftRightIndex?: number
+  description?: string
+  location?: string
+  protection?: string
 }
 
+// export type ClimbDBChangeType = ClimbChangeInputType
+
+type UpdatableClimbFieldsType = Pick<ClimbType, 'fa'|'name'|'type' | 'gradeContext' |'grades' | 'content'>
 /**
  * Minimum required fields when adding a new climb or boulder problem
  */
-export type MinimumClimbType =
-  Pick<ClimbType, '_id'|'fa'|'name'|'type' |'content'>
-  & { metadata: Pick<ClimbType['metadata'], 'areaRef' | 'left_right_index' | 'lnglat'> }
+export type ClimbChangeDocType =
+  Partial<UpdatableClimbFieldsType>
+  & { _id: MUUID, metadata: Pick<ClimbType['metadata'], 'areaRef' | 'left_right_index' | 'lnglat'> } & { _change: ChangeRecordMetadataType }
+
+export enum ClimbEditOperationType {
+  addClimb = 'addClimb',
+  deleteClimb = 'deleteClimb',
+  updateClimb = 'updateClimb'
+}
