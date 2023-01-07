@@ -3,6 +3,7 @@ import type TickDataSource from '../../model/TickDataSource'
 import { ContextWithAuth } from '../../types'
 
 const TickMutations = {
+  /** Add a tick given the current user-auth context */
   addTick: async (
     _: null,
     { input },
@@ -24,6 +25,7 @@ const TickMutations = {
     return await ticks.addTick(tick)
   },
 
+  /** Delete a tick, given the current user auth context */
   deleteTick: async (
     _: null,
     { _id },
@@ -51,6 +53,7 @@ const TickMutations = {
     return { _id: _id, removed: false }
   },
 
+  /** Delete all ticks, given the current user auth context */
   deleteAllTicks: async (
     _: null,
     __: null,
@@ -67,6 +70,26 @@ const TickMutations = {
     return { deletedCount: 0, removed: false }
   },
 
+  /** Delete all imported ticks (ticks from external sources) */
+  deleteImportedTicks: async (
+    _: null,
+    __: null,
+    { dataSources, user }: ContextWithAuth) => {
+    const { ticks }: { ticks: TickDataSource } = dataSources
+
+    // check user is logged in
+    if (user.uuid === undefined) {
+      throw new Error('Failed to purge ticks, Reason: user is not authenticated')
+    }
+    const userId = user.uuid.toString()
+
+    const res = await ticks.deleteImportedTicks(userId)
+
+    if (res?.deletedCount > 0) return { deletedCount: res?.deletedCount, removed: true }
+    return { deletedCount: 0, removed: false }
+  },
+
+  /** Import ticks from an arbitrary data source */
   importTicks: async (
     _: null,
     { input },
@@ -84,6 +107,7 @@ const TickMutations = {
     return await ticks.importTicks(tickImport)
   },
 
+  /** Edit the particulars of a tick */
   editTick: async (
     _: null,
     { input },

@@ -46,7 +46,7 @@ const TickQueries = {
    * Limit may be between 0 and 100
    * Page may scroll 0 through 100
    **/
-  recentTicks: async (_: null, input: { limit: any, page: any }, { dataSources }: any): Promise<TickType[] | null> => {
+  recentTicks: async (_: null, input: { limit: any, page: any }, { dataSources }: any): Promise<TickType[]> => {
     const { ticks }: { ticks: TickDataSource } = dataSources
     let { limit, page } = input
 

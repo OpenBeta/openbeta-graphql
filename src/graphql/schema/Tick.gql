@@ -1,13 +1,16 @@
 type Query {
   """
   Gets all of the users current ticks by their Auth-0 userId
+  If userId is not supplied, it will default to the current session.
   """
   userTicks(userId: String): [TickType]
   """
   Gets all of the users current ticks for a specific climb by their
   Auth-0 userId and Open-Beta ClimbId
   """
-  userTicksByClimbId(userId: String, climbId: String): [TickType]
+  userTicksByClimbId(userId: String, climbId: String!): [TickType]
+
+  recentTicks(limit: Int, page: Int): [TickType!]!
 }
 
 type Mutation {
@@ -26,10 +29,14 @@ type Mutation {
   """
   deleteTick(_id: ID): DeleteSingleTickResult
   """
+  Delete all imported ticks - This can be undone by importing ticks again
+  """
+  deleteImportedTicks: DeleteAllTickResult
+  """
   Deletes all ticks created by a user by the userId,
   mainly a dev feature for while we are working on getting the schema correct
   """
-  deleteAllTicks(userId: String): DeleteAllTickResult
+  deleteAllTicks: DeleteAllTickResult
   """
   Imports a users ticks from mountain project, this feature also deletes all ticks previously imported from mountain project
   before importing them, allowing users to constantly update their ticks without creating duplicates
