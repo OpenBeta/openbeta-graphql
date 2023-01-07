@@ -28,7 +28,12 @@ import { DocumentNode } from 'graphql'
  * @returns A DocumentNode
  */
 function loadSchema (file: string): DocumentNode {
-  return gql(fs.readFileSync(`src/graphql/schema/${file}`).toString())
+  try {
+    return gql(fs.readFileSync(`src/graphql/schema/${file}`).toString())
+  } catch (err) {
+    console.error(`⛔ Error in loading GQL schema for 📝 > ${file}`)
+    throw err
+  }
 }
 
 /** Load in the type definitions in the schema directory */
