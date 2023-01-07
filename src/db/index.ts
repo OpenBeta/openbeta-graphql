@@ -59,10 +59,10 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
 }
 
 export const createIndexes = async (): Promise<void> => {
-  await getClimbModel().ensureIndexes()
-  await getAreaModel().ensureIndexes()
-  await getMediaModel().ensureIndexes()
-  await getTickModel().ensureIndexes()
+  await getClimbModel().createIndexes()
+  await getAreaModel().createIndexes()
+  await getMediaModel().createIndexes()
+  await getTickModel().createIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
@@ -75,7 +75,7 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
 export const defaultPostConnect = async (): Promise<void> => {
   console.log('Kudos!')
   await createIndexes()
-  await streamListener(mongoose.connection)
+  await streamListener()
 }
 
 // eslint-disable-next-line

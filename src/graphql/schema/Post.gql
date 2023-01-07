@@ -1,0 +1,45 @@
+type Mutation {
+  addPost(input: AddPostInput): AddPostResponse
+  removePost(input: RemovePostInput): RemovePostResponse
+}
+
+type Query {
+  getPosts(input: GetPostsInput): GetPostsResponse
+}
+
+"Input params for getting posts by ID"
+input GetPostsInput {
+  postIds: [ID]!
+}
+
+"Input params for creating a new post"
+input AddPostInput {
+  userId: ID!
+  mediaIds: [ID]!
+  description: String
+}
+
+type AddPostResponse {
+  postId: String
+}
+
+"Input params for removing an existing post"
+input RemovePostInput {
+  postId: ID!
+}
+
+type RemovePostResponse {
+  numDeleted: String
+}
+
+type GetPostsResponse {
+  posts: [Post]
+}
+
+"Posts are created by users. They are displayed on the posts page."
+type Post {
+  _id: ID
+  userId: ID!
+  mediaIds: [ID]!
+  description: String
+}

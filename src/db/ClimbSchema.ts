@@ -1,11 +1,29 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
-import { ClimbType, IClimbMetadata, IClimbContent, SafetyType } from './ClimbTypes.js'
-import { GradeContexts } from '../grade-utils.js'
 import { GradeScalesTypes } from '@openbeta/sandbag'
 
+import { ClimbType, IClimbMetadata, IClimbContent, SafetyType, ClimbEditOperationType } from './ClimbTypes.js'
+import { GradeContexts } from '../GradeUtils.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
+
 const { Schema } = mongoose
+
+const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
+  user: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    required: true
+  },
+  historyId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  prevHistoryId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
+  operation: {
+    type: Schema.Types.Mixed,
+    enum: Object.values(ClimbEditOperationType),
+    required: true
+  },
+  seq: { type: Number, required: true, default: 0 }
+}, { _id: false, timestamps: false })
 
 export const PointSchema = new mongoose.Schema<Point>({
   type: {
@@ -20,9 +38,9 @@ export const PointSchema = new mongoose.Schema<Point>({
 }, { _id: false })
 
 const ContentSchema = new Schema<IClimbContent>({
-  description: { type: Schema.Types.String },
-  protection: { type: Schema.Types.String },
-  location: { type: Schema.Types.String }
+  description: { type: Schema.Types.String, required: false },
+  protection: { type: Schema.Types.String, required: false },
+  location: { type: Schema.Types.String, required: false }
 }, { _id: false })
 
 const MetadataSchema = new Schema<IClimbMetadata>({
@@ -30,17 +48,9 @@ const MetadataSchema = new Schema<IClimbMetadata>({
     type: PointSchema,
     index: '2dsphere'
   },
-  left_right_index: { type: Number, required: false },
+  left_right_index: { type: Number, required: true, default: -1 },
   mp_id: { type: String, required: false },
   mp_crag_id: { type: String, required: true },
-  climb_id: {
-    type: 'object',
-    value: { type: 'Buffer' },
-    default: () => muuid.v4(),
-    required: true,
-    unique: false, // unfortunately can't enforce uniqueness here due to limitation of embeded docs
-    index: true
-  },
   areaRef: {
     type: Schema.Types.Mixed,
     value: { type: 'Buffer' },
@@ -50,6 +60,7 @@ const MetadataSchema = new Schema<IClimbMetadata>({
 }, { _id: false })
 
 const GradeTypeSchema = new Schema<GradeScalesTypes>({
+  vscale: Schema.Types.String,
   yds: { type: Schema.Types.String, required: false },
   french: { type: Schema.Types.String, required: false },
   font: { type: Schema.Types.String, required: false }
@@ -73,10 +84,23 @@ export const ClimbSchema = new Schema<ClimbType>({
     required: true
   },
   metadata: MetadataSchema,
-  content: ContentSchema
+  content: ContentSchema,
+  _deleting: { type: Date },
+  updatedBy: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  },
+  createdBy: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  },
+  _change: ChangeRecordMetadata
 }, {
-  _id: false
+  _id: false,
+  timestamps: true
 })
+
+ClimbSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
 
 ClimbSchema.pre('validate', function (next) {
   if (this.safety as string === '') { this.safety = SafetyType.UNSPECIFIED }

@@ -1,5 +1,7 @@
 import { jest } from '@jest/globals'
+import { logger } from '../../../logger.js'
 import { aggregateCragStats, merge } from '../Aggregate.js'
+import { AggregateType } from '../../AreaTypes.js'
 
 describe('Aggregate merge', () => {
   it('should merge 2 objects', () => {
@@ -38,7 +40,7 @@ describe('Aggregate merge', () => {
 
 describe('Aggregate Crag Stats', () => {
   it('Provides crag stat aggregates in US grade context', () => {
-    jest.spyOn(console, 'warn').mockImplementation(() => {})
+    jest.spyOn(logger, 'warn').mockImplementation(() => {})
     const crag = {
       gradeContext: 'US',
       climbs: [
@@ -88,12 +90,11 @@ describe('Aggregate Crag Stats', () => {
         {
           yds: 'V5',
           grades: {
-            yds: 'V5',
+            vscale: 'V5',
             font: '6C'
           },
           type: {
-            trad: true,
-            boulder: true
+            bouldering: true
           }
         },
         // Mismatch of grade (vscale grade) with grade type (trad : yds scale)
@@ -111,12 +112,12 @@ describe('Aggregate Crag Stats', () => {
       ],
       totalClimbs: 6
     }
-    const expectedStats = {
+    const expectedStats: AggregateType = {
       byDiscipline: {
-        boulder: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }, total: 1 },
+        bouldering: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }, total: 1 },
         sport: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }, total: 1 },
         tr: { bands: { advanced: 1, beginner: 0, expert: 0, intermediate: 2, unknown: 0 }, total: 3 },
-        trad: { bands: { advanced: 1, beginner: 1, expert: 0, intermediate: 2, unknown: 1 }, total: 5 }
+        trad: { bands: { advanced: 0, beginner: 1, expert: 0, intermediate: 2, unknown: 1 }, total: 4 }
       },
       byGrade: [
         { count: 2, label: '5.9' },
@@ -127,12 +128,15 @@ describe('Aggregate Crag Stats', () => {
       ],
       byGradeBand: { advanced: 2, beginner: 1, expert: 0, intermediate: 2, unknown: 1 }
     }
+    // @ts-expect-error
     expect(aggregateCragStats(crag)).toEqual(expectedStats)
-    expect(console.warn).toHaveBeenCalledWith(
+    expect(logger.warn).toHaveBeenCalledWith(
       expect.stringContaining('Climb: mismatched_grade_climb does not have a corresponding grade with expected grade scale: yds')
     )
   })
+
   it.todo('Provides crag stat aggregates in FR grade context')
+
   it('Provides defaults for no climbs in crag', () => {
     const crag = {
       gradeContext: 'US',
@@ -144,6 +148,7 @@ describe('Aggregate Crag Stats', () => {
       byGrade: [],
       byGradeBand: { advanced: 0, beginner: 0, expert: 0, intermediate: 0, unknown: 0 }
     }
+    // @ts-expect-error
     expect(aggregateCragStats(crag)).toEqual(expectedStats)
   })
 })

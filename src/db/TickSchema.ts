@@ -3,6 +3,14 @@ import { TickType } from './TickTypes'
 
 const { Schema } = mongoose
 
+/**
+ * Tick Schema
+ *
+ * The tick schema defines how ticks are stored and serialized in the mongo database.
+ * see the TickTypes.ts file for the typescript interface that defines types as they
+ * are used within the application. Getting documents from this schema should kick out
+ * TickType objects.
+ */
 export const TickSchema = new Schema<TickType>({
   _id: { type: Schema.Types.ObjectId, required: true, default: () => new mongoose.Types.ObjectId() },
   // We set immutable to true so that the dateCreated field cannot be changed

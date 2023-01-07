@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { geometry } from '@turf/helpers'
 
-import MutableAreaDataSource from '../MutableAreaDataSource.js'
+import MutableAreaDataSource, { createInstance } from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { AreaEditableFieldsType } from '../../db/AreaTypes.js'
 
@@ -18,10 +18,10 @@ describe('Areas', () => {
       await getAreaModel().collection.drop()
       await getClimbModel().collection.drop()
     } catch (e) {
-      console.log('Cleaning up db before test')
+      console.log('Cleaning up db before test', e)
     }
-    areas = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
     await createIndexes()
+    areas = createInstance()
   })
 
   afterAll(async () => {
@@ -138,8 +138,10 @@ describe('Areas', () => {
       fail('Child area is null')
     }
 
-    let usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 3000))
 
+    let usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
     // verify number of child areas in parent
     expect(usaInDB.children as any[]).toHaveLength(3)
 
@@ -183,29 +185,33 @@ describe('Areas', () => {
 
   it('should not create duplicate countries', async () => {
     await areas.addCountry('ita')
-    await expect(areas.addCountry('ita')).rejects.toThrow('E11000 duplicate key error')
+
+    // eslint-disable-next-line
+    await new Promise(res => setTimeout(res, 2000))
+
+    await expect(areas.addCountry('ita')).rejects.toThrowError('E11000 duplicate key error')
   })
 
   it('should not create duplicate sub-areas', async () => {
     const fr = await areas.addCountry('fra')
     await areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id)
     await expect(areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id))
-      .rejects.toThrow('E11000 duplicate key error')
+      .rejects.toThrowError('E11000 duplicate key error')
   })
 
   it('should fail when calling without a parent country', async () => {
     await expect(areas.addArea(testUser, 'Peak District ', null, 'GB'))
-      .rejects.toThrow()
+      .rejects.toThrowError()
   })
 
   it('should fail when calling with a non-existent parent id', async () => {
     const notInDb = muuid.from('abf6cb8b-8461-45c3-b46b-5997444be867')
     await expect(areas.addArea(testUser, 'Land\'s End ', notInDb))
-      .rejects.toThrow()
+      .rejects.toThrowError()
   })
 
   it('should fail when calling with null parents', async () => {
     await expect(areas.addArea(testUser, 'Land\'s End ', null, '1q1'))
-      .rejects.toThrow()
+      .rejects.toThrowError()
   })
 })

@@ -2,7 +2,7 @@ import assert from 'node:assert'
 import mongoose from 'mongoose'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
-import { getCountriesDefaultGradeContext } from '../../../grade-utils.js'
+import { getCountriesDefaultGradeContext, GradeContexts } from '../../../GradeUtils.js'
 
 /**
  * A tree-like data structure for storing area hierarchy during raw json files progressing.
@@ -125,7 +125,7 @@ export class Tree {
    * Inherits from parent tree if current tree does not have one
    * Country root is the highest default grade context
    */
-  getGradeContext (node: AreaNode): string {
+  getGradeContext (node: AreaNode): GradeContexts {
     const countriesDefaultGradeContext = getCountriesDefaultGradeContext()
     const USGradeContext = countriesDefaultGradeContext.US
     const { key, jsonLine } = node
@@ -198,7 +198,7 @@ export class AreaNode {
    * Return the grade context for node
    * Inherits from parent node if current node does not have one
    */
-  getGradeContext (): string {
+  getGradeContext (): GradeContexts {
     return this.treeRef.getGradeContext(this)
   }
 }

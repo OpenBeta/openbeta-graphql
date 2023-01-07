@@ -1,6 +1,6 @@
 [![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 # Climbing Route Catalog API 
@@ -170,6 +170,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/Downster"><img src="https://avatars.githubusercontent.com/u/24400646?v=4?s=100" width="100px;" alt="Brendan Downing"/><br /><sub><b>Brendan Downing</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=Downster" title="Code">💻</a> <a href="#ideas-Downster" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center"><a href="https://github.com/DarrenZLew"><img src="https://avatars.githubusercontent.com/u/26758226?v=4?s=100" width="100px;" alt="Darren Lew"/><br /><sub><b>Darren Lew</b></sub></a><br /><a href="#ideas-DarrenZLew" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=DarrenZLew" title="Code">💻</a></td>
       <td align="center"><a href="https://github.com/Vednus"><img src="https://avatars.githubusercontent.com/u/2602014?v=4?s=100" width="100px;" alt="Sundev"/><br /><sub><b>Sundev</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=Vednus" title="Code">💻</a> <a href="#ideas-Vednus" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="http://siman4457.github.io"><img src="https://avatars.githubusercontent.com/u/28658492?v=4?s=100" width="100px;" alt="Siman Shrestha"/><br /><sub><b>Siman Shrestha</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=siman4457" title="Code">💻</a> <a href="#ideas-siman4457" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>

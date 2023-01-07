@@ -1,8 +1,9 @@
 import _ from 'underscore'
-import { CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType } from '../AreaTypes.js'
-import { gradeContextToGradeScales } from '../../grade-utils.js'
-import { ClimbType } from '../ClimbTypes.js'
+import { CountByGroupType, CountByDisciplineType, AggregateType, DisciplineStatsType, CountByGradeBandType, AreaType } from '../AreaTypes.js'
+import { gradeContextToGradeScales } from '../../GradeUtils.js'
+import { ClimbType, ClimbGradeContextType } from '../ClimbTypes.js'
 import { getScale, GradeBands, GradeBandTypes, GradeScalesTypes, isVScale } from '@openbeta/sandbag'
+import { logger } from '../../logger.js'
 
 export const mergeAggregates = (lhs: AggregateType, rhs: AggregateType): AggregateType => {
   return {
@@ -54,54 +55,65 @@ const mergeBands = (lhs: CountByGradeBandType, rhs: CountByGradeBandType): Count
   }
 }
 
-const getBand = (discipline: string | undefined, climb: ClimbType, cragGradeScales): GradeBandTypes => {
-  if (discipline === undefined) {
+const getBand = (discipline: string | undefined, climb: ClimbType, cragGradeScales: ClimbGradeContextType): GradeBandTypes => {
+  if (discipline == null) {
     return GradeBands.UNKNOWN
   }
   const gradeScaleValue: GradeScalesTypes = cragGradeScales[discipline]
   let gradeScale = getScale(gradeScaleValue)
-  const grade = climb.grades[gradeScaleValue]
-  if (grade === undefined) {
-    console.warn(`Climb: ${climb.name} does not have a corresponding grade with expected grade scale: ${gradeScaleValue}`)
+  const grade = climb.grades?.[gradeScaleValue]
+  if (grade == null) {
+    logger.warn(`Climb: ${climb.name} does not have a corresponding grade with expected grade scale: ${gradeScaleValue}`)
     return GradeBands.UNKNOWN
   }
-  if (gradeScale === null) {
+  if (gradeScale == null) {
     return GradeBands.UNKNOWN
   }
   // Changes yds grade scale and type boulder to V grade scale until v grades are split from yds grades
-  if (climb.type.boulder && gradeScale.name === 'yds' && isVScale(grade)) {
+  if ((climb.type.bouldering ?? false) && gradeScale.name === 'yds' && isVScale(grade)) {
     gradeScale = getScale('vscale')
   }
   return gradeScale?.getGradeBand(grade) ?? GradeBands.UNKNOWN
 }
 
-export const aggregateCragStats = (crag: any): AggregateType => {
+export const aggregateCragStats = (crag: AreaType): AggregateType => {
   const byGrade: Record<string, number> | {} = {}
   const disciplines: CountByDisciplineType = {}
 
   // Assumption: all climbs use the crag's grade context
   const cragGradeScales = gradeContextToGradeScales[crag.gradeContext]
+  if (cragGradeScales == null) {
+    logger.warn(`Area ${crag.area_name} (${crag.metadata.area_id.toUUID().toString()}) has  invalid grade context: '${crag.gradeContext}'`)
+    return {
+      byGrade: [],
+      byDiscipline: disciplines,
+      byGradeBand: {
+        ...INIT_GRADEBAND
+      }
+    }
+  }
+
   const climbs = crag.climbs as ClimbType[]
   climbs.forEach((climb: ClimbType) => {
     const { grades, type = {}, name } = climb
     // Grade
     // Assumption: all types provided from a climb use the same grade scale
-    const cragGradeType = Object.keys(type).find(t => type[t] === true && cragGradeScales[t] !== undefined)
-    if (cragGradeType !== undefined) {
+    const cragGradeType = Object.keys(type).find(t => Boolean(type[t]) && cragGradeScales[t] !== undefined)
+    if (cragGradeType != null) {
       const gradeScaleValue: GradeScalesTypes = cragGradeScales[cragGradeType]
-      const grade = grades[gradeScaleValue] ?? 'Unknown'
+      const grade = grades?.[gradeScaleValue] ?? 'Unknown'
       if (grade === 'Unknown') {
-        console.warn(`Climb: ${name} does not have a corresponding grade with expected grade scale: ${gradeScaleValue}`)
+        logger.warn(`Climb: ${name} does not have a corresponding grade with expected grade scale: ${gradeScaleValue}`)
       }
       const entry: CountByGroupType = typeof byGrade[grade] === 'undefined' ? { label: grade, count: 0 } : byGrade[grade]
       entry.count = entry.count + 1
       byGrade[grade] = entry
     }
 
-    // Disciplines
+    // Initialize disciplines object
     for (const t in type) {
       if (type[t] === true) {
-        if (disciplines?.[t] === undefined) {
+        if (disciplines?.[t] == null) {
           disciplines[t] = { ...INIT_DISCIPLINE_STATS }
           disciplines[t].total = 1
         } else {
@@ -111,6 +123,7 @@ export const aggregateCragStats = (crag: any): AggregateType => {
     }
   })
 
+  // Calculate bands for each discipline
   for (const d in disciplines) {
     const climbsByDisciplines = climbs.filter(c => c?.type?.[d] ?? false)
     const _byGradeBand: Record<string, number> = _.countBy(climbsByDisciplines, climb => {
@@ -123,7 +136,7 @@ export const aggregateCragStats = (crag: any): AggregateType => {
   const _byGradeBand: Record<string, number> = _.countBy(climbs, (climb: ClimbType) => {
     const { type = {} } = climb
     // Assumption: all types provided from a climb use the same grade scale
-    const cragGradeType = Object.keys(type).find(t => type[t] === true && cragGradeScales[t] !== undefined)
+    const cragGradeType = Object.keys(type).find(t => type[t] === true && cragGradeScales[t] != null)
     return getBand(cragGradeType, climb, cragGradeScales)
   })
   const z = { ...INIT_GRADEBAND, ..._byGradeBand }

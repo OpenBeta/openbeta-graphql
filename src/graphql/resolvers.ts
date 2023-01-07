@@ -1,29 +1,63 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
-import muid, { MUUID } from 'uuid-mongodb'
+import muid from 'uuid-mongodb'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
-import { typeDef as Climb } from './ClimbTypeDef.js'
-import { typeDef as Area } from './AreaTypeDef.js'
-import { typeDef as MediaTypeDef } from './media/MediaTypeDef.js'
-import { typeDef as TickTypeDef } from './TickTypeDef.js'
-import { HistoryTypeDef, HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
+import { HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
 import { QueryByIdType, GQLFilter, Sort } from '../types'
-import { AreaType } from '../db/AreaTypes.js'
+import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
-import { AreaEditTypeDef, AreaQueries, AreaMutations } from './area/index.js'
+import { PostMutations, PostQueries, PostResolvers } from './posts/index.js'
+import { XMediaMutations, XMediaQueries, XMediaResolvers } from './xmedia/index.js'
+import { TagMutations, TagQueries, TagResolvers } from './tag/index.js'
+import { AreaQueries, AreaMutations } from './area/index.js'
+import { ClimbMutations } from './climb/index.js'
 import TickMutations from './tick/TickMutations.js'
 import TickQueries from './tick/TickQueries.js'
+import fs from 'fs'
+
+import { gql } from 'apollo-server'
+import { DocumentNode } from 'graphql'
+
+/**
+ * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode.
+ * A documentnode represents a validated GraphQL schema document (or part thereof)
+ * @param {string} file - The name of the file to load.
+ * @returns A DocumentNode
+ */
+function loadSchema (file: string): DocumentNode {
+  return gql(fs.readFileSync(`src/graphql/schema/${file}`).toString())
+}
+
+/** Load in the type definitions in the schema directory */
+const TickTypeDef = loadSchema('Tick.gql')
+const ClimbTypeDef = loadSchema('Climb.gql')
+const AreaTypeDef = loadSchema('Area.gql')
+const MediaTypeDef = loadSchema('Media.gql')
+const HistoryTypeDef = loadSchema('History.gql')
+const AreaEditTypeDef = loadSchema('AreaEdit.gql')
+const ClimbMutationTypeDefs = loadSchema('ClimbEdit.gql')
+const PostTypeDef = loadSchema('Post.gql')
+
+const XMediaTypeDef = loadSchema('XMedia.gql')
+const TagTypeDef = loadSchema('Tag.gql')
 
 const resolvers = {
   Mutation: {
+    ...TagMutations,
+    ...XMediaMutations,
+    ...PostMutations,
     ...MediaMutations,
     ...AreaMutations,
+    ...ClimbMutations,
     ...TickMutations
   },
   Query: {
+    ...TagQueries,
+    ...XMediaQueries,
+    ...PostQueries,
     ...MediaQueries,
     ...AreaQueries,
     ...TickQueries,
@@ -85,10 +119,13 @@ const resolvers = {
   ...CommonResolvers,
   ...MediaResolvers,
   ...HistoryFieldResolvers,
+  ...PostResolvers,
+  ...XMediaResolvers,
+  ...TagResolvers,
 
   Climb: {
-    id: (node: ClimbExtType) => (node._id as MUUID).toUUID().toString(),
-    uuid: (node: ClimbExtType) => node.metadata.climb_id.toUUID().toString(),
+    id: (node: ClimbExtType) => node._id.toUUID().toString(),
+    uuid: (node: ClimbExtType) => node._id.toUUID().toString(),
 
     type: async (node: ClimbExtType) => {
       if (node.type === undefined) {
@@ -99,16 +136,16 @@ const resolvers = {
       // a hack to return 'bouldering' field instead of boulder bc
       // the client is hard-coded to use 'bouldering'
       return {
-        ...node.type,
-        bouldering: node.type.boulder || null
+        ...node.type
+        // bouldering: node.type.bouldering || null
       }
     },
 
     metadata: (node: ClimbExtType) => ({
       ...node.metadata,
       leftRightIndex: node.metadata.left_right_index,
-      climb_id: node.metadata.climb_id.toUUID().toString(),
-      climbId: node.metadata.climb_id.toUUID().toString(),
+      climb_id: node._id.toUUID().toString(),
+      climbId: node._id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
       lng: node.metadata.lnglat.coordinates[0],
       lat: node.metadata.lnglat.coordinates[1]
@@ -119,7 +156,10 @@ const resolvers = {
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByClimbId(node._id)
-    }
+    },
+
+    createdBy: (node: ClimbExtType) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: ClimbExtType) => node?.updatedBy?.toUUID().toString()
   },
 
   Area: {
@@ -175,11 +215,31 @@ const resolvers = {
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
-    }
+    },
+
+    createdBy: (node: AreaType) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: AreaType) => node?.updatedBy?.toUUID().toString()
+  },
+
+  CountByDisciplineType: {
+    // Frontend code still uses "boulder"
+    boulder: (node: CountByDisciplineType) => node.bouldering
   }
 }
 
 export const graphqlSchema = makeExecutableSchema({
-  typeDefs: [CommonTypeDef, Climb, Area, MediaTypeDef, AreaEditTypeDef, TickTypeDef, HistoryTypeDef],
+  typeDefs: [
+    CommonTypeDef,
+    ClimbTypeDef,
+    AreaTypeDef,
+    MediaTypeDef,
+    AreaEditTypeDef,
+    TickTypeDef,
+    HistoryTypeDef,
+    ClimbMutationTypeDefs,
+    PostTypeDef,
+    XMediaTypeDef,
+    TagTypeDef
+  ],
   resolvers
 })
