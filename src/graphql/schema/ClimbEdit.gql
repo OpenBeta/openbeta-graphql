@@ -37,7 +37,6 @@ input SingleClimbChangeInput {
   protection: String
 }
 
-
 input DisciplineType {
   "https://en.wikipedia.org/wiki/Traditional_climbing"
   trad: Boolean

@@ -15,12 +15,14 @@ const transformClimbRecord = (row: any): ClimbType => {
   const pkeyStr = mp_route_id === '' ? `${mp_sector_id as string}.${left_right_seq as string}` : mp_route_id
   const uuid = muuid.from(uuidv5(pkeyStr, NIL))
   const disciplines = sanitizeDisciplines(type)
+  const boulderingDiscipline = disciplines.bouldering === true ? { vscale: grade.YDS } : {}
+
   return {
     _id: uuid,
     name: route_name,
     yds: grade.YDS,
     grades: {
-      ...disciplines.bouldering && { vscale: grade.YDS },
+      ...boulderingDiscipline,
       yds: grade.YDS,
       font: grade.Font,
       french: grade.French
