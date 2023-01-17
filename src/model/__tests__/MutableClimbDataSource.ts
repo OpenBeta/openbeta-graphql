@@ -7,7 +7,7 @@ import MutableAreaDataSource, { createInstance as createNewAreaDS } from '../Mut
 
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { logger } from '../../logger.js'
-import { ClimbChangeDocType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
+import { ClimbType, ClimbChangeDocType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
 import { sanitizeDisciplines } from '../../GradeUtils.js'
 import streamListener from '../../db/edit/streamListener.js'
 import { changelogDataSource } from '../ChangeLogDataSource.js'
@@ -129,6 +129,7 @@ describe('Climb CRUD', () => {
 
     // Adding a boulder problem into an empty area will set isBoulder flag
     const updatedArea = await areas.findOneAreaByUUID(boulderingArea.metadata.area_id)
+    if (updatedArea == null) fail('Expect area to be non-null')
     expect(updatedArea.metadata.isBoulder).toBeTruthy()
   })
 
@@ -143,19 +144,24 @@ describe('Climb CRUD', () => {
 
     expect(newIDs).toHaveLength(2)
 
-    // delete a non-existing climb
-    const count0 = await climbs.deleteClimbs(testUser, [muid.v4().toUUID().toString()])
+    // delete a random (non-existing) climb
+    const count0 = await climbs.deleteClimbs(
+      testUser,
+      newBoulderingArea.metadata.area_id,
+      [muid.v4()])
     expect(count0).toEqual(0)
 
     // try delete a correct climb and a non-existent one
     const count1 = await climbs.deleteClimbs(
       testUser,
-      [newIDs[0], muid.v4().toUUID().toString()])
+      newBoulderingArea.metadata.area_id,
+      [muid.from(newIDs[0]), muid.v4()])
 
     // immediately delete a previously deleted climb.  Should be a no op.
     const count2 = await climbs.deleteClimbs(
       testUser,
-      [newIDs[0], muid.v4().toUUID().toString()])
+      newBoulderingArea.metadata.area_id,
+      [muid.from(newIDs[0]), muid.v4()])
 
     expect(count1).toEqual(1)
     expect(count2).toEqual(0)
@@ -171,6 +177,11 @@ describe('Climb CRUD', () => {
     // expect one to remain
     rs = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
     if (rs == null) fail('Expect climb 2 to exist')
+    expect(rs._id.toUUID().toString()).toEqual(newIDs[1])
+
+    const areaRs = await areas.findOneAreaByUUID(newBoulderingArea.metadata.area_id)
+    expect(areaRs.climbs).toHaveLength(1)
+    expect((areaRs.climbs[0] as ClimbType)._id.toUUID().toString()).toEqual(newIDs[1])
   })
 
   it('handles mixed grades and disciplines correctly', async () => {

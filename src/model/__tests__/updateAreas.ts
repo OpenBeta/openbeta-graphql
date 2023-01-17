@@ -11,7 +11,6 @@ describe('Areas', () => {
   const testUser = muuid.v4()
 
   beforeAll(async () => {
-    console.log('#BeforeAll Areas')
     await connectDB()
 
     try {
@@ -162,8 +161,7 @@ describe('Areas', () => {
       muuid.from(wa.metadata.area_id).toUUID()
     ])
 
-    const deletedAreaInDb = await areas.findOneAreaByUUID(ca.metadata.area_id)
-    expect(deletedAreaInDb).toBeNull()
+    await expect(areas.findOneAreaByUUID(ca.metadata.area_id)).rejects.toThrow(/Area.*not found/)
   })
 
   it('should not delete a subarea containing children', async () => {

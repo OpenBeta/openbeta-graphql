@@ -3,7 +3,12 @@ type Mutation {
 }
 
 type Mutation {
-  deleteClimbs(idList: [ID]): Int
+  deleteClimbs(input: DeleteManyClimbsInput): Int
+}
+
+input DeleteManyClimbsInput {
+  parentId: ID
+  idList: [ID]
 }
 
 input UpdateClimbsInput {

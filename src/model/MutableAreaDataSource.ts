@@ -3,6 +3,7 @@ import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
+import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
@@ -129,10 +130,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
-    const parent = await this.areaModel.findOne(parentFilter).session(session)
+    const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError('Expecting 1 parent, found none.'))
 
-    if (parent == null) {
-      throw new Error('Adding area failed.  Expecting 1 parent, found none.')
+    if (parent.metadata.leaf || (parent.metadata?.isBoulder ?? false)) {
+      if (parent.children.length > 0) {
+        throw new UserInputError('Adding new areas to a leaf or boulder area is not allowed.')
+      }
+      // No children.  It's ok to continue turning an empty crag/boulder into an area.
+      parent.metadata.leaf = false
+      parent.metadata.isBoulder = false
     }
 
     const change = await changelogDataSource.create(session, user, OperationType.addArea)

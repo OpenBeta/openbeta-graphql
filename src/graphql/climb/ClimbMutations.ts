@@ -1,4 +1,4 @@
-import muid from 'uuid-mongodb'
+import muid, { MUUID } from 'uuid-mongodb'
 import { ContextWithAuth } from '../../types.js'
 
 const ClimbMutations = {
@@ -11,12 +11,16 @@ const ClimbMutations = {
     return await ds.addOrUpdateClimbs(user.uuid, muid.from(parentId), changes)
   },
 
-  deleteClimbs: async (_, { idList }, { dataSources, user }: ContextWithAuth): Promise<number> => {
+  deleteClimbs: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<number> => {
     const { climbs: ds } = dataSources
 
     if (user?.uuid == null) throw new Error('Missing user uuid')
 
-    return await ds.deleteClimbs(user.uuid, idList as string[])
+    const { idList, parentId } = input
+
+    const toBeDeletedList: MUUID[] = idList.map(entry => muid.from(entry))
+
+    return await ds.deleteClimbs(user.uuid, muid.from(parentId), toBeDeletedList)
   }
 }
 

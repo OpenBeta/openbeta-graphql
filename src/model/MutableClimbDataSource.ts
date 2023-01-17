@@ -88,7 +88,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // we just want to update other fields.
     // However, if disciplines is non-empty, is there 1 non-boulder problem in the input?
     const hasARouteClimb = userInput.some(({ disciplines }) =>
-      disciplines != null && Object.keys(disciplines).length > 0 && !disciplines?.bouldering)
+      disciplines != null && Object.keys(disciplines).length > 0 && !(disciplines?.bouldering ?? false))
 
     if (hasARouteClimb && (parent.metadata?.isBoulder ?? false)) {
       throw new UserInputError('Adding route climbs to a bouldering area is not allowed')
@@ -213,12 +213,12 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
   /**
    * Delete one or more climbs by climb ID.
-   * @param userId
+   * @param userId User performing the action
+   * @param parentId Parent area ID
    * @param idListStr Array of climb IDs
-   * @returns number of climbs actually got deleted
+   * @returns number of climbs was deleted
    */
-  async deleteClimbs (userId: MUUID, idListStr: string[]): Promise<number> {
-    const toBeDeletedList = idListStr.map(entry => muid.from(entry))
+  async deleteClimbs (userId: MUUID, parentId: MUUID, idList: MUUID[]): Promise<number> {
     const session = await this.areaModel.startSession()
     let ret = 0
 
@@ -226,8 +226,17 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
+        // Remove climb IDs from parent.climbs[]
+        await this.areaModel.updateOne(
+          { 'metadata.area_id': parentId },
+          {
+            $pullAll: { climbs: idList }
+          },
+          { session })
+
+        // Mark climbs delete
         const filter = {
-          _id: { $in: toBeDeletedList },
+          _id: { $in: idList },
           _deleting: { $exists: false }
         }
         const rs = await this.climbModel.updateMany(
