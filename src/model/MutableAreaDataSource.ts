@@ -3,9 +3,9 @@ import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
+import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
-import sanitizeHtml from 'sanitize-html'
 
 import { AreaType, AreaEditableFieldsType, OperationType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
@@ -16,6 +16,7 @@ import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import CountriesLngLat from '../data/countries-with-lnglat.json' assert { type: 'json' }
 import { logger } from '../logger.js'
 import { GradeContexts } from '../GradeUtils.js'
+import { sanitizeStrict } from '../utils/sanitize.js'
 
 isoCountries.registerLocale(enJson)
 
@@ -129,10 +130,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
-    const parent = await this.areaModel.findOne(parentFilter).session(session)
+    const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError('Expecting 1 parent, found none.'))
 
-    if (parent == null) {
-      throw new Error('Adding area failed.  Expecting 1 parent, found none.')
+    if (parent.metadata.leaf || (parent.metadata?.isBoulder ?? false)) {
+      if (parent.children.length > 0 || parent.climbs.length > 0) {
+        throw new UserInputError('Adding new areas to a leaf or boulder area is not allowed.')
+      }
+      // No children.  It's ok to continue turning an empty crag/boulder into an area.
+      parent.metadata.leaf = false
+      parent.metadata.isBoulder = false
     }
 
     const change = await changelogDataSource.create(session, user, OperationType.addArea)
@@ -272,26 +278,32 @@ export default class MutableAreaDataSource extends AreaDataSource {
       const area = await this.areaModel.findOne(filter).session(session)
 
       if (area == null) {
-        throw new Error('Area update error.  Reason: area not found.')
+        throw new Error('Area update error.  Reason: Area not found.')
       }
 
-      const { areaName, description, shortCode, isDestination, lat, lng } = document
+      const { areaName, description, shortCode, isDestination, isLeaf, isBoulder, lat, lng } = document
 
       if (area.pathTokens.length === 1) {
-        if (areaName != null || shortCode != null) throw new Error('Area update error.  Reason: updating country name or short code is not allowed.')
+        if (areaName != null || shortCode != null) throw new Error('Area update error.  Reason: Updating country name or short code is not allowed.')
       }
 
-      if (areaName != null) area.set({ area_name: areaName })
+      if (area.children.length > 0 && (isLeaf != null || isBoulder != null)) {
+        throw new Error('Area update error.  Reason: Updating leaf or boulder status of an area with subareas is not allowed.')
+      }
+
+      if (areaName != null) area.set({ area_name: sanitizeStrict(areaName) })
       if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
       if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
-
+      if (isLeaf != null) area.set({ 'metadata.leaf': isLeaf })
+      if (isBoulder != null) {
+        area.set({ 'metadata.isBoulder': isBoulder })
+        if (isBoulder) {
+          // boulfer == true implies leaf = true
+          area.set({ 'metadata.leaf': true })
+        }
+      }
       if (description != null) {
-        const sanitized = sanitizeHtml(description, {
-          allowedTags: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
-          allowedAttributes: {
-            a: ['href']
-          }
-        })
+        const sanitized = sanitizeStrict(description)
         area.set({ 'content.description': sanitized })
       }
 

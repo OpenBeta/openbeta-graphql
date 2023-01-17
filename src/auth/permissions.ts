@@ -10,7 +10,6 @@ const permissions = shield({
     removeArea: isEditor,
     addArea: isEditor,
     updateArea: isEditor,
-    addClimbs: isEditor,
     updateClimbs: isEditor,
     deleteClimbs: isEditor
   }

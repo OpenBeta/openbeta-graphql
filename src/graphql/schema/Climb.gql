@@ -16,7 +16,7 @@ type Climb {
   "First ascent, if known. Who was the first person to climb this route?"
   fa: String
   "The grade(s) assigned to this climb. See GradeType documentation"
-  grades: GradeType!
+  grades: GradeType
 
   """
   Grade systems have minor variations between countries.

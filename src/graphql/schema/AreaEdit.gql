@@ -38,6 +38,8 @@ input AreEditableFieldsInput {
   uuid: String!
   areaName: String
   isDestination: Boolean
+  isLeaf: Boolean
+  isBoulder: Boolean
   shortCode: String
   lat: Float
   lng: Float

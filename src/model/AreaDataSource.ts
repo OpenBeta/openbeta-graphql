@@ -91,7 +91,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     }
   }
 
-  async findOneAreaByUUID (uuid: muuid.MUUID): Promise<any> {
+  async findOneAreaByUUID (uuid: muuid.MUUID): Promise<AreaType> {
     const rs = await this.areaModel
       .aggregate([
         { $match: { 'metadata.area_id': uuid, _deleting: { $exists: false } } },
@@ -113,7 +113,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     if (rs != null && rs.length === 1) {
       return rs[0]
     }
-    return null
+    throw new Error(`Area ${uuid.toUUID().toString()} not found.`)
   }
 
   async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<any> {

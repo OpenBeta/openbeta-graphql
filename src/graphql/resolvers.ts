@@ -141,6 +141,10 @@ const resolvers = {
       }
     },
 
+    yds: (node: ClimbExtType) => node.yds ?? null,
+
+    grades: (node: ClimbExtType) => node.grades ?? null,
+
     metadata: (node: ClimbExtType) => ({
       ...node.metadata,
       leftRightIndex: node.metadata.left_right_index,
@@ -157,6 +161,14 @@ const resolvers = {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByClimbId(node._id)
     },
+
+    content: (node: ClimbExtType) => node.content == null
+      ? {
+          description: '',
+          location: '',
+          protection: ''
+        }
+      : node.content,
 
     createdBy: (node: ClimbExtType) => node?.createdBy?.toUUID().toString(),
     updatedBy: (node: ClimbExtType) => node?.updatedBy?.toUUID().toString()
@@ -203,6 +215,7 @@ const resolvers = {
     metadata: (node: AreaType) => ({
       ...node.metadata,
       isDestination: node.metadata?.isDestination ?? false,
+      isBoulder: node.metadata?.isBoulder ?? false,
       leftRightIndex: node.metadata.left_right_index,
       area_id: node.metadata.area_id.toUUID().toString(),
       areaId: node.metadata.area_id.toUUID().toString(),
