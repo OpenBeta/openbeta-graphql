@@ -196,7 +196,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
    * @param changes
    * @returns a list of updated (or newly added) climb IDs
    */
-  async addOrUpdateClimbs (userId: MUUID, parentId, changes): Promise<string[]> {
+  async addOrUpdateClimbs (userId: MUUID, parentId: MUUID, changes: ClimbChangeInputType[]): Promise<string[]> {
     const session = await this.areaModel.startSession()
     let ret: string[]
 

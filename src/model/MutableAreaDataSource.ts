@@ -133,7 +133,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError('Expecting 1 parent, found none.'))
 
     if (parent.metadata.leaf || (parent.metadata?.isBoulder ?? false)) {
-      if (parent.children.length > 0) {
+      if (parent.children.length > 0 || parent.climbs.length > 0) {
         throw new UserInputError('Adding new areas to a leaf or boulder area is not allowed.')
       }
       // No children.  It's ok to continue turning an empty crag/boulder into an area.

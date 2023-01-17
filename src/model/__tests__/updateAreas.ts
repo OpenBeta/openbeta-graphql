@@ -3,11 +3,13 @@ import muuid from 'uuid-mongodb'
 import { geometry } from '@turf/helpers'
 
 import MutableAreaDataSource, { createInstance } from '../MutableAreaDataSource.js'
+import MutableClimbDataSource, { createInstance as createNewClimbDS } from '../MutableClimbDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { AreaEditableFieldsType } from '../../db/AreaTypes.js'
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource
+  let climbs: MutableClimbDataSource
   const testUser = muuid.v4()
 
   beforeAll(async () => {
@@ -21,6 +23,7 @@ describe('Areas', () => {
     }
     await createIndexes()
     areas = createInstance()
+    climbs = createNewClimbDS()
   })
 
   afterAll(async () => {
@@ -72,6 +75,29 @@ describe('Areas', () => {
       expect(theBug.pathTokens)
         .toEqual([canada.area_name, theBug.area_name])
     }
+  })
+
+  it('should allow adding child areas to empty leaf area', async () => {
+    let parent = await areas.addArea(testUser, 'My house', null, 'can')
+    await areas.updateArea(testUser, parent.metadata.area_id, { isLeaf: true, isBoulder: true })
+
+    const newClimb = await climbs.addOrUpdateClimbs(testUser, parent.metadata.area_id, [{ name: 'Big Mac' }])
+
+    // Try to add a new area when there's already a climb
+    await expect(areas.addArea(testUser, 'Kitchen', parent.metadata.area_id)).rejects.toThrow(/Adding new areas to a leaf or boulder area is not allowed/)
+
+    // Now remove the climb to see if we can add the area
+
+    await climbs.deleteClimbs(testUser, parent.metadata.area_id, [muuid.from(newClimb[0])])
+    await areas.addArea(testUser, 'Kitchen', parent.metadata.area_id)
+
+    // Reload the parent
+    parent = await areas.findOneAreaByUUID(parent.metadata.area_id)
+    expect(parent.climbs).toHaveLength(0)
+    expect(parent.children).toHaveLength(1)
+    // make sure leaf and boulder flag are cleared
+    expect(parent.metadata.leaf).toBeFalsy()
+    expect(parent.metadata.isBoulder).toBeFalsy()
   })
 
   it('should create an area using only country code (without parent id)', async () => {
