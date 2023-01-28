@@ -14,6 +14,24 @@ services:
       test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --quiet) -eq 1
       interval: 10s
       start_period: 30s
-    command: ["--replSet", "rs0", "--bind_ip_all", "--keyFile", "/opt/keyfile/keyfile"]
+    entrypoint:
+      - bash
+      - -c
+      - |
+        cp /opt/keyfile/keyfile /data/db/replica.key
+        chmod 400 /data/db/replica.key
+        chown 999:999 /data/db/replica.key
+        exec docker-entrypoint.sh $$@
+    command: "mongod --bind_ip_all --replSet rs0 --keyFile /data/db/replica.key"
+  mongosetup:
+    image: mongo:5
+    depends_on:
+      - mongo_opentacos
+    env_file:
+      - .env
+    volumes:
+      - .:/scripts
+    restart: "no"
+    entrypoint: [ "bash", "/scripts/mongo_setup.sh" ]
 volumes:
   opentacos_mongodb_data:
