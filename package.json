@@ -67,7 +67,7 @@
     "update-climb-search": "tsc ; node build/db/export/Typesense/Typesense.js --climbs",
     "update-area-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas",
     "update-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas --climbs",
-    "export:json:full": "yarn build && node build/db/export/json/index.js --output export",
+    "export:json:full": "yarn build && node build/db/export/json/index.js",
     "prepare": "husky install"
   },
   "standard": {
