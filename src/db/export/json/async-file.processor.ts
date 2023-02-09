@@ -1,6 +1,6 @@
 import { promises } from 'fs'
 import { Processor } from '../common/processor.js'
-import path from 'path'
+import path, { dirname } from 'path'
 import { logger } from '../../../logger.js'
 
 export type Writer = (data: string, path: string) => Promise<void>
@@ -21,6 +21,7 @@ export function asyncFileProcessor<T> ({
     return await Promise.allSettled(data.map(async (item) => {
       const filePath = resolveFilePath(item, options)
       logger.info(`saving to file ${filePath}`)
+      await promises.mkdir(dirname(filePath), { recursive: true })
       return await writer(JSON.stringify(item), filePath)
     })).then(async results => {
       const errorCount = results.filter(result => result.status === 'rejected').length
