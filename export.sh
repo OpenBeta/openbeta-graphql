@@ -1,7 +1,13 @@
 #!/bin/bash
 
+if [ -z ${GITHUB_ACCESS_TOKEN} ]
+then
+  echo "GITHUB_ACCESS_TOKEN var not defined."
+  exit 1
+fi
+
 echo "cloning openbeta-export repository"
-git clone --depth 1 --branch production git@github.com:OpenBeta/openbeta-export.git
+git clone --depth 1 --branch production https://{GITHUB_ACCESS_TOKEN}@github.com/OpenBeta/openbeta-export || exit 1
 
 echo "start exporting database..."
 yarn export:json:full --output openbeta-export

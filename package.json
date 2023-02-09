@@ -68,6 +68,7 @@
     "update-area-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas",
     "update-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas --climbs",
     "export:json:full": "yarn build && node build/db/export/json/index.js",
+    "export-prod": "./export.sh",
     "prepare": "husky install"
   },
   "standard": {
