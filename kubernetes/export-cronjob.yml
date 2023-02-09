@@ -3,9 +3,12 @@ kind: CronJob
 metadata:
   name: export-db-prod
 spec:
-  schedule: "*/5 * * * *"
+  schedule: @daily
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      backoffLimit: 0
       template:
         spec:
           containers:
@@ -19,4 +22,4 @@ spec:
             resources:
               requests:
                 memory: 128Mi
-          restartPolicy: OnFailure
+          restartPolicy: Never
