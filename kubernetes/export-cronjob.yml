@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: export-db-prod
 spec:
-  schedule: @daily
+  schedule: "@daily"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   jobTemplate:
