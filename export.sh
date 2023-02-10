@@ -7,9 +7,11 @@ then
 fi
 
 echo "cloning openbeta-export repository"
+git clone --depth 1 --branch production https://${GITHUB_ACCESS_TOKEN}@github.com/OpenBeta/openbeta-export || exit 1
+cd openbeta-export
 git config user.name "db-export-bot"
 git config user.email "db-export-bot@noreply"
-git clone --depth 1 --branch production https://${GITHUB_ACCESS_TOKEN}@github.com/OpenBeta/openbeta-export || exit 1
+cd ..
 
 echo "start exporting database..."
 yarn export:json:full --output openbeta-export

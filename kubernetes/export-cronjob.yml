@@ -14,7 +14,7 @@ spec:
           containers:
           - name: openbeta-graph-api
             image: vnguyen/openbeta-graph-api:latest
-            imagePullPolicy: IfNotPresent
+            imagePullPolicy: Always
             command: ["yarn", "export-prod"]
             envFrom:
             - configMapRef:
