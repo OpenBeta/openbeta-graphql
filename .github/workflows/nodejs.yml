@@ -1,6 +1,8 @@
 name: 'tests'
 
-on: [push]
+on:
+  push: ['develop']
+  pull_request:
 
 jobs:
   build:
