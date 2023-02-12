@@ -233,11 +233,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             as: 'area', // clobber array of climb IDs with climb objects
             pipeline: [
               {
-                $project: { // only include specific fields
-                  _id: 0,
-                  ancestors: 1,
-                  pathTokens: 1,
-                  gradeContext: 1
+                $project: { // fields to exclude
+                  _id: 0
                 }
               }
             ]
