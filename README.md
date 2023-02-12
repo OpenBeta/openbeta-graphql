@@ -126,6 +126,13 @@ yarn serve
   yarn dev-local
   ```
 
+- Make sure to include `.js` when importing other files:
+  ```
+  import { getClimbModel } from '../db/ClimbSchema.js'
+  ...
+  ``
+  Read the [background info](https://github.com/microsoft/TypeScript/issues/40878).
+
 - Advanced database commands:
 
   ```bash

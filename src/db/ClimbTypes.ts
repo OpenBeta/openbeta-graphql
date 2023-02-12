@@ -4,12 +4,14 @@ import { GradeScalesTypes } from '@openbeta/sandbag'
 
 import { ChangeRecordMetadataType } from './ChangeLogType'
 import { GradeContexts } from '../GradeUtils.js'
+import { AreaType } from './AreaTypes.js'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs
 export type ClimbExtType = ClimbType & {
   ancestors: string
   pathTokens: string[]
+  area: AreaType
 }
 
 /**

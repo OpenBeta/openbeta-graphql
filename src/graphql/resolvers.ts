@@ -152,7 +152,8 @@ const resolvers = {
       climbId: node._id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
       lng: node.metadata.lnglat.coordinates[0],
-      lat: node.metadata.lnglat.coordinates[1]
+      lat: node.metadata.lnglat.coordinates[1],
+      area: node.area
     }),
 
     ancestors: (node: ClimbExtType) => node?.ancestors?.split(',') ?? [],
@@ -197,7 +198,7 @@ const resolvers = {
     ancestors: async (parent) => parent.ancestors.split(','),
 
     climbs: async (node: AreaType, _, { dataSources: { areas } }) => {
-      if ((node?.climbs.length ?? 0) === 0) {
+      if ((node?.climbs?.length ?? 0) === 0) {
         return []
       }
 
