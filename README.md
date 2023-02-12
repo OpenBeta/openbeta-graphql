@@ -127,7 +127,7 @@ yarn serve
   ```
 
 - Make sure to include `.js` when importing other files:
-  ```
+  ```javascript
   ...
   import { getClimbModel } from '../db/ClimbSchema.js'  // .js is required
   ...
