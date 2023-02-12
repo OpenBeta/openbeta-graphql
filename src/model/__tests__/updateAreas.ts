@@ -171,20 +171,21 @@ describe('Areas', () => {
     expect(usaInDB.children as any[]).toHaveLength(3)
 
     // verify child area IDs in parent
-    expect(usaInDB.children).toMatchObject([
-      muuid.from(ca.metadata.area_id).toUUID(),
-      muuid.from(or.metadata.area_id).toUUID(),
-      muuid.from(wa.metadata.area_id).toUUID()
+    expect(usaInDB.children).toEqual([
+      ca._id,
+      or._id,
+      wa._id
     ])
 
     await areas.deleteArea(testUser, ca.metadata.area_id)
 
     usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
+
     // verify child area IDs (one less than before)
     expect(usaInDB.children as any[]).toHaveLength(2)
-    expect(usaInDB.children).toMatchObject([
-      muuid.from(or.metadata.area_id).toUUID(),
-      muuid.from(wa.metadata.area_id).toUUID()
+    expect(usaInDB.children).toEqual([
+      or._id,
+      wa._id
     ])
 
     await expect(areas.findOneAreaByUUID(ca.metadata.area_id)).rejects.toThrow(/Area.*not found/)

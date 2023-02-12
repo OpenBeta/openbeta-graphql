@@ -91,12 +91,13 @@ describe('MediaDataSource', () => {
 
     expect(tag).toMatchObject({
       mediaType: areaTag2.mediaType,
-      mediaUuid: areaTag2.mediaUuid.toUUID(),
       mediaUrl: areaTag2.mediaUrl,
       area: expect.objectContaining({
         area_name: areaForTagging.area_name
       })
     })
+
+    expect(tag.mediaUuid.toUUID().toString()).toEqual(areaTag2.mediaUuid.toUUID().toString())
 
     // remove tag
     const res = await media.removeTag(tag._id.toString())
@@ -131,12 +132,11 @@ describe('MediaDataSource', () => {
     expect(tags).toHaveLength(1)
     expect(tags[0].tagList).toHaveLength(1)
 
-    console.log('#Tag', tags[0].tagList[0])
-
     expect(tags[0].tagList[0]).toMatchObject({
       mediaType: areaTag1.mediaType,
-      mediaUuid: areaTag1.mediaUuid.toUUID(),
       mediaUrl: areaTag1.mediaUrl
     })
+
+    expect(tags[0].tagList[0].mediaUuid.toUUID().toString()).toEqual(areaTag1.mediaUuid.toUUID().toString())
   })
 })

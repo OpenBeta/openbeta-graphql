@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals'
-import { logger } from '../../../logger.js'
-import { aggregateCragStats, merge } from '../Aggregate.js'
-import { AggregateType } from '../../AreaTypes.js'
+import { logger } from '../../../logger'
+import { aggregateCragStats, merge } from '../Aggregate'
+import { AggregateType } from '../../AreaTypes'
 
 describe('Aggregate merge', () => {
   it('should merge 2 objects', () => {
