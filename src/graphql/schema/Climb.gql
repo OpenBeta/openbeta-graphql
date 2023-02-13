@@ -52,6 +52,9 @@ type Climb {
 
   yds: String @deprecated(reason: "Migrating to 'grades' field")
 
+  "The parent area object"
+  parent: Area!
+
   createdAt: Date
   updatedAt: Date
   updatedBy: ID
@@ -67,8 +70,6 @@ type ClimbMetadata {
   mp_id: String
   climb_id: ID!
   climbId: ID!
-  "The parent area object"
-  parent: Area!
 }
 
 """
