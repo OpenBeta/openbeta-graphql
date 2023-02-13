@@ -11,7 +11,15 @@ import { AreaType } from './AreaTypes.js'
 export type ClimbExtType = ClimbType & {
   ancestors: string
   pathTokens: string[]
-  area: AreaType
+}
+
+/**
+ * Used to describe the complete Climb object passed to the QGL layer
+ */
+export type ClimbGQLQueryType = ClimbType & {
+  ancestors: string
+  pathTokens: string[]
+  parent: AreaType
 }
 
 /**
