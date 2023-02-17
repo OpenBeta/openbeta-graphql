@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: export-db-prod
+spec:
+  schedule: "@daily"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - name: openbeta-graph-api
+            image: vnguyen/openbeta-graph-api:latest
+            imagePullPolicy: Always
+            command: ["yarn", "export-prod"]
+            envFrom:
+            - configMapRef:
+                name: graph-api-prod
+            resources:
+              requests:
+                memory: 128Mi
+          restartPolicy: Never

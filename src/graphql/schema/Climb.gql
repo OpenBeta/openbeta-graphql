@@ -16,7 +16,7 @@ type Climb {
   "First ascent, if known. Who was the first person to climb this route?"
   fa: String
   "The grade(s) assigned to this climb. See GradeType documentation"
-  grades: GradeType!
+  grades: GradeType
 
   """
   Grade systems have minor variations between countries.
@@ -52,6 +52,9 @@ type Climb {
 
   yds: String @deprecated(reason: "Migrating to 'grades' field")
 
+  "The parent area object"
+  parent: Area!
+
   createdAt: Date
   updatedAt: Date
   updatedBy: ID
@@ -63,7 +66,7 @@ type ClimbMetadata {
   lng: Float
   left_right_index: Int
   leftRightIndex: Int
-  "If this climb was scraped from Mountain Project, this is the ID"
+  "If this climb originated from Mountain Project, this is the ID"
   mp_id: String
   climb_id: ID!
   climbId: ID!
@@ -155,10 +158,17 @@ enum SafetyEnum {
   PG
   "Fair protection that may result in long, potentially dangerous falls"
   PG13
-  "Loosely refers to "
+  """
+  a part of a route where there isn’t any protection for a while below you.
+  It happens when a route is sparsely bolted or there isn’t be anywhere to
+  place a cam. “Running it out” is common on classic routes and
+  sometimes hard sport overhangs.
+  [source](https://www.climbernews.com/what-is-a-runout-in-climbing/)
+  """
   runout
+
   terrain
-  " where there's limited protection and the possibility of serious injury"
+  "where there's limited protection and the possibility of serious injury"
   R
   "No protection and overall the route is extremely dangerous."
   X

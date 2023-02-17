@@ -54,11 +54,11 @@ describe('Test grade utilities', () => {
 
     // mismatch input and discipline
     actual = createGradeObject('V4', sanitizeDisciplines({ trad: true }), context)
-    expect(actual).toEqual({})
+    expect(actual).toEqual(null)
 
     // invalid input
     actual = createGradeObject('6a', sanitizeDisciplines({ trad: true }), context)
-    expect(actual).toEqual({})
+    expect(actual).toEqual(null)
   })
 
   it('creates French grade object correctly', () => {
@@ -77,6 +77,6 @@ describe('Test grade utilities', () => {
 
     // Invalid input
     actual = createGradeObject('5.9', sanitizeDisciplines({ bouldering: true }), context)
-    expect(actual).toEqual({})
+    expect(actual).toEqual(null)
   })
 })

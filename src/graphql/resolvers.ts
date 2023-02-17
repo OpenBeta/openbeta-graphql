@@ -6,7 +6,7 @@ import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
 import { QueryByIdType, GQLFilter, Sort } from '../types'
 import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
-import { ClimbExtType, ClimbType } from '../db/ClimbTypes.js'
+import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { PostMutations, PostQueries, PostResolvers } from './posts/index.js'
@@ -129,10 +129,10 @@ const resolvers = {
   ...TagResolvers,
 
   Climb: {
-    id: (node: ClimbExtType) => node._id.toUUID().toString(),
-    uuid: (node: ClimbExtType) => node._id.toUUID().toString(),
+    id: (node: ClimbGQLQueryType) => node._id.toUUID().toString(),
+    uuid: (node: ClimbGQLQueryType) => node._id.toUUID().toString(),
 
-    type: async (node: ClimbExtType) => {
+    type: async (node: ClimbGQLQueryType) => {
       if (node.type === undefined) {
         return {
           trad: true
@@ -146,7 +146,11 @@ const resolvers = {
       }
     },
 
-    metadata: (node: ClimbExtType) => ({
+    yds: (node: ClimbGQLQueryType) => node.yds ?? null,
+
+    grades: (node: ClimbGQLQueryType) => node.grades ?? null,
+
+    metadata: (node: ClimbGQLQueryType) => ({
       ...node.metadata,
       leftRightIndex: node.metadata.left_right_index,
       climb_id: node._id.toUUID().toString(),
@@ -156,15 +160,23 @@ const resolvers = {
       lat: node.metadata.lnglat.coordinates[1]
     }),
 
-    ancestors: (node: ClimbExtType) => node?.ancestors?.split(',') ?? [],
+    ancestors: (node: ClimbGQLQueryType) => node.ancestors.split(','),
 
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
       return await areas.findMediaByClimbId(node._id)
     },
 
-    createdBy: (node: ClimbExtType) => node?.createdBy?.toUUID().toString(),
-    updatedBy: (node: ClimbExtType) => node?.updatedBy?.toUUID().toString()
+    content: (node: ClimbGQLQueryType) => node.content == null
+      ? {
+          description: '',
+          location: '',
+          protection: ''
+        }
+      : node.content,
+
+    createdBy: (node: ClimbGQLQueryType) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: ClimbGQLQueryType) => node?.updatedBy?.toUUID().toString()
   },
 
   Area: {
@@ -190,7 +202,7 @@ const resolvers = {
     ancestors: async (parent) => parent.ancestors.split(','),
 
     climbs: async (node: AreaType, _, { dataSources: { areas } }) => {
-      if ((node?.climbs.length ?? 0) === 0) {
+      if ((node?.climbs?.length ?? 0) === 0) {
         return []
       }
 
@@ -208,6 +220,7 @@ const resolvers = {
     metadata: (node: AreaType) => ({
       ...node.metadata,
       isDestination: node.metadata?.isDestination ?? false,
+      isBoulder: node.metadata?.isBoulder ?? false,
       leftRightIndex: node.metadata.left_right_index,
       area_id: node.metadata.area_id.toUUID().toString(),
       areaId: node.metadata.area_id.toUUID().toString(),

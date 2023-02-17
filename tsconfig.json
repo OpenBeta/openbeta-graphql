@@ -2,11 +2,11 @@
   "compilerOptions": {
     "types": [
       "node",
-      "jest"
+      "jest",
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "target": "ES2020",
+    "target": "ESNext",
     "module": "ESNext",
     "esModuleInterop": true,
     "moduleResolution": "Node",
@@ -19,8 +19,6 @@
     "resolveJsonModule": true
   },
   "include": [
-    ".ts",
-    "**/*.ts",
-    "**/*.ts"
+    "src/**/*.ts",
   ]
 }
