@@ -58,6 +58,17 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     aid: GradeScales.FRENCH,
     snow: GradeScales.FRENCH, // is this the same as alpine?
     ice: GradeScales.FRENCH // is this the same as alpine?
+  },
+  [GradeContexts.SA]: {
+    trad: GradeScales.FRENCH,
+    sport: GradeScales.FRENCH,
+    bouldering: GradeScales.FONT,
+    tr: GradeScales.FRENCH,
+    alpine: GradeScales.FRENCH,
+    mixed: GradeScales.FRENCH,
+    aid: GradeScales.FRENCH,
+    snow: GradeScales.FRENCH, // SA does not have a whole lot of snow
+    ice: GradeScales.FRENCH // SA does not have a whole lot of ice
   }
 }
 
