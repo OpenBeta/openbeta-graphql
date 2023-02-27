@@ -1,17 +1,22 @@
 import mongoose from 'mongoose'
 import mongooseLeanVirtuals from 'mongoose-lean-virtuals'
-
+import muuid from 'uuid-mongodb'
 import { PostType } from './PostTypes.js'
+import { XMediaSchema } from './XMediaSchema.js'
 
 const { Schema } = mongoose
 
 const PostSchema = new Schema<PostType>({
   userId: {
-    type: Schema.Types.ObjectId,
-    required: true
+    type: 'object',
+    value: { type: 'Buffer' },
+    default: () => muuid.v4(),
+    required: true,
+    unique: false,
+    index: true
   },
-  mediaIds: {
-    type: [Schema.Types.ObjectId],
+  xMedia: {
+    type: [XMediaSchema],
     required: true
   },
   description: { type: String }

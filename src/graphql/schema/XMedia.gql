@@ -2,10 +2,7 @@
 # It is used to link media to the Post documents.
 
 type Mutation {
-  # addXMedia
-  addXMedia(input: AddXMediaInput): AddXMediaResponse
-
-  # removeXMedia
+  addXMedia(input: AddXMediaInput): XMedia
   removeXMedia(input: RemoveXMediaInput): RemoveXMediaResponse
 }
 
@@ -18,13 +15,8 @@ type Query {
 input AddXMediaInput {
   userId: ID!
   mediaType: Int!
-  mediaUuid: ID!
   mediaUrl: String!
   tagIds: [ID]
-}
-
-type AddXMediaResponse {
-  xMediaId: ID
 }
 
 input RemoveXMediaInput {
@@ -48,7 +40,6 @@ type XMedia {
   _id: ID
   userId: ID!
   mediaType: Int!
-  mediaUuid: ID!
   mediaUrl: String!
   tagIds: [ID]
 }

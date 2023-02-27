@@ -7,6 +7,8 @@ import type TickDataSource from './model/TickDataSource.js'
 import type HistoryDataSouce from './model/ChangeLogDataSource.js'
 import type MutableMediaDataSource from './model/MutableMediaDataSource.js'
 import MutableClimbDataSource from './model/MutableClimbDataSource.js'
+import XMediaDataSource from './model/XMediaDataSource.js'
+import PostDataSource from './model/PostDataSource.js'
 
 export enum SortDirection {
   ASC = 1,
@@ -72,6 +74,8 @@ export interface DataSourcesType {
   history: HistoryDataSouce
   media: MutableMediaDataSource
   climbs: MutableClimbDataSource
+  xmedia: XMediaDataSource
+  post: PostDataSource
 }
 
 export interface Context {

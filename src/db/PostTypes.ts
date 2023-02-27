@@ -1,14 +1,17 @@
 import mongoose from 'mongoose'
+import { MUUID } from 'uuid-mongodb'
+import { XMediaType } from './XMediaTypes'
 export interface PostType {
-  userId: mongoose.Types.ObjectId
-  mediaIds: mongoose.Types.ObjectId[]
+  userId: MUUID
+  xMedia: XMediaType[]
   description?: string
 }
 
 export interface AddPostInputType {
-  userId: mongoose.Types.ObjectId
-  mediaIds: mongoose.Types.ObjectId[]
+  photoUrls: string[]
+  userId: string
   description?: string
+  mediaType: number
 }
 
 export interface RemovePostInputType {
