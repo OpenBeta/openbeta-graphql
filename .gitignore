@@ -107,3 +107,10 @@ dist
 build
 tmp
 .env.local
+
+# Intellij
+.idea/
+*.iml
+
+/export/
+/openbeta-export/

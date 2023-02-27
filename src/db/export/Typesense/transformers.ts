@@ -1,6 +1,7 @@
-import { AreaTypeSenseItem } from './TypesenseSchemas.js'
+import { AreaTypeSenseItem, ClimbTypeSenseItem } from './TypesenseSchemas.js'
 import { AreaType } from '../../AreaTypes.js'
-import { geoToLatLng } from './Utils.js'
+import { disciplinesToArray, geoToLatLng } from './Utils.js'
+import { ClimbExtType, SafetyType } from '../../ClimbTypes.js'
 
 /**
  * Convert an Area object to a Typesense object
@@ -18,5 +19,19 @@ export function mongoAreaToTypeSense (doc: AreaType): AreaTypeSenseItem {
     isDestination: doc.metadata.isDestination,
     totalClimbs: doc.totalClimbs,
     density: doc.density
+  }
+}
+
+export function mongoClimbToTypeSense (doc: ClimbExtType): ClimbTypeSenseItem {
+  return {
+    climbUUID: doc._id.toUUID().toString(),
+    climbName: doc.name,
+    climbDesc: doc.content.description ?? '',
+    fa: doc.fa ?? '',
+    areaNames: doc.pathTokens,
+    disciplines: disciplinesToArray(doc.type),
+    grade: doc?.yds ?? '',
+    safety: doc?.safety ?? SafetyType.UNSPECIFIED.toString(),
+    cragLatLng: geoToLatLng(doc.metadata.lnglat)
   }
 }

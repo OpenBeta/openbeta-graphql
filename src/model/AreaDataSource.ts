@@ -7,7 +7,7 @@ import { getAreaModel, getMediaModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
-import { ClimbExtType } from '../db/ClimbTypes.js'
+import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
 import { logger } from '../logger.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
@@ -217,11 +217,22 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
   }
 
   /**
-   * Find a climb by uuid.  Also return some info from the parent area (crag).
-   * @param uuid
-   * @returns
+   * Find a climb by uuid.  Also return the parent area object (crag or boulder).
+   *
+   * SQL equivalent:
+   * ```sql
+   * SELECT
+   *   climbs.*,
+   *   areas.ancestors as ancestors,
+   *   areas.pathTokens as pathTokens,
+   *   (select * from areas) as parent
+   * FROM climbs, areas
+   * WHERE
+   *   climbs.metadata.areaRef == areas.metadata.area_id
+   * ```
+   * @param uuid climb uuid
    */
-  async findOneClimbByUUID (uuid: muuid.MUUID): Promise<ClimbExtType|null> {
+  async findOneClimbByUUID (uuid: muuid.MUUID): Promise<ClimbGQLQueryType|null> {
     const rs = await this.climbModel
       .aggregate([
         { $match: { _id: uuid } },
@@ -230,23 +241,15 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             from: 'areas', // other collection name
             localField: 'metadata.areaRef',
             foreignField: 'metadata.area_id',
-            as: 'area', // clobber array of climb IDs with climb objects
-            pipeline: [
-              {
-                $project: { // only include specific fields
-                  _id: 0,
-                  ancestors: 1,
-                  pathTokens: 1,
-                  gradeContext: 1
-                }
-              }
-            ]
+            as: 'parent' // add a new parent field
           }
         },
-        { $unwind: '$area' }, // Previous stage returns as an array of 1 element. 'unwind' turn it into an object.
+        { $unwind: '$parent' }, // Previous stage returns as an array of 1 element. 'unwind' turn it into an object.
         {
-          $replaceWith: { // Merge area.* with top-level object
-            $mergeObjects: ['$$ROOT', '$area']
+          $set: {
+            // create aliases
+            pathTokens: '$parent.pathTokens',
+            ancestors: '$parent.ancestors'
           }
         }
       ])

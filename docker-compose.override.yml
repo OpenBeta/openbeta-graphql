@@ -11,5 +11,6 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo_opentacos:27017/opentacos?authSource=admin&replicaSet=rs0
     depends_on:
     - mongo_opentacos
+    - mongosetup
 volumes:
   opentacos_mongodb_data:
