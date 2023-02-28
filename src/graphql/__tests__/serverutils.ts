@@ -14,6 +14,34 @@ import { AuthUserType } from '../../types'
 import muid from 'uuid-mongodb'
 
 /**
+   * Create the mock context.
+   * When creating the request, all you need to do is set the authorization header
+   * to something along the lines of:
+   * Bearer { "roles": ["some_role"], "uuid": "arb_uuid"}
+   * the context creator will parse the JSON and use it to create the context.
+   * */
+async function createTestContext (ctx: ExpressContext): Promise<{user: AuthUserType}> {
+  const user: AuthUserType = {
+    roles: [],
+    uuid: undefined
+  }
+
+  const { headers } = ctx.req
+  const authHeader = String(headers?.authorization ?? '')
+
+  if (authHeader.startsWith('Bearer ')) {
+    const tokenRaw = authHeader.substring(7, authHeader.length).trim()
+    const token = JSON.parse(tokenRaw)
+
+    user.roles = token.roles ?? []
+    const uidStr: string | undefined = token.uuid
+    user.uuid = uidStr != null ? muid.from(uidStr) : undefined
+  }
+
+  return { user }
+}
+
+/**
  * For the sake of simplifying test behavior and reduce moving components, we mock the
  * Part of the context creation that is based on JWT.
  *
@@ -26,34 +54,6 @@ import muid from 'uuid-mongodb'
  * behavior of the server to the context.
  */
 export async function createTestGqlServer (): Promise<ApolloServer> {
-  /**
-   * Create the mock context.
-   * When creating the request, all you need to do is set the authorization header
-   * to something along the lines of:
-   * Bearer { "roles": ["some_role"], "uuid": "arb_uuid"}
-   * the context creator will parse the JSON and use it to create the context.
-   * */
-  async function createTestContext (ctx: ExpressContext): Promise<{user: AuthUserType}> {
-    const user: AuthUserType = {
-      roles: [],
-      uuid: undefined
-    }
-
-    const { headers } = ctx.req
-    const authHeader = String(headers?.authorization ?? '')
-
-    if (authHeader.startsWith('Bearer ')) {
-      const tokenRaw = authHeader.substring(7, authHeader.length).trim()
-      const token = JSON.parse(tokenRaw)
-
-      user.roles = token.roles ?? []
-      const uidStr: string | undefined = token.uuid
-      user.uuid = uidStr != null ? muid.from(uidStr) : undefined
-    }
-
-    return { user }
-  }
-
   const schema = applyMiddleware(graphqlSchema, permissions.generate(graphqlSchema))
 
   const server = new ApolloServer({
