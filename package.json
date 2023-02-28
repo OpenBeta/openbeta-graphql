@@ -80,8 +80,7 @@
   "ts-standard": {
     "ignore": [
       "build",
-      "hacks",
-      "**/*.test.ts"
+      "hacks"
     ]
   },
   "type": "module",
