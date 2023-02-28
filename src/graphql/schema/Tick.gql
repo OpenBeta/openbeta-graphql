@@ -51,9 +51,9 @@ etc of the ticked climb NOTE: source must either be MP or OB
 which stand for Mountain Project, or Open Beta respectively
 """
 type TickType {
-  _id: ID
+  _id: ID!
   "User that this tick belongs to "
-  userId: String
+  userId: String!
   """
   The name of this climb.
 
@@ -64,7 +64,7 @@ type TickType {
   If the name changes in its related climb document, the value stored here may be back-updated
   to reflect the new name.
   """
-  name: String
+  name: String!
   """
   freeform text field that a user fills out as commentary on this tick. This unstructured data
   is one of the most important ones on the tick, as users may give their human opinion on the
@@ -81,7 +81,7 @@ type TickType {
 
   When source is OpenBeta, this can be understood as a foreign key to the climbs collection uuid.
   """
-  climbId: String
+  climbId: String!
   """
   Arbitrary string that represents the style of the climb.
   Lead, toprope, bouldering, would be examples of values you might find here.
@@ -102,15 +102,15 @@ type TickType {
   database.
   This is a string because we do not enforce any particular date format at this time.
   """
-  dateClimbed: String
+  dateClimbed: String!
   """
   What grade is this tick ascociated with?
   This exists in the tick document both for easy-fetching and to ensure
   proper operation when importing ticks for entities that cannot be located
   within OpenBeta's database.
   """
-  grade: String
-  source: TickSource
+  grade: String!
+  source: TickSource!
 }
 
 "The tick sources that openbeta supports."
