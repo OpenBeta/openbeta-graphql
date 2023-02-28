@@ -1,6 +1,6 @@
+import mongoose from 'mongoose'
 import { ApolloServer } from 'apollo-server'
 import { applyMiddleware } from 'graphql-middleware'
-import mongoose from 'mongoose'
 import { permissions } from '../../auth'
 import { changelogDataSource } from '../../model/ChangeLogDataSource'
 import MutableMediaDataSource from '../../model/MutableMediaDataSource'
@@ -14,17 +14,20 @@ import { AuthUserType } from '../../types'
 import muid from 'uuid-mongodb'
 
 /**
-   * Create the mock context.
+   * Create the mock context (e2e testing)
    * When creating the request, all you need to do is set the authorization header
    * to something along the lines of:
    * Bearer { "roles": ["some_role"], "uuid": "arb_uuid"}
    * the context creator will parse the JSON and use it to create the context.
    * */
-async function createTestContext (ctx: ExpressContext): Promise<{user: AuthUserType}> {
+export async function createTestContext (ctx: ExpressContext): Promise<{user: AuthUserType}> {
   const user: AuthUserType = {
     roles: [],
     uuid: undefined
   }
+
+  if (ctx.req === undefined) return { user }
+  if (ctx.req.headers === undefined) return { user }
 
   const { headers } = ctx.req
   const authHeader = String(headers?.authorization ?? '')
@@ -57,17 +60,17 @@ export async function createTestGqlServer (): Promise<ApolloServer> {
   const schema = applyMiddleware(graphqlSchema, permissions.generate(graphqlSchema))
 
   const server = new ApolloServer({
-    introspection: true,
     schema,
-    context: createTestContext,
     dataSources: () => ({
       climbs: createNewClimbDS(),
       areas: createNewAreaDS(),
       ticks: new TickDataSource(mongoose.connection.db.collection('ticks')),
-      history: changelogDataSource, // see source for explantion why we don't instantiate the object
-      media: new MutableMediaDataSource(mongoose.connection.db.collection('media'))
+      media: new MutableMediaDataSource(mongoose.connection.db.collection('media')),
+      history: changelogDataSource // see source for explantion why we don't instantiate the object
     }),
-    cache: 'bounded'
+    context: (x: AuthUserType) => {
+      return x
+    }
   })
 
   return server
