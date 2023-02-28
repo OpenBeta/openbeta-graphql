@@ -1,22 +1,34 @@
 import { XMediaType, RemoveXMediaInputType } from '../../db/XMediaTypes'
 import { getXMediaModel } from '../../db/XMediaSchema.js'
-import muid from 'uuid-mongodb'
+import { DataSourcesType } from '../../types'
 
 const XMediaMutations = {
   // addXMedia
-  addXMedia: async (_: any, { input }: {input: XMediaType}) => {
-    const XMediaModel = getXMediaModel()
-    const newXMedia = new XMediaModel({
-      ...input,
-      userId: muid.from(input.userId),
-      mediaUuid: muid.from(input.mediaUuid)
-    })
-    const res = await XMediaModel.create(newXMedia)
-    return { xMediaId: res.id }
+  addXMedia: async (
+    _: any,
+    { input }: { input: XMediaType },
+    { dataSources }
+  ) => {
+    const { xmedia }: DataSourcesType = dataSources
+
+    try {
+      const newXMedia = await xmedia.addXMedia({
+        userId: input.userId,
+        mediaType: input.mediaType,
+        mediaUrl: input.mediaUrl
+      })
+      if (newXMedia == null) {
+        console.error(`Failed to add xMedia with url: ${input.mediaUrl}`)
+      }
+      return { xMediaId: newXMedia }
+    } catch (ex) {
+      console.error('Error adding new Post', ex)
+      return ex
+    }
   },
 
   // removeXMedia
-  removeXMedia: async (_: any, { input }: {input: RemoveXMediaInputType}) => {
+  removeXMedia: async (_: any, { input }: { input: RemoveXMediaInputType }) => {
     const XMediaModel = getXMediaModel()
     const res = await XMediaModel.deleteOne({ _id: input.xMediaId })
     return { numDeleted: res.deletedCount }

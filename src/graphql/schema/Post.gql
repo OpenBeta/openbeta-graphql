@@ -1,5 +1,5 @@
 type Mutation {
-  addPost(input: AddPostInput): AddPostResponse
+  addPost(input: AddPostInput): Post
   removePost(input: RemovePostInput): RemovePostResponse
 }
 
@@ -15,7 +15,7 @@ input GetPostsInput {
 "Input params for creating a new post"
 input AddPostInput {
   userId: ID!
-  mediaIds: [ID]!
+  photoUrls: [String]!
   description: String
 }
 
@@ -40,6 +40,6 @@ type GetPostsResponse {
 type Post {
   _id: ID
   userId: ID!
-  mediaIds: [ID]!
+  xMedia: [XMedia]!
   description: String
 }

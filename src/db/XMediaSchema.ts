@@ -6,7 +6,7 @@ import { XMediaType } from './XMediaTypes.js'
 
 const { Schema } = mongoose
 
-const XMediaSchema = new Schema<XMediaType>({
+export const XMediaSchema = new Schema<XMediaType>({
   userId: {
     type: 'object',
     value: { type: 'Buffer' },
@@ -22,14 +22,6 @@ const XMediaSchema = new Schema<XMediaType>({
   mediaUrl: {
     type: Schema.Types.String,
     required: true
-  },
-  mediaUuid: {
-    type: 'object',
-    value: { type: 'Buffer' },
-    default: () => muuid.v4(),
-    required: true,
-    unique: false,
-    index: true
   },
   tagIds: {
     type: [Schema.Types.ObjectId],
