@@ -79,8 +79,9 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
  * @param context grade context
  * @returns grade object
  */
-export const createGradeObject = (gradeStr: string, disciplines: DisciplineType, context: ClimbGradeContextType): Partial<Record<GradeScalesTypes, string>> | null => {
-  return Object.keys(disciplines).reduce<Partial<Record<GradeScalesTypes, string>> | null>((acc, curr) => {
+export const createGradeObject = (gradeStr: string, disciplines: DisciplineType | undefined, context: ClimbGradeContextType): Partial<Record<GradeScalesTypes, string>> | undefined => {
+  if (disciplines == null) return undefined
+  return Object.keys(disciplines).reduce<Partial<Record<GradeScalesTypes, string>> | undefined>((acc, curr) => {
     if (disciplines[curr] === true) {
       const scaleTxt = context[curr]
       const scaleApi = getScale(scaleTxt)
@@ -96,7 +97,7 @@ export const createGradeObject = (gradeStr: string, disciplines: DisciplineType,
       }
     }
     return acc
-  }, null)
+  }, undefined)
 }
 
 /**
@@ -199,8 +200,8 @@ export const validDisciplines = ['trad', 'sport', 'bouldering', 'alpine', 'snow'
  * Perform runtime validation of climb discipline object
  * @param disciplineObj IClimbType
  */
-export const sanitizeDisciplines = (disciplineObj: Partial<DisciplineType> | undefined): DisciplineType => {
-  // if (disciplineObj == null) return validDisciplines.reduce(curr, acc)
+export const sanitizeDisciplines = (disciplineObj: Partial<DisciplineType> | undefined): DisciplineType | undefined => {
+  if (disciplineObj == null) return undefined
 
   const output = validDisciplines.reduce((acc, current) => {
     if (disciplineObj?.[current] != null) {
@@ -217,3 +218,15 @@ export const sanitizeDisciplines = (disciplineObj: Partial<DisciplineType> | und
   }
   return output as DisciplineType
 }
+
+export const defaultDisciplines = (): DisciplineType => ({
+  trad: false,
+  sport: false,
+  bouldering: false,
+  alpine: false,
+  snow: false,
+  ice: false,
+  mixed: false,
+  aid: false,
+  tr: false
+})

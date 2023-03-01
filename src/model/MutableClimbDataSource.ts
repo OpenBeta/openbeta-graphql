@@ -111,7 +111,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
       const grade = userInput[i].grade
 
-      const newGradeObj = grade != null && userInput[i]?.disciplines != null // only update grades when both grade str and disciplines obj exist
+      const newGradeObj = grade != null && typeSafeDisciplines != null // only update grades when both grade str and disciplines obj exist
         ? createGradeObject(grade, typeSafeDisciplines, cragGradeScales)
         : null
 
@@ -135,7 +135,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         metadata: {
           areaRef: parent.metadata.area_id,
           lnglat: parent.metadata.lnglat,
-          left_right_index: userInput[i]?.leftRightIndex != null ? userInput[i].leftRightIndex : i
+          ...userInput[i]?.leftRightIndex != null && { left_right_index: userInput[i].leftRightIndex }
         },
         ...!idList[i].existed && { createdBy: userId },
         ...idList[i].existed && { updatedBy: userId },
