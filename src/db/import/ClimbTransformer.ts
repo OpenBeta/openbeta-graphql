@@ -3,7 +3,7 @@ import muuid from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 
 import { ClimbType } from '../ClimbTypes.js'
-import { sanitizeDisciplines } from '../../GradeUtils.js'
+import { defaultDisciplines, sanitizeDisciplines } from '../../GradeUtils.js'
 
 const transformClimbRecord = (row: any): ClimbType => {
   /* eslint-disable-next-line */
@@ -14,7 +14,8 @@ const transformClimbRecord = (row: any): ClimbType => {
   // in case mp_route_id is empty
   const pkeyStr = mp_route_id === '' ? `${mp_sector_id as string}.${left_right_seq as string}` : mp_route_id
   const uuid = muuid.from(uuidv5(pkeyStr, NIL))
-  const disciplines = sanitizeDisciplines(type)
+  const disciplines = sanitizeDisciplines(type) ?? defaultDisciplines()
+
   const boulderingDiscipline = disciplines.bouldering === true ? { vscale: grade.YDS } : {}
 
   return {
