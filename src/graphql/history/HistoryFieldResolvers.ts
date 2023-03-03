@@ -24,12 +24,10 @@ const resolvers = {
 
   Document: {
     __resolveType (node: SupportedCollectionTypes) {
-      // @ts-expect-error
-      if (node.metadata?.leaf != null) {
+      if (node.kind === 'areas') {
         return 'Area'
       }
-      // @ts-expect-error
-      if (node?.type != null) {
+      if (node.kind === 'climbs') {
         return 'Climb'
       }
       return null
