@@ -4,9 +4,10 @@ import dot from 'dot-object'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
-import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation } from '../ChangeLogType.js'
+import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation, SupportedCollectionTypes } from '../ChangeLogType.js'
 import { checkVar } from '../index.js'
 import { updateAreaIndex } from '../export/Typesense/Client.js'
+import { AreaType } from '../AreaTypes.js'
 
 /**
  * Start a new stream listener to track changes
@@ -54,14 +55,14 @@ const onChange = (change: ChangeStreamDocument): void => {
         dbOp = 'delete'
       }
 
-      void recordChange({ _id: _id as ResumeToken, source, fullDocument, updateDescription, dbOp })
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument: fullDocument as SupportedCollectionTypes, updateDescription, dbOp })
       break
     }
     case 'insert': {
       const dbOp = 'insert'
       const source = change.ns.coll
       const { fullDocument, _id } = change
-      void recordChange({ _id: _id as ResumeToken, source, fullDocument, dbOp })
+      void recordChange({ _id: _id as ResumeToken, source, fullDocument: fullDocument as SupportedCollectionTypes, dbOp })
       break
     }
   }
@@ -70,15 +71,15 @@ const onChange = (change: ChangeStreamDocument): void => {
 interface ChangeRecordType {
   _id: ResumeToken
   source: string
-  fullDocument: any | null
+  fullDocument: SupportedCollectionTypes
   updateDescription?: any
   dbOp: DBOperation
 }
 
 const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
+  fullDocument.kind = source
   switch (source) {
     case 'climbs': {
-      fullDocument.kind = source
       const newDocument: BaseChangeRecordType = {
         _id,
         dbOp,
@@ -90,7 +91,6 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
       break
     }
     case 'areas': {
-      fullDocument.kind = source
       const newDocument: BaseChangeRecordType = {
         _id,
         dbOp,
@@ -99,7 +99,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         kind: 'areas'
       }
       void changelogDataSource.record(newDocument)
-      void updateAreaIndex(fullDocument, dbOp)
+      void updateAreaIndex(fullDocument as AreaType, dbOp)
       break
     }
     default:

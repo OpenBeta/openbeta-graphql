@@ -54,7 +54,7 @@ export type AreaChangeRecordType = BaseChangeRecordType<AreaType>
 
 export type ClimbChangeLogType = ChangeLogType<ClimbType>
 
-export type SupportedCollectionTypes = AreaType | ClimbType
+export type SupportedCollectionTypes = AreaType & WithDiscriminator | ClimbType & WithDiscriminator
 
 export interface GetHistoryInputFilterType {
   uuidList: string[]

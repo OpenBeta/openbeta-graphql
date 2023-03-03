@@ -34,7 +34,8 @@ export default function typesense (): Client | undefined {
  * @param area
  * @param op
  */
-export const updateAreaIndex = async (area: AreaType, op: DBOperation): Promise<void> => {
+export const updateAreaIndex = async (area: AreaType|null, op: DBOperation): Promise<void> => {
+  if (area == null) return
   try {
     if (Config.DEPLOYMENT_ENV !== 'production') {
       return
