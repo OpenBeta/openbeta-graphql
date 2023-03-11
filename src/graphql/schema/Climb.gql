@@ -15,6 +15,10 @@ type Climb {
   name: String!
   "First ascent, if known. Who was the first person to climb this route?"
   fa: String
+
+  "Total length in meters if known (-1 otherwise)"
+  length: Int!
+
   "The grade(s) assigned to this climb. See GradeType documentation"
   grades: GradeType
 

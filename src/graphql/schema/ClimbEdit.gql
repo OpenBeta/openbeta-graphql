@@ -25,6 +25,10 @@ input SingleClimbChangeInput {
   description: String
   location: String
   protection: String
+  "Legacy FA data"
+  fa: String
+  "Length in meters"
+  length: Int
 }
 
 input DisciplineType {

@@ -37,6 +37,9 @@ export interface IClimbProps {
   /** First ascent, if known. Who was the first person to climb this route? */
   fa?: string
   yds?: string
+
+  /** Total length in metersif known.  We will support individual pitch lenth in the future. */
+  length?: number
   /**
    * Grades appear within as an I18n-safe format.
    * We achieve this via a larger data encapsulation, and perform interpretation and comparison
@@ -149,11 +152,11 @@ export interface ClimbChangeInputType {
   description?: string
   location?: string
   protection?: string
+  fa?: string
+  length?: number
 }
 
-// export type ClimbDBChangeType = ClimbChangeInputType
-
-type UpdatableClimbFieldsType = Pick<ClimbType, 'fa'|'name'|'type' | 'gradeContext' |'grades' | 'content'>
+type UpdatableClimbFieldsType = Pick<ClimbType, 'fa' | 'name' | 'type' | 'gradeContext' | 'grades' | 'content' | 'length'>
 /**
  * Minimum required fields when adding a new climb or boulder problem
  */
