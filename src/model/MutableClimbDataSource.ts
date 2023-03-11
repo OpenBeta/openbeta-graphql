@@ -132,7 +132,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ...typeSafeDisciplines != null && { type: typeSafeDisciplines },
         gradeContext: parent.gradeContext,
         ...fa != null && { fa },
-        ...length != null && { length },
+        ...length != null && length > 0 && { length },
         content: Object.keys(content).length === 0 ? undefined : content,
         metadata: {
           areaRef: parent.metadata.area_id,
