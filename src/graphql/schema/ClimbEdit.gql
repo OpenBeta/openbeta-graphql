@@ -1,8 +1,12 @@
 type Mutation {
+  """
+  Create or update one or more climbs.
+  """
   updateClimbs(input: UpdateClimbsInput): [ID]
-}
 
-type Mutation {
+  """
+  Delete one or more climbs
+  """
   deleteClimbs(input: DeleteManyClimbsInput): Int
 }
 
@@ -11,12 +15,21 @@ input DeleteManyClimbsInput {
   idList: [ID]
 }
 
+"""
+Create/update climbs input parameter.
+"""
 input UpdateClimbsInput {
+  "Parent area ID"
   parentId: ID!
+  "Array of change records"
   changes: [SingleClimbChangeInput]
 }
 
+"""
+Climb change record.  If the climb ID is omitted or does not exist in the database, a new climb will be created.
+"""
 input SingleClimbChangeInput {
+  "Climb UUID"
   id: ID
   name: String
   disciplines: DisciplineType
