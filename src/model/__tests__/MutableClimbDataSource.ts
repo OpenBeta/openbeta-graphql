@@ -268,7 +268,7 @@ describe('Climb CRUD', () => {
       newClimbsToAdd
     )
 
-    const climbToUpdate: ClimbChangeInputType = {
+    const change: ClimbChangeInputType = {
       id: newIDs[0],
       fa: 'First name Last name, 2023',
       length: 20
@@ -276,6 +276,16 @@ describe('Climb CRUD', () => {
 
     await climbs.addOrUpdateClimbs(testUser,
       newDestination.metadata.area_id,
-      [climbToUpdate])
+      [change])
+
+    const actual = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+
+    expect(actual?.fa).not.toBeNull()
+    expect(actual?.length).not.toBeNull()
+
+    expect(actual).toMatchObject({
+      fa: change.fa,
+      length: change.length
+    })
   })
 })
