@@ -256,4 +256,36 @@ describe('Climb CRUD', () => {
     expect(actual1?.createdBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())
     expect(actual1?.updatedBy?.toUUID().toString()).toEqual(otherUser.toUUID().toString())
   })
+
+  it('can update climb length & fa', async () => {
+    const newDestination = await areas.addArea(testUser, 'Sport area Z100', null, 'fr')
+
+    if (newDestination == null) fail('Expect new area to be created')
+
+    const newIDs = await climbs.addOrUpdateClimbs(
+      testUser,
+      newDestination.metadata.area_id,
+      newClimbsToAdd
+    )
+
+    const change: ClimbChangeInputType = {
+      id: newIDs[0],
+      fa: 'First name Last name, 2023',
+      length: 20
+    }
+
+    await climbs.addOrUpdateClimbs(testUser,
+      newDestination.metadata.area_id,
+      [change])
+
+    const actual = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+
+    expect(actual?.fa).not.toBeNull()
+    expect(actual?.length).not.toBeNull()
+
+    expect(actual).toMatchObject({
+      fa: change.fa,
+      length: change.length
+    })
+  })
 })
