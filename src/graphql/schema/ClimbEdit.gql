@@ -42,6 +42,7 @@ input SingleClimbChangeInput {
   fa: String
   "Length in meters"
   length: Int
+  experimentalAuthor: ExperimentalAuthorType
 }
 
 input DisciplineType {
@@ -62,4 +63,9 @@ input DisciplineType {
   aid: Boolean
   "https://en.wikipedia.org/wiki/Top_rope_climbing"
   tr: Boolean
+}
+
+input ExperimentalAuthorType {
+  displayName: String!
+  url: String!
 }
