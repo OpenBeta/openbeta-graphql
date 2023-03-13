@@ -154,6 +154,10 @@ export interface ClimbChangeInputType {
   protection?: string
   fa?: string
   length?: number
+  experimentalAuthor?: {
+    displayName: string
+    url: string
+  }
 }
 
 type UpdatableClimbFieldsType = Pick<ClimbType, 'fa' | 'name' | 'type' | 'gradeContext' | 'grades' | 'content' | 'length'>

@@ -9,6 +9,7 @@ import { getTickModel } from './TickSchema.js'
 import { getXMediaModel } from './XMediaSchema.js'
 import { getPostModel } from './PostSchema.js'
 import { getChangeLogModel } from './ChangeLogSchema.js'
+import { getExperimentalUserModel } from './UserSchema.js'
 import { logger } from '../logger.js'
 import streamListener from './edit/streamListener.js'
 
@@ -85,4 +86,13 @@ export const defaultPostConnect = async (): Promise<void> => {
 // eslint-disable-next-line
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
-export { getMediaModel, getAreaModel, getTickModel, getClimbModel, getChangeLogModel, getXMediaModel, getPostModel }
+export {
+  getMediaModel,
+  getAreaModel,
+  getTickModel,
+  getClimbModel,
+  getChangeLogModel,
+  getXMediaModel,
+  getPostModel,
+  getExperimentalUserModel
+}

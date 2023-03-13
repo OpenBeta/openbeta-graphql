@@ -4,6 +4,7 @@ import { ClientSession } from 'mongoose'
 
 import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType } from '../db/ClimbTypes.js'
 import ClimbDataSource from './ClimbDataSource.js'
+import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
 import { sanitizeDisciplines, gradeContextToGradeScales, createGradeObject } from '../GradeUtils.js'
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
@@ -11,6 +12,8 @@ import { changelogDataSource } from './ChangeLogDataSource.js'
 import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
 
 export default class MutableClimbDataSource extends ClimbDataSource {
+  experimentalUserDataSource = createExperimentalUserDataSource()
+
   async _addOrUpdateClimbs (userId: MUUID, session: ClientSession, parentId: MUUID, userInput: ClimbChangeInputType[]): Promise<string[]> {
     const newClimbIds = new Array<MUUID>(userInput.length)
     for (let i = 0; i < newClimbIds.length; i++) {
@@ -107,6 +110,15 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         throw new UserInputError(`Can't add new climbs without name.  (Index[index=${i}])`)
       }
 
+      // See https://github.com/OpenBeta/openbeta-graphql/issues/244
+      const author = userInput[i].experimentalAuthor
+      let experimentalUserId: MUUID | null = null
+      if (author != null) {
+        experimentalUserId = await this.experimentalUserDataSource.updateUser(session, author.displayName, author.url)
+      }
+
+      console.log('#xperimental uiser', experimentalUserId)
+
       const typeSafeDisciplines = sanitizeDisciplines(userInput[i]?.disciplines)
 
       const grade = userInput[i].grade
@@ -139,10 +151,10 @@ export default class MutableClimbDataSource extends ClimbDataSource {
           lnglat: parent.metadata.lnglat,
           ...userInput[i]?.leftRightIndex != null && { left_right_index: userInput[i].leftRightIndex }
         },
-        ...!idList[i].existed && { createdBy: userId },
+        ...!idList[i].existed && { createdBy: experimentalUserId ?? userId },
         ...idList[i].existed && { updatedBy: userId },
         _change: {
-          user: userId,
+          user: experimentalUserId ?? userId,
           historyId: change._id,
           prevHistoryId: undefined,
           operation: opType,
