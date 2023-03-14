@@ -21,4 +21,4 @@ export const sanitizeStrict = (text: string): string => sanitizeHtml(text, {
   allowedTags: [],
   allowedAttributes: {
   }
-})
+}).trim()

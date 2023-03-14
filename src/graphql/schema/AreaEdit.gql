@@ -28,6 +28,7 @@ input AreaInput {
   parentUuid: ID
   countryCode: String
   isDestination: Boolean
+  experimentalAuthor: ExperimentalAuthorType
 }
 
 input RemoveAreaInput {
@@ -44,4 +45,5 @@ input AreEditableFieldsInput {
   lat: Float
   lng: Float
   description: String
+  experimentalAuthor: ExperimentalAuthorType
 }
