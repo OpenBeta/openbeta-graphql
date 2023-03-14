@@ -8,3 +8,8 @@ export interface ExperimentalUserType {
   createdAt: Date
   updatedAt: Date
 }
+
+export interface ExperimentalAuthorType {
+  displayName: string
+  url: string
+}

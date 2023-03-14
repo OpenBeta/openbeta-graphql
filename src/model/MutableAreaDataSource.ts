@@ -17,10 +17,14 @@ import CountriesLngLat from '../data/countries-with-lnglat.json' assert { type: 
 import { logger } from '../logger.js'
 import { GradeContexts } from '../GradeUtils.js'
 import { sanitizeStrict } from '../utils/sanitize.js'
+import { ExperimentalAuthorType } from '../db/UserTypes.js'
+import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
 
 isoCountries.registerLocale(enJson)
 
 export default class MutableAreaDataSource extends AreaDataSource {
+  experimentalUserDataSource = createExperimentalUserDataSource()
+
   async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
     let ret: AreaType | null = null
@@ -101,7 +105,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param parentUuid
    * @param countryCode
    */
-  async addArea (user: MUUID, areaName: string, parentUuid: MUUID | null, countryCode?: string): Promise<AreaType> {
+  async addArea (user: MUUID, areaName: string, parentUuid: MUUID | null, countryCode?: string, experimentalAuthor?: ExperimentalAuthorType): Promise<AreaType> {
     if (parentUuid == null && countryCode == null) {
       throw new Error('Adding area failed. Must provide parent Id or country code')
     }
@@ -121,14 +125,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addArea(session, user, areaName, uuid)
+        ret = await this._addArea(session, user, areaName, uuid, experimentalAuthor)
         return ret
       })
     // @ts-expect-error
     return ret
   }
 
-  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID): Promise<any> {
+  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
     const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError('Expecting 1 parent, found none.'))
 
@@ -141,9 +145,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
       parent.metadata.isBoulder = false
     }
 
+    // See https://github.com/OpenBeta/openbeta-graphql/issues/244
+    let experimentaAuthorId: MUUID | null = null
+    if (experimentalAuthor != null) {
+      experimentaAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
+    }
+
     const change = await changelogDataSource.create(session, user, OperationType.addArea)
     const newChangeMeta: ChangeRecordMetadataType = {
-      user,
+      user: experimentaAuthorId ?? user,
       historyId: change._id,
       operation: OperationType.addArea,
       seq: 0
@@ -159,7 +169,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parentGradeContext = parent.gradeContext
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens, parentGradeContext)
     newArea.metadata.lnglat = parent.metadata.lnglat
-    newArea.createdBy = user
+    newArea.createdBy = experimentaAuthorId ?? user
     newArea._change = produce(newChangeMeta, draft => {
       draft.seq = 1
     })
@@ -167,7 +177,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     // Make sure parent knows about this new area
     parent.children.push(newArea._id)
-    parent.updatedBy = user
+    parent.updatedBy = experimentaAuthorId ?? user
     await parent.save({ timestamps: false })
     return rs1[0].toObject()
   }
@@ -281,7 +291,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
         throw new Error('Area update error.  Reason: Area not found.')
       }
 
-      const { areaName, description, shortCode, isDestination, isLeaf, isBoulder, lat, lng } = document
+      const { areaName, description, shortCode, isDestination, isLeaf, isBoulder, lat, lng, experimentalAuthor } = document
 
       if (area.pathTokens.length === 1) {
         if (areaName != null || shortCode != null) throw new Error('Area update error.  Reason: Updating country name or short code is not allowed.')
@@ -313,18 +323,24 @@ export default class MutableAreaDataSource extends AreaDataSource {
         })
       }
 
+      // See https://github.com/OpenBeta/openbeta-graphql/issues/244
+      let experimentaAuthorId: MUUID | null = null
+      if (experimentalAuthor != null) {
+        experimentaAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
+      }
+
       const opType = OperationType.updateArea
       const change = await changelogDataSource.create(session, user, opType)
 
       const _change: ChangeRecordMetadataType = {
-        user,
+        user: experimentaAuthorId ?? user,
         historyId: change._id,
         prevHistoryId: area._change?.historyId._id,
         operation: opType,
         seq: 0
       }
       area.set({ _change })
-      area.updatedBy = user
+      area.updatedBy = experimentaAuthorId ?? user
       const cursor = await area.save()
       return cursor.toObject()
     }

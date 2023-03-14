@@ -5,6 +5,7 @@ import { BBox, Point } from '@turf/helpers'
 import { ClimbType } from './ClimbTypes.js'
 import { ChangeRecordMetadataType } from './ChangeLogType.js'
 import { GradeContexts } from '../GradeUtils.js'
+import { ExperimentalAuthorType } from './UserTypes.js'
 
 /**
  * Areas are a grouping mechanism in the OpenBeta data model that allow
@@ -165,6 +166,7 @@ export interface AreaEditableFieldsType {
   shortCode?: string
   lat?: number
   lng?: number
+  experimentalAuthor?: ExperimentalAuthorType
 }
 
 export interface CountByGroupType {
