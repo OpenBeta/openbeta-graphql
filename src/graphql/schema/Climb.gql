@@ -19,6 +19,9 @@ type Climb {
   "Total length in meters if known (-1 otherwise)"
   length: Int!
 
+  "Number of bolts (permanent anchors fixed into the rock). Especially relevant for sport climbing."
+  bolts: Int!
+
   "The grade(s) assigned to this climb. See GradeType documentation"
   grades: GradeType
 
