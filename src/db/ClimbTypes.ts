@@ -38,10 +38,10 @@ export interface IClimbProps {
   fa?: string
   yds?: string
 
-  /** Total length in metersif known.  We will support individual pitch lenth in the future. */
+  /** Total length in meters, if known.  We will support individual pitch lenth in the future. */
   length?: number
 
-  /** Total number of bolts (fixed anchors). Especially relevant for sport climbs. */
+  /** Total number of bolts (fixed anchors), if known. Especially relevant for sport climbs. */
   bolts?: number
 
   /**
