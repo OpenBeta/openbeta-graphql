@@ -130,7 +130,12 @@ export interface IAreaMetadata {
    * all of this areas children (Both sub-areas and climbs).
    */
   bbox: BBox
-  left_right_index: number
+
+  /**
+   * Left-to-right sorting index.  Undefined or -1 for unsorted area,
+   */
+  leftRightIndex?: number
+
   /**
    * Some areas have been directly imported into the OpenBeta dataset, and if they have
    * this field will record their external relation.
@@ -153,9 +158,9 @@ export interface IAreaContent {
   description?: string
 }
 
-/** Fields that may be directly modified by users
+/** Fields that may be directly modified by users.
  * This does not define the total set of mutable fields in the area, only the ones that users
- * may directly submit and over-write
+ * may directly submit and over-write.
  */
 export interface AreaEditableFieldsType {
   areaName?: string
@@ -166,8 +171,13 @@ export interface AreaEditableFieldsType {
   shortCode?: string
   lat?: number
   lng?: number
+  leftRightIndex?: number
   experimentalAuthor?: ExperimentalAuthorType
 }
+
+export type UpdateSortingOrderType = {
+  areaId: string
+} & Required<Pick<AreaEditableFieldsType, 'leftRightIndex'>>
 
 export interface CountByGroupType {
   count: number

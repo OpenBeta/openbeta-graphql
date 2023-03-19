@@ -94,8 +94,8 @@ type AreaMetadata {
   "NE and SW corners of the bounding box for this area"
   bbox: [Float]!
 
-  left_right_index: Int!
-  leftRightIndex: Int!
+  "Left-to-right sorting index.  Undefined or -1 or unsorted area."
+  leftRightIndex: Int
 
   "Mountainproject ID (if associated)"
   mp_id: String!

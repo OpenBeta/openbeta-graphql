@@ -1,17 +1,9 @@
 type Mutation {
   setDestinationFlag(input: DestinationFlagInput): Area
-}
-
-type Mutation {
   addArea(input: AreaInput): Area
-}
-
-type Mutation {
   removeArea(input: RemoveAreaInput): Area
-}
-
-type Mutation {
   updateArea(input: AreEditableFieldsInput): Area
+  updateAreasSortingOrder(input: [AreaSortingInput]): [ID]
 }
 
 input DestinationFlagInput {
@@ -46,4 +38,10 @@ input AreEditableFieldsInput {
   lng: Float
   description: String
   experimentalAuthor: ExperimentalAuthorType
+  leftRightIndex: Int
+}
+
+input AreaSortingInput {
+  areaId: String!
+  leftRightIndex: Int!
 }

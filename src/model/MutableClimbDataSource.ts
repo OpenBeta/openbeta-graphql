@@ -117,8 +117,6 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         experimentalUserId = await this.experimentalUserDataSource.updateUser(session, author.displayName, author.url)
       }
 
-      console.log('#xperimental uiser', experimentalUserId)
-
       const typeSafeDisciplines = sanitizeDisciplines(userInput[i]?.disciplines)
 
       const grade = userInput[i].grade
@@ -137,6 +135,14 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ...protection != null && { protection: sanitize(protection) }
       }
 
+      /**
+       * Construct the document object to send to Mongo.
+       *
+       * Idiomatic way to only include the field if it's not null:
+       * ```
+       * ...field != null && { fieldName: field }
+       * ```
+       */
       const doc: ClimbChangeDocType = {
         _id: newClimbIds[i],
         ...name != null && { name: sanitizeStrict(name) },

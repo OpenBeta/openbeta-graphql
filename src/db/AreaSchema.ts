@@ -33,7 +33,7 @@ const MetadataSchema = new Schema<IAreaMetadata>({
     index: '2dsphere'
   },
   bbox: [{ type: Number, required: true }],
-  left_right_index: { type: Number, required: false },
+  leftRightIndex: { type: Number, required: false },
   ext_id: { type: String, required: false, index: true },
   area_id: {
     type: 'object',

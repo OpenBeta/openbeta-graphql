@@ -218,7 +218,7 @@ const resolvers = {
       ...node.metadata,
       isDestination: node.metadata?.isDestination ?? false,
       isBoulder: node.metadata?.isBoulder ?? false,
-      leftRightIndex: node.metadata.left_right_index,
+      leftRightIndex: node.metadata?.leftRightIndex ?? -1,
       area_id: node.metadata.area_id.toUUID().toString(),
       areaId: node.metadata.area_id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
