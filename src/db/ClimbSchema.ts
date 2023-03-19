@@ -63,7 +63,8 @@ const GradeTypeSchema = new Schema<GradeScalesTypes>({
   vscale: Schema.Types.String,
   yds: { type: Schema.Types.String, required: false },
   french: { type: Schema.Types.String, required: false },
-  font: { type: Schema.Types.String, required: false }
+  font: { type: Schema.Types.String, required: false },
+  UIAA: { type: Schema.Types.String, required: false }
 }, { _id: false })
 
 export const ClimbSchema = new Schema<ClimbType>({

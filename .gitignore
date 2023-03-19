@@ -119,3 +119,5 @@ tmp
 # DB Export
 /export/
 /openbeta-export/
+*.code-workspace
+.vscode/settings.json

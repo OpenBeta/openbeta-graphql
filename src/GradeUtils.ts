@@ -25,6 +25,7 @@ export enum GradeContexts {
   /** Sweden */
   SWE = 'SWE',
   SX = 'SX',
+  /** Central Europe */
   UIAA = 'UIAA',
   /** United Kingdom */
   UK = 'UK',
