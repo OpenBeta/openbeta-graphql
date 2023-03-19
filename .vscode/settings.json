@@ -12,5 +12,5 @@
   "standard.enable": true,
   "standard.autoFixOnSave": true,
   "standard.engine": "ts-standard",
-  "standard.treatErrorsAsWarnings": true
+  "standard.treatErrorsAsWarnings": true,
 }
