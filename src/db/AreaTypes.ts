@@ -235,5 +235,8 @@ export enum OperationType {
    */
   updateDestination = 'updateDestination',
   /** signals that a user has pushed new user-changable data has been pushed into an area document. */
-  updateArea = 'updateArea'
+  updateArea = 'updateArea',
+
+  /** Set areas' sorting index */
+  orderAreas = 'orderArea'
 }

@@ -366,16 +366,30 @@ export default class MutableAreaDataSource extends AreaDataSource {
    */
   async updateSortingOrder (user: MUUID, input: UpdateSortingOrderType[]): Promise<string[] | null> {
     const doUpdate = async (session: ClientSession, user: MUUID, input: UpdateSortingOrderType[]): Promise<string[]> => {
-      const bulkData = input.map(({ areaId, leftRightIndex }) => (
+      const opType = OperationType.orderAreas
+      const change = await changelogDataSource.create(session, user, opType)
+
+      const bulkData = input.map(({ areaId, leftRightIndex }, index) => (
         {
           updateOne: {
             filter: { 'metadata.area_id': muuid.from(areaId) },
-            update: { $set: { 'metadata.leftRightIndex': leftRightIndex } }
+            update: {
+              $set: {
+                'metadata.leftRightIndex': leftRightIndex,
+                updatedBy: user,
+                _change: {
+                  user,
+                  historyId: change._id,
+                  operation: opType,
+                  seq: index
+                }
+              }
+            }
           }
         })
       )
 
-      const rs = await (await this.areaModel.bulkWrite(bulkData, { session })).toJSON()
+      const rs = (await this.areaModel.bulkWrite(bulkData, { session })).toJSON()
 
       if (rs.ok === 1 && rs.nMatched === rs.nModified && rs.nMatched === input.length) {
         return input.map(item => item.areaId)

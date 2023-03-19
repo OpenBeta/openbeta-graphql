@@ -117,6 +117,14 @@ export const AreaSchema = new Schema<AreaType>({
 }, { timestamps: true })
 
 AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
+AreaSchema.index({ 'metadata.leftRightIndex': 1 }, {
+  unique: true,
+  partialFilterExpression: {
+    'metadata.leftRightIndex': {
+      $gt: -1
+    }
+  }
+})
 
 export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> => {
   return connection.model(name, AreaSchema)
