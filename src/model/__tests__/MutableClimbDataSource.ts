@@ -7,7 +7,7 @@ import MutableAreaDataSource, { createInstance as createNewAreaDS } from '../Mut
 
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { logger } from '../../logger.js'
-import { ClimbType, ClimbChangeDocType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
+import { ClimbType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
 import { sanitizeDisciplines } from '../../GradeUtils.js'
 import streamListener from '../../db/edit/streamListener.js'
 import { changelogDataSource } from '../ChangeLogDataSource.js'
@@ -18,18 +18,19 @@ describe('Climb CRUD', () => {
   let stream: ChangeStream
   const testUser = muid.v4()
 
-  const newClimbsToAdd: ClimbChangeDocType[] = [
+  const newClimbsToAdd: ClimbChangeInputType[] = [
     {
       name: 'Sport 1',
       // Intentionally disable TS check to make sure input is sanitized
-      // @ts-expect-error
       disciplines: {
         sport: true
-      }
+      },
+      description: 'The best climb',
+      location: '5m left of the big tree',
+      protection: '5 quickdraws'
     },
     {
       name: 'Cool trad one',
-      // @ts-expect-error
       disciplines: {
         trad: true
       }
@@ -40,7 +41,10 @@ describe('Climb CRUD', () => {
     name: 'Cool boulder 1',
     disciplines: {
       bouldering: true
-    }
+    },
+    description: 'A good warm up problem',
+    location: 'Start from the left arete',
+    protection: '2 pads'
   }
 
   const newBoulderProblem2: ClimbChangeInputType = {
@@ -93,6 +97,19 @@ describe('Climb CRUD', () => {
       newClimbsToAdd)
 
     expect(newIDs).toHaveLength(newClimbsToAdd.length)
+
+    const climb0 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+
+    // Validate new climb
+    expect(climb0).toMatchObject({
+      name: newClimbsToAdd[0].name,
+      type: sanitizeDisciplines(newClimbsToAdd[0].disciplines),
+      content: {
+        description: newClimbsToAdd[0].description,
+        location: newClimbsToAdd[0].location,
+        protection: newClimbsToAdd[0].protection
+      }
+    })
 
     // California contains subareas.  Should fail.
     await expect(
@@ -250,7 +267,13 @@ describe('Climb CRUD', () => {
       grades: {
         font: changes[0].grade
       },
-      type: sanitizeDisciplines(changes[0].disciplines)
+      // Make sure update doesn't touch other fields
+      type: sanitizeDisciplines(changes[0].disciplines),
+      content: {
+        description: newBoulderProblem1.description,
+        location: newBoulderProblem1.location,
+        protection: newBoulderProblem1.protection
+      }
     })
 
     expect(actual1?.createdBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())
