@@ -241,15 +241,16 @@ describe('Areas', () => {
   })
 
   it('should update areas sorting order', async () => {
+    // Setup
     await areas.addCountry('MX')
     const a1 = await areas.addArea(testUser, 'A1', null, 'MX')
     const a2 = await areas.addArea(testUser, 'A2', null, 'MX')
 
-    const change1 = {
+    const change1: UpdateSortingOrderType = {
       areaId: a1.metadata.area_id.toUUID().toString(),
       leftRightIndex: 10
     }
-    const change2 = {
+    const change2: UpdateSortingOrderType = {
       areaId: a2.metadata.area_id.toUUID().toString(),
       leftRightIndex: 9
     }
