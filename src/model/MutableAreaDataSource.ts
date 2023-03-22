@@ -7,7 +7,7 @@ import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
-import { AreaType, AreaEditableFieldsType, OperationType } from '../db/AreaTypes.js'
+import { AreaType, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
 import { createRootNode } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
@@ -357,6 +357,60 @@ export default class MutableAreaDataSource extends AreaDataSource {
       })
     return ret
   }
+
+  /**
+   *
+   * @param user user id
+   * @param input area sorting input array
+   * @returns
+   */
+  async updateSortingOrder (user: MUUID, input: UpdateSortingOrderType[]): Promise<string[] | null> {
+    const doUpdate = async (session: ClientSession, user: MUUID, input: UpdateSortingOrderType[]): Promise<string[]> => {
+      const opType = OperationType.orderAreas
+      const change = await changelogDataSource.create(session, user, opType)
+
+      const bulkData = input.map(({ areaId, leftRightIndex }, index) => (
+        {
+          updateOne: {
+            filter: { 'metadata.area_id': muuid.from(areaId) },
+            update: {
+              $set: {
+                'metadata.leftRightIndex': leftRightIndex,
+                updatedBy: user,
+                _change: {
+                  user,
+                  historyId: change._id,
+                  operation: opType,
+                  seq: index
+                }
+              }
+            }
+          }
+        })
+      )
+
+      const rs = (await this.areaModel.bulkWrite(bulkData, { session })).toJSON()
+
+      if (rs.ok === 1 && rs.nMatched === rs.nModified && rs.nMatched === input.length) {
+        return input.map(item => item.areaId)
+      } else {
+        throw new Error(`Expect to update ${input.length} areas but found ${rs.nMatched}.`)
+      }
+    }
+
+    const session = await this.areaModel.startSession()
+    let ret: string[] | null
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async (session) => {
+        ret = await doUpdate(session, user, input)
+        return ret
+      })
+    // @ts-expect-error
+    return ret
+  }
 }
 
 export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: GradeContexts): AreaType => {
@@ -379,7 +433,7 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
       area_id: uuid,
       lnglat: geometry('Point', [0, 0]) as Point,
       bbox: [-180, -90, 180, 90],
-      left_right_index: -1,
+      leftRightIndex: -1,
       ext_id: ''
     },
     ancestors: ancestors,

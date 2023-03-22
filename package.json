@@ -81,7 +81,8 @@
     "ignore": [
       "build",
       "hacks",
-      "**/*.test.ts"
+      "**/*.test.ts",
+      "db-migrations"
     ]
   },
   "type": "module",
