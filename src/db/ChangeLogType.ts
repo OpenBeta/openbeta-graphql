@@ -3,6 +3,7 @@ import { MUUID } from 'uuid-mongodb'
 
 import { OperationType as AreaOpType, AreaType } from './AreaTypes.js'
 import { ClimbEditOperationType, ClimbType } from './ClimbTypes.js'
+import { OperationType as OrganizationOpType, OrganizationType } from './OrganizationTypes.js'
 
 export type DBOperation = 'insert' | 'update' | 'delete'
 
@@ -31,7 +32,7 @@ export interface BaseChangeRecordType<FullDocumentType = SupportedCollectionType
   kind: string
 }
 
-export type OpType = AreaOpType | ClimbEditOperationType
+export type OpType = AreaOpType | ClimbEditOperationType | OrganizationOpType
 
 export interface ChangeRecordMetadataType {
   /** The UUID of the user to whom this change of the document is attributed  */
@@ -53,6 +54,7 @@ export type AreaChangeLogType = ChangeLogType<AreaType>
 export type AreaChangeRecordType = BaseChangeRecordType<AreaType>
 
 export type ClimbChangeLogType = ChangeLogType<ClimbType>
+export type OrganizationChangeLogType = ChangeLogType<OrganizationType>
 
 export type SupportedCollectionTypes = AreaType & WithDiscriminator | ClimbType & WithDiscriminator
 

@@ -45,6 +45,16 @@ export interface PathTokenParams {
 type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams | ComparisonFilterParams[]
 export type GQLFilter = Record<Filterable, FilterParams>
 
+export interface DisplayNameFilterParams {
+  match: string
+  exactMatch: boolean | undefined
+}
+
+type OrganizationFilterable = 'displayName'
+
+type OrganizationFilterParams = DisplayNameFilterParams
+export type OrganizationGQLFilter = Record<OrganizationFilterable, OrganizationFilterParams>
+
 export type LNGLAT = [number, number]
 export type BBoxType = BBox
 export interface StatisticsType {
