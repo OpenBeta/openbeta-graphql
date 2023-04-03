@@ -52,7 +52,7 @@ export const newOrganizationHelper = (displayName: string, orgType: OrgType): Or
   const orgId = muuid.v4()
   return {
     _id,
-    org_id: orgId,
+    orgId,
     displayName,
     orgType,
     associatedAreas: [],

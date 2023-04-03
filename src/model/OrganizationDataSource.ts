@@ -36,7 +36,7 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
   async findOneOrganizationByUUID (uuid: muuid.MUUID): Promise<OrganizationType> {
     const rs = await this.organizationModel
       .aggregate([
-        { $match: { org_id: uuid, _deleting: { $exists: false } } }
+        { $match: { orgId: uuid, _deleting: { $exists: false } } }
       ])
 
     if (rs != null && rs.length === 1) {

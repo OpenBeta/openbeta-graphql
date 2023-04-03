@@ -18,7 +18,7 @@ export interface OrganizationType {
   * All external IDs for areas are expressed as UUIDs. As such, when resolving ids at the
   * GQL layer use these values for querying and identification of organizations.
   */
-  org_id: MUUID
+  orgId: MUUID
   /**
    * Name of organization to be displayed on the site.
    */

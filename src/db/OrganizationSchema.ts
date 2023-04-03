@@ -13,7 +13,6 @@ const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
     required: true
   },
   historyId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
-  prevHistoryId: { type: Schema.Types.ObjectId, ref: 'change_logs' },
   operation: {
     type: Schema.Types.Mixed,
     enum: Object.values(OperationType),
@@ -31,7 +30,7 @@ const ContentSchema = new Schema<IOrganizationContent>({
 }, { _id: false })
 
 export const OrganizationSchema = new Schema<OrganizationType>({
-  org_id: {
+  orgId: {
     type: 'object',
     value: { type: 'Buffer' },
     default: () => muuid.v4(),

@@ -30,7 +30,7 @@ describe('Organization', () => {
     expect(newOrg.displayName).toEqual('Friends of OpenBeta')
     expect(newOrg.associatedAreas).toEqual([])
 
-    const orgIdSearchRes = await organizations.findOneOrganizationByUUID(newOrg.org_id)
+    const orgIdSearchRes = await organizations.findOneOrganizationByUUID(newOrg.orgId)
     expect(orgIdSearchRes._id).toEqual(newOrg._id)
 
     // Match should be case-insensitive.
