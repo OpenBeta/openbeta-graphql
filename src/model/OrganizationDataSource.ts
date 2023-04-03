@@ -29,7 +29,6 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
     }
 
     mongoFilter._deleting = { $eq: null } // marked for deletion
-    console.log('MONGOFILTER', mongoFilter)
     return this.collection.find(mongoFilter)
   }
 

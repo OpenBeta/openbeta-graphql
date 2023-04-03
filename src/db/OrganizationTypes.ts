@@ -34,7 +34,7 @@ export interface OrganizationType {
    * Areas associated with this organization. This has a strong relation to the
    * areas collection, and contains only direct child areas - rather than all descendents.
    */
-  associatedAreas: mongoose.Types.ObjectId[]
+  associatedAreaIds: MUUID[]
   /**
    * Areas the organization explicitly does not want to be associated with.
    * Takes precedence over associatedAreas. Intended use is for organizations to associate
@@ -42,7 +42,7 @@ export interface OrganizationType {
    * or legally problematic. In other words, excludedAreas *unlike associatedAreas* have to be
    * specified individually -- an area is not automatically excluded just because an ancestor is.
    */
-  excludedAreas: mongoose.Types.ObjectId[]
+  excludedAreaIds: MUUID[]
   /**
    * User-composed content that makes up most of the user-readable data in the system.
    * See the IOrganizationContent documentation for more information.
@@ -91,8 +91,8 @@ export interface IOrganizationContent {
  * only the ones that org_admins may directly submit and over-write.
  */
 export interface OrganizationEditableFieldsType {
-  associatedAreas: mongoose.Types.ObjectId[]
-  excludedAreas: mongoose.Types.ObjectId[]
+  associatedAreaIds: MUUID[]
+  excludedAreaIds: MUUID[]
   displayName: string
   website?: string
   email?: string
@@ -116,12 +116,5 @@ export enum OperationType {
    */
   deleteOrganization = 'deleteOrganization',
   addOrganization = 'addOrganization',
-  /** see associatedArea for more information, this signals a change in this
-   * specific field's state.
-   */
-  updateAssociatedArea = 'updateAssociatedArea',
-  /** see excludedArea for more information, this signals a change in this
-   * specific field's state.
-   */
-  updateExcludedArea = 'updateExcludedArea',
+  updateOrganization = 'updateOrganization',
 }

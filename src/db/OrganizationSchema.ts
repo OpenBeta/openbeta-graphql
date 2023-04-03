@@ -44,8 +44,8 @@ export const OrganizationSchema = new Schema<OrganizationType>({
     enum: Object.values(OrgType),
     required: true
   },
-  associatedAreas: [{ type: Schema.Types.ObjectId, ref: 'areas', required: false }],
-  excludedAreas: [{ type: Schema.Types.ObjectId, ref: 'areas', required: false }],
+  associatedAreaIds: [{ type: 'Buffer' }],
+  excludedAreaIds: [{ type: 'Buffer' }],
   content: ContentSchema,
   _change: ChangeRecordMetadata,
   _deleting: { type: Date },
