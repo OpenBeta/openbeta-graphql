@@ -25,6 +25,7 @@ const transformClimbRecord = (row: any): ClimbType => {
     grades: {
       ...boulderingDiscipline,
       yds: grade.YDS,
+      ewbank: grade.Ewbank,
       font: grade.Font,
       french: grade.French
     },

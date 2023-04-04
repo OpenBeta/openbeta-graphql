@@ -37,6 +37,24 @@ describe('Climb CRUD', () => {
     }
   ]
 
+  const newSportClimb1: ClimbChangeInputType = {
+    name: 'Cool route 1',
+    disciplines: {
+      sport: true
+    },
+    description: 'A good warm up problem',
+    location: 'Start from the left arete',
+    protection: '2 bolts'
+  }
+
+  const newSportClimb2: ClimbChangeInputType = {
+    name: 'Cool route 2',
+    disciplines: {
+      sport: true
+    },
+    description: 'A local testpiece'
+  }
+
   const newBoulderProblem1: ClimbChangeInputType = {
     name: 'Cool boulder 1',
     disciplines: {
@@ -219,6 +237,61 @@ describe('Climb CRUD', () => {
 
     const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
     expect(climb2?.grades).toEqual(undefined)
+  })
+
+  it('handles Australian grade context correctly', async () => {
+    await areas.addCountry('aus')
+
+    {
+      // A roped climbing area
+      const newClimbingArea = await areas.addArea(testUser, 'Climbing area 1', null, 'aus')
+      if (newClimbingArea == null) fail('Expect new area to be created')
+
+      const newIDs = await climbs.addOrUpdateClimbs(
+        testUser,
+        newClimbingArea.metadata.area_id,
+        [{ ...newSportClimb1, grade: '17' }, // good sport grade
+          { ...newSportClimb2, grade: '29/30', disciplines: { trad: true } }, // good trad and slash grade
+          { ...newSportClimb2, grade: '5.9' }]) // bad AU context grade
+
+      expect(newIDs).toHaveLength(3)
+
+      const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+      expect(climb1?.grades).toEqual({ ewbank: '17' })
+      expect(climb1?.type.sport).toBe(true)
+
+      const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
+      expect(climb2?.grades).toEqual({ ewbank: '29/30' })
+      expect(climb2?.type.sport).toBe(false)
+      expect(climb2?.type.trad).toBe(true)
+
+      const climb3 = await climbs.findOneClimbByMUUID(muid.from(newIDs[2]))
+      expect(climb3?.grades).toEqual(undefined)
+    }
+
+    {
+      // A bouldering area
+      const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'aus')
+      if (newBoulderingArea == null) fail('Expect new area to be created')
+
+      const newIDs = await climbs.addOrUpdateClimbs(
+        testUser,
+        newBoulderingArea.metadata.area_id,
+        [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
+          { ...newBoulderProblem2, grade: '23' }, // bad boulder grade
+          { ...newBoulderProblem2, grade: '7B' }]) // invalid grade (font grade for a AU context boulder problem)
+
+      expect(newIDs).toHaveLength(3)
+
+      const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+      expect(climb1?.grades).toEqual({ vscale: 'V3' })
+
+      const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
+      expect(climb2?.grades).toEqual(undefined)
+
+      const climb3 = await climbs.findOneClimbByMUUID(muid.from(newIDs[2]))
+      expect(climb3?.grades).toEqual(undefined)
+    }
   })
 
   it('can update boulder problems', async () => {
