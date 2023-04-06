@@ -14,6 +14,7 @@ import { XMediaMutations, XMediaQueries, XMediaResolvers } from './xmedia/index.
 import { TagMutations, TagQueries, TagResolvers } from './tag/index.js'
 import { AreaQueries, AreaMutations } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
+import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
 import TickMutations from './tick/TickMutations.js'
 import TickQueries from './tick/TickQueries.js'
 import fs from 'fs'
@@ -35,9 +36,11 @@ function loadSchema (file: string): DocumentNode {
 const TickTypeDef = loadSchema('Tick.gql')
 const ClimbTypeDef = loadSchema('Climb.gql')
 const AreaTypeDef = loadSchema('Area.gql')
+const OrganizationTypeDef = loadSchema('Organization.gql')
 const MediaTypeDef = loadSchema('Media.gql')
 const HistoryTypeDef = loadSchema('History.gql')
 const AreaEditTypeDef = loadSchema('AreaEdit.gql')
+const OrganizationEditTypeDef = loadSchema('OrganizationEdit.gql')
 const ClimbMutationTypeDefs = loadSchema('ClimbEdit.gql')
 const PostTypeDef = loadSchema('Post.gql')
 
@@ -52,6 +55,7 @@ const resolvers = {
     ...MediaMutations,
     ...AreaMutations,
     ...ClimbMutations,
+    ...OrganizationMutations,
     ...TickMutations
   },
   Query: {
@@ -62,6 +66,7 @@ const resolvers = {
     ...AreaQueries,
     ...TickQueries,
     ...HistoryQueries,
+    ...OrganizationQueries,
 
     // Future To-do: Move climbs and areas' mutations/queries to their own folder Media, Tick, History
     climb: async (
@@ -247,8 +252,10 @@ export const graphqlSchema = makeExecutableSchema({
     CommonTypeDef,
     ClimbTypeDef,
     AreaTypeDef,
+    OrganizationTypeDef,
     MediaTypeDef,
     AreaEditTypeDef,
+    OrganizationEditTypeDef,
     TickTypeDef,
     HistoryTypeDef,
     ClimbMutationTypeDefs,

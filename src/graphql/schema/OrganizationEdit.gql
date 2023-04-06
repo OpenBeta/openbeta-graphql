@@ -1,0 +1,28 @@
+type Mutation {
+  """
+  Add an organization
+  """
+  addOrganization(input: AddOrganizationInput): Organization
+
+  """
+  Update organization attributes
+  """
+  updateOrganization(input: OrganizationEditableFieldsInput): Organization
+}
+
+input AddOrganizationInput {
+  displayName: String!
+  orgType: String!
+}
+
+input OrganizationEditableFieldsInput {
+  orgId: ID!
+  associatedAreaIds: [String]
+  excludedAreaIds: [String]
+  displayName: String
+  website: String
+  email: String
+  donationLink: String
+  instagramLink: String
+  description: String
+}

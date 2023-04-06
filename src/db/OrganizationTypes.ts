@@ -87,13 +87,11 @@ export interface IOrganizationContent {
 }
 
 /** Fields that may be directly modified by org_admins.
- * This does not define the total set of mutable fields of the organization,
- * only the ones that org_admins may directly submit and over-write.
  */
 export interface OrganizationEditableFieldsType {
-  associatedAreaIds: MUUID[]
-  excludedAreaIds: MUUID[]
-  displayName: string
+  associatedAreaIds?: MUUID[]
+  excludedAreaIds?: MUUID[]
+  displayName?: string
   website?: string
   email?: string
   donationLink?: string

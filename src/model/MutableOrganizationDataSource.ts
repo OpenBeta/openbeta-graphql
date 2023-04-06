@@ -3,7 +3,7 @@ import muuid, { MUUID } from 'uuid-mongodb'
 import { produce } from 'immer'
 
 import { OrganizationType, OperationType, OrgType, OrganizationEditableFieldsType } from '../db/OrganizationTypes.js'
-import OrganizationDataSource from './OrganizationDataSource'
+import OrganizationDataSource from './OrganizationDataSource.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
@@ -71,12 +71,12 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
 
       const { associatedAreaIds, excludedAreaIds, displayName, website, email, donationLink, instagramLink, description } = document
 
-      if (associatedAreaIds.length > 0) {
+      if (associatedAreaIds != null && associatedAreaIds.length > 0) {
         const missingAreaIds = await findNonexistantAreas(associatedAreaIds)
         if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Associated areas not found: ${missingAreaIds.map(m => m.toUUID().toString()).toString()}`)
         org.set({ associatedAreaIds: associatedAreaIds })
       }
-      if (excludedAreaIds.length > 0) {
+      if (excludedAreaIds != null &&  excludedAreaIds.length > 0) {
         const missingAreaIds = await findNonexistantAreas(excludedAreaIds)
         if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Excluded areas not found: ${missingAreaIds.map(m => m.toUUID().toString()).toString()}`)
         org.set({ excludedAreaIds: excludedAreaIds })

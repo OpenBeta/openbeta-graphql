@@ -18,14 +18,11 @@ describe('Organization', () => {
 
   beforeAll(async () => {
     await connectDB()
-
-    try {
-      await getOrganizationModel().collection.drop()
+    try { // Use the same fixed areas for testing so no need to drop and re-create on each test.
       await getAreaModel().collection.drop()
     } catch (e) {
-      console.log('Cleaning up db before test', e)
+      console.log('Cleaning up area model before test', e)
     }
-    await createIndexes()
     organizations = createOrgInstance()
     areas = createAreaInstance()
     usa = await areas.addCountry('usa')
@@ -33,22 +30,45 @@ describe('Organization', () => {
     wa = await areas.addArea(testUser, 'WA', usa.metadata.area_id)
   })
 
+  beforeEach(async () => {
+    try {
+      await getOrganizationModel().collection.drop()
+    } catch (e) {
+      console.log('Cleaning up organization model before test', e)
+    }
+    await createIndexes()
+  })
+
   afterAll(async () => {
     await mongoose.connection.close()
   })
 
-  it('should create an organization that is retrievable', async () => {
-    const newOrg = await organizations.addOrganization(testUser, 'Friends of OpenBeta', OrgType.localClimbingOrganization)
-    expect(newOrg.displayName).toEqual('Friends of OpenBeta')
+  it('should successfully create a document when passed valid input', async () => {
+    const newOrg = await organizations.addOrganization(testUser, 'OpenAlpha Club', OrgType.localClimbingOrganization)
+    expect(newOrg.displayName).toEqual('OpenAlpha Club')
     expect(newOrg.associatedAreaIds).toEqual([])
 
     const orgIdSearchRes = await organizations.findOneOrganizationByUUID(newOrg.orgId)
     expect(orgIdSearchRes._id).toEqual(newOrg._id)
+  })
 
+  it('should retrieve documents based on displayName', async () => {
+    const newOrg = await organizations.addOrganization(testUser, 'Friends of OpenBeta', OrgType.localClimbingOrganization)
     // Match should be case-insensitive.
     const displayNameSearchRes = await (await organizations.findOrganizationsByFilter({ displayName: { match: 'openbeta', exactMatch: false } })).toArray()
     expect(displayNameSearchRes).toHaveLength(1)
     expect(displayNameSearchRes[0]._id).toEqual(newOrg._id)
+  })
+
+  it('should retrieve documents based on associatedAreaIds', async () => {
+    const newOrg = await organizations.addOrganization(testUser, 'Washington and California Club', OrgType.localClimbingOrganization)
+    const document = {
+        associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
+    }
+    const updatedOrg = await organizations.updateOrganization(testUser, newOrg.orgId, document)
+    const areaIdSearchRes = await (await organizations.findOrganizationsByFilter({ associatedAreaIds: { includes: [ca.metadata.area_id.toUUID().toString()] } })).toArray()
+    expect(areaIdSearchRes).toHaveLength(1)
+    expect(areaIdSearchRes[0]._id).toEqual(newOrg._id)
   })
 
   describe('update', () => {
@@ -74,9 +94,9 @@ describe('Organization', () => {
       expect(updatedOrg).toBeDefined()
       if (updatedOrg == null) { fail('should not reach here.') }
       expect(updatedOrg.associatedAreaIds.map(muuidToString).sort())
-        .toStrictEqual(document.associatedAreaIds.map(muuidToString).sort())
+        .toStrictEqual(document?.associatedAreaIds?.map(muuidToString).sort())
       expect(updatedOrg.excludedAreaIds.map(muuidToString).sort())
-        .toStrictEqual(document.excludedAreaIds.map(muuidToString).sort())
+        .toStrictEqual(document?.excludedAreaIds?.map(muuidToString).sort())
       expect(updatedOrg.displayName).toBe(document.displayName)
       expect(updatedOrg.content?.website).toBe(document.website)
       expect(updatedOrg.content?.email).toBe(document.email)
