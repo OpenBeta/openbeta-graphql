@@ -189,6 +189,7 @@ export interface CountByDisciplineType {
   trad?: DisciplineStatsType
   sport?: DisciplineStatsType
   bouldering?: DisciplineStatsType
+  deepwatersolo?: DisciplineStatsType
   alpine?: DisciplineStatsType
   snow?: DisciplineStatsType
   ice?: DisciplineStatsType

@@ -52,6 +52,8 @@ input DisciplineType {
   sport: Boolean
   "https://en.wikipedia.org/wiki/Bouldering"
   bouldering: Boolean
+  "https://en.wikipedia.org/wiki/Deep-water_soloing"
+  deepwatersolo: Boolean
   "https://en.wikipedia.org/wiki/Alpine_climbing"
   alpine: Boolean
   "https://en.wikipedia.org/wiki/Ice_climbing"

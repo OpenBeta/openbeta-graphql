@@ -13,6 +13,7 @@ describe('Test grade utilities', () => {
       trad: true,
       sport: false,
       bouldering: false,
+      deepwatersolo: false,
       alpine: false,
       snow: false,
       ice: false,
@@ -28,6 +29,7 @@ describe('Test grade utilities', () => {
       trad: false,
       sport: false,
       bouldering: true,
+      deepwatersolo: false,
       alpine: false,
       snow: false,
       ice: false,
@@ -55,6 +57,11 @@ describe('Test grade utilities', () => {
     actual = createGradeObject('WI2', sanitizeDisciplines({ ice: true }), context)
     expect(actual).toEqual({
       wi: 'WI2'
+    })
+
+    actual = createGradeObject('5.10a', sanitizeDisciplines({ deepwatersolo: true }), context)
+    expect(actual).toEqual({
+      yds: '5.10a'
     })
 
     // mismatch input and discipline
@@ -95,6 +102,11 @@ describe('Test grade utilities', () => {
       wi: 'WI4+'
     })
 
+    actual = createGradeObject('17', sanitizeDisciplines({ deepwatersolo: true }), context)
+    expect(actual).toEqual({
+      ewbank: '17'
+    })
+
     // Invalid input
     actual = createGradeObject('5.9', sanitizeDisciplines({ sport: true }), context)
     expect(actual).toBeUndefined()
@@ -117,6 +129,11 @@ describe('Test grade utilities', () => {
     actual = createGradeObject('WI6', sanitizeDisciplines({ ice: true }), context)
     expect(actual).toEqual({
       wi: 'WI6'
+    })
+
+    actual = createGradeObject('7c+', sanitizeDisciplines({ deepwatersolo: true }), context)
+    expect(actual).toEqual({
+      french: '7c+'
     })
 
     // Invalid input

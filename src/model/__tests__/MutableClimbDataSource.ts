@@ -40,6 +40,12 @@ describe('Climb CRUD', () => {
       protection: '5 quickdraws'
     },
     {
+      name: 'Deep water 1',
+      disciplines: {
+        deepwatersolo: true
+      }
+    },
+    {
       name: 'Cool trad one',
       disciplines: {
         trad: true
