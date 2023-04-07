@@ -4,12 +4,12 @@ import { QueryByIdType, OrganizationGQLFilter, Sort } from '../../types'
 
 const OrganizationQueries = {
   organization: async (_: any,
-    { uuid }: QueryByIdType,
+    { muuid }: QueryByIdType,
     context, info) => {
     const { dataSources } = context
     const { organizations }: { organizations: OrganizationDataSource } = dataSources
-    if (uuid !== undefined && uuid !== '') {
-      return await organizations.findOneOrganizationByUUID(muid.from(uuid))
+    if (muuid !== undefined) {
+      return await organizations.findOneOrganizationByOrgId(muuid)
     }
     return null
   },

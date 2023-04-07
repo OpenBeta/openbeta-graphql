@@ -6,8 +6,8 @@ const fromString = (s: string): MUUID => muid.from(s)
 
 // See https://www.apollographql.com/docs/apollo-server/schema/custom-scalars/
 
-const MuidScalar = new GraphQLScalarType({
-  name: 'MUID',
+const MuuidScalar = new GraphQLScalarType({
+  name: 'MUUID',
   description: 'Mongo uuid custom scalar type',
 
   // Convert outgoing Muid to string for JSON
@@ -28,4 +28,4 @@ const MuidScalar = new GraphQLScalarType({
   }
 })
 
-export default MuidScalar
+export default MuuidScalar

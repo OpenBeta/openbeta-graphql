@@ -1,5 +1,5 @@
 type Query {
-  organization(uuid: ID): Organization
+  organization(muuid: MUUID): Organization
   organizations(filter: OrgFilter, sort: OrgSort): [Organization]
 }
 
@@ -14,18 +14,18 @@ type Organization {
   """
   orgType: String!
   "We use orgId for identification of organizations. The id field is used in internal database relations."
-  orgId: ID!
+  orgId: MUUID!
 
   associatedAreaIds: [String]
-  excludedAreaIads: [String]
+  excludedAreaIds: [String]
 
   "Name of organization to be displayed on the site."
   displayName: String!
   content: OrganizationContent
   createdAt: Date
-  createdBy: ID
+  createdBy: MUUID
   updatedAt: Date
-  updatedBy: ID
+  updatedBy: MUUID
 }
 
 type OrganizationContent {

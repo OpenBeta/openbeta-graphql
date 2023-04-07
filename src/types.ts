@@ -76,6 +76,7 @@ export interface CragsNear {
 export interface QueryByIdType {
   id?: string
   uuid?: string
+  muuid?: MUUID
 }
 
 export interface AuthUserType {

@@ -11,7 +11,6 @@ const OrganizationMutations = {
 
     // permission middleware shouldn't send undefined uuid
     if (user?.uuid == null) throw new Error('Missing user uuid')
-    // Should check for global admin
 
     return await organizations.addOrganization(user.uuid, displayName, orgType)
   },
@@ -22,7 +21,6 @@ const OrganizationMutations = {
     if (user?.uuid == null) throw new Error('Missing user uuid')
     if (input?.orgId == null) throw new Error('Missing organization orgId')
 
-    const orgId = muuid.from(input.orgId)
     // Could these be null?
     input['associatedAreaIds'] = input['associatedAreaIds'].map((aaid: string) => muuid.from(aaid))
     input['excludedAreaIds'] = input['associatedAreaIds'].map((aaid: string) => muuid.from(aaid))
@@ -34,7 +32,7 @@ const OrganizationMutations = {
 
     return await organizations.updateOrganization(
       user.uuid,
-      orgId,
+      input.orgId,
       input
     )
   }

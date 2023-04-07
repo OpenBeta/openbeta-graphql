@@ -36,15 +36,15 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
     return this.collection.find(mongoFilter)
   }
 
-  async findOneOrganizationByUUID (uuid: muuid.MUUID): Promise<OrganizationType> {
+  async findOneOrganizationByOrgId (orgId: muuid.MUUID): Promise<OrganizationType> {
     const rs = await this.organizationModel
       .aggregate([
-        { $match: { orgId: uuid, _deleting: { $exists: false } } }
+        { $match: { orgId, _deleting: { $exists: false } } }
       ])
 
     if (rs != null && rs.length === 1) {
       return rs[0]
     }
-    throw new Error(`Area ${uuid.toUUID().toString()} not found.`)
+    throw new Error(`Organization ${orgId.toUUID().toString()} not found.`)
   }
 }

@@ -48,7 +48,7 @@ describe('Organization', () => {
     expect(newOrg.displayName).toEqual('OpenAlpha Club')
     expect(newOrg.associatedAreaIds).toEqual([])
 
-    const orgIdSearchRes = await organizations.findOneOrganizationByUUID(newOrg.orgId)
+    const orgIdSearchRes = await organizations.findOneOrganizationByOrgId(newOrg.orgId)
     expect(orgIdSearchRes._id).toEqual(newOrg._id)
   })
 

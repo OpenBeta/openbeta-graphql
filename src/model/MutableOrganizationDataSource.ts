@@ -40,6 +40,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
 
     const newOrg = newOrganizationHelper(displayName, orgType)
     newOrg.createdBy = user
+    newOrg.updatedBy = user
     newOrg._change = produce(newChangeMeta, draft => {
       draft.seq = 1
     })
