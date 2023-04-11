@@ -6,6 +6,7 @@ import muuid from 'uuid-mongodb'
 import { getOrganizationModel } from '../db/index.js'
 import { AssociatedAreaIdsFilterParams, DisplayNameFilterParams, OrganizationGQLFilter } from '../types'
 import { OrganizationType } from '../db/OrganizationTypes.js'
+import { muuidToString } from '../utils/helpers.js'
 
 export default class OrganizationDataSource extends MongoDataSource<OrganizationType> {
   organizationModel = getOrganizationModel()
@@ -23,7 +24,7 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
           }
           case 'associatedAreaIds': {
             const associatedAreaIdFilter = (filter as AssociatedAreaIdsFilterParams)
-            acc.associatedAreaIds = { $in: associatedAreaIdFilter.includes.map(area_id => muuid.from(area_id)) }
+            acc.associatedAreaIds = { $in: associatedAreaIdFilter.includes }
           }
           default:
             break
@@ -45,6 +46,6 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
     if (rs != null && rs.length === 1) {
       return rs[0]
     }
-    throw new Error(`Organization ${orgId.toUUID().toString()} not found.`)
+    throw new Error(`Organization ${muuidToString(orgId)} not found.`)
   }
 }

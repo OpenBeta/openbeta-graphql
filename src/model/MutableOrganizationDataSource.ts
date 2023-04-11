@@ -7,6 +7,7 @@ import OrganizationDataSource from './OrganizationDataSource.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
+import { muuidToString } from '../utils/helpers.js'
 import { getAreaModel } from '../db/AreaSchema.js'
 
 export default class MutableOrganizationDataSource extends OrganizationDataSource {
@@ -74,12 +75,12 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
 
       if (associatedAreaIds != null && associatedAreaIds.length > 0) {
         const missingAreaIds = await findNonexistantAreas(associatedAreaIds)
-        if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Associated areas not found: ${missingAreaIds.map(m => m.toUUID().toString()).toString()}`)
+        if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Associated areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
         org.set({ associatedAreaIds: associatedAreaIds })
       }
       if (excludedAreaIds != null &&  excludedAreaIds.length > 0) {
         const missingAreaIds = await findNonexistantAreas(excludedAreaIds)
-        if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Excluded areas not found: ${missingAreaIds.map(m => m.toUUID().toString()).toString()}`)
+        if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Excluded areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
         org.set({ excludedAreaIds: excludedAreaIds })
       }
       if (displayName != null) { org.set({ displayName: sanitizeStrict(displayName) }) }
@@ -127,7 +128,9 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
 const findNonexistantAreas = async (area_ids: MUUID[]): Promise<MUUID[]> => {
   const AreaModel = getAreaModel()
   type AreaQueryResp = Array<{_id: MUUID, metadata: {area_id: MUUID}}>
-  const foundAreas: AreaQueryResp = await AreaModel.find({ 'metadata.area_id': { $in: area_ids } }).select('metadata.area_id').lean()
+  const foundAreas: AreaQueryResp = await AreaModel.find(
+    { 'metadata.area_id': { $in: area_ids } }
+  ).select('metadata.area_id').lean()
   if (foundAreas.length !== area_ids.length) {
     const foundAreaIds = foundAreas.map(fa => fa.metadata.area_id)
     const missingAreaIds = area_ids.filter(a => !foundAreaIds.includes(a))

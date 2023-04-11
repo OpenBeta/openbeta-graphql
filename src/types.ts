@@ -52,7 +52,7 @@ export interface DisplayNameFilterParams {
 }
 
 export interface AssociatedAreaIdsFilterParams {
-  includes: string[]
+  includes: MUUID[]
 }
 
 type OrganizationFilterable = 'displayName' | 'associatedAreaIds'

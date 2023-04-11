@@ -6,6 +6,7 @@ import MutableAreaDataSource, { createInstance as createAreaInstance } from '../
 import { connectDB, createIndexes, getAreaModel, getOrganizationModel } from '../../db/index.js'
 import { OrganizationEditableFieldsType, OrgType } from '../../db/OrganizationTypes.js'
 import { AreaType } from '../../db/AreaTypes.js'
+import { muuidToString } from '../../utils/helpers.js'
 
 describe('Organization', () => {
   let organizations: MutableOrganizationDataSource
@@ -13,7 +14,6 @@ describe('Organization', () => {
   let usa: AreaType
   let ca: AreaType
   let wa: AreaType
-  const muuidToString = (muuid: MUUID): string => muuid.toUUID().toString()
   const testUser = muuid.v4()
 
   beforeAll(async () => {
@@ -66,7 +66,7 @@ describe('Organization', () => {
         associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
     }
     const updatedOrg = await organizations.updateOrganization(testUser, newOrg.orgId, document)
-    const areaIdSearchRes = await (await organizations.findOrganizationsByFilter({ associatedAreaIds: { includes: [ca.metadata.area_id.toUUID().toString()] } })).toArray()
+    const areaIdSearchRes = await (await organizations.findOrganizationsByFilter({ associatedAreaIds: { includes: [ca.metadata.area_id] } })).toArray()
     expect(areaIdSearchRes).toHaveLength(1)
     expect(areaIdSearchRes[0]._id).toEqual(newOrg._id)
   })

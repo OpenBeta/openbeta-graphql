@@ -16,8 +16,8 @@ type Organization {
   "We use orgId for identification of organizations. The id field is used in internal database relations."
   orgId: MUUID!
 
-  associatedAreaIds: [String]
-  excludedAreaIds: [String]
+  associatedAreaIds: [MUUID]
+  excludedAreaIds: [MUUID]
 
   "Name of organization to be displayed on the site."
   displayName: String!
@@ -51,5 +51,5 @@ input DisplayNameFilter {
 }
 
 input AssociatedAreaIdsFilter {
-  includes: [String]
+  includes: [MUUID]
 }
