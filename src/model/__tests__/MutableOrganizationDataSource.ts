@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import muuid, { MUUID } from 'uuid-mongodb'
+import muuid from 'uuid-mongodb'
 
 import MutableOrganizationDataSource, { createInstance as createOrgInstance } from '../MutableOrganizationDataSource.js'
 import MutableAreaDataSource, { createInstance as createAreaInstance } from '../MutableAreaDataSource.js'
@@ -63,9 +63,9 @@ describe('Organization', () => {
   it('should retrieve documents based on associatedAreaIds', async () => {
     const newOrg = await organizations.addOrganization(testUser, 'Washington and California Club', OrgType.localClimbingOrganization)
     const document = {
-        associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
+      associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id]
     }
-    const updatedOrg = await organizations.updateOrganization(testUser, newOrg.orgId, document)
+    await organizations.updateOrganization(testUser, newOrg.orgId, document)
     const areaIdSearchRes = await (await organizations.findOrganizationsByFilter({ associatedAreaIds: { includes: [ca.metadata.area_id] } })).toArray()
     expect(areaIdSearchRes).toHaveLength(1)
     expect(areaIdSearchRes[0]._id).toEqual(newOrg._id)
@@ -105,7 +105,7 @@ describe('Organization', () => {
       expect(updatedOrg.content?.description).toBe(document.description)
       expect(updatedOrg._change?.operation).toBe('updateOrganization')
       expect(updatedOrg._change?.seq).toBe(0)
-      expect(updatedOrg.updatedAt?.getTime()).toBeGreaterThan(updatedOrg.createdAt!.getTime())
+      expect(updatedOrg.updatedAt?.getTime()).toBeGreaterThan(updatedOrg.createdAt.getTime())
     })
 
     it('should throw when an invalid area is supplied', async () => {

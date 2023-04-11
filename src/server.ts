@@ -13,7 +13,7 @@ import XMediaDataSource from './model/XMediaDataSource.js'
 import PostDataSource from './model/PostDataSource.js'
 import { createInstance as createNewOrgDS } from './model/MutableOrganizationDataSource.js'
 
-export async function createServer(): Promise<ApolloServer> {
+export async function createServer (): Promise<ApolloServer> {
   const schema = applyMiddleware(
     graphqlSchema,
     permissions.generate(graphqlSchema)
@@ -34,7 +34,7 @@ export async function createServer(): Promise<ApolloServer> {
       xmedia: new XMediaDataSource(mongoose.connection.db.collection('xmedia')),
       post: new PostDataSource(mongoose.connection.db.collection('post'))
     }),
-    cache: 'bounded',
+    cache: 'bounded'
   })
 
   return server

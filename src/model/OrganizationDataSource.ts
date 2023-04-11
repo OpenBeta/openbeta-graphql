@@ -25,6 +25,7 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
           case 'associatedAreaIds': {
             const associatedAreaIdFilter = (filter as AssociatedAreaIdsFilterParams)
             acc.associatedAreaIds = { $in: associatedAreaIdFilter.includes }
+            break
           }
           default:
             break

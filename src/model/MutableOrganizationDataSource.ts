@@ -78,7 +78,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
         if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Associated areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
         org.set({ associatedAreaIds: associatedAreaIds })
       }
-      if (excludedAreaIds != null &&  excludedAreaIds.length > 0) {
+      if (excludedAreaIds != null && excludedAreaIds.length > 0) {
         const missingAreaIds = await findNonexistantAreas(excludedAreaIds)
         if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Excluded areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
         org.set({ excludedAreaIds: excludedAreaIds })
@@ -123,17 +123,17 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
 
 /**
  * Checks which of the input area_ids cannot be found in the Area Mongo collection.
- * @param area_ids Areas to be validated
+ * @param areaIds Areas to be validated
  */
-const findNonexistantAreas = async (area_ids: MUUID[]): Promise<MUUID[]> => {
+const findNonexistantAreas = async (areaIds: MUUID[]): Promise<MUUID[]> => {
   const AreaModel = getAreaModel()
   type AreaQueryResp = Array<{_id: MUUID, metadata: {area_id: MUUID}}>
   const foundAreas: AreaQueryResp = await AreaModel.find(
-    { 'metadata.area_id': { $in: area_ids } }
+    { 'metadata.area_id': { $in: areaIds } }
   ).select('metadata.area_id').lean()
-  if (foundAreas.length !== area_ids.length) {
+  if (foundAreas.length !== areaIds.length) {
     const foundAreaIds = foundAreas.map(fa => fa.metadata.area_id)
-    const missingAreaIds = area_ids.filter(a => !foundAreaIds.includes(a))
+    const missingAreaIds = areaIds.filter(a => !foundAreaIds.includes(a))
     return missingAreaIds
   }
   return []

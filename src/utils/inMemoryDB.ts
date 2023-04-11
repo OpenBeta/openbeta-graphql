@@ -8,41 +8,41 @@ import { defaultPostConnect } from '../db/index.js'
  * Need a replset to faciliate transactions.
  */
 const mongod = await MongoMemoryReplSet.create({
-  replSet: { count: 1, storageEngine: 'wiredTiger' },
+  replSet: { count: 1, storageEngine: 'wiredTiger' }
 })
 
 /**
  * Connect to the in-memory database.
  */
-const connect = async () => {
-  const uri = await mongod.getUri();
+const connect = async (): Promise<void> => {
+  const uri = await mongod.getUri()
 
   const mongooseOpts: ConnectOptions = {
-    autoIndex: false, // Create indices using defaultPostConnect instead.
-  };
+    autoIndex: false // Create indices using defaultPostConnect instead.
+  }
 
-  await mongoose.connect(uri, mongooseOpts);
-  await defaultPostConnect();
+  await mongoose.connect(uri, mongooseOpts)
+  await defaultPostConnect()
 }
 
 /**
  * Drop database, close the connection and stop mongod.
  */
-const close = async () => {
-  await mongoose.connection.dropDatabase();
-  await mongoose.connection.close();
-  await mongod.stop();
+const close = async (): Promise<void> => {
+  await mongoose.connection.dropDatabase()
+  await mongoose.connection.close()
+  await mongod.stop()
 }
 
 /**
  * Remove all the data for all db collections.
  */
-const clear = async () => {
-  const collections = mongoose.connection.collections;
+const clear = async (): Promise<void> => {
+  const collections = mongoose.connection.collections
 
   for (const key in collections) {
-    const collection = collections[key];
-    await collection.deleteMany({});
+    const collection = collections[key]
+    await collection.deleteMany({})
   }
 }
 

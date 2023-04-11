@@ -1,4 +1,3 @@
-import muid from 'uuid-mongodb'
 import type OrganizationDataSource from '../../model/OrganizationDataSource'
 import { QueryByIdType, OrganizationGQLFilter, Sort } from '../../types'
 
@@ -22,11 +21,11 @@ const OrganizationQueries = {
     const { organizations }: { organizations: OrganizationDataSource } = dataSources
     const filtered = await organizations.findOrganizationsByFilter(filter)
     if (sort != null) {
-      return filtered.collation({ locale: 'en' }).sort(sort).toArray()
+      return await filtered.collation({ locale: 'en' }).sort(sort).toArray()
     } else {
-      return filtered.collation({ locale: 'en' }).toArray()
+      return await filtered.collation({ locale: 'en' }).toArray()
     }
-  },
+  }
 }
 
 export default OrganizationQueries

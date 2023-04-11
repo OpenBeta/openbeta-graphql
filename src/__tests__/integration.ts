@@ -1,62 +1,54 @@
 import { ApolloServer } from 'apollo-server'
-import muuid, { MUUID } from 'uuid-mongodb'
-import { jest } from '@jest/globals';
-import { createServer } from "../server"
-import { muuidToString } from '../utils/helpers';
-import inMemoryDB from "../utils/inMemoryDB.js"
+import muuid from 'uuid-mongodb'
+import { jest } from '@jest/globals'
+import { createServer } from '../server'
+import { muuidToString, isMuuidHexStr } from '../utils/helpers'
+import inMemoryDB from '../utils/inMemoryDB.js'
 import request from 'supertest'
 import jwt from 'jsonwebtoken'
 import MutableAreaDataSource, { createInstance as createAreaInstance } from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource, { createInstance as createOrgInstance } from '../model/MutableOrganizationDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
 import { OrgType, OrganizationType } from '../db/OrganizationTypes.js'
-import { getAreaModel } from '../db/AreaSchema.js'
 
 const PORT = 4000
 
-const isBase64Str = (s: string): boolean => {
-  const bc = /[A-Za-z0-9+/=]/.test(s);
-  const lc = /.*=$/.test(s); // make sure it ends with '='
-  return bc && lc;
+interface QueryAPIProps {
+  query: string
+  operationName: string
+  variables: any
+  userUuid: string
+  roles?: string[]
 }
-
-const isMuuidHexStr = (s: string): boolean => {
-  const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-  return regex.test(s)
-}
-
-
-type QueryAPIProps = {
-  query: string, operationName: string, variables: any, userUuid: string, roles?: string[]
-}
-const queryAPI = async ({query, operationName, variables, userUuid, roles=[]}: QueryAPIProps): Promise<request.Response> => {
+const queryAPI = async ({ query, operationName, variables, userUuid, roles = [] }: QueryAPIProps): Promise<request.Response> => {
   // Avoid needing to pass in actual signed tokens.
   const jwtSpy = jest.spyOn(jwt, 'verify')
-  jwtSpy.mockImplementation(() => {return {
+  jwtSpy.mockImplementation(() => {
+    return {
     // Roles defined at https://manage.auth0.com/dashboard/us/dev-fmjy7n5n/roles
-    'https://tacos.openbeta.io/roles': roles,
-    'https://tacos.openbeta.io/uuid': userUuid,
-  }})
+      'https://tacos.openbeta.io/roles': roles,
+      'https://tacos.openbeta.io/uuid': userUuid
+    }
+  })
 
   const queryObj = { query, operationName, variables }
   const response = await request(`http://localhost:${PORT}`)
     .post('/')
     .send(queryObj)
-    .set('Authorization', `Bearer placeholder-jwt-see-SpyOn`)
+    .set('Authorization', 'Bearer placeholder-jwt-see-SpyOn')
 
   return response
 }
 
-
 describe('graphql server', () => {
-  let server: ApolloServer; 
-  let user: muuid.MUUID;
-  let userUuid: string;
+  let server: ApolloServer
+  let user: muuid.MUUID
+  let userUuid: string
 
   beforeAll(async () => {
-    server = await createServer();
+    server = await createServer()
     await inMemoryDB.connect()
-    server.listen({ port: PORT });  
+    await server.listen({ port: PORT })
     // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
@@ -102,9 +94,9 @@ describe('graphql server', () => {
 
     it('creates and updates an organization', async () => {
       const createResponse = await queryAPI({
-        query: createQuery, 
+        query: createQuery,
         operationName: 'addOrganization',
-        variables: {input: {displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION'}},
+        variables: { input: { displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION' } },
         userUuid,
         roles: ['user_admin']
       })
@@ -120,19 +112,21 @@ describe('graphql server', () => {
       expect(createResponse.body.data.organization.updatedBy).toBe(userUuid)
 
       const updateResponse = await queryAPI({
-        query: updateQuery, 
+        query: updateQuery,
         operationName: 'updateOrganization',
-        variables: { input: {
-          orgId,
-          associatedAreaIds: [],
-          excludedAreaIds: [],
-          displayName: 'Allies of Openbeta',
-          website: 'https://alliesofopenbeta.com',
-          email: 'admin@alliesofopenbeta.com',
-          donationLink: 'https://donate.alliesofopenbeta.com',
-          instagramLink: 'https://instagram.com/alliesofopenbeta',
-          description: 'We are allies of OpenBeta!',
-        }},
+        variables: {
+          input: {
+            orgId,
+            associatedAreaIds: [],
+            excludedAreaIds: [],
+            displayName: 'Allies of Openbeta',
+            website: 'https://alliesofopenbeta.com',
+            email: 'admin@alliesofopenbeta.com',
+            donationLink: 'https://donate.alliesofopenbeta.com',
+            instagramLink: 'https://instagram.com/alliesofopenbeta',
+            description: 'We are allies of OpenBeta!'
+          }
+        },
         userUuid,
         roles: ['user_admin']
       })
@@ -149,15 +143,15 @@ describe('graphql server', () => {
 
     it('throws an error if a non-user_admin tries to add an organization', async () => {
       const response = await queryAPI({
-        query: createQuery, 
+        query: createQuery,
         operationName: 'addOrganization',
-        variables: {input: {displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION'}},
+        variables: { input: { displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION' } },
         userUuid,
         roles: ['editor']
       })
       expect(response.statusCode).toBe(200)
       expect(response.body.data.organization).toBeNull()
-      expect(response.body.errors[0].message).toBe("Not Authorised!")
+      expect(response.body.errors[0].message).toBe('Not Authorised!')
     })
   })
 
@@ -192,9 +186,9 @@ describe('graphql server', () => {
     let areas: MutableAreaDataSource
     let organizations: MutableOrganizationDataSource
 
-    let alphaOrg: OrganizationType;
-    let betaOrg: OrganizationType;
-    let charlieOrg: OrganizationType;
+    let alphaOrg: OrganizationType
+    let betaOrg: OrganizationType
+    let charlieOrg: OrganizationType
 
     let usa: AreaType
     let ca: AreaType
@@ -208,9 +202,9 @@ describe('graphql server', () => {
       wa = await areas.addArea(user, 'WA', usa.metadata.area_id)
 
       let emptyOrg = await organizations.addOrganization(user, 'Alpha Club', OrgType.localClimbingOrganization)
-      let document: any = { 
+      let document: any = {
         email: 'admin@alpha.com',
-        associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
+        associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id]
       }
       alphaOrg = await organizations.updateOrganization(user, emptyOrg.orgId, document)
         .then((res: OrganizationType | null) => {
@@ -237,9 +231,9 @@ describe('graphql server', () => {
 
     it('retrieves an organization with an MUUID', async () => {
       const response = await queryAPI({
-        query: organizationQuery, 
+        query: organizationQuery,
         operationName: 'organization',
-        variables: {input: muuidToString(alphaOrg.orgId)},
+        variables: { input: muuidToString(alphaOrg.orgId) },
         userUuid
       })
       expect(response.statusCode).toBe(200)
@@ -252,9 +246,9 @@ describe('graphql server', () => {
 
     it('retrieves organizations using an exactMatch displayName filter', async () => {
       const response = await queryAPI({
-        query: organizationsQuery, 
+        query: organizationsQuery,
         operationName: 'organizations',
-        variables: { filter: { displayName: { match: 'Beta Club', exactMatch: true }}},
+        variables: { filter: { displayName: { match: 'Beta Club', exactMatch: true } } },
         userUuid
       })
 
@@ -266,10 +260,10 @@ describe('graphql server', () => {
 
     it('retrieves organizations using a non-exactMatch displayName filter', async () => {
       const response = await queryAPI({
-        query: organizationsQuery, 
+        query: organizationsQuery,
         operationName: 'organizations',
-        variables: {filter: { displayName: { match: 'beta', exactMatch: false }}},
-        userUuid,
+        variables: { filter: { displayName: { match: 'beta', exactMatch: false } } },
+        userUuid
       })
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
@@ -279,10 +273,10 @@ describe('graphql server', () => {
 
     it('retrieves organizations using an associatedAreaIds filter', async () => {
       const response = await queryAPI({
-        query: organizationsQuery, 
+        query: organizationsQuery,
         operationName: 'organizations',
-        variables: {filter: { associatedAreaIds: { includes: [muuidToString(ca.metadata.area_id)]}}},
-        userUuid,
+        variables: { filter: { associatedAreaIds: { includes: [muuidToString(ca.metadata.area_id)] } } },
+        userUuid
       })
       // Graphql should convert `includes` from a string[] to MUUID[]
       expect(response.statusCode).toBe(200)

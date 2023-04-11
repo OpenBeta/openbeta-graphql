@@ -12,7 +12,7 @@ import { ChangeRecordMetadataType } from './ChangeLogType.js'
  * of local climbing organizations (LCO) may put up bird nesting notices on
  * the area pages associated with the LCO.
  * */
-export type OrganizationType = {
+export interface OrganizationType {
   _id: mongoose.Types.ObjectId
   /**
   * All external IDs for areas are expressed as UUIDs. As such, when resolving ids at the
