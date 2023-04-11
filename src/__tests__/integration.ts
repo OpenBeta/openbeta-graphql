@@ -52,8 +52,6 @@ describe('graphql server', () => {
   let ca: AreaType
   let wa: AreaType
 
-
-
   beforeAll(async () => {
     server = await createServer()
     await inMemoryDB.connect()
