@@ -58,7 +58,7 @@
   "scripts": {
     "lint": "ts-standard",
     "fix": "ts-standard --fix",
-    "test": "yarn build && cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --runInBand -t \"graphql server\"",
+    "test": "yarn build && cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --runInBand",
     "build": "tsc -p tsconfig.json",
     "build-release": "tsc  -p tsconfig.release.json",
     "clean": "tsc -b --clean && rm -rf build/*",
