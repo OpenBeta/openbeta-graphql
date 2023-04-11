@@ -45,6 +45,15 @@ describe('graphql server', () => {
   let user: muuid.MUUID
   let userUuid: string
 
+  // Mongoose models for mocking pre-existing state.
+  let areas: MutableAreaDataSource
+  let organizations: MutableOrganizationDataSource
+  let usa: AreaType
+  let ca: AreaType
+  let wa: AreaType
+
+
+
   beforeAll(async () => {
     server = await createServer()
     await inMemoryDB.connect()
@@ -57,6 +66,11 @@ describe('graphql server', () => {
 
   beforeEach(async () => {
     await inMemoryDB.clear()
+    areas = createAreaInstance()
+    organizations = createOrgInstance()
+    usa = await areas.addCountry('usa')
+    ca = await areas.addArea(user, 'CA', usa.metadata.area_id)
+    wa = await areas.addArea(user, 'WA', usa.metadata.area_id)
   })
 
   afterAll(async () => {
@@ -72,6 +86,7 @@ describe('graphql server', () => {
           orgType 
           displayName
           associatedAreaIds
+          excludedAreaIds
           createdBy
           updatedBy
         }
@@ -81,6 +96,9 @@ describe('graphql server', () => {
       mutation updateOrganization($input: OrganizationEditableFieldsInput!) {
         organization: updateOrganization(input: $input) {
           orgId
+          associatedAreaIds
+          excludedAreaIds
+          displayName
           content {
             website
             email
@@ -108,6 +126,7 @@ describe('graphql server', () => {
       expect(createResponse.body.data.organization.orgType).toBe('LOCAL_CLIMBING_ORGANIZATION')
       expect(createResponse.body.data.organization.displayName).toBe('Friends of Openbeta')
       expect(createResponse.body.data.organization.associatedAreaIds).toStrictEqual([])
+      expect(createResponse.body.data.organization.excludedAreaIds).toStrictEqual([])
       expect(createResponse.body.data.organization.createdBy).toBe(userUuid)
       expect(createResponse.body.data.organization.updatedBy).toBe(userUuid)
 
@@ -117,8 +136,8 @@ describe('graphql server', () => {
         variables: {
           input: {
             orgId,
-            associatedAreaIds: [],
-            excludedAreaIds: [],
+            associatedAreaIds: [muuidToString(usa.metadata.area_id)],
+            excludedAreaIds: [muuidToString(wa.metadata.area_id)],
             displayName: 'Allies of Openbeta',
             website: 'https://alliesofopenbeta.com',
             email: 'admin@alliesofopenbeta.com',
@@ -134,6 +153,9 @@ describe('graphql server', () => {
       expect(updateResponse.body.errors).toBeUndefined()
       const orgResult = updateResponse.body.data.organization
       expect(orgResult.orgId).toBe(orgId)
+      expect(orgResult.associatedAreaIds).toEqual([muuidToString(usa.metadata.area_id)])
+      expect(orgResult.excludedAreaIds).toEqual([muuidToString(wa.metadata.area_id)])
+      expect(orgResult.displayName).toBe('Allies of Openbeta')
       expect(orgResult.content.website).toBe('https://alliesofopenbeta.com')
       expect(orgResult.content.email).toBe('admin@alliesofopenbeta.com')
       expect(orgResult.content.donationLink).toBe('https://donate.alliesofopenbeta.com')
@@ -182,25 +204,11 @@ describe('graphql server', () => {
         }
       }
     `
-    // Mongoose models for mocking pre-existing state.
-    let areas: MutableAreaDataSource
-    let organizations: MutableOrganizationDataSource
-
     let alphaOrg: OrganizationType
     let betaOrg: OrganizationType
     let charlieOrg: OrganizationType
 
-    let usa: AreaType
-    let ca: AreaType
-    let wa: AreaType
-
     beforeEach(async () => {
-      areas = createAreaInstance()
-      organizations = createOrgInstance()
-      usa = await areas.addCountry('usa')
-      ca = await areas.addArea(user, 'CA', usa.metadata.area_id)
-      wa = await areas.addArea(user, 'WA', usa.metadata.area_id)
-
       let emptyOrg = await organizations.addOrganization(user, 'Alpha Club', OrgType.localClimbingOrganization)
       let document: any = {
         email: 'admin@alpha.com',

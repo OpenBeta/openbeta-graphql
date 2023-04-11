@@ -21,10 +21,6 @@ const OrganizationMutations = {
     if (user?.uuid == null) throw new Error('Missing user uuid')
     if (input?.orgId == null) throw new Error('Missing organization orgId')
 
-    // Could these be null?
-    input.associatedAreaIds = input.associatedAreaIds.map((aaid: string) => muuid.from(aaid))
-    input.excludedAreaIds = input.associatedAreaIds.map((aaid: string) => muuid.from(aaid))
-
     // Except for 'orgId' other fields are optional, check to see if there are any fields
     // besides 'orgId'
     const fields = Object.keys(input).filter(key => key !== 'orgId')

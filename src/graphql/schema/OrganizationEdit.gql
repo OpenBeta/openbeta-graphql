@@ -17,8 +17,8 @@ input AddOrganizationInput {
 
 input OrganizationEditableFieldsInput {
   orgId: MUUID!
-  associatedAreaIds: [String]
-  excludedAreaIds: [String]
+  associatedAreaIds: [MUUID]
+  excludedAreaIds: [MUUID]
   displayName: String
   website: String
   email: String
