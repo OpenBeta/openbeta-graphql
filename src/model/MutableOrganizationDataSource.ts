@@ -139,7 +139,7 @@ const findNonexistantAreas = async (area_ids: MUUID[]): Promise<MUUID[]> => {
   return []
 }
 
-export const newOrganizationHelper = (displayName: string, orgType: OrgType): OrganizationType => {
+export const newOrganizationHelper = (displayName: string, orgType: OrgType): Partial<OrganizationType> => {
   const _id = new mongoose.Types.ObjectId()
   const orgId = muuid.v4()
   return {
