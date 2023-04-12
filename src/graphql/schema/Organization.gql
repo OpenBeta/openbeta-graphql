@@ -1,0 +1,55 @@
+type Query {
+  organization(muuid: MUUID): Organization
+  organizations(filter: OrgFilter, sort: OrgSort): [Organization]
+}
+
+"A climbing area, wall or crag"
+type Organization {
+  id: ID!
+  """
+  Type of organization. Currently we only support local climbing organizations, which
+  are associated with certain climbing areas. In future there may be advocacy groups
+  like the Access Fund or interest groups like the American Alpine Club that are not
+  associated with any specific climbing areas.
+  """
+  orgType: String!
+  "We use orgId for identification of organizations. The id field is used in internal database relations."
+  orgId: MUUID!
+
+  associatedAreaIds: [MUUID]
+  excludedAreaIds: [MUUID]
+
+  "Name of organization to be displayed on the site."
+  displayName: String!
+  content: OrganizationContent
+  createdAt: Date
+  createdBy: MUUID
+  updatedAt: Date
+  updatedBy: MUUID
+}
+
+type OrganizationContent {
+  website: String
+  email: String
+  donationLink: String
+  instagramLink: String
+  description: String
+}
+
+input OrgSort {
+  displayName: Int
+}
+
+input OrgFilter {
+  displayName: DisplayNameFilter
+  associatedAreaIds: AssociatedAreaIdsFilter
+}
+
+input DisplayNameFilter {
+  match: String!
+  exactMatch: Boolean
+}
+
+input AssociatedAreaIdsFilter {
+  includes: [MUUID]
+}

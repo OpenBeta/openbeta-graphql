@@ -5,6 +5,7 @@ import { enableAllPlugins } from 'immer'
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
+import { getOrganizationModel } from './OrganizationSchema.js'
 import { getTickModel } from './TickSchema.js'
 import { getXMediaModel } from './XMediaSchema.js'
 import { getPostModel } from './PostSchema.js'
@@ -65,6 +66,7 @@ export const createIndexes = async (): Promise<void> => {
   await getClimbModel().createIndexes()
   await getAreaModel().createIndexes()
   await getMediaModel().createIndexes()
+  await getOrganizationModel().createIndexes()
   await getTickModel().createIndexes()
   await getXMediaModel().createIndexes()
   await getPostModel().createIndexes()
@@ -88,6 +90,7 @@ process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
 export {
   getMediaModel,
+  getOrganizationModel,
   getAreaModel,
   getTickModel,
   getClimbModel,

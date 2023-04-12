@@ -9,6 +9,7 @@ import type MutableMediaDataSource from './model/MutableMediaDataSource.js'
 import MutableClimbDataSource from './model/MutableClimbDataSource.js'
 import XMediaDataSource from './model/XMediaDataSource.js'
 import PostDataSource from './model/PostDataSource.js'
+import MutableOrganizationDataSource from './model/MutableOrganizationDataSource.js'
 
 export enum SortDirection {
   ASC = 1,
@@ -45,6 +46,20 @@ export interface PathTokenParams {
 type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams | ComparisonFilterParams[]
 export type GQLFilter = Record<Filterable, FilterParams>
 
+export interface DisplayNameFilterParams {
+  match: string
+  exactMatch: boolean | undefined
+}
+
+export interface AssociatedAreaIdsFilterParams {
+  includes: MUUID[]
+}
+
+type OrganizationFilterable = 'displayName' | 'associatedAreaIds'
+
+type OrganizationFilterParams = DisplayNameFilterParams | AssociatedAreaIdsFilterParams
+export type OrganizationGQLFilter = Partial<Record<OrganizationFilterable, OrganizationFilterParams>>
+
 export type LNGLAT = [number, number]
 export type BBoxType = BBox
 export interface StatisticsType {
@@ -61,6 +76,7 @@ export interface CragsNear {
 export interface QueryByIdType {
   id?: string
   uuid?: string
+  muuid?: MUUID
 }
 
 export interface AuthUserType {
@@ -70,6 +86,7 @@ export interface AuthUserType {
 
 export interface DataSourcesType {
   areas: MutableAreaDataSource
+  organizations: MutableOrganizationDataSource
   ticks: TickDataSource
   history: HistoryDataSouce
   media: MutableMediaDataSource

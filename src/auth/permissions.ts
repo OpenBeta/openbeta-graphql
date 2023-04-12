@@ -1,11 +1,12 @@
 import { shield, allow } from 'graphql-shield'
-import { isEditor } from './rules.js'
+import { isEditor, isUserAdmin } from './rules.js'
 
 const permissions = shield({
   Query: {
     '*': allow
   },
   Mutation: {
+    addOrganization: isUserAdmin,
     setDestinationFlag: isEditor,
     removeArea: isEditor,
     addArea: isEditor,
