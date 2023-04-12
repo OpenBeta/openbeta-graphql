@@ -37,6 +37,17 @@ export enum GradeContexts {
  * Todo: move this to @openbeta/sandbag
  */
 export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGradeContextType>> = {
+  [GradeContexts.AU]: {
+    trad: GradeScales.EWBANK,
+    sport: GradeScales.EWBANK,
+    bouldering: GradeScales.VSCALE,
+    tr: GradeScales.EWBANK,
+    alpine: GradeScales.YDS,
+    mixed: GradeScales.YDS,
+    aid: GradeScales.YDS,
+    snow: GradeScales.YDS, // is this the same as alpine?
+    ice: GradeScales.YDS // is this the same as alpine?
+  },
   [GradeContexts.US]: {
     trad: GradeScales.YDS,
     sport: GradeScales.YDS,

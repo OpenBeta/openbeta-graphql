@@ -788,10 +788,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@openbeta/sandbag@^0.0.33":
-  version "0.0.33"
-  resolved "https://registry.yarnpkg.com/@openbeta/sandbag/-/sandbag-0.0.33.tgz#bb771d94c5a3fc2c9d9e7fcad7e85e6809b89d0e"
-  integrity sha512-YACAVdBU2bn0A7XIilw22yieS/QrAHqmIpiDWHJr/lAw4M3hEDq956SEfw/H0pwukTLy8A6z9K/o4uD84t4OiA==
+"@openbeta/sandbag@^0.0.37":
+  version "0.0.37"
+  resolved "https://registry.yarnpkg.com/@openbeta/sandbag/-/sandbag-0.0.37.tgz#59befbb2bace586be19c0a3c6d9f8046c05fa05e"
+  integrity sha512-oeCqXAZkvgHkUOHZefhZyftxsarcdHUtS2oEttIACCRpZ/Vs2hAmyXIn1Yg7dxnQEKbJ3TtVD4trUmNoJSolag==
 
 "@panva/asn1.js@^1.0.0":
   version "1.0.0"

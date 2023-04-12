@@ -142,6 +142,11 @@ type GradeType {
   https://en.wikipedia.org/wiki/Grade_(climbing)#Yosemite_Decimal_System
   """
   yds: String
+  """
+  Ewbank grade
+  https://en.wikipedia.org/wiki/Grade_(climbing)#Ewbank
+  """
+  ewbank: String
   french: String
   """
   Fontainebleau grading system, the most widely used grading system in Europe.

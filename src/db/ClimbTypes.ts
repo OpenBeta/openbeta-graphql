@@ -86,6 +86,7 @@ export enum SafetyType {
 
 export interface IGradeType {
   yds?: string
+  ewbank?: string
   french?: string
   font?: string
 }

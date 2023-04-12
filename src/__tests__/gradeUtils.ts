@@ -38,7 +38,7 @@ describe('Test grade utilities', () => {
     expect(sanitizeDisciplines(input)).toEqual(input)
   })
 
-  it('creates USA grade object correctly', () => {
+  it('creates grade object correctly in US context', () => {
     const context = gradeContextToGradeScales.US
     if (context == null) fail('Bad grade context.  Should not happen.')
 
@@ -61,7 +61,26 @@ describe('Test grade utilities', () => {
     expect(actual).toBeUndefined()
   })
 
-  it('creates French grade object correctly', () => {
+  it('creates grade object correctly in AU context', () => {
+    const context = gradeContextToGradeScales.AU
+    if (context == null) fail('Bad grade context.  Should not happen.')
+
+    let actual = createGradeObject('5', sanitizeDisciplines({ sport: true }), context)
+    expect(actual).toEqual({
+      ewbank: '5'
+    })
+
+    actual = createGradeObject('v11', sanitizeDisciplines({ bouldering: true }), context)
+    expect(actual).toEqual({
+      vscale: 'v11'
+    })
+
+    // Invalid input
+    actual = createGradeObject('5.9', sanitizeDisciplines({ sport: true }), context)
+    expect(actual).toBeUndefined()
+  })
+
+  it('creates grade object correctly in FR context', () => {
     const context = gradeContextToGradeScales.FR
     if (context == null) fail('Bad grade context.  Should not happen.')
 
