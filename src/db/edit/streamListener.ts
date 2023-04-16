@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
+import { ChangeStream, ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
 import dot from 'dot-object'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
@@ -12,7 +12,7 @@ import { AreaType } from '../AreaTypes.js'
 /**
  * Start a new stream listener to track changes
  */
-export default async function streamListener (): Promise<any> {
+export default async function streamListener (): Promise<ChangeStream> {
   const resumeId = await mostRecentResumeId()
   logger.info({ resumeId }, 'Starting stream listener')
 
@@ -31,7 +31,7 @@ export default async function streamListener (): Promise<any> {
         },
         {
           'ns.coll': {
-            $in: ['climbs', 'areas']
+            $in: ['climbs', 'areas', 'organizations']
           }
         }
       ]
@@ -100,6 +100,17 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
       }
       void changelogDataSource.record(newDocument)
       void updateAreaIndex(fullDocument as AreaType, dbOp)
+      break
+    }
+    case 'organizations': {
+      const newDocument: BaseChangeRecordType = {
+        _id,
+        dbOp,
+        fullDocument,
+        updateDescription: dotifyUpdateDescription(updateDescription),
+        kind: 'organizations'
+      }
+      void changelogDataSource.record(newDocument)
       break
     }
     default:

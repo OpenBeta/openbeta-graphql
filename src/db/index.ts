@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { ChangeStream } from 'mongodb'
 import { config } from 'dotenv'
 import { enableAllPlugins } from 'immer'
 
@@ -79,10 +80,10 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
   })
 }
 
-export const defaultPostConnect = async (): Promise<void> => {
+export const defaultPostConnect = async (): Promise<ChangeStream> => {
   console.log('Kudos!')
   await createIndexes()
-  await streamListener()
+  return await streamListener()
 }
 
 // eslint-disable-next-line

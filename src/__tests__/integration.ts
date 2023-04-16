@@ -9,8 +9,10 @@ import jwt from 'jsonwebtoken'
 import MutableAreaDataSource, { createInstance as createAreaInstance } from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource, { createInstance as createOrgInstance } from '../model/MutableOrganizationDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
-import { OrgType, OrganizationType } from '../db/OrganizationTypes.js'
+import { OrgType, OrganizationType, OperationType } from '../db/OrganizationTypes.js'
+import { changelogDataSource } from '../model/ChangeLogDataSource.js'
 
+jest.setTimeout(60000)
 const PORT = 4000
 
 interface QueryAPIProps {
@@ -159,6 +161,27 @@ describe('graphql server', () => {
       expect(orgResult.content.donationLink).toBe('https://donate.alliesofopenbeta.com')
       expect(orgResult.content.instagramLink).toBe('https://instagram.com/alliesofopenbeta')
       expect(orgResult.content.description).toBe('We are allies of OpenBeta!')
+
+      // eslint-disable-next-line
+      await new Promise(res => setTimeout(res, 1000))
+
+      const orgHistory = await changelogDataSource.getOrganizationChangeSets()
+      expect(orgHistory).toHaveLength(2)
+
+      // verify changes in most recent order
+      expect(orgHistory[0].operation).toEqual(OperationType.updateOrganization)
+      expect(orgHistory[1].operation).toEqual(OperationType.addOrganization)
+
+      // history is shown most recent first
+      const updateRecord = orgHistory[0].changes
+      expect(updateRecord[0].dbOp).toEqual('update')
+      expect(updateRecord[0].fullDocument._change?.historyId).toEqual(orgHistory[0]._id) // should point to current change
+      expect(updateRecord[0].fullDocument.displayName).toBe('Allies of Openbeta')
+
+      const createRecord = orgHistory[1].changes
+      expect(createRecord[0].dbOp).toEqual('insert')
+      expect(createRecord[0].fullDocument._change?.historyId).toEqual(orgHistory[1]._id) // should point to current change
+      expect(createRecord[0].fullDocument.displayName).toBe('Friends of Openbeta')
     })
 
     it('throws an error if a non-user_admin tries to add an organization', async () => {

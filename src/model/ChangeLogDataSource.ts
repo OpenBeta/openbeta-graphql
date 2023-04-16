@@ -3,9 +3,10 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
 
 import { getChangeLogModel } from '../db/index.js'
-import { ChangeLogType, OpType, BaseChangeRecordType, AreaChangeLogType, ClimbChangeLogType } from '../db/ChangeLogType'
+import { ChangeLogType, OpType, BaseChangeRecordType, AreaChangeLogType, ClimbChangeLogType, OrganizationChangeLogType } from '../db/ChangeLogType'
 import { logger } from '../logger.js'
 import { areaHistoryDataSource } from './AreaHistoryDatasource.js'
+import { organizationHistoryDataSource } from './OrganizationHistoryDatasource.js'
 
 export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> {
   changeLogModel = getChangeLogModel()
@@ -57,6 +58,10 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
 
   async getAreaChangeSets (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
     return await areaHistoryDataSource.getChangeSetsByUuid(areaUuid)
+  }
+
+  async getOrganizationChangeSets (orgId?: MUUID): Promise<OrganizationChangeLogType[]> {
+    return await organizationHistoryDataSource.getChangeSetsByOrgId(orgId)
   }
 
   /**
