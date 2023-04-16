@@ -56,7 +56,7 @@
     "uuid-mongodb": "^2.5.1"
   },
   "scripts": {
-    "lint": "ts-standard",
+    "lint": "yarn ts-standard",
     "fix": "ts-standard --fix",
     "test": "yarn build && cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --runInBand",
     "build": "tsc -p tsconfig.json",
