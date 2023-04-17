@@ -1,15 +1,19 @@
 [![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-# Climbing Route Catalog API 
+# Climbing Route Catalog API
 
 ### What is this?
 
 OpenBeta Graph API allows other applications to access the [OpenBeta climbing database](https://openbeta.io) using any standard GraphQL clients.
- 
-**Endpoint**: 
+
+**Endpoint**:
+
 - Production: https://api.openbeta.io
 - Development: https://stg-api.openbeta.io
 
@@ -65,12 +69,12 @@ query Example1 {
 ```
 
 ### Development
+
 #### Requirements:
 
 - [Docker](https://docs.docker.com/get-docker)
 - [Node.js](https://nodejs.org) (v16.14.0 or later)
 - [yarn](https://yarnpkg.com/getting-started/install)
-
 
 0. Add '127.0.0.1 mongodb' entry to your `/etc/hosts` file (or C:\Windows\System32\drivers\etc\hosts on Windows)
 
@@ -93,6 +97,7 @@ yarn update-stats      # update statistics
 ```
 
 3. Start the GraphQL server
+
 ```bash
 yarn serve
 ```
@@ -115,6 +120,18 @@ yarn serve
 
 ### Tips
 
+- Warning messages:
+  We are using a version of typescript that is not officially supported by certain packages. When you commit changes, you will see a warning message that includes
+
+  ```
+  SUPPORTED TYPESCRIPT VERSIONS: >=3.3.1 <4.5.0
+
+  YOUR TYPESCRIPT VERSION: 4.9.5
+
+  ```
+
+  For now, you can safely ignore this warning.
+
 - Browse the database: http://localhost:8081
 
 - GraphQL online playground: https://graphiql-online.com/
@@ -122,18 +139,21 @@ yarn serve
 - Full stack development
 
   Connect your [frontend](https://github.com/OpenBeta/open-tacos) dev env to this local server
+
   ```bash
   # Run this in open-tacos project
   yarn dev-local
   ```
 
 - Make sure to include `.js` when importing other files:
+
   ```javascript
   ...
   import { getClimbModel } from '../db/ClimbSchema.js'  // .js is required
   ...
   ```
-  Why?  See [this issue](https://github.com/microsoft/TypeScript/issues/40878) for an explanation.
+
+  Why? See [this issue](https://github.com/microsoft/TypeScript/issues/40878) for an explanation.
 
 - Advanced database commands:
 
@@ -156,7 +176,7 @@ yarn serve
 
 ### Questions?
 
-This project is under active development.  Join us on [Discord](https://discord.gg/xcWha22BhT)!
+This project is under active development. Join us on [Discord](https://discord.gg/xcWha22BhT)!
 
 ### License
 
