@@ -16,8 +16,8 @@ const TickMutations = {
     { dataSources }) => {
     const { ticks }: { ticks: TickDataSource } = dataSources
     const res = await ticks.deleteTick(_id)
-    if (res?.deletedCount === 1) return { _id: _id, removed: true }
-    return { _id: _id, removed: false }
+    if (res?.deletedCount === 1) return { _id, removed: true }
+    return { _id, removed: false }
   },
   deleteAllTicks: async (
     _,

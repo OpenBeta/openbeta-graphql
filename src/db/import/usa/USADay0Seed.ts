@@ -33,7 +33,7 @@ const main = async (): Promise<void> => {
 
   const rootNode = await createRoot('US', 'USA')
 
-  const stats: Array<JobStats|any> = await Promise.all<Array<JobStats|any>>(US_STATES.map(async state => {
+  const stats: Array<JobStats | any> = await Promise.all<Array<JobStats | any>>(US_STATES.map(async state => {
     const code = state.code.toLowerCase()
     const fRoutes = `${contentDir}/${code}-routes.jsonlines`
     const fAreas = `${contentDir}/${code}-areas.jsonlines`
@@ -51,7 +51,7 @@ const main = async (): Promise<void> => {
   return await Promise.resolve()
 }
 
-const printStats = (stats: Array<JobStats|any>): void => {
+const printStats = (stats: Array<JobStats | any>): void => {
   logger.info('------------------ Summary -------------------')
   const sums = { states: 0, climbs: 0, areas: 0 }
   for (const entry of stats) {

@@ -436,9 +436,9 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
       leftRightIndex: -1,
       ext_id: ''
     },
-    ancestors: ancestors,
+    ancestors,
     climbs: [],
-    pathTokens: pathTokens,
+    pathTokens,
     gradeContext: parentGradeContext,
     aggregate: {
       byGrade: [],

@@ -100,7 +100,7 @@ export interface OrganizationEditableFieldsType {
 }
 
 export enum OrgType {
-  localClimbingOrganization='LOCAL_CLIMBING_ORGANIZATION'
+  localClimbingOrganization = 'LOCAL_CLIMBING_ORGANIZATION'
 }
 
 /** The audit trail comprises a set of controlled events that may occur in relation

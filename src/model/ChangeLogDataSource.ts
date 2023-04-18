@@ -69,7 +69,7 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
    * @param uuidList optional filter
    * @returns change sets
    */
-  async getChangeSets (uuidList: MUUID[]): Promise<Array<AreaChangeLogType|ClimbChangeLogType>> {
+  async getChangeSets (uuidList: MUUID[]): Promise<Array<AreaChangeLogType | ClimbChangeLogType>> {
     const rs = await this.changeLogModel.aggregate([
       {
         $sort: {

@@ -3,7 +3,7 @@ import { TagType, RemoveTagInputType } from '../../db/TagTypes'
 import { getTagModel } from '../../db/TagSchema.js'
 
 const TagMutations = {
-  addTag: async (_: any, { input }: {input: TagType}) => {
+  addTag: async (_: any, { input }: { input: TagType }) => {
     const TagModel = getTagModel()
     const newTag = new TagModel({
       ...input,
@@ -14,7 +14,7 @@ const TagMutations = {
     return { tagId: res.id }
   },
 
-  deleteTag: async (_: any, { input }: {input: RemoveTagInputType}) => {
+  deleteTag: async (_: any, { input }: { input: RemoveTagInputType }) => {
     const TagModel = getTagModel()
     const res = await TagModel.deleteOne({ _id: input.tagId })
     return { numDeleted: res.deletedCount }

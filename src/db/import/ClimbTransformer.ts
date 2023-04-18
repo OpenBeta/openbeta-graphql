@@ -29,10 +29,10 @@ const transformClimbRecord = (row: any): ClimbType => {
       font: grade.Font,
       french: grade.French
     },
-    gradeContext: gradeContext,
-    safety: safety,
+    gradeContext,
+    safety,
     type: disciplines,
-    fa: fa,
+    fa,
     metadata: {
       lnglat: geometry('Point', parent_lnglat) as Point,
       left_right_index: left_right_seq,

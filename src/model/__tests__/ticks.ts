@@ -154,7 +154,7 @@ describe('Ticks', () => {
     }
 
     await ticks.deleteAllTicks(userId)
-    const newTick = await tickModel.findOne({ userId: userId })
+    const newTick = await tickModel.findOne({ userId })
     expect(newTick).toBeNull()
   })
 

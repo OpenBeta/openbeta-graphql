@@ -31,7 +31,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
       throw new Error('Failed to delete previously imported ticks, Reason: userId was not provided')
     }
     try {
-      const res = await this.tickModel.deleteMany({ userId: userId, source: 'MP' })
+      const res = await this.tickModel.deleteMany({ userId, source: 'MP' })
       return res
     } catch (e) {
       throw new Error(e)
@@ -43,7 +43,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
       throw new Error('Failed to delete previously imported ticks, Reason: userId was not provided')
     }
     try {
-      const res = await this.tickModel.deleteMany({ userId: userId })
+      const res = await this.tickModel.deleteMany({ userId })
       return res
     } catch (e) {
       throw new Error(e)

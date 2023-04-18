@@ -33,7 +33,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
   async _addOrganization (session, user: MUUID, displayName: string, orgType: OrgType): Promise<any> {
     const change = await changelogDataSource.create(session, user, OperationType.addOrganization)
     const newChangeMeta: ChangeRecordMetadataType = {
-      user: user,
+      user,
       historyId: change._id,
       operation: OperationType.addOrganization,
       seq: 0
@@ -61,7 +61,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
   async updateOrganization (user: MUUID, orgId: MUUID, document: OrganizationEditableFieldsType): Promise<OrganizationType | null> {
     const _updateOrganization = async (session: ClientSession, user: MUUID, orgId: MUUID, document: OrganizationEditableFieldsType): Promise<any> => {
       const filter = {
-        orgId: orgId,
+        orgId,
         deleting: { $ne: null }
       }
 
@@ -76,12 +76,12 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
       if (associatedAreaIds != null && associatedAreaIds.length > 0) {
         const missingAreaIds = await findNonexistantAreas(associatedAreaIds)
         if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Associated areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
-        org.set({ associatedAreaIds: associatedAreaIds })
+        org.set({ associatedAreaIds })
       }
       if (excludedAreaIds != null && excludedAreaIds.length > 0) {
         const missingAreaIds = await findNonexistantAreas(excludedAreaIds)
         if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Excluded areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
-        org.set({ excludedAreaIds: excludedAreaIds })
+        org.set({ excludedAreaIds })
       }
       if (displayName != null) { org.set({ displayName: sanitizeStrict(displayName) }) }
       if (website != null) { org.set({ 'content.website': sanitizeStrict(website) }) }
@@ -127,7 +127,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
  */
 const findNonexistantAreas = async (areaIds: MUUID[]): Promise<MUUID[]> => {
   const AreaModel = getAreaModel()
-  type AreaQueryResp = Array<{_id: MUUID, metadata: {area_id: MUUID}}>
+  type AreaQueryResp = Array<{ _id: MUUID, metadata: { area_id: MUUID } }>
   const foundAreas: AreaQueryResp = await AreaModel.find(
     { 'metadata.area_id': { $in: areaIds } }
   ).select('metadata.area_id').lean()
