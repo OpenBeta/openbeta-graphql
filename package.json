@@ -19,7 +19,7 @@
     "nock": "^13.3.0",
     "supertest": "^6.3.3",
     "ts-jest": "^29.0.5",
-    "ts-standard": "^11.0.0",
+    "ts-standard": "^12.0.0",
     "typescript": "4.9.5"
   },
   "dependencies": {
@@ -57,7 +57,7 @@
   },
   "scripts": {
     "lint": "yarn ts-standard",
-    "fix": "ts-standard --fix",
+    "fix": "yarn ts-standard --fix",
     "test": "yarn build && cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --runInBand",
     "build": "tsc -p tsconfig.json",
     "build-release": "tsc  -p tsconfig.release.json",

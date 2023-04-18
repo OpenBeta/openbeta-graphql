@@ -28,7 +28,7 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
   // Build a tree from each record in the state data file
   const tree = new Tree(root)
   areas.forEach(record => {
-    const { path }: {path: string} = record
+    const { path }: { path: string } = record
     /* eslint-disable-next-line */
     const fullPath = `${record.us_state}|${path}` // 'path' doesn't have a parent (a US state)
     tree.insertMany(fullPath, record)

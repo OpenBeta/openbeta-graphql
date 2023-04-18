@@ -232,7 +232,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
    * ```
    * @param uuid climb uuid
    */
-  async findOneClimbByUUID (uuid: muuid.MUUID): Promise<ClimbGQLQueryType|null> {
+  async findOneClimbByUUID (uuid: muuid.MUUID): Promise<ClimbGQLQueryType | null> {
     const rs = await this.climbModel
       .aggregate([
         { $match: { _id: uuid } },
@@ -353,7 +353,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       { $unset: 'crags.distance' }, // remove 'distance' field
       { $set: { 'crags.climbs': [] } }, // set to empty []
       // this is a hack to add an arbitrary token to make the graphql result uniquely identifiable for Apollo client-side cache.  Todo: look for a better way as this could be potential injection.
-      { $addFields: { placeId: placeId } }])
+      { $addFields: { placeId } }])
     return rs
   }
 

@@ -16,7 +16,7 @@ export default class MediaDataSource extends MongoDataSource<ExperimentalUserTyp
    * @param inputUrl
    * @returns User UUID if successful.  null otherwise.
    */
-  async updateUser (session: ClientSession, inputDisplayName: string, inputUrl: string): Promise<MUUID|null> {
+  async updateUser (session: ClientSession, inputDisplayName: string, inputUrl: string): Promise<MUUID | null> {
     const url: string = inputUrl
     let displayName = inputDisplayName != null ? inputDisplayName.trim().substring(0, 50) : ''
     let uuid: MUUID

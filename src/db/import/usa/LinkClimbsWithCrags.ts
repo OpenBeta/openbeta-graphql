@@ -15,7 +15,7 @@ export const linkClimbsWithAreas = async (
   climbModel: mongoose.Model<ClimbType>,
   areaModel: mongoose.Model<AreaType>): Promise<void> => {
   // Group all climbs by crag
-  const climbsGroupByCrag: Array<{_id: mongoose.Types.ObjectId, climbs: ClimbType[]}> = await climbModel.aggregate([
+  const climbsGroupByCrag: Array<{ _id: mongoose.Types.ObjectId, climbs: ClimbType[] }> = await climbModel.aggregate([
     { $group: { _id: '$metadata.areaRef', climbs: { $push: '$$ROOT._id' } } }
   ]).allowDiskUse(true)
 

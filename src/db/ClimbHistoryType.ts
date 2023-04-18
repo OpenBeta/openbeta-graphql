@@ -4,7 +4,7 @@ import ChangeEventType from './ChangeEventType'
 import { ClimbType } from './ClimbTypes'
 import { AreaType } from './AreaTypes'
 
-export default interface ClimbHistoryType extends Document{
+export default interface ClimbHistoryType extends Document {
   uid: MUUID
   actionType: ActionType
   change: ChangeEventType<ClimbType>
