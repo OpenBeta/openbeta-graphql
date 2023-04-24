@@ -50,6 +50,12 @@ describe('Climb CRUD', () => {
       disciplines: {
         ice: true
       }
+    },
+    {
+      name: 'Cool aid one',
+      disciplines: {
+        aid: true
+      }
     }
   ]
 
@@ -59,6 +65,15 @@ describe('Climb CRUD', () => {
       sport: true
     },
     description: 'A local testpiece'
+  }
+
+  const newAidRoute: ClimbChangeInputType = {
+    name: 'Gnarly Aid',
+    disciplines: {
+      aid: true
+    },
+    description: 'certain death',
+    grade: 'A0'
   }
 
   const newBoulderProblem1: ClimbChangeInputType = {
@@ -265,7 +280,8 @@ describe('Climb CRUD', () => {
         { ...newSportClimb1, grade: '17' }, // good sport grade
         { ...newSportClimb2, grade: '29/30', disciplines: { trad: true } }, // good trad and slash grade
         { ...newSportClimb2, grade: '5.9' }, // bad AU context grade
-        { ...newIceRoute, grade: 'WI4+' } // good WI AU context grade
+        { ...newIceRoute, grade: 'WI4+' }, // good WI AU context grade
+        { ...newAidRoute, grade: 'A0' } // good aid grade
       ]
 
       const newIDs = await climbs.addOrUpdateClimbs(
@@ -293,6 +309,12 @@ describe('Climb CRUD', () => {
       expect(climb4?.type.trad).toBe(false)
       expect(climb4?.type.bouldering).toBe(false)
       expect(climb4?.type.ice).toBe(true)
+
+      const climb5 = await climbs.findOneClimbByMUUID(muid.from(newIDs[4]))
+      expect(climb5?.grades).toEqual({ aid: 'A0' })
+      expect(climb5?.type.sport).toBe(false)
+      expect(climb5?.type.trad).toBe(false)
+      expect(climb5?.type.aid).toBe(true)
     }
 
     {
