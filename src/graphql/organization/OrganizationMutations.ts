@@ -5,12 +5,13 @@ const OrganizationMutations = {
 
   addOrganization: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<OrganizationType | null> => {
     const { organizations } = dataSources
-    const { displayName, orgType } = input
 
     // permission middleware shouldn't send undefined uuid
     if (user?.uuid == null) throw new Error('Missing user uuid')
+    if (input?.orgType == null) throw new Error('Missing orgType')
+    if (input?.displayName == null) throw new Error('Missing displayName')
 
-    return await organizations.addOrganization(user.uuid, displayName, orgType)
+    return await organizations.addOrganization(user.uuid, input.orgType, input)
   },
 
   updateOrganization: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<OrganizationType | null> => {

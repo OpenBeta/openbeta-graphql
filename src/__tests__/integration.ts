@@ -230,28 +230,32 @@ describe('graphql server', () => {
     let charlieOrg: OrganizationType
 
     beforeEach(async () => {
-      let emptyOrg = await organizations.addOrganization(user, 'Alpha Club', OrgType.localClimbingOrganization)
       let document: any = {
+        displayName: 'Alpha Club',
         email: 'admin@alpha.com',
         associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id]
       }
-      alphaOrg = await organizations.updateOrganization(user, emptyOrg.orgId, document)
+      alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, document)
         .then((res: OrganizationType | null) => {
           if (res === null) throw new Error('Failure mocking organization.')
           return res
         })
 
-      emptyOrg = await organizations.addOrganization(user, 'Beta Club', OrgType.localClimbingOrganization)
-      document = { email: 'admin@beta.com' }
-      betaOrg = await organizations.updateOrganization(user, emptyOrg.orgId, document)
+      document = {
+        displayName: 'Beta Club',
+        email: 'admin@beta.com'
+      }
+      betaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, document)
         .then((res: OrganizationType | null) => {
           if (res === null) throw new Error('Failure mocking organization.')
           return res
         })
 
-      emptyOrg = await organizations.addOrganization(user, 'Charlie Beta Club', OrgType.localClimbingOrganization)
-      document = { description: 'We are an offshoot of the beta club.\nSee our website for more details.' }
-      charlieOrg = await organizations.updateOrganization(user, emptyOrg.orgId, document)
+      document = {
+        displayName: 'Charlie Beta Club',
+        description: 'We are an offshoot of the beta club.\nSee our website for more details.'
+      }
+      charlieOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, document)
         .then((res: OrganizationType | null) => {
           if (res === null) throw new Error('Failure mocking organization.')
           return res

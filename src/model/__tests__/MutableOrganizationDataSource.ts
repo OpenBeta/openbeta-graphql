@@ -14,6 +14,8 @@ describe('Organization', () => {
   let usa: AreaType
   let ca: AreaType
   let wa: AreaType
+  let fullOrg: OrganizationEditableFieldsType
+  let emptyOrg: OrganizationEditableFieldsType
   const testUser = muuid.v4()
 
   beforeAll(async () => {
@@ -28,6 +30,19 @@ describe('Organization', () => {
     usa = await areas.addCountry('usa')
     ca = await areas.addArea(testUser, 'CA', usa.metadata.area_id)
     wa = await areas.addArea(testUser, 'WA', usa.metadata.area_id)
+    fullOrg = {
+      associatedAreaIds: [usa.metadata.area_id],
+      excludedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
+      displayName: 'Friends of Openbeta',
+      website: 'https://www.friendsofopenbeta.com',
+      email: 'admin@friendsofopenbeta.com',
+      donationLink: 'https://www.friendsofopenbeta.com/donate',
+      instagramLink: 'https://www.instagram.com/friendsofopenbeta',
+      description: 'We are friends of openbeta.\nWe are a 503(B) corporation.'
+    }
+    emptyOrg = {
+      displayName: 'Foes of Openbeta'
+    }
   })
 
   beforeEach(async () => {
@@ -44,16 +59,18 @@ describe('Organization', () => {
   })
 
   it('should successfully create a document when passed valid input', async () => {
-    const newOrg = await organizations.addOrganization(testUser, 'OpenAlpha Club', OrgType.localClimbingOrganization)
-    expect(newOrg.displayName).toEqual('OpenAlpha Club')
-    expect(newOrg.associatedAreaIds).toEqual([])
+    const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, fullOrg)
+    expect(newOrg.displayName).toBe('Friends of Openbeta')
+    expect(newOrg.content?.description).toBe('We are friends of openbeta.\nWe are a 503(B) corporation.')
+    expect(newOrg.content?.website).toBe('https://www.friendsofopenbeta.com')
+    expect(newOrg.associatedAreaIds.map(muuidToString)).toEqual([muuidToString(usa.metadata.area_id)])
 
     const orgIdSearchRes = await organizations.findOneOrganizationByOrgId(newOrg.orgId)
     expect(orgIdSearchRes._id).toEqual(newOrg._id)
   })
 
   it('should retrieve documents based on displayName', async () => {
-    const newOrg = await organizations.addOrganization(testUser, 'Friends of OpenBeta', OrgType.localClimbingOrganization)
+    const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, fullOrg)
     // Match should be case-insensitive.
     const displayNameSearchRes = await (await organizations.findOrganizationsByFilter({ displayName: { match: 'openbeta', exactMatch: false } })).toArray()
     expect(displayNameSearchRes).toHaveLength(1)
@@ -61,7 +78,7 @@ describe('Organization', () => {
   })
 
   it('should retrieve documents based on associatedAreaIds', async () => {
-    const newOrg = await organizations.addOrganization(testUser, 'Washington and California Club', OrgType.localClimbingOrganization)
+    const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, fullOrg)
     const document = {
       associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id]
     }
@@ -72,23 +89,9 @@ describe('Organization', () => {
   })
 
   describe('update', () => {
-    let baseUpdateDocument: OrganizationEditableFieldsType
-    beforeAll(() => {
-      baseUpdateDocument = {
-        associatedAreaIds: [usa.metadata.area_id],
-        excludedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
-        displayName: 'Friends of Openbeta',
-        website: 'https://www.friendsofopenbeta.com',
-        email: 'admin@friendsofopenbeta.com',
-        donationLink: 'https://www.friendsofopenbeta.com/donate',
-        instagramLink: 'https://www.instagram.com/friendsofopenbeta',
-        description: 'We are friends of openbeta.\nWe are a 503(B) corporation.'
-      }
-    })
-
     it('should succeed on valid input', async () => {
-      const newOrg = await organizations.addOrganization(testUser, 'Foe of OpenBeta', OrgType.localClimbingOrganization)
-      const document = { ...baseUpdateDocument }
+      const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, emptyOrg)
+      const document = { ...fullOrg }
       const updatedOrg = await organizations.updateOrganization(testUser, newOrg.orgId, document)
 
       expect(updatedOrg).toBeDefined()
@@ -109,9 +112,9 @@ describe('Organization', () => {
     })
 
     it('should throw when an invalid area is supplied', async () => {
-      const newOrg = await organizations.addOrganization(testUser, 'Friends of OpenBeta', OrgType.localClimbingOrganization)
+      const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, emptyOrg)
       const document = {
-        ...baseUpdateDocument,
+        ...fullOrg,
         associatedAreaIds: [muuid.v4()]
       }
       await expect(organizations.updateOrganization(testUser, newOrg.orgId, document))

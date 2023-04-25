@@ -14,23 +14,24 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
   /**
    * Add a new organization.
    * @param user
-   * @param displayName
+   * @param orgType
+   * @param document New fields
    */
-  async addOrganization (user: MUUID, displayName: string, orgType: OrgType): Promise<OrganizationType> {
+  async addOrganization (user: MUUID, orgType: OrgType, document: OrganizationEditableFieldsType): Promise<OrganizationType> {
     const session = await this.organizationModel.startSession()
     let ret: OrganizationType
     // withTransaction() doesn't return the callback result
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addOrganization(session, user, displayName, orgType)
+        ret = await this._addOrganization(session, user, orgType, document)
         return ret
       })
     // @ts-expect-error
     return ret
   }
 
-  async _addOrganization (session, user: MUUID, displayName: string, orgType: OrgType): Promise<any> {
+  async _addOrganization (session, user: MUUID, orgType: OrgType, document: OrganizationEditableFieldsType): Promise<any> {
     const change = await changelogDataSource.create(session, user, OperationType.addOrganization)
     const newChangeMeta: ChangeRecordMetadataType = {
       user,
@@ -39,7 +40,11 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
       seq: 0
     }
 
-    const newOrg = newOrganizationHelper(displayName, orgType)
+    if (document.displayName == null) throw new Error('`displayName` is a mandatory field.')
+    const newOrg = await sanitizeEditableFields(document)
+    newOrg._id = new mongoose.Types.ObjectId()
+    newOrg.orgId = muuid.v4()
+    newOrg.orgType = orgType
     newOrg.createdBy = user
     newOrg.updatedBy = user
     newOrg._change = produce(newChangeMeta, draft => {
@@ -59,53 +64,6 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
    * @returns Newly updated organization
    */
   async updateOrganization (user: MUUID, orgId: MUUID, document: OrganizationEditableFieldsType): Promise<OrganizationType | null> {
-    const _updateOrganization = async (session: ClientSession, user: MUUID, orgId: MUUID, document: OrganizationEditableFieldsType): Promise<any> => {
-      const filter = {
-        orgId,
-        deleting: { $ne: null }
-      }
-
-      const org = await this.organizationModel.findOne(filter).session(session)
-
-      if (org == null) {
-        throw new Error('Organization update error. Reason: Organization not found.')
-      }
-
-      const { associatedAreaIds, excludedAreaIds, displayName, website, email, donationLink, instagramLink, description } = document
-
-      if (associatedAreaIds != null && associatedAreaIds.length > 0) {
-        const missingAreaIds = await findNonexistantAreas(associatedAreaIds)
-        if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Associated areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
-        org.set({ associatedAreaIds })
-      }
-      if (excludedAreaIds != null && excludedAreaIds.length > 0) {
-        const missingAreaIds = await findNonexistantAreas(excludedAreaIds)
-        if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Excluded areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
-        org.set({ excludedAreaIds })
-      }
-      if (displayName != null) { org.set({ displayName: sanitizeStrict(displayName) }) }
-      if (website != null) { org.set({ 'content.website': sanitizeStrict(website) }) }
-      if (email != null) { org.set({ 'content.email': sanitizeStrict(email) }) }
-      if (donationLink != null) { org.set({ 'content.donationLink': sanitizeStrict(donationLink) }) }
-      if (instagramLink != null) { org.set({ 'content.instagramLink': sanitizeStrict(instagramLink) }) }
-      if (description != null) { org.set({ 'content.description': sanitize(description) }) }
-
-      const opType = OperationType.updateOrganization
-      const change = await changelogDataSource.create(session, user, opType)
-
-      const _change: ChangeRecordMetadataType = {
-        user,
-        historyId: change._id,
-        operation: opType,
-        seq: 0
-      }
-
-      org.set({ _change })
-      org.updatedBy = user
-      const cursor = await org.save()
-      return cursor.toObject()
-    }
-
     const session = await this.organizationModel.startSession()
     let ret: OrganizationType | null = null
 
@@ -113,11 +71,42 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async session => {
-        ret = await _updateOrganization(session, user, orgId, document)
+        ret = await this._updateOrganization(session, user, orgId, document)
         return ret
       }
     )
     return ret
+  }
+
+  async _updateOrganization (session: ClientSession, user: MUUID, orgId: MUUID, document: OrganizationEditableFieldsType): Promise<any> {
+    const filter = {
+      orgId,
+      deleting: { $ne: null }
+    }
+
+    const org = await this.organizationModel.findOne(filter).session(session)
+
+    if (org == null) {
+      throw new Error('Organization update error. Reason: Organization not found.')
+    }
+
+    const orgFragment = await sanitizeEditableFields(document)
+    const opType = OperationType.updateOrganization
+    const change = await changelogDataSource.create(session, user, opType)
+
+    const _change: ChangeRecordMetadataType = {
+      user,
+      historyId: change._id,
+      operation: opType,
+      seq: 0
+    }
+
+    orgFragment._change = _change
+    orgFragment.updatedBy = user
+
+    org.set(orgFragment)
+    const cursor = await org.save()
+    return cursor.toObject()
   }
 }
 
@@ -139,24 +128,34 @@ const findNonexistantAreas = async (areaIds: MUUID[]): Promise<MUUID[]> => {
   return []
 }
 
-export const newOrganizationHelper = (displayName: string, orgType: OrgType): Partial<OrganizationType> => {
-  const _id = new mongoose.Types.ObjectId()
-  const orgId = muuid.v4()
-  return {
-    _id,
-    orgId,
-    displayName,
-    orgType,
-    associatedAreaIds: [],
-    excludedAreaIds: [],
-    content: {
-      website: '',
-      email: '',
-      donationLink: '',
-      instagramLink: '',
-      description: ''
-    }
+/*
+ * Unpacks input, sanitizes it and returns organization fragment.
+ * Only handles editable fields -- immutable ones validated separately.
+ */
+const sanitizeEditableFields = async (
+  document: OrganizationEditableFieldsType
+): Promise<Partial<OrganizationType>> => {
+  const { associatedAreaIds, excludedAreaIds, displayName, website, email, donationLink, instagramLink, description } = document
+  const orgFragment: Partial<OrganizationType> = {}
+
+  if (associatedAreaIds !== undefined && associatedAreaIds.length > 0) {
+    const missingAreaIds = await findNonexistantAreas(associatedAreaIds)
+    if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Associated areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
+    orgFragment.associatedAreaIds = associatedAreaIds
   }
+  if (excludedAreaIds !== undefined && excludedAreaIds.length > 0) {
+    const missingAreaIds = await findNonexistantAreas(excludedAreaIds)
+    if (missingAreaIds.length > 0) throw new Error(`Organization update error. Reason: Excluded areas not found: ${missingAreaIds.map(m => muuidToString(m)).toString()}`)
+    orgFragment.excludedAreaIds = excludedAreaIds
+  }
+  if (displayName !== undefined) { orgFragment.displayName = sanitizeStrict(displayName) }
+  if (website !== undefined) { orgFragment['content.website'] = sanitizeStrict(website) }
+  if (email !== undefined) { orgFragment['content.email'] = sanitizeStrict(email) }
+  if (donationLink !== undefined) { orgFragment['content.donationLink'] = sanitizeStrict(donationLink) }
+  if (instagramLink !== undefined) { orgFragment['content.instagramLink'] = sanitizeStrict(instagramLink) }
+  if (description !== undefined) { orgFragment['content.description'] = sanitize(description) }
+
+  return orgFragment
 }
 
 export const createInstance = (): MutableOrganizationDataSource => new MutableOrganizationDataSource(mongoose.connection.db.collection('organizations'))
