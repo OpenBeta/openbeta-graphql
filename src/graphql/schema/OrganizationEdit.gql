@@ -13,6 +13,13 @@ type Mutation {
 input AddOrganizationInput {
   displayName: String!
   orgType: String!
+  associatedAreaIds: [MUUID]
+  excludedAreaIds: [MUUID]
+  website: String
+  email: String
+  donationLink: String
+  instagramLink: String
+  description: String
 }
 
 input OrganizationEditableFieldsInput {
