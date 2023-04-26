@@ -9,6 +9,7 @@ import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, Compari
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
 import { logger } from '../logger.js'
+import { BaseTagType } from '../db/MediaTypes.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
@@ -122,28 +123,18 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return rs
   }
 
-  async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<any> {
-    const rs1 = await getMediaModel().aggregate([
-      {
-        $lookup: {
-          localField: 'mediaUrl',
-          from: this.mediaObjectModal.modelName, // Foreign collection name
-          foreignField: 'name',
-          as: 'meta' // add a new parent field
-        }
-      },
-      { $unwind: '$meta' },
-      {
-        $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
-      },
-      {
-        $replaceWith: {
-          $mergeObjects: ['$$ROOT', '$meta']
-        }
-      },
-      {
-        $unset: ['meta']
-      },
+  /**
+   * Find all climb tags and area tags for a given areaId
+   * @param areaId area ID to search
+   * @param ancestors this area ancestors
+   * @returns array of base tag
+   */
+  async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<BaseTagType[]> {
+    /**
+     * Find all area tags whose ancestors and children have 'areaId'
+     */
+    const taggedAreas = await getMediaModel().aggregate([
+      ...this.joiningTagWithMediaObject,
       {
         // SELECT *
         // FROM media
@@ -191,9 +182,12 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       }
     ])
 
-    // eslint-disable-next-line
-    const rs = await getMediaModel()
+    /**
+     * Find all climb tags whose ancestors have areaId
+     */
+    const taggeClimbs = await getMediaModel()
       .aggregate([
+        ...this.joiningTagWithMediaObject,
         {
           // SELECT *
           // FROM media
@@ -232,12 +226,12 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         }
       ])
 
-    return rs1
-    // if (rs != null) {
-    //   return rs.concat(rs1)
-    // } else {
-    //   return rs1
-    // }
+    // combine 2 result sets
+    if (taggeClimbs != null) {
+      return taggeClimbs.concat(taggedAreas)
+    } else {
+      return taggedAreas
+    }
   }
 
   /**
@@ -285,13 +279,44 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
   }
 
   /**
+   * A reusable aggregation pipeline for 'joining' tag collection and media object collection.
+   *
+   * ```
+   * select *
+   * from media, media_objects
+   * where media.mediaUrl == media_objects.name
+   * ```
+   */
+  joiningTagWithMediaObject = [
+    {
+      $lookup: {
+        localField: 'mediaUrl',
+        from: this.mediaObjectModal.modelName, // Foreign collection name
+        foreignField: 'name',
+        as: 'meta' // add a new parent field
+      }
+    },
+    { $unwind: '$meta' },
+    {
+      $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
+    },
+    {
+      $replaceWith: {
+        $mergeObjects: ['$$ROOT', '$meta']
+      }
+    },
+    {
+      $unset: ['meta']
+    }]
+
+  /**
    * Find tags for a given climb id.
    *
    * SQL equivalent:
    * ```
    * select *
    * from media, media_objects
-   * where media.mediaUrl == media_objects.name
+   * where media.mediaUrl == media_objects.name and media.estinationId == <climb id>
    * ```
    * @param climbId
    * @returns Tag object
@@ -300,26 +325,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     const rs = await this.tagModel
       .aggregate([
         { $match: { destinationId: climbId } },
-        {
-          $lookup: {
-            localField: 'mediaUrl',
-            from: this.mediaObjectModal.modelName, // Foreign collection name
-            foreignField: 'name',
-            as: 'meta' // add a new parent field
-          }
-        },
-        { $unwind: '$meta' },
-        {
-          $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
-        },
-        {
-          $replaceWith: {
-            $mergeObjects: ['$$ROOT', '$meta']
-          }
-        },
-        {
-          $unset: ['meta']
-        }
+        ...this.joiningTagWithMediaObject
       ])
 
     return rs

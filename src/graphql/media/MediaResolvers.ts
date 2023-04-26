@@ -1,14 +1,12 @@
-import { CompleteAreaTag, CompleteClimbTag, MediaListByAuthorType, RefModelType, TagEntryResultType, TagType, TagWithMediaMetaType } from '../../db/MediaTypes.js'
+import { CompleteAreaTag, CompleteClimbTag, MediaListByAuthorType, RefModelType, TagEntryResultType, TagType, BaseTagType } from '../../db/MediaTypes.js'
 import AreaDataSource from '../../model/AreaDataSource.js'
 import { getUserNickFromMediaDir } from '../../utils/helpers.js'
 
 const BaseTagResolvers = {
-  id: (node: TagWithMediaMetaType) => node._id,
-  mediaUuid: (node: TagWithMediaMetaType) => node.mediaUuid.toUUID().toString(),
-  destination: (node: TagWithMediaMetaType) => node.destinationId.toUUID().toString(),
-  username: async (node: TagWithMediaMetaType) => await getUserNickFromMediaDir(node.mediaUrl.substring(3, 39)),
-  width: (node: TagWithMediaMetaType) => node.width,
-  height: (node: TagWithMediaMetaType) => node.height
+  id: (node: BaseTagType) => node._id,
+  mediaUuid: (node: BaseTagType) => node.mediaUuid.toUUID().toString(),
+  destination: (node: BaseTagType) => node.destinationId.toUUID().toString(),
+  username: async (node: BaseTagType) => await getUserNickFromMediaDir(node.mediaUrl.substring(3, 39))
 }
 
 const MediaResolvers = {

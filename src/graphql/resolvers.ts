@@ -234,8 +234,7 @@ const resolvers = {
 
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
-      const rs = await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
-      return rs
+      return await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
     },
 
     createdBy: (node: AreaType) => node?.createdBy?.toUUID().toString(),

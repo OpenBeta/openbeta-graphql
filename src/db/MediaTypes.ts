@@ -6,6 +6,8 @@ import { ClimbType } from './ClimbTypes.js'
 import { MediaMetaType } from './MediaMetaType.js'
 
 // Type for 'Media' collection schema
+// This is a misnomer.  Should have been called Tag.
+// TODO: Rename to TagType
 export interface MediaType {
   _id?: mongoose.Types.ObjectId
   mediaUuid: MUUID
@@ -24,13 +26,13 @@ export enum RefModelType {
 /**
  * A tag with media metadata
  */
-export type TagWithMediaMetaType = MediaType & MediaMetaType
+export type BaseTagType = MediaType & MediaMetaType
 
-export interface CompleteAreaTag extends TagWithMediaMetaType {
+export interface CompleteAreaTag extends BaseTagType {
   area: AreaType
 }
 
-export interface CompleteClimbTag extends TagWithMediaMetaType {
+export interface CompleteClimbTag extends BaseTagType {
   climb: ClimbType
 }
 
@@ -49,7 +51,10 @@ export interface MediaInputType {
   destType: number
 }
 
-interface BaseTagType {
+/**
+ * TODO: consolidate this type with BaseTagType
+ */
+interface LegacyBaseTagType {
   _id: mongoose.Types.ObjectId
   mediaUuid: MUUID
   mediaUrl: string
@@ -58,11 +63,11 @@ interface BaseTagType {
   onModel: RefModelType
 }
 
-export interface AreaTagType extends BaseTagType {
+export interface AreaTagType extends LegacyBaseTagType {
   area: AreaType
 }
 
-export interface ClimbTagType extends BaseTagType {
+export interface ClimbTagType extends LegacyBaseTagType {
   climb: ClimbType
 }
 

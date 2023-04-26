@@ -81,6 +81,7 @@ type ClimbTag implements ITag {
 
 union MediaTag = AreaTag | ClimbTag
 
+"Representing a tag without the tagged climb/area. Used by climb & area queries."
 type BaseTag implements ITag {
   id: ID!
   username: String
@@ -103,29 +104,7 @@ type MediaListByAuthorType {
   tagList: [MediaTag]
 }
 
-# "A tag linking the media with a climb"
-# type ClimbTag {
-#   id: ID!
-#   mediaUuid: ID!
-#   mediaUrl: String!
-#   mediaType: Int!
-#   climb: Climb
-#   destType: Int!
-# }
-
-# "A tag linking the media with an area"
-# type AreaTag {
-#   id: ID!
-#   mediaUuid: ID!
-#   mediaUrl: String!
-#   mediaType: Int!
-#   area: Area
-#   destType: Int!
-# }
-
 union TagEntryResult = ClimbTag | AreaTag
-
-
 
 "Result of a delete tag operation"
 type DeleteTagResult {
