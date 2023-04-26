@@ -15,15 +15,15 @@ const OrganizationQueries = {
 
   organizations: async (
     _,
-    { filter, sort }: { filter?: OrganizationGQLFilter, sort?: Sort },
+    { filter, sort, limit = 40 }: { filter?: OrganizationGQLFilter, sort?: Sort, limit?: number },
     { dataSources }
   ) => {
     const { organizations }: { organizations: OrganizationDataSource } = dataSources
     const filtered = await organizations.findOrganizationsByFilter(filter)
     if (sort != null) {
-      return await filtered.collation({ locale: 'en' }).sort(sort).toArray()
+      return await filtered.collation({ locale: 'en' }).sort(sort).limit(limit).toArray()
     } else {
-      return await filtered.collation({ locale: 'en' }).toArray()
+      return await filtered.collation({ locale: 'en' }).limit(limit).toArray()
     }
   }
 }

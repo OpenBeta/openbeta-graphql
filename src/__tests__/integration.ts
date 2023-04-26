@@ -218,8 +218,8 @@ describe('graphql server', () => {
       }
     `
     const organizationsQuery = `
-      query organizations($filter: OrgFilter, $sort: OrgSort) {
-        organizations(filter: $filter, sort: $sort) {
+      query organizations($filter: OrgFilter, $sort: OrgSort, $limit: Int) {
+        organizations(filter: $filter, sort: $sort, limit: $limit) {
           orgId
           associatedAreaIds
           displayName
@@ -310,6 +310,20 @@ describe('graphql server', () => {
       const dataResult = response.body.data.organizations
       expect(dataResult.length).toBe(2)
       expect(dataResult.map(o => o.orgId).sort()).toEqual([muuidToString(deltaOrg.orgId), muuidToString(gammaOrg.orgId)].sort())
+    })
+
+    it('limits organizations returned', async () => {
+      const response = await queryAPI({
+        query: organizationsQuery,
+        operationName: 'organizations',
+        variables: {
+          limit: 1
+        },
+        userUuid
+      })
+      expect(response.statusCode).toBe(200)
+      const dataResult = response.body.data.organizations
+      expect(dataResult.length).toBe(1) // Three matching orgs, but only return one.
     })
 
     it('retrieves organizations using an associatedAreaIds filter', async () => {
