@@ -1,10 +1,13 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid from 'uuid-mongodb'
 
-import { getMediaModel } from '../db/index.js'
+import { getMediaModel, getMediaObjectModel } from '../db/index.js'
 import { MediaType, MediaListByAuthorType, TagsLeaderboardType } from '../db/MediaTypes.js'
 
 export default class MediaDataSource extends MongoDataSource<MediaType> {
+  tagModel = getMediaModel()
+  mediaMediaObjectModel = getMediaObjectModel()
+
   async getTagsByMediaIds (uuidList: string[]): Promise<any[]> {
     if (uuidList !== undefined && uuidList.length > 0) {
       const muidList = uuidList.map(entry => muid.from(entry))
@@ -19,7 +22,7 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
   }
 
   async getRecentTags (userLimit: number = 10): Promise<MediaListByAuthorType[]> {
-    const rs = await getMediaModel().aggregate<MediaListByAuthorType>([
+    const rs = await this.tagModel.aggregate<MediaListByAuthorType>([
       {
         $project: {
           mediaUuid: 1,
@@ -30,6 +33,26 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
           onModel: 1,
           authorUuid: { $substr: ['$mediaUrl', 3, 36] }
         }
+      },
+      {
+        $lookup: {
+          localField: 'mediaUrl',
+          from: this.mediaMediaObjectModel.modelName, // Foreign collection name
+          foreignField: 'name',
+          as: 'meta' // add a new parent field
+        }
+      },
+      { $unwind: '$meta' },
+      {
+        $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
+      },
+      {
+        $replaceWith: {
+          $mergeObjects: ['$$ROOT', '$meta']
+        }
+      },
+      {
+        $unset: ['meta']
       },
       {
         $group: {

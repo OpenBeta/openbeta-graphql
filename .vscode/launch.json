@@ -71,6 +71,22 @@
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-        }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Create photo collection",
+            "program": "${workspaceFolder}/src/db/utils/jobs/CreateMediaMetaCollection.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "env": {
+                "GOOGLE_APPLICATION_CREDENTIALS": "/Users/vnguyen/.config/gcloud/openbeta-staging-bucket.json"
+            },
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+        },
     ]
 }

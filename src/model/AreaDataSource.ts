@@ -3,7 +3,7 @@ import { Filter } from 'mongodb'
 import muuid, { MUUID } from 'uuid-mongodb'
 import bboxPolygon from '@turf/bbox-polygon'
 
-import { getAreaModel, getMediaModel } from '../db/index.js'
+import { getAreaModel, getMediaModel, getMediaObjectModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
@@ -13,7 +13,8 @@ import { logger } from '../logger.js'
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
   climbModel = getClimbModel()
-  mediaModel = getMediaModel()
+  tagModel = getMediaModel()
+  mediaObjectModal = getMediaObjectModel()
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
     let mongoFilter: any = {}
@@ -124,9 +125,29 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
   async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<any> {
     const rs1 = await getMediaModel().aggregate([
       {
+        $lookup: {
+          localField: 'mediaUrl',
+          from: this.mediaObjectModal.modelName, // Foreign collection name
+          foreignField: 'name',
+          as: 'meta' // add a new parent field
+        }
+      },
+      { $unwind: '$meta' },
+      {
+        $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
+      },
+      {
+        $replaceWith: {
+          $mergeObjects: ['$$ROOT', '$meta']
+        }
+      },
+      {
+        $unset: ['meta']
+      },
+      {
         // SELECT *
         // FROM media
-        // LEFT JOIN climbs
+        // LEFT JOIN areas
         // ON media.destinationId == areas.metadata.area_id
         $lookup: {
           from: 'areas', // other collection name
@@ -169,6 +190,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         }
       }
     ])
+
+    // eslint-disable-next-line
     const rs = await getMediaModel()
       .aggregate([
         {
@@ -209,11 +232,12 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         }
       ])
 
-    if (rs != null) {
-      return rs.concat(rs1)
-    } else {
-      return rs1
-    }
+    return rs1
+    // if (rs != null) {
+    //   return rs.concat(rs1)
+    // } else {
+    //   return rs1
+    // }
   }
 
   /**
@@ -260,12 +284,45 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return null
   }
 
+  /**
+   * Find tags for a given climb id.
+   *
+   * SQL equivalent:
+   * ```
+   * select *
+   * from media, media_objects
+   * where media.mediaUrl == media_objects.name
+   * ```
+   * @param climbId
+   * @returns Tag object
+   */
   async findMediaByClimbId (climbId: MUUID): Promise<any> {
-    const rs = await getMediaModel().find({ destinationId: climbId }).lean()
-    if (rs != null) {
-      return rs
-    }
-    return null
+    const rs = await this.tagModel
+      .aggregate([
+        { $match: { destinationId: climbId } },
+        {
+          $lookup: {
+            localField: 'mediaUrl',
+            from: this.mediaObjectModal.modelName, // Foreign collection name
+            foreignField: 'name',
+            as: 'meta' // add a new parent field
+          }
+        },
+        { $unwind: '$meta' },
+        {
+          $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
+        },
+        {
+          $replaceWith: {
+            $mergeObjects: ['$$ROOT', '$meta']
+          }
+        },
+        {
+          $unset: ['meta']
+        }
+      ])
+
+    return rs
   }
 
   /**

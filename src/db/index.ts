@@ -6,6 +6,7 @@ import { enableAllPlugins } from 'immer'
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
+import { getMediaObjectModel } from './MediaObjectSchema.js'
 import { getOrganizationModel } from './OrganizationSchema.js'
 import { getTickModel } from './TickSchema.js'
 import { getXMediaModel } from './XMediaSchema.js'
@@ -98,5 +99,6 @@ export {
   getChangeLogModel,
   getXMediaModel,
   getPostModel,
-  getExperimentalUserModel
+  getExperimentalUserModel,
+  getMediaObjectModel
 }

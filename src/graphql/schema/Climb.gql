@@ -52,7 +52,7 @@ type Climb {
   ancestors: [String!]!
 
   "Media associated with this climb"
-  media: [MediaTagType]
+  media: [BaseTag]
 
   yds: String @deprecated(reason: "Migrating to 'grades' field")
 

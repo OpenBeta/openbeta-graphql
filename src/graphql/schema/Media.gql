@@ -26,41 +26,106 @@ type TagsLeaderboardType {
   total: Int!
 }
 
-"A tag linking the media with a climb or an area"
-type MediaTagType {
+"Core attributes of a tag"
+interface ITag {
+  id: ID!
+  username: String
   mediaUuid: ID!
   mediaUrl: String!
   mediaType: Int!
   destination: ID!
   destType: Int!
+  width: Int!
+  height: Int!
+  format: String!
+  mtime: Date!
+  birthTime: Date!
+  size: Int!
 }
 
-"A tag linking the media with a climb"
-type ClimbTag {
+"An area tag"
+type AreaTag implements ITag {
   id: ID!
+  username: String
   mediaUuid: ID!
   mediaUrl: String!
   mediaType: Int!
-  climb: Climb
+  destination: ID!
   destType: Int!
-}
-
-"A tag linking the media with an area"
-type AreaTag {
-  id: ID!
-  mediaUuid: ID!
-  mediaUrl: String!
-  mediaType: Int!
+  width: Int!
+  height: Int!
+  format: String!
+  mtime: Date!
+  birthTime: Date!
+  size: Int!
   area: Area
-  destType: Int!
 }
+
+"A climb tag"
+type ClimbTag implements ITag {
+  id: ID!
+  username: String
+  mediaUuid: ID!
+  mediaUrl: String!
+  mediaType: Int!
+  destination: ID!
+  destType: Int!
+  width: Int!
+  height: Int!
+  format: String!
+  mtime: Date!
+  birthTime: Date!
+  size: Int!
+  climb: Climb
+}
+
+union MediaTag = AreaTag | ClimbTag
+
+type BaseTag implements ITag {
+  id: ID!
+  username: String
+  mediaUuid: ID!
+  mediaUrl: String!
+  mediaType: Int!
+  destination: ID!
+  destType: Int!
+  width: Int!
+  height: Int!
+  format: String!
+  mtime: Date!
+  birthTime: Date!
+  size: Int!
+}
+
+"All tags by an author"
+type MediaListByAuthorType {
+  authorUuid: ID!
+  tagList: [MediaTag]
+}
+
+# "A tag linking the media with a climb"
+# type ClimbTag {
+#   id: ID!
+#   mediaUuid: ID!
+#   mediaUrl: String!
+#   mediaType: Int!
+#   climb: Climb
+#   destType: Int!
+# }
+
+# "A tag linking the media with an area"
+# type AreaTag {
+#   id: ID!
+#   mediaUuid: ID!
+#   mediaUrl: String!
+#   mediaType: Int!
+#   area: Area
+#   destType: Int!
+# }
 
 union TagEntryResult = ClimbTag | AreaTag
 
-type MediaListByAuthorType {
-  authorUuid: ID!
-  tagList: [MediaTagType]
-}
+
 
 "Result of a delete tag operation"
 type DeleteTagResult {

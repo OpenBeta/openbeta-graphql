@@ -234,7 +234,8 @@ const resolvers = {
 
     media: async (node: any, args: any, { dataSources }) => {
       const { areas }: { areas: AreaDataSource } = dataSources
-      return await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
+      const rs = await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
+      return rs
     },
 
     createdBy: (node: AreaType) => node?.createdBy?.toUUID().toString(),
@@ -263,5 +264,6 @@ export const graphqlSchema = makeExecutableSchema({
     XMediaTypeDef,
     TagTypeDef
   ],
-  resolvers
+  resolvers,
+  inheritResolversFromInterfaces: true
 })
