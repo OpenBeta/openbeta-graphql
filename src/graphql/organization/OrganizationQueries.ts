@@ -15,7 +15,7 @@ const OrganizationQueries = {
 
   organizations: async (
     _,
-    { filter, sort, limit = 40 }: { filter?: OrganizationGQLFilter, sort?: Sort, limit?: number},
+    { filter, sort, limit = 40 }: { filter?: OrganizationGQLFilter, sort?: Sort, limit?: number },
     { dataSources }
   ) => {
     const { organizations }: { organizations: OrganizationDataSource } = dataSources
