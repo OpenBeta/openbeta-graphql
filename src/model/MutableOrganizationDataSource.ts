@@ -48,7 +48,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
     newOrg.createdBy = user
     newOrg.updatedBy = user
     newOrg._change = produce(newChangeMeta, draft => {
-      draft.seq = 1
+      draft.seq = 0
     })
 
     const rs1 = await this.organizationModel.insertMany(newOrg, { session })
@@ -135,7 +135,7 @@ const findNonexistantAreas = async (areaIds: MUUID[]): Promise<MUUID[]> => {
 const sanitizeEditableFields = async (
   document: OrganizationEditableFieldsType
 ): Promise<Partial<OrganizationType>> => {
-  const { associatedAreaIds, excludedAreaIds, displayName, website, email, donationLink, instagramLink, description } = document
+  const { associatedAreaIds, excludedAreaIds, displayName, website, email, donationLink, instagramLink, facebookLink, description } = document
   const orgFragment: Partial<OrganizationType> = {}
 
   if (associatedAreaIds !== undefined && associatedAreaIds.length > 0) {
@@ -153,6 +153,7 @@ const sanitizeEditableFields = async (
   if (email !== undefined) { orgFragment['content.email'] = sanitizeStrict(email) }
   if (donationLink !== undefined) { orgFragment['content.donationLink'] = sanitizeStrict(donationLink) }
   if (instagramLink !== undefined) { orgFragment['content.instagramLink'] = sanitizeStrict(instagramLink) }
+  if (facebookLink !== undefined) { orgFragment['content.facebookLink'] = sanitizeStrict(facebookLink) }
   if (description !== undefined) { orgFragment['content.description'] = sanitize(description) }
 
   return orgFragment

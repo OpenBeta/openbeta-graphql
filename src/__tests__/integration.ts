@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken'
 import MutableAreaDataSource, { createInstance as createAreaInstance } from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource, { createInstance as createOrgInstance } from '../model/MutableOrganizationDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
-import { OrgType, OrganizationType, OperationType } from '../db/OrganizationTypes.js'
+import { OrgType, OrganizationType, OperationType, OrganizationEditableFieldsType } from '../db/OrganizationTypes.js'
 import { changelogDataSource } from '../model/ChangeLogDataSource.js'
 
 jest.setTimeout(60000)
@@ -211,6 +211,7 @@ describe('graphql server', () => {
             email
             donationLink
             instagramLink
+            facebookLink
             description
           }
         }
@@ -225,37 +226,42 @@ describe('graphql server', () => {
         }
       }
     `
+    let alphaFields: OrganizationEditableFieldsType
+    let deltaFields: OrganizationEditableFieldsType
+    let gammaFields: OrganizationEditableFieldsType
     let alphaOrg: OrganizationType
-    let betaOrg: OrganizationType
-    let charlieOrg: OrganizationType
+    let deltaOrg: OrganizationType
+    let gammaOrg: OrganizationType
 
     beforeEach(async () => {
-      let document: any = {
-        displayName: 'Alpha Club',
-        email: 'admin@alpha.com',
-        associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id]
+      alphaFields = {
+        displayName: 'Alpha OpenBeta Club',
+        associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
+        email: 'admin@alphaopenbeta.com',
+        facebookLink: 'https://www.facebook.com/alphaopenbeta',
+        instagramLink: 'https://www.instagram.com/alphaopenbeta'
       }
-      alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, document)
+      alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, alphaFields)
         .then((res: OrganizationType | null) => {
           if (res === null) throw new Error('Failure mocking organization.')
           return res
         })
 
-      document = {
-        displayName: 'Beta Club',
-        email: 'admin@beta.com'
+      deltaFields = {
+        displayName: 'Delta OpenBeta Club',
+        email: 'admin@deltaopenbeta.com'
       }
-      betaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, document)
+      deltaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, deltaFields)
         .then((res: OrganizationType | null) => {
           if (res === null) throw new Error('Failure mocking organization.')
           return res
         })
 
-      document = {
-        displayName: 'Charlie Beta Club',
-        description: 'We are an offshoot of the beta club.\nSee our website for more details.'
+      gammaFields = {
+        displayName: 'Delta Gamma OpenBeta Club',
+        description: 'We are an offshoot of the delta club.\nSee our website for more details.'
       }
-      charlieOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, document)
+      gammaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, gammaFields)
         .then((res: OrganizationType | null) => {
           if (res === null) throw new Error('Failure mocking organization.')
           return res
@@ -272,36 +278,38 @@ describe('graphql server', () => {
       expect(response.statusCode).toBe(200)
       const orgResult = response.body.data.organization
       expect(orgResult.orgId).toBe(muuidToString(alphaOrg.orgId))
-      expect(orgResult.displayName).toBe('Alpha Club')
+      expect(orgResult.displayName).toBe(alphaFields.displayName)
       expect(orgResult.associatedAreaIds.sort()).toEqual([muuidToString(ca.metadata.area_id), muuidToString(wa.metadata.area_id)].sort())
-      expect(orgResult.content.email).toBe('admin@alpha.com')
+      expect(orgResult.content.email).toBe(alphaFields.email)
+      expect(orgResult.content.instagramLink).toBe(alphaFields.instagramLink)
+      expect(orgResult.content.facebookLink).toBe(alphaFields.facebookLink)
     })
 
     it('retrieves organizations using an exactMatch displayName filter', async () => {
       const response = await queryAPI({
         query: organizationsQuery,
         operationName: 'organizations',
-        variables: { filter: { displayName: { match: 'Beta Club', exactMatch: true } } },
+        variables: { filter: { displayName: { match: 'Delta OpenBeta Club', exactMatch: true } } },
         userUuid
       })
 
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
       expect(dataResult.length).toBe(1)
-      expect(dataResult[0].orgId).toBe(muuidToString(betaOrg.orgId))
+      expect(dataResult[0].orgId).toBe(muuidToString(deltaOrg.orgId))
     })
 
     it('retrieves organizations using a non-exactMatch displayName filter', async () => {
       const response = await queryAPI({
         query: organizationsQuery,
         operationName: 'organizations',
-        variables: { filter: { displayName: { match: 'beta', exactMatch: false } } },
+        variables: { filter: { displayName: { match: 'delta', exactMatch: false } } },
         userUuid
       })
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
       expect(dataResult.length).toBe(2)
-      expect(dataResult.map(o => o.orgId).sort()).toEqual([muuidToString(betaOrg.orgId), muuidToString(charlieOrg.orgId)].sort())
+      expect(dataResult.map(o => o.orgId).sort()).toEqual([muuidToString(deltaOrg.orgId), muuidToString(gammaOrg.orgId)].sort())
     })
 
     it('retrieves organizations using an associatedAreaIds filter', async () => {

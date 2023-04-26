@@ -33,6 +33,7 @@ type OrganizationContent {
   email: String
   donationLink: String
   instagramLink: String
+  facebookLink: String
   description: String
 }
 

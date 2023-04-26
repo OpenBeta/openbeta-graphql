@@ -19,6 +19,7 @@ input AddOrganizationInput {
   email: String
   donationLink: String
   instagramLink: String
+  facebookLink: String
   description: String
 }
 
@@ -31,5 +32,6 @@ input OrganizationEditableFieldsInput {
   email: String
   donationLink: String
   instagramLink: String
+  facebookLink: String
   description: String
 }
