@@ -78,6 +78,10 @@ export interface IOrganizationContent {
    * URL of organization's Instagram page.
    */
   instagramLink?: string
+  /**
+   * URL of organization's Facebook page.
+   */
+  facebookLink?: string
   /** longform to mediumform description of this organization.
    *
    * We expect org_admins to make a call about whatever kind of context may be appropriate
@@ -96,6 +100,7 @@ export interface OrganizationEditableFieldsType {
   email?: string
   donationLink?: string
   instagramLink?: string
+  facebookLink?: string
   description?: string
 }
 

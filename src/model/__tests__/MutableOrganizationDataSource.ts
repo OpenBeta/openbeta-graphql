@@ -38,6 +38,7 @@ describe('Organization', () => {
       email: 'admin@friendsofopenbeta.com',
       donationLink: 'https://www.friendsofopenbeta.com/donate',
       instagramLink: 'https://www.instagram.com/friendsofopenbeta',
+      facebookLink: 'https://www.facebook.com/friendsofopenbeta',
       description: 'We are friends of openbeta.\nWe are a 503(B) corporation.'
     }
     emptyOrg = {
@@ -60,10 +61,17 @@ describe('Organization', () => {
 
   it('should successfully create a document when passed valid input', async () => {
     const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, fullOrg)
-    expect(newOrg.displayName).toBe('Friends of Openbeta')
-    expect(newOrg.content?.description).toBe('We are friends of openbeta.\nWe are a 503(B) corporation.')
-    expect(newOrg.content?.website).toBe('https://www.friendsofopenbeta.com')
+    const document = { ...fullOrg }
+    expect(newOrg.displayName).toBe(document.displayName)
+    expect(newOrg.content?.website).toBe(document.website)
+    expect(newOrg.content?.email).toBe(document.email)
+    expect(newOrg.content?.donationLink).toBe(document.donationLink)
+    expect(newOrg.content?.instagramLink).toBe(document.instagramLink)
+    expect(newOrg.content?.facebookLink).toBe(document.facebookLink)
+    expect(newOrg.content?.description).toBe(document.description)
     expect(newOrg.associatedAreaIds.map(muuidToString)).toEqual([muuidToString(usa.metadata.area_id)])
+    expect(newOrg._change?.operation).toBe('addOrganization')
+    expect(newOrg._change?.seq).toBe(0)
 
     const orgIdSearchRes = await organizations.findOneOrganizationByOrgId(newOrg.orgId)
     expect(orgIdSearchRes._id).toEqual(newOrg._id)
@@ -105,6 +113,7 @@ describe('Organization', () => {
       expect(updatedOrg.content?.email).toBe(document.email)
       expect(updatedOrg.content?.donationLink).toBe(document.donationLink)
       expect(updatedOrg.content?.instagramLink).toBe(document.instagramLink)
+      expect(updatedOrg.content?.facebookLink).toBe(document.facebookLink)
       expect(updatedOrg.content?.description).toBe(document.description)
       expect(updatedOrg._change?.operation).toBe('updateOrganization')
       expect(updatedOrg._change?.seq).toBe(0)

@@ -26,6 +26,7 @@ const ContentSchema = new Schema<IOrganizationContent>({
   email: { type: Schema.Types.String },
   donationLink: { type: Schema.Types.String },
   instagramLink: { type: Schema.Types.String },
+  facebookLink: { type: Schema.Types.String },
   description: { type: Schema.Types.String }
 }, { _id: false })
 
