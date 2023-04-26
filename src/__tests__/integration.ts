@@ -312,6 +312,21 @@ describe('graphql server', () => {
       expect(dataResult.map(o => o.orgId).sort()).toEqual([muuidToString(deltaOrg.orgId), muuidToString(gammaOrg.orgId)].sort())
     })
 
+    it('limits results', async () => {
+      const response = await queryAPI({
+        query: organizationsQuery,
+        operationName: 'organizations',
+        variables: {
+          filter: { displayName: { match: 'beta', exactMatch: false } },
+          limit: 1
+        },
+        userUuid
+      })
+      expect(response.statusCode).toBe(200)
+      const dataResult = response.body.data.organizations
+      expect(dataResult.length).toBe(1) // Three matching orgs, but only return one.
+    })
+
     it('retrieves organizations using an associatedAreaIds filter', async () => {
       const response = await queryAPI({
         query: organizationsQuery,
