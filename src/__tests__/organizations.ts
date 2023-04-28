@@ -1,51 +1,21 @@
 import { ApolloServer } from 'apollo-server'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
-import { createServer } from '../server'
-import { muuidToString, isMuuidHexStr } from '../utils/helpers'
-import inMemoryDB from '../utils/inMemoryDB.js'
-import request from 'supertest'
-import jwt from 'jsonwebtoken'
 import MutableAreaDataSource, { createInstance as createAreaInstance } from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource, { createInstance as createOrgInstance } from '../model/MutableOrganizationDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
 import { OrgType, OrganizationType, OperationType, OrganizationEditableFieldsType } from '../db/OrganizationTypes.js'
 import { changelogDataSource } from '../model/ChangeLogDataSource.js'
+import { queryAPI, setUpServer } from '../utils/testUtils.js'
+import { muuidToString, isMuuidHexStr } from '../utils/helpers.js'
 
 jest.setTimeout(60000)
-const PORT = 4000
 
-interface QueryAPIProps {
-  query: string
-  operationName: string
-  variables: any
-  userUuid: string
-  roles?: string[]
-}
-const queryAPI = async ({ query, operationName, variables, userUuid, roles = [] }: QueryAPIProps): Promise<request.Response> => {
-  // Avoid needing to pass in actual signed tokens.
-  const jwtSpy = jest.spyOn(jwt, 'verify')
-  jwtSpy.mockImplementation(() => {
-    return {
-    // Roles defined at https://manage.auth0.com/dashboard/us/dev-fmjy7n5n/roles
-      'https://tacos.openbeta.io/roles': roles,
-      'https://tacos.openbeta.io/uuid': userUuid
-    }
-  })
-
-  const queryObj = { query, operationName, variables }
-  const response = await request(`http://localhost:${PORT}`)
-    .post('/')
-    .send(queryObj)
-    .set('Authorization', 'Bearer placeholder-jwt-see-SpyOn')
-
-  return response
-}
-
-describe('graphql server', () => {
+describe('organizations API', () => {
   let server: ApolloServer
   let user: muuid.MUUID
   let userUuid: string
+  let inMemoryDB
 
   // Mongoose models for mocking pre-existing state.
   let areas: MutableAreaDataSource
@@ -55,9 +25,7 @@ describe('graphql server', () => {
   let wa: AreaType
 
   beforeAll(async () => {
-    server = await createServer()
-    await inMemoryDB.connect()
-    await server.listen({ port: PORT })
+    ({ server, inMemoryDB } = await setUpServer())
     // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
@@ -78,7 +46,7 @@ describe('graphql server', () => {
     await inMemoryDB.close()
   })
 
-  describe('mutation API', () => {
+  describe('mutations', () => {
     const createQuery = `
       mutation addOrganization($input: AddOrganizationInput!) {
         organization: addOrganization(input: $input) {
@@ -198,7 +166,7 @@ describe('graphql server', () => {
     })
   })
 
-  describe('query API', () => {
+  describe('queries', () => {
     const organizationQuery = `
       query organization($input: MUUID) {
         organization(muuid: $input) {
