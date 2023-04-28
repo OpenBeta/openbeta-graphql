@@ -10,6 +10,7 @@ import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
 import { logger } from '../logger.js'
 import { BaseTagType } from '../db/MediaTypes.js'
+import { joiningTagWithMediaObject } from './MediaDataSource.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
@@ -134,7 +135,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
      * Find all area tags whose ancestors and children have 'areaId'
      */
     const taggedAreas = await getMediaModel().aggregate([
-      ...this.joiningTagWithMediaObject,
+      ...joiningTagWithMediaObject,
       {
         // SELECT *
         // FROM media
@@ -187,7 +188,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
      */
     const taggeClimbs = await getMediaModel()
       .aggregate([
-        ...this.joiningTagWithMediaObject,
+        ...joiningTagWithMediaObject,
         {
           // SELECT *
           // FROM media
@@ -279,37 +280,6 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
   }
 
   /**
-   * A reusable aggregation pipeline for 'joining' tag collection and media object collection.
-   *
-   * ```
-   * select *
-   * from media, media_objects
-   * where media.mediaUrl == media_objects.name
-   * ```
-   */
-  joiningTagWithMediaObject = [
-    {
-      $lookup: {
-        localField: 'mediaUrl',
-        from: this.mediaObjectModal.modelName, // Foreign collection name
-        foreignField: 'name',
-        as: 'meta' // add a new parent field
-      }
-    },
-    { $unwind: '$meta' },
-    {
-      $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
-    },
-    {
-      $replaceWith: {
-        $mergeObjects: ['$$ROOT', '$meta']
-      }
-    },
-    {
-      $unset: ['meta']
-    }]
-
-  /**
    * Find tags for a given climb id.
    *
    * SQL equivalent:
@@ -325,7 +295,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     const rs = await this.tagModel
       .aggregate([
         { $match: { destinationId: climbId } },
-        ...this.joiningTagWithMediaObject
+        ...joiningTagWithMediaObject
       ])
 
     return rs

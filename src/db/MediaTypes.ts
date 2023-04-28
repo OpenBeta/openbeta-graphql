@@ -43,6 +43,15 @@ export interface MediaListByAuthorType {
   tagList: TagType[]
 }
 
+export interface SimpleTag {
+  id: MUUID
+  name: string
+}
+export interface UserMediaWithTags extends MediaMetaType {
+  climbTags: SimpleTag[]
+  areaTags: SimpleTag[]
+}
+
 export interface MediaInputType {
   mediaUuid: MUUID
   mediaUrl: string

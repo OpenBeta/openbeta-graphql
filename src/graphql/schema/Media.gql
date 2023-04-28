@@ -15,6 +15,10 @@ type Query {
 }
 
 type Query {
+  getUserMedia(userUuid: ID!): [MediaWithTags]
+}
+
+type Query {
   """
   Get a list of users and their tagged photo count
   """
@@ -26,15 +30,8 @@ type TagsLeaderboardType {
   total: Int!
 }
 
-"Core attributes of a tag"
-interface ITag {
-  id: ID!
-  username: String
-  mediaUuid: ID!
-  mediaUrl: String!
-  mediaType: Int!
-  destination: ID!
-  destType: Int!
+"Media metadata"
+interface IMediaMetadata {
   width: Int!
   height: Int!
   format: String!
@@ -43,8 +40,19 @@ interface ITag {
   size: Int!
 }
 
+"Attributes of a tag"
+interface ITag {
+  id: ID!
+  username: String
+  mediaUuid: ID!
+  mediaUrl: String!
+  mediaType: Int!
+  destination: ID!
+  destType: Int!
+}
+
 "An area tag"
-type AreaTag implements ITag {
+type AreaTag implements ITag & IMediaMetadata {
   id: ID!
   username: String
   mediaUuid: ID!
@@ -62,7 +70,7 @@ type AreaTag implements ITag {
 }
 
 "A climb tag"
-type ClimbTag implements ITag {
+type ClimbTag implements ITag & IMediaMetadata{
   id: ID!
   username: String
   mediaUuid: ID!
@@ -82,7 +90,7 @@ type ClimbTag implements ITag {
 union MediaTag = AreaTag | ClimbTag
 
 "Representing a tag without the tagged climb/area. Used by climb & area queries."
-type BaseTag implements ITag {
+type BaseTag implements ITag & IMediaMetadata {
   id: ID!
   username: String
   mediaUuid: ID!
@@ -102,6 +110,23 @@ type BaseTag implements ITag {
 type MediaListByAuthorType {
   authorUuid: ID!
   tagList: [MediaTag]
+}
+
+type SimpleTag {
+  id: ID!
+  name: String!
+}
+
+type MediaWithTags implements IMediaMetadata {
+  name: String!
+  width: Int!
+  height: Int!
+  format: String!
+  mtime: Date!
+  birthTime: Date!
+  size: Int!
+  climbTags: [SimpleTag]
+  areaTags: [SimpleTag]
 }
 
 union TagEntryResult = ClimbTag | AreaTag

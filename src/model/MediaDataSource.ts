@@ -2,7 +2,7 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid from 'uuid-mongodb'
 
 import { getMediaModel, getMediaObjectModel } from '../db/index.js'
-import { MediaType, MediaListByAuthorType, TagsLeaderboardType } from '../db/MediaTypes.js'
+import { MediaType, MediaListByAuthorType, TagsLeaderboardType, UserMediaWithTags } from '../db/MediaTypes.js'
 
 export default class MediaDataSource extends MongoDataSource<MediaType> {
   tagModel = getMediaModel()
@@ -83,6 +83,92 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
   }
 
   /**
+   * Get all photos for a user
+   * @param userLimit
+   */
+  async getUserPhotos (uuidStr: string, userLimit: number = 10): Promise<UserMediaWithTags[]> {
+    // const list = await getUserMedia(uuidStr)
+    // console.log('#list', list)
+
+    const rs = await getMediaObjectModel().aggregate<UserMediaWithTags>([
+      {
+        $match: {
+          $expr: {
+            $eq: [{ $substr: ['$name', 3, 36] }, uuidStr]
+          }
+        }
+      },
+      {
+        $lookup: {
+          localField: 'name',
+          from: 'media', // Foreign collection name
+          foreignField: 'mediaUrl',
+          as: 'climbTags', // add a new parent field
+          pipeline: [
+            {
+              $lookup: {
+                from: 'climbs', // other collection name
+                foreignField: '_id', // climb._id
+                localField: 'destinationId',
+                as: 'taggedClimbs'
+              }
+
+            },
+            {
+              $unwind: '$taggedClimbs'
+            },
+            {
+              $set: {
+                'climb.id': '$taggedClimbs._id',
+                'climb.name': '$taggedClimbs.name'
+              }
+            },
+            {
+              $unset: 'taggedClimbs'
+            },
+            { $replaceRoot: { newRoot: '$climb' } }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          localField: 'name',
+          from: 'media', // Foreign collection name
+          foreignField: 'mediaUrl',
+          as: 'areaTags', // add a new parent field
+          pipeline: [
+            {
+              $lookup: {
+                from: 'areas', // other collection name
+                foreignField: 'metadata.area_id', // climb._id
+                localField: 'destinationId',
+                as: 'taggedAreas'
+              }
+
+            },
+            {
+              $unwind: '$taggedAreas'
+            },
+            {
+              $set: {
+                'area.id': '$taggedAreas.metadata.area_id',
+                'area.name': '$taggedAreas.area_name'
+              }
+            },
+            {
+              $unset: 'taggedAreas'
+            },
+            { $replaceRoot: { newRoot: '$area' } }
+          ]
+        }
+      }
+
+    ]
+    )
+    return rs
+  }
+
+  /**
    * Get a list of users and their tagged photo count
    * @param limit how many entries
    * @returns Array of TagsLeaderboardType
@@ -117,3 +203,36 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
     return rs
   }
 }
+
+/**
+ * A reusable Mongo aggregation snippet for 'joining' tag collection and media object collection.
+ * Ideally we should just embed tags as an array inside 'media_objects' collection to eliminate
+ * this extra join.
+ *
+ * ```
+ * select *
+ * from media, media_objects
+ * where media.mediaUrl == media_objects.name
+ * ```
+ */
+export const joiningTagWithMediaObject = [
+  {
+    $lookup: {
+      localField: 'mediaUrl',
+      from: 'media_objects', // Foreign collection name
+      foreignField: 'name',
+      as: 'meta' // add a new parent field
+    }
+  },
+  { $unwind: '$meta' },
+  {
+    $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
+  },
+  {
+    $replaceWith: {
+      $mergeObjects: ['$$ROOT', '$meta']
+    }
+  },
+  {
+    $unset: ['meta']
+  }]
