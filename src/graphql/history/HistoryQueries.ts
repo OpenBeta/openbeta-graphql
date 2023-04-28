@@ -1,6 +1,10 @@
 import muid from 'uuid-mongodb'
 
-import { GetHistoryInputFilterType, GetAreaHistoryInputFilterType } from '../../db/ChangeLogType.js'
+import {
+  GetHistoryInputFilterType,
+  GetAreaHistoryInputFilterType,
+  GetOrganizationHistoryInputFilterType
+} from '../../db/ChangeLogType.js'
 import { DataSourcesType } from '../../types.js'
 
 const HistoryQueries = {
@@ -18,6 +22,12 @@ const HistoryQueries = {
     const { areaId }: GetAreaHistoryInputFilterType = filter ?? {}
     const id = muid.from(areaId)
     return await history.getAreaChangeSets(id)
+  },
+
+  getOrganizationHistory: async (_, { filter }, { dataSources }): Promise<any> => {
+    const { history }: DataSourcesType = dataSources
+    const { orgId }: GetOrganizationHistoryInputFilterType = filter ?? {}
+    return await history.getOrganizationChangeSets(orgId)
   }
 }
 

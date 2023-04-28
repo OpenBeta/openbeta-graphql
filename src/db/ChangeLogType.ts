@@ -68,3 +68,7 @@ export interface GetHistoryInputFilterType {
 export interface GetAreaHistoryInputFilterType {
   areaId: string
 }
+
+export interface GetOrganizationHistoryInputFilterType {
+  orgId: MUUID
+}

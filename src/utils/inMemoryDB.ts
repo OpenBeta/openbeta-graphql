@@ -51,4 +51,10 @@ const clear = async (): Promise<void> => {
   }
 }
 
+export interface InMemoryDB {
+  connect: () => Promise<void>
+  close: () => Promise<void>
+  clear: () => Promise<void>
+}
+
 export default { connect, close, clear }

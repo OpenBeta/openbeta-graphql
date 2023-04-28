@@ -30,6 +30,9 @@ const resolvers = {
       if (node.kind === 'climbs') {
         return 'Climb'
       }
+      if (node.kind === 'organizations') {
+        return 'Organization'
+      }
       return null
     }
   }

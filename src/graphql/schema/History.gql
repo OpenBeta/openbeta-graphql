@@ -9,6 +9,10 @@ input AreaHistoryFilter {
   areaId: ID
 }
 
+input OrganizationHistoryFilter {
+  orgId: MUUID
+}
+
 type UpdateDescription {
   updatedFields: [String]
 }
@@ -20,7 +24,7 @@ type Change {
   updateDescription: UpdateDescription
 }
 
-union Document = Area | Climb
+union Document = Area | Climb | Organization
 
 type History {
   id: ID!
@@ -33,4 +37,5 @@ type History {
 type Query {
   getChangeHistory(filter: AllHistoryFilter): [History]
   getAreaHistory(filter: AreaHistoryFilter): [History]
+  getOrganizationHistory(filter: OrganizationHistoryFilter): [History]
 }
