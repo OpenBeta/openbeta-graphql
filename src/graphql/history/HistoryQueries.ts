@@ -11,8 +11,10 @@ const HistoryQueries = {
   getChangeHistory: async (_, { filter }, { dataSources }): Promise<any> => {
     const { history }: DataSourcesType = dataSources
     const { uuidList }: GetHistoryInputFilterType = filter ?? {}
+    // Note: userUuid, fromDate, toDate filters don't currently work.
+    // Note: though we pull uuidList, we don't use it either.
 
-    // convert array of uuid in string to UUID[]
+    // Convert array of uuid in string to UUID[]
     const muidList = uuidList?.map(entry => muid.from(entry)) ?? []
     return await history.getChangeSets(muidList)
   },

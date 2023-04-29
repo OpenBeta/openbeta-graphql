@@ -1,4 +1,5 @@
-import { ChangeLogType, BaseChangeRecordType, SupportedCollectionTypes } from '../../db/ChangeLogType.js'
+import { ChangeLogType, BaseChangeRecordType, SupportedCollectionTypes, DocumentKind } from '../../db/ChangeLogType.js'
+import { exhaustiveCheck } from '../../utils/helpers.js'
 
 /**
  * Customize to resolve individual fields
@@ -24,16 +25,16 @@ const resolvers = {
 
   Document: {
     __resolveType (node: SupportedCollectionTypes) {
-      if (node.kind === 'areas') {
-        return 'Area'
+      switch (node.kind) {
+        case DocumentKind.areas:
+          return 'Area'
+        case DocumentKind.climbs:
+          return 'Climb'
+        case DocumentKind.organizations:
+          return 'Organization'
+        default:
+          return exhaustiveCheck(node.kind)
       }
-      if (node.kind === 'climbs') {
-        return 'Climb'
-      }
-      if (node.kind === 'organizations') {
-        return 'Organization'
-      }
-      return null
     }
   }
 }
