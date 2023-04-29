@@ -22,3 +22,19 @@ export const isMuuidHexStr = (s: string): boolean => {
   const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
   return regex.test(s)
 }
+
+/**
+ * Ensures that type-checking errors out if enums are not
+ * handlded exhaustively in switch statements.
+ * Eg.
+ * switch(val) {
+ *   case enumOne:
+ *     ...
+ *   default:
+ *     exhaustiveCheck(val)
+ * }
+ * @param _value
+ */
+export function exhaustiveCheck (_value: never): never {
+  throw new Error(`ERROR! Enum not handled for ${JSON.stringify(_value)}`)
+}
