@@ -48,7 +48,7 @@ export interface SimpleTag {
   name: string
   type: number
 }
-export interface UserMediaWithTags extends MediaObjectType {
+export interface MediaWithTags extends MediaObjectType {
   climbTags: SimpleTag[]
   areaTags: SimpleTag[]
 }

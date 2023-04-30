@@ -2,11 +2,11 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
 
 import { getMediaModel, getMediaObjectModel } from '../db/index.js'
-import { MediaType, MediaListByAuthorType, TagsLeaderboardType, UserMediaWithTags } from '../db/MediaTypes.js'
+import { MediaType, MediaListByAuthorType, TagsLeaderboardType, MediaWithTags } from '../db/MediaTypes.js'
 
 export default class MediaDataSource extends MongoDataSource<MediaType> {
   tagModel = getMediaModel()
-  mediaMediaObjectModel = getMediaObjectModel()
+  mediaObjectModel = getMediaObjectModel()
 
   async getTagsByMediaIds (uuidList: string[]): Promise<any[]> {
     if (uuidList !== undefined && uuidList.length > 0) {
@@ -37,7 +37,7 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
       {
         $lookup: {
           localField: 'mediaUrl',
-          from: this.mediaMediaObjectModel.modelName, // Foreign collection name
+          from: this.mediaObjectModel.modelName, // Foreign collection name
           foreignField: 'name',
           as: 'meta' // add a new parent field
         }
@@ -86,8 +86,8 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
    * Get all photos for a user
    * @param userLimit
    */
-  async getUserMedia (uuidStr: string, userLimit: number = 10): Promise<UserMediaWithTags[]> {
-    const rs = await getMediaObjectModel().aggregate<UserMediaWithTags>([
+  async getUserMedia (uuidStr: string, userLimit: number = 10): Promise<MediaWithTags[]> {
+    const rs = await getMediaObjectModel().aggregate<MediaWithTags>([
       {
         $match: {
           $expr: {
@@ -217,11 +217,11 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
    * where media.mediaUrl == media_objects.name and media.estinationId == <climb id>
    * ```
    * @param climbId
-   * @returns Tag object
+   * @returns `MediaWithTags` array
    */
-  async findMediaByClimbId (climbId: MUUID, climbName: string): Promise<UserMediaWithTags[]> {
+  async findMediaByClimbId (climbId: MUUID, climbName: string): Promise<MediaWithTags[]> {
     const rs = await this.tagModel
-      .aggregate<UserMediaWithTags>([
+      .aggregate<MediaWithTags>([
       { $match: { destinationId: climbId } },
       ...joiningTagWithMediaObject,
       {
@@ -237,6 +237,170 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
       }],
       areaTags: []
     }))
+  }
+
+  /**
+   * Find all media tags associated with a given area.  An area can have its own
+   * tags or inherit tags from their children.  A note on inheritance:
+   *
+   * 1.  A parent area and their ancestors will inherit tags from their children.
+   * 2.  Child area or climb will **not** inherit their parent/ancestor tags.
+   *
+   * @param areaId
+   * @param ancestors
+   * @returns `UserMediaWithTags` array
+   */
+  async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<MediaWithTags[]> {
+    const taggedClimbsPipeline = [
+      {
+        // SELECT *
+        // FROM media
+        // LEFT OUTER climbs
+        // ON climbs._id == media.destinationId
+        $lookup: {
+          from: 'climbs', // other collection name
+          foreignField: '_id', // climb._id
+          localField: 'destinationId',
+          as: 'taggedClimb',
+          pipeline: [{
+            $lookup: { // also allow ancestor areas to inherent climb photo
+              from: 'areas', // other collection name
+              foreignField: 'metadata.area_id',
+              localField: 'metadata.areaRef', // climb.metadata.areaRef
+              as: 'area'
+            }
+          },
+          {
+            $match: {
+              'area.ancestors': { $regex: areaId.toUUID().toString() }
+            }
+          }
+          ]
+        }
+      },
+      {
+        $set: {
+          taggedClimb: {
+            $map: {
+              input: '$taggedClimb',
+              in: {
+                id: '$$this._id',
+                name: '$$this.name',
+                type: 0
+              }
+            }
+          }
+        }
+      },
+      {
+        $unwind: {
+          path: '$taggedClimb',
+          preserveNullAndEmptyArrays: true
+        }
+      }
+    ]
+
+    const taggedAreasPipeline = [{
+      // SELECT *
+      // FROM media
+      // LEFT JOIN areas
+      // ON media.destinationId == areas.metadata.area_id
+      $lookup: {
+        from: 'areas', // other collection name
+        foreignField: 'metadata.area_id',
+        localField: 'destinationId',
+        as: 'taggedArea',
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                // Given an ancestor area, match descendant tags
+                // - input: A,B,C  <-- Area C has a tag
+                // - regex: A,B <-- My search area is B.  Yes, there's a match.
+                $regexMatch: {
+                  input: '$ancestors',
+                  regex: ancestors,
+                  options: 'i'
+                }
+              }
+            }
+          }]
+      }
+    },
+    {
+      $set: {
+        taggedArea: {
+          $map: {
+            input: '$taggedArea',
+            in: {
+              id: '$$this.metadata.area_id',
+              name: '$$this.area_name',
+              type: 1
+            }
+          }
+        }
+      }
+    },
+    {
+      $unwind: {
+        path: '$taggedArea',
+        preserveNullAndEmptyArrays: true
+      }
+    }
+    ]
+
+    /**
+     * Find all area tags whose ancestors and children have 'areaId'
+     */
+    return await getMediaModel().aggregate<MediaWithTags>([
+      ...joiningTagWithMediaObject,
+      {
+        $unset: ['_id', 'onModel', 'mediaType', 'destType', 'mediaUuid']
+      },
+      ...taggedClimbsPipeline,
+      ...taggedAreasPipeline,
+      {
+        $unset: ['destinationId']
+      },
+      {
+        $match: {
+          $or: [
+            {
+              taggedClimb: {
+                $exists: true
+              }
+            },
+            {
+              taggedArea: {
+                $exists: true
+              }
+            }
+          ]
+        }
+      },
+      {
+        $group: {
+          _id: {
+            mediaUrl: '$mediaUrl',
+            width: '$width',
+            height: '$height',
+            birthTime: '$birthTime',
+            mtime: '$mtime',
+            format: '$format',
+            size: '$size'
+          },
+          taggedAreas: { $push: '$taggedArea' },
+          taggedClimbs: { $push: '$taggedClimb' }
+        }
+      },
+      {
+        $addFields: {
+          '_id.areaTags': '$taggedAreas',
+          '_id.climbTags': '$taggedClimbs'
+        }
+      },
+      { $replaceRoot: { newRoot: '$_id' } }
+    ])
   }
 }
 
