@@ -63,8 +63,12 @@ const MediaResolvers = {
     }
   },
 
+  MediaWithTags: {
+    username: async (node: BaseTagType) => await getUserNickFromMediaDir(node.mediaUrl.substring(3, 39))
+  },
+
   SimpleTag: {
-    id: async (node: SimpleTag) => node.id.toUUID().toString()
+    id: (node: SimpleTag) => node.id.toUUID().toString()
   },
 
   MediaListByAuthorType: {

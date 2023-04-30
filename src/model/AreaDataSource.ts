@@ -9,7 +9,7 @@ import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, Compari
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
 import { logger } from '../logger.js'
-import { BaseTagType } from '../db/MediaTypes.js'
+import { UserMediaWithTags } from '../db/MediaTypes.js'
 import { joiningTagWithMediaObject } from './MediaDataSource.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
@@ -130,12 +130,15 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
    * @param ancestors this area ancestors
    * @returns array of base tag
    */
-  async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<BaseTagType[]> {
+  async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<UserMediaWithTags[]> {
     /**
      * Find all area tags whose ancestors and children have 'areaId'
      */
-    const taggedAreas = await getMediaModel().aggregate([
+    const taggedAreas = await getMediaModel().aggregate<UserMediaWithTags>([
       ...joiningTagWithMediaObject,
+      {
+        $unset: ['_id', 'onModel', 'mediaType', 'destType', 'mediaUuid']
+      },
       {
         // SELECT *
         // FROM media
@@ -150,15 +153,15 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             $match: {
               $expr: {
                 $or: [
-                  { // Case 1: given a child area, inheret its ancestor's photos
-                    //  - input: A,B,C <-- area I want to search for tags
-                    //  - regex: A,B
-                    $regexMatch: {
-                      input: ancestors,
-                      regex: '$ancestors',
-                      options: 'i'
-                    }
-                  },
+                  // { // Case 1: given a child area, inheret its ancestor's photos
+                  //   //  - input: A,B,C <-- area I want to search for tags
+                  //   //  - regex: A,B
+                  //   $regexMatch: {
+                  //     input: ancestors,
+                  //     regex: '$ancestors',
+                  //     options: 'i'
+                  //   }
+                  // },
                   { // Case 2: given a ancestor area, inherit descendant photos
                     // - input: A,B,C
                     // - regex: A,B <-- area I want to search for tags
@@ -180,52 +183,132 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             $ne: []
           }
         }
-      }
+      },
+      {
+        $unset: ['destinationId']
+      },
+      {
+        $set: {
+          taggedArea: {
+            $map: {
+              input: '$taggedArea',
+              in: {
+                id: '$$this.metadata.area_id',
+                name: '$$this.area_name',
+                type: 1
+              }
+            }
+          }
+        }
+      },
+      {
+        $unwind: '$taggedArea'
+      },
+      {
+        $group: {
+          _id: {
+            mediaUrl: '$mediaUrl',
+            width: '$width',
+            height: '$height',
+            birthTime: '$birthTime',
+            mtime: '$mtime',
+            format: '$format',
+            size: '$size'
+          },
+          taggedArea: { $push: '$taggedArea' }
+        }
+      },
+      {
+        $addFields: {
+          '_id.areaTags': '$taggedArea'
+        }
+      },
+      { $replaceRoot: { newRoot: '$_id' } }
     ])
 
     /**
      * Find all climb tags whose ancestors have areaId
      */
     const taggeClimbs = await getMediaModel()
-      .aggregate([
-        ...joiningTagWithMediaObject,
-        {
-          // SELECT *
-          // FROM media
-          // LEFT OUTER climbs
-          // ON climbs._id == media.destinationId
-          $lookup: {
-            from: 'climbs', // other collection name
-            foreignField: '_id', // climb._id
-            localField: 'destinationId',
-            as: 'taggedClimb',
-            pipeline: [{
-              $lookup: { // also allow ancestor areas to inherent climb photo
-                from: 'areas', // other collection name
-                foreignField: 'metadata.area_id',
-                localField: 'metadata.areaRef', // climb.metadata.areaRef
-                as: 'area'
-              }
-            },
-            {
-              $match: {
-                'area.ancestors': { $regex: areaId.toUUID().toString() }
-              }
-            },
-            {
-              $unwind: '$area'
+      .aggregate<UserMediaWithTags>([
+      ...joiningTagWithMediaObject,
+      {
+        $unset: ['_id', 'onModel', 'mediaType', 'destType', 'mediaUuid']
+      },
+      {
+        // SELECT *
+        // FROM media
+        // LEFT OUTER climbs
+        // ON climbs._id == media.destinationId
+        $lookup: {
+          from: 'climbs', // other collection name
+          foreignField: '_id', // climb._id
+          localField: 'destinationId',
+          as: 'taggedClimbs',
+          pipeline: [{
+            $lookup: { // also allow ancestor areas to inherent climb photo
+              from: 'areas', // other collection name
+              foreignField: 'metadata.area_id',
+              localField: 'metadata.areaRef', // climb.metadata.areaRef
+              as: 'area'
             }
-            ]
+          },
+          {
+            $match: {
+              'area.ancestors': { $regex: areaId.toUUID().toString() }
+            }
           }
-        },
-        {
-          $match: {
-            taggedClimb: {
-              $ne: []
+          ]
+        }
+      },
+      {
+        $match: {
+          taggedClimbs: {
+            $ne: []
+          }
+        }
+      },
+      {
+        $unset: ['destinationId']
+      },
+      {
+        $set: {
+          taggedClimbs: {
+            $map: {
+              input: '$taggedClimbs',
+              in: {
+                id: '$$this._id',
+                name: '$$this.name',
+                type: 0
+              }
             }
           }
         }
-      ])
+      },
+      {
+        $unwind: '$taggedClimbs'
+      },
+      {
+        $group: {
+          _id: {
+            mediaUrl: '$mediaUrl',
+            width: '$width',
+            height: '$height',
+            birthTime: '$birthTime',
+            mtime: '$mtime',
+            format: '$format',
+            size: '$size'
+          },
+          climbTags: { $push: '$taggedClimbs' }
+        }
+      },
+      {
+        $addFields: {
+          '_id.climbTags': '$climbTags'
+        }
+      },
+      { $replaceRoot: { newRoot: '$_id' } }
+    ])
 
     // combine 2 result sets
     if (taggeClimbs != null) {
@@ -277,28 +360,6 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       return rs[0]
     }
     return null
-  }
-
-  /**
-   * Find tags for a given climb id.
-   *
-   * SQL equivalent:
-   * ```
-   * select *
-   * from media, media_objects
-   * where media.mediaUrl == media_objects.name and media.estinationId == <climb id>
-   * ```
-   * @param climbId
-   * @returns Tag object
-   */
-  async findMediaByClimbId (climbId: MUUID): Promise<any> {
-    const rs = await this.tagModel
-      .aggregate([
-        { $match: { destinationId: climbId } },
-        ...joiningTagWithMediaObject
-      ])
-
-    return rs
   }
 
   /**

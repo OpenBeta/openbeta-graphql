@@ -15,7 +15,7 @@ type Query {
 }
 
 type Query {
-  getUserMedia(userUuid: ID!): [MediaWithTags]
+  getUserMedia(userUuid: ID!, limit: Int): [MediaWithTags]
 }
 
 type Query {
@@ -115,10 +115,12 @@ type MediaListByAuthorType {
 type SimpleTag {
   id: ID!
   name: String!
+  type: Int!
 }
 
 type MediaWithTags implements IMediaMetadata {
-  name: String!
+  username: String
+  mediaUrl: String!
   width: Int!
   height: Int!
   format: String!

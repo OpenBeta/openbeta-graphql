@@ -2,7 +2,7 @@ import sharp from 'sharp'
 import { glob } from 'glob'
 import { connectDB, gracefulExit } from '../../index.js'
 import { logger } from '../../../logger.js'
-import { MediaMetaType } from '../../MediaMetaType.js'
+import { MediaObjectType } from '../../MediaMetaType.js'
 import { getMediaObjectModel } from '../../MediaObjectSchema.js'
 
 const onConnected = async (): Promise<void> => {
@@ -21,8 +21,8 @@ const onConnected = async (): Promise<void> => {
     if (width == null || height == null || image.size == null) continue
     if ((format !== 'avif' && format !== 'jpeg' && format !== 'png' && format !== 'webp')) continue
 
-    const meta: MediaMetaType = {
-      name: `/u/${image.parent?.name ?? ''}/${image.name}`,
+    const meta: MediaObjectType = {
+      mediaUrl: `/u/${image.parent?.name ?? ''}/${image.name}`,
       mtime: new Date(Math.round(image?.mtimeMs ?? 0)),
       birthTime: new Date(Math.round(image?.birthtimeMs ?? 0)),
       size: image.size,

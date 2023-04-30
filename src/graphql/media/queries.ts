@@ -24,7 +24,7 @@ const MediaQueries = {
    */
   getUserMedia: async (_, { userUuid, limit = 1000 }: { limit: number | undefined, userUuid: string }, { dataSources }): Promise<UserMediaWithTags[]> => {
     const { media }: DataSourcesType = dataSources
-    return await media.getUserPhotos(userUuid, limit)
+    return await media.getUserMedia(userUuid, limit)
   },
 
   getTagsLeaderboard: async (_, { limit = 30 }: { limit: number }, { dataSources }): Promise<TagsLeaderboardType[]> => {

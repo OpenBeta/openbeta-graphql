@@ -1,6 +1,6 @@
 export type ImageFormatType = 'jpeg' | 'png' | 'webp' | 'avif'
-export interface MediaMetaType {
-  name: string
+export interface MediaObjectType {
+  mediaUrl: string
   width: number
   height: number
   format: ImageFormatType

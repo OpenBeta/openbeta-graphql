@@ -21,6 +21,7 @@ import fs from 'fs'
 
 import { gql } from 'apollo-server'
 import { DocumentNode } from 'graphql'
+import MediaDataSource from '../model/MediaDataSource.js'
 
 /**
  * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode.
@@ -164,9 +165,9 @@ const resolvers = {
 
     ancestors: (node: ClimbGQLQueryType) => node.ancestors.split(','),
 
-    media: async (node: any, args: any, { dataSources }) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
-      return await areas.findMediaByClimbId(node._id)
+    media: async (node: ClimbType, args: any, { dataSources }) => {
+      const { media }: { media: MediaDataSource } = dataSources
+      return await media.findMediaByClimbId(node._id, node.name)
     },
 
     content: (node: ClimbGQLQueryType) => node.content == null

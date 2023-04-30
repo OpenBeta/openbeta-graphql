@@ -3,7 +3,7 @@ import { MUUID } from 'uuid-mongodb'
 
 import { AreaType } from './AreaTypes.js'
 import { ClimbType } from './ClimbTypes.js'
-import { MediaMetaType } from './MediaMetaType.js'
+import { MediaObjectType } from './MediaMetaType.js'
 
 // Type for 'Media' collection schema
 // This is a misnomer.  Should have been called Tag.
@@ -26,7 +26,7 @@ export enum RefModelType {
 /**
  * A tag with media metadata
  */
-export type BaseTagType = MediaType & MediaMetaType
+export type BaseTagType = MediaType & MediaObjectType
 
 export interface CompleteAreaTag extends BaseTagType {
   area: AreaType
@@ -46,8 +46,9 @@ export interface MediaListByAuthorType {
 export interface SimpleTag {
   id: MUUID
   name: string
+  type: number
 }
-export interface UserMediaWithTags extends MediaMetaType {
+export interface UserMediaWithTags extends MediaObjectType {
   climbTags: SimpleTag[]
   areaTags: SimpleTag[]
 }

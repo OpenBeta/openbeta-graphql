@@ -1,5 +1,5 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
-import muid from 'uuid-mongodb'
+import muid, { MUUID } from 'uuid-mongodb'
 
 import { getMediaModel, getMediaObjectModel } from '../db/index.js'
 import { MediaType, MediaListByAuthorType, TagsLeaderboardType, UserMediaWithTags } from '../db/MediaTypes.js'
@@ -86,25 +86,25 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
    * Get all photos for a user
    * @param userLimit
    */
-  async getUserPhotos (uuidStr: string, userLimit: number = 10): Promise<UserMediaWithTags[]> {
-    // const list = await getUserMedia(uuidStr)
-    // console.log('#list', list)
-
+  async getUserMedia (uuidStr: string, userLimit: number = 10): Promise<UserMediaWithTags[]> {
     const rs = await getMediaObjectModel().aggregate<UserMediaWithTags>([
       {
         $match: {
           $expr: {
-            $eq: [{ $substr: ['$name', 3, 36] }, uuidStr]
+            $eq: [{ $substr: ['$mediaUrl', 3, 36] }, uuidStr]
           }
         }
       },
       {
         $lookup: {
-          localField: 'name',
+          localField: 'mediaUrl',
           from: 'media', // Foreign collection name
           foreignField: 'mediaUrl',
           as: 'climbTags', // add a new parent field
           pipeline: [
+            {
+              $match: { destType: 0 }
+            },
             {
               $lookup: {
                 from: 'climbs', // other collection name
@@ -120,7 +120,8 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
             {
               $set: {
                 'climb.id': '$taggedClimbs._id',
-                'climb.name': '$taggedClimbs.name'
+                'climb.name': '$taggedClimbs.name',
+                'climb.type': 0
               }
             },
             {
@@ -132,11 +133,14 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
       },
       {
         $lookup: {
-          localField: 'name',
+          localField: 'mediaUrl',
           from: 'media', // Foreign collection name
           foreignField: 'mediaUrl',
           as: 'areaTags', // add a new parent field
           pipeline: [
+            {
+              $match: { destType: 1 }
+            },
             {
               $lookup: {
                 from: 'areas', // other collection name
@@ -152,7 +156,8 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
             {
               $set: {
                 'area.id': '$taggedAreas.metadata.area_id',
-                'area.name': '$taggedAreas.area_name'
+                'area.name': '$taggedAreas.area_name',
+                'area.type': 1
               }
             },
             {
@@ -162,7 +167,6 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
           ]
         }
       }
-
     ]
     )
     return rs
@@ -202,6 +206,38 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
       }])
     return rs
   }
+
+  /**
+   * Find tags for a given climb id.
+   *
+   * SQL equivalent:
+   * ```
+   * select *
+   * from media, media_objects
+   * where media.mediaUrl == media_objects.name and media.estinationId == <climb id>
+   * ```
+   * @param climbId
+   * @returns Tag object
+   */
+  async findMediaByClimbId (climbId: MUUID, climbName: string): Promise<UserMediaWithTags[]> {
+    const rs = await this.tagModel
+      .aggregate<UserMediaWithTags>([
+      { $match: { destinationId: climbId } },
+      ...joiningTagWithMediaObject,
+      {
+        $unset: ['onModel', 'mediaType', 'destType', 'destinationId']
+      }
+    ])
+    return rs.map(media => ({
+      ...media,
+      climbTags: [{
+        id: climbId,
+        name: climbName,
+        type: 0
+      }],
+      areaTags: []
+    }))
+  }
 }
 
 /**
@@ -220,7 +256,7 @@ export const joiningTagWithMediaObject = [
     $lookup: {
       localField: 'mediaUrl',
       from: 'media_objects', // Foreign collection name
-      foreignField: 'name',
+      foreignField: 'mediaUrl',
       as: 'meta' // add a new parent field
     }
   },

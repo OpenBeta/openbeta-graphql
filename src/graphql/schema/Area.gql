@@ -65,7 +65,7 @@ type Area {
   "The total number of climbs in this area"
   totalClimbs: Int!
   "Media associated with this area, or its child climbs"
-  media: [BaseTag]
+  media: [MediaWithTags]
   createdAt: Date
   createdBy: ID
   updatedAt: Date
