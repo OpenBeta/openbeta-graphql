@@ -11,7 +11,7 @@ type Query {
 }
 
 type Query {
-  getRecentTags(userLimit: Int): [MediaListByAuthorType]
+  getRecentTags(userLimit: Int): [MediaByUsers]
 }
 
 type Query {
@@ -107,13 +107,14 @@ type BaseTag implements ITag & IMediaMetadata {
 }
 
 "All tags by an author"
-type MediaListByAuthorType {
-  authorUuid: ID!
-  tagList: [MediaTag]
+type MediaByUsers {
+  username: String
+  userUuid: ID!
+  mediaWithTags: [MediaWithTags]
 }
 
 type SimpleTag {
-  id: ID!
+  targetId: ID!
   name: String!
   type: Int!
 }

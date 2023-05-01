@@ -55,6 +55,12 @@ MediaSchema.virtual('area', {
 MediaSchema.plugin(mongooseLeanVirtuals)
 MediaSchema.index({ mediaUuid: 1, destinationId: 1 }, { unique: true })
 
+/**
+ * Use {@link getMediaObjectModel()}
+ * @deprecated
+ * @param name
+ * @returns
+ */
 export const getMediaModel = (name: string = 'media'): mongoose.Model<MediaType> => {
   return mongoose.model(name, MediaSchema)
 }

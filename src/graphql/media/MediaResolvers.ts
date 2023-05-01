@@ -1,4 +1,4 @@
-import { CompleteAreaTag, CompleteClimbTag, MediaListByAuthorType, RefModelType, TagEntryResultType, TagType, BaseTagType, SimpleTag } from '../../db/MediaTypes.js'
+import { CompleteAreaTag, CompleteClimbTag, MediaByUsers, RefModelType, TagEntryResultType, TagType, BaseTagType, SimpleTag, MediaWithTags } from '../../db/MediaTypes.js'
 import AreaDataSource from '../../model/AreaDataSource.js'
 import { getUserNickFromMediaDir } from '../../utils/helpers.js'
 
@@ -63,17 +63,25 @@ const MediaResolvers = {
     }
   },
 
+  MediaByUsers: {
+    userUuid: (node: MediaByUsers) => node.userUuid.toUUID().toString(),
+    username: async (node: MediaByUsers) => (
+      await getUserNickFromMediaDir(node.userUuid.toUUID().toString()))
+  },
+
   MediaWithTags: {
-    username: async (node: BaseTagType) => await getUserNickFromMediaDir(node.mediaUrl.substring(3, 39))
+    username: async (node: MediaWithTags) => await getUserNickFromMediaDir(node.mediaUrl.substring(3, 39)),
+    climbTags: (node: MediaWithTags) => node?.climbTags ?? [],
+    areaTags: (node: MediaWithTags) => node?.areaTags ?? []
   },
 
   SimpleTag: {
-    id: (node: SimpleTag) => node.id.toUUID().toString()
+    targetId: (node: SimpleTag) => node.targetId.toUUID().toString()
   },
 
-  MediaListByAuthorType: {
-    authorUuid: (node: MediaListByAuthorType) => node._id
-  },
+  // MediaListByAuthorType: {
+  //   authorUuid: (node: MediaByUsers) => node._id
+  // },
 
   DeleteTagResult: {
     // nothing to override

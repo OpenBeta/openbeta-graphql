@@ -1,4 +1,4 @@
-import { MediaListByAuthorType, MediaWithTags, TagsLeaderboardType } from '../../db/MediaTypes.js'
+import { MediaByUsers, MediaWithTags, TagsLeaderboardType } from '../../db/MediaTypes.js'
 import { DataSourcesType } from '../../types.js'
 
 const MediaQueries = {
@@ -14,7 +14,7 @@ const MediaQueries = {
   /**
    * Return most recent tags
    */
-  getRecentTags: async (_, { userLimit = 10 }: { userLimit: number | undefined }, { dataSources }): Promise<MediaListByAuthorType[]> => {
+  getRecentTags: async (_, { userLimit = 10 }: { userLimit: number | undefined }, { dataSources }): Promise<MediaByUsers[]> => {
     const { media }: DataSourcesType = dataSources
     return await media.getRecentTags(userLimit)
   },

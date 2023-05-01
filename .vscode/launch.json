@@ -88,5 +88,21 @@
                 "<node_internals>/**"
             ],
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Migrate tag to media metat collection",
+            "program": "${workspaceFolder}/src/db/utils/jobs/MigrateTagsToMediaCollection.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "env": {
+                "GOOGLE_APPLICATION_CREDENTIALS": "/Users/vnguyen/.config/gcloud/openbeta-staging-bucket.json"
+            },
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+        },
     ]
 }

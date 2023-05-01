@@ -38,13 +38,14 @@ export interface CompleteClimbTag extends BaseTagType {
 
 export type TagType = CompleteAreaTag | CompleteClimbTag
 
-export interface MediaListByAuthorType {
-  _id: string
-  tagList: TagType[]
+export interface MediaByUsers {
+  username: string
+  userUuid: MUUID
+  mediaWithTags: MediaWithTags[]
 }
 
 export interface SimpleTag {
-  id: MUUID
+  targetId: MUUID
   name: string
   type: number
 }
