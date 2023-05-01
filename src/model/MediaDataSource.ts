@@ -275,14 +275,8 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
   }
 
   /**
-   * Find tags for a given climb id.
+   * Find tags associated with a given climb id.
    *
-   * SQL equivalent:
-   * ```
-   * select *
-   * from media, media_objects
-   * where media.mediaUrl == media_objects.name and media.estinationId == <climb id>
-   * ```
    * @param climbId
    * @returns `MediaWithTags` array
    */
@@ -320,13 +314,19 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
     return rs
   }
 
+  /**
+   * Find all media tags associated with an area.  An area can have its own
+   * tags or inherit tags from their children.  A note on inheritance:
+   *
+   * 1.  A parent area and their ancestors will inherit tags from their children.
+   * 2.  Child area or climb will **not** inherit their parent/ancestor tags.
+   *
+   * @param areaId
+   * @param ancestors
+   * @returns `UserMediaWithTags` array
+   */
   async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<MediaWithTags[]> {
     const taggedClimbsPipeline = [
-      {
-        $match: {
-          tags: { $ne: [] }
-        }
-      },
       {
         $lookup: {
           from: 'climbs', // other collection name
@@ -355,7 +355,7 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
             $map: {
               input: '$taggedClimb',
               in: {
-                id: '$$this._id',
+                targetId: '$$this._id',
                 name: '$$this.name',
                 type: 0
               }
@@ -372,61 +372,39 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
 
     ]
 
-    const rs = await this.mediaObjectModel.aggregate<MediaWithTags>([
-      ...taggedClimbsPipeline
-    ])
-
-    return rs
-  }
-
-  /**
-   * Find all media tags associated with a given area.  An area can have its own
-   * tags or inherit tags from their children.  A note on inheritance:
-   *
-   * 1.  A parent area and their ancestors will inherit tags from their children.
-   * 2.  Child area or climb will **not** inherit their parent/ancestor tags.
-   *
-   * @param areaId
-   * @param ancestors
-   * @returns `UserMediaWithTags` array
-   */
-  async findMediaByAreaId2 (areaId: MUUID, ancestors: string): Promise<MediaWithTags[]> {
-    const taggedClimbsPipeline = [
+    const taggedAreasPipeline = [
       {
-        // SELECT *
-        // FROM media
-        // LEFT OUTER climbs
-        // ON climbs._id == media.destinationId
         $lookup: {
-          from: 'climbs', // other collection name
-          foreignField: '_id', // climb._id
-          localField: 'destinationId',
-          as: 'taggedClimb',
-          pipeline: [{
-            $lookup: { // also allow ancestor areas to inherent climb photo
-              from: 'areas', // other collection name
-              foreignField: 'metadata.area_id',
-              localField: 'metadata.areaRef', // climb.metadata.areaRef
-              as: 'area'
-            }
-          },
-          {
-            $match: {
-              'area.ancestors': { $regex: areaId.toUUID().toString() }
-            }
-          }
-          ]
+          from: 'areas', // other collection name
+          foreignField: 'metadata.area_id',
+          localField: 'tags.targetId',
+          as: 'taggedArea',
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                // Given an ancestor area, match descendant tags
+                // - input: A,B,C  <-- Area C has a tag
+                // - regex: A,B <-- My search area is B.  Yes, there's a match.
+                  $regexMatch: {
+                    input: '$ancestors',
+                    regex: ancestors,
+                    options: 'i'
+                  }
+                }
+              }
+            }]
         }
       },
       {
         $set: {
-          taggedClimb: {
+          taggedArea: {
             $map: {
-              input: '$taggedClimb',
+              input: '$taggedArea',
               in: {
-                id: '$$this._id',
-                name: '$$this.name',
-                type: 0
+                targetId: '$$this.metadata.area_id',
+                name: '$$this.area_name',
+                type: 1
               }
             }
           }
@@ -434,75 +412,29 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
       },
       {
         $unwind: {
-          path: '$taggedClimb',
+          path: '$taggedArea',
           preserveNullAndEmptyArrays: true
         }
       }
     ]
-
-    const taggedAreasPipeline = [{
-      // SELECT *
-      // FROM media
-      // LEFT JOIN areas
-      // ON media.destinationId == areas.metadata.area_id
-      $lookup: {
-        from: 'areas', // other collection name
-        foreignField: 'metadata.area_id',
-        localField: 'destinationId',
-        as: 'taggedArea',
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                // Given an ancestor area, match descendant tags
-                // - input: A,B,C  <-- Area C has a tag
-                // - regex: A,B <-- My search area is B.  Yes, there's a match.
-                $regexMatch: {
-                  input: '$ancestors',
-                  regex: ancestors,
-                  options: 'i'
-                }
-              }
-            }
-          }]
-      }
-    },
-    {
-      $set: {
-        taggedArea: {
-          $map: {
-            input: '$taggedArea',
-            in: {
-              id: '$$this.metadata.area_id',
-              name: '$$this.area_name',
-              type: 1
-            }
-          }
-        }
-      }
-    },
-    {
-      $unwind: {
-        path: '$taggedArea',
-        preserveNullAndEmptyArrays: true
-      }
-    }
-    ]
-
-    /**
-     * Find all area tags whose ancestors and children have 'areaId'
-     */
-    return await getMediaModel().aggregate<MediaWithTags>([
-      ...joiningTagWithMediaObject,
+    const rs = await this.mediaObjectModel.aggregate<MediaWithTags>([
       {
-        $unset: ['_id', 'onModel', 'mediaType', 'destType', 'mediaUuid']
+        /**
+         * Only work with media objects with tags
+         */
+        $match: {
+          tags: { $ne: [] }
+        }
       },
       ...taggedClimbsPipeline,
       ...taggedAreasPipeline,
       {
-        $unset: ['destinationId']
+        $unset: ['tags'] // drop the raw tags
       },
       {
+        /**
+         * Only include documents with either climb or area tags
+         */
         $match: {
           $or: [
             {
@@ -519,6 +451,10 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
         }
       },
       {
+        /**
+         * Group documents by media fields to restore its original shape,
+         * one media has many tags.
+         */
         $group: {
           _id: {
             mediaUrl: '$mediaUrl',
@@ -534,45 +470,22 @@ export default class MediaDataSource extends MongoDataSource<MediaType> {
         }
       },
       {
+        /**
+         * Move tag fields inside nested '_id'
+         */
         $addFields: {
           '_id.areaTags': '$taggedAreas',
           '_id.climbTags': '$taggedClimbs'
         }
       },
-      { $replaceRoot: { newRoot: '$_id' } }
+      {
+        /**
+         * make '_id' the new document root
+         */
+        $replaceRoot: { newRoot: '$_id' }
+      }
     ])
+
+    return rs
   }
 }
-
-/**
- * A reusable Mongo aggregation snippet for 'joining' tag collection and media object collection.
- * Ideally we should just embed tags as an array inside 'media_objects' collection to eliminate
- * this extra join.
- *
- * ```
- * select *
- * from media, media_objects
- * where media.mediaUrl == media_objects.name
- * ```
- */
-export const joiningTagWithMediaObject = [
-  {
-    $lookup: {
-      localField: 'mediaUrl',
-      from: 'media_objects', // Foreign collection name
-      foreignField: 'mediaUrl',
-      as: 'meta' // add a new parent field
-    }
-  },
-  { $unwind: '$meta' },
-  {
-    $unset: ['meta.name', 'meta._id', 'meta.createdAt', 'meta.updatedAt']
-  },
-  {
-    $replaceWith: {
-      $mergeObjects: ['$$ROOT', '$meta']
-    }
-  },
-  {
-    $unset: ['meta']
-  }]
