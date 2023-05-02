@@ -66,10 +66,8 @@ type Area {
   totalClimbs: Int!
   "Media associated with this area, or its child climbs"
   media: [MediaWithTags]
-  createdAt: Date
-  createdBy: ID
-  updatedAt: Date
-  updatedBy: ID
+  "Metadata about creation & update of this area"
+  authorMetadata: AuthorMetadata!
 }
 
 type AreaMetadata {

@@ -28,7 +28,8 @@ union Document = Area | Climb | Organization
 
 type History {
   id: ID!
-  editedBy: String!
+  editedBy: ID!
+  editedByUser: String
   operation: String!
   createdAt: Date!
   changes: [Change]
@@ -38,4 +39,14 @@ type Query {
   getChangeHistory(filter: AllHistoryFilter): [History]
   getAreaHistory(filter: AreaHistoryFilter): [History]
   getOrganizationHistory(filter: OrganizationHistoryFilter): [History]
+}
+
+"""Author metadata"""
+type AuthorMetadata {
+  createdAt: Date!
+  createdBy: ID!
+  createdByUser: String
+  updatedAt: Date!
+  updatedBy: ID!
+  updatedByUser: String
 }

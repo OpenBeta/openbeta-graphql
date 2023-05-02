@@ -1,6 +1,9 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import muid from 'uuid-mongodb'
+import fs from 'fs'
+import { gql } from 'apollo-server'
+import { DocumentNode } from 'graphql'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
@@ -17,11 +20,8 @@ import { ClimbMutations } from './climb/index.js'
 import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
 import TickMutations from './tick/TickMutations.js'
 import TickQueries from './tick/TickQueries.js'
-import fs from 'fs'
-
-import { gql } from 'apollo-server'
-import { DocumentNode } from 'graphql'
 import MediaDataSource from '../model/MediaDataSource.js'
+import { getAuthorMetadataFromBaseNode } from '../db/utils/index.js'
 
 /**
  * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode.
@@ -178,8 +178,7 @@ const resolvers = {
         }
       : node.content,
 
-    createdBy: (node: ClimbGQLQueryType) => node?.createdBy?.toUUID().toString(),
-    updatedBy: (node: ClimbGQLQueryType) => node?.updatedBy?.toUUID().toString()
+    authorMetadata: getAuthorMetadataFromBaseNode
   },
 
   Area: {
@@ -237,9 +236,7 @@ const resolvers = {
       const { media }: { media: MediaDataSource } = dataSources
       return await media.findMediaByAreaId(node.metadata.area_id, node.ancestors)
     },
-
-    createdBy: (node: AreaType) => node?.createdBy?.toUUID().toString(),
-    updatedBy: (node: AreaType) => node?.updatedBy?.toUUID().toString()
+    authorMetadata: getAuthorMetadataFromBaseNode
   },
 
   CountByDisciplineType: {

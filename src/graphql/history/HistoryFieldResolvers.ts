@@ -1,13 +1,15 @@
 import { ChangeLogType, BaseChangeRecordType, SupportedCollectionTypes, DocumentKind } from '../../db/ChangeLogType.js'
-import { exhaustiveCheck } from '../../utils/helpers.js'
+import { AuthorMetadata } from '../../types.js'
+import { exhaustiveCheck, getUserNickFromMediaDir } from '../../utils/helpers.js'
 
 /**
- * Customize to resolve individual fields
+ * History schama field resolvers
  */
 const resolvers = {
   History: {
     id: (node: ChangeLogType) => node._id.toString(),
-    editedBy: (node: ChangeLogType) => node.editedBy.toUUID().toString()
+    editedBy: (node: ChangeLogType) => node.editedBy.toUUID().toString(),
+    editedByUser: async (node: ChangeLogType) => (await getUserNickFromMediaDir(node.editedBy.toUUID().toString()))
   },
 
   Change: {
@@ -36,6 +38,13 @@ const resolvers = {
           return exhaustiveCheck(node.kind)
       }
     }
+  },
+
+  AuthorMetadata: {
+    createdBy: (node: AuthorMetadata) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: AuthorMetadata) => node?.updatedBy?.toUUID().toString(),
+    createdByUser: async (node: AuthorMetadata) => await getUserNickFromMediaDir(node?.createdBy?.toUUID().toString() ?? ''),
+    updatedByUser: async (node: AuthorMetadata) => (await getUserNickFromMediaDir(node?.updatedBy?.toUUID().toString() ?? ''))
   }
 }
 

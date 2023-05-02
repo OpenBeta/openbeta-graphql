@@ -1,13 +1,15 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
 
-import { getMediaModel, getMediaObjectModel } from '../db/index.js'
+import { getMediaObjectModel } from '../db/index.js'
 import { MediaType, MediaByUsers, TagsLeaderboardType, MediaWithTags, AllTimeTagStats } from '../db/MediaTypes.js'
 
 export default class MediaDataSourcmnee extends MongoDataSource<MediaType> {
-  tagModel = getMediaModel()
   mediaObjectModel = getMediaObjectModel()
 
+  /**
+   * A reusable list of fields for '$group' aggregation
+   */
   mediaObjectGroupByFields = {
     mediaUrl: '$mediaUrl',
     userUuid: '$userUuid',
@@ -289,7 +291,7 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaType> {
       {
         $unset: ['_id']
       }
-    ])
+    ], { readPreference: 'secondaryPreferred' })
 
     if (rs?.length !== 1) throw new Error('Unexpected leaderboard query error')
 

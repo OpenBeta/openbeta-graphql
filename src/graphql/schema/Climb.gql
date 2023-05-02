@@ -59,10 +59,8 @@ type Climb {
   "The parent area object"
   parent: Area!
 
-  createdAt: Date
-  updatedAt: Date
-  updatedBy: ID
-  createdBy: ID
+  "Metadata about creation & update of this climb"
+  authorMetadata: AuthorMetadata!
 }
 
 type ClimbMetadata {
