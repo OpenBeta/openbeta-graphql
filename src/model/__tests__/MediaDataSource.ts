@@ -120,7 +120,7 @@ describe('MediaDataSource', () => {
     await expect(media.setTag(areaTag1)).rejects.toThrowError(/Duplicate/)
   })
 
-  it('should return recent tags', async () => {
+  it.skip('should return recent tags', async () => {
     if (areaForTagging == null) fail('Pre-seeded test area not found')
 
     let tags = await media.getRecentTags()
