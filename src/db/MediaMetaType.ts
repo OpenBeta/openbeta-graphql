@@ -10,6 +10,7 @@ export interface MediaObjectType {
   format: ImageFormatType
   mtime: Date
   birthTime: Date
+  createdAt: Date
   size: number
   tags: RawTag[]
 }

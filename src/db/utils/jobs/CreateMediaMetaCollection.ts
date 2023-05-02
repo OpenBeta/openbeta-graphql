@@ -33,7 +33,7 @@ const onConnected = async (): Promise<void> => {
       continue
     }
     const userUuid = muuid.from(folderUuidStr)
-    const meta: MediaObjectType = {
+    const meta: Omit<MediaObjectType, 'createdAt'> = {
       userUuid,
       mediaUrl: `/u/${folderUuidStr}/${image.name}`,
       mtime: new Date(Math.round(image?.mtimeMs ?? 0)),

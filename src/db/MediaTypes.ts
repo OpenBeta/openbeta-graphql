@@ -91,7 +91,16 @@ export interface DeleteTagResult {
   destinationId: string
 }
 
-export interface TagsLeaderboardType {
-  userUuid: string
+export interface TagByUser {
+  username?: string
+  userUuid: MUUID
   total: number
+}
+
+export interface AllTimeTagStats {
+  totalMediaWithTags: number
+  byUsers: TagByUser[]
+}
+export interface TagsLeaderboardType {
+  allTime: AllTimeTagStats
 }
