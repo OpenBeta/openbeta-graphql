@@ -1,6 +1,6 @@
 [![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 # Climbing Route Catalog API 
@@ -184,6 +184,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://siman4457.github.io"><img src="https://avatars.githubusercontent.com/u/28658492?v=4?s=100" width="100px;" alt="Siman Shrestha"/><br /><sub><b>Siman Shrestha</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=siman4457" title="Code">💻</a> <a href="#ideas-siman4457" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.michaelreichenbach.de"><img src="https://avatars.githubusercontent.com/u/755327?v=4?s=100" width="100px;" alt="Silthus"/><br /><sub><b>Silthus</b></sub></a><br /><a href="#ideas-Silthus" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=Silthus" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bradleyDean"><img src="https://avatars.githubusercontent.com/u/10867313?v=4?s=100" width="100px;" alt="Bradley Lignoski"/><br /><sub><b>Bradley Lignoski</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=bradleyDean" title="Code">💻</a> <a href="#ideas-bradleyDean" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://kaomorphism.com"><img src="https://avatars.githubusercontent.com/u/3641356?v=4?s=100" width="100px;" alt="zkao"/><br /><sub><b>zkao</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=zichongkao" title="Code">💻</a> <a href="#ideas-zichongkao" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
