@@ -52,6 +52,11 @@ describe('Test grade utilities', () => {
       vscale: 'V4'
     })
 
+    actual = createGradeObject('WI2', sanitizeDisciplines({ ice: true }), context)
+    expect(actual).toEqual({
+      wi: 'WI2'
+    })
+
     // mismatch input and discipline
     actual = createGradeObject('V4', sanitizeDisciplines({ trad: true }), context)
     expect(actual).toBeUndefined()
@@ -59,6 +64,16 @@ describe('Test grade utilities', () => {
     // invalid input
     actual = createGradeObject('6a', sanitizeDisciplines({ trad: true }), context)
     expect(actual).toBeUndefined()
+  })
+
+  it.failing('can alpine ice grades to climbs with discipline ice', () => {
+    const context = gradeContextToGradeScales.US
+    if (context == null) fail('Bad grade context.  Should not happen.')
+
+    const actual = createGradeObject('AI2', sanitizeDisciplines({ ice: true }), context)
+    expect(actual).toEqual({
+      ai: 'AI2'
+    })
   })
 
   it('creates grade object correctly in AU context', () => {
@@ -73,6 +88,11 @@ describe('Test grade utilities', () => {
     actual = createGradeObject('v11', sanitizeDisciplines({ bouldering: true }), context)
     expect(actual).toEqual({
       vscale: 'v11'
+    })
+
+    actual = createGradeObject('WI4+', sanitizeDisciplines({ ice: true }), context)
+    expect(actual).toEqual({
+      wi: 'WI4+'
     })
 
     // Invalid input
@@ -92,6 +112,11 @@ describe('Test grade utilities', () => {
     actual = createGradeObject('7c', sanitizeDisciplines({ bouldering: true }), context)
     expect(actual).toEqual({
       font: '7c'
+    })
+
+    actual = createGradeObject('WI6', sanitizeDisciplines({ ice: true }), context)
+    expect(actual).toEqual({
+      wi: 'WI6'
     })
 
     // Invalid input

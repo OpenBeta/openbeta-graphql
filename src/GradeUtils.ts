@@ -46,7 +46,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     mixed: GradeScales.YDS,
     aid: GradeScales.YDS,
     snow: GradeScales.YDS, // is this the same as alpine?
-    ice: GradeScales.YDS // is this the same as alpine?
+    ice: GradeScales.WI
   },
   [GradeContexts.US]: {
     trad: GradeScales.YDS,
@@ -57,7 +57,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     mixed: GradeScales.YDS,
     aid: GradeScales.YDS,
     snow: GradeScales.YDS, // is this the same as alpine?
-    ice: GradeScales.YDS // is this the same as alpine?
+    ice: GradeScales.WI
   },
   [GradeContexts.FR]: {
     trad: GradeScales.FRENCH,
@@ -68,7 +68,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     mixed: GradeScales.FRENCH,
     aid: GradeScales.FRENCH,
     snow: GradeScales.FRENCH, // is this the same as alpine?
-    ice: GradeScales.FRENCH // is this the same as alpine?
+    ice: GradeScales.WI
   },
   [GradeContexts.SA]: {
     trad: GradeScales.FRENCH,
@@ -79,7 +79,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     mixed: GradeScales.FRENCH,
     aid: GradeScales.FRENCH,
     snow: GradeScales.FRENCH, // SA does not have a whole lot of snow
-    ice: GradeScales.FRENCH // SA does not have a whole lot of ice
+    ice: GradeScales.WI
   }
 }
 
