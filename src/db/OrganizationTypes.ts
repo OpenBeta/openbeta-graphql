@@ -82,6 +82,10 @@ export interface IOrganizationContent {
    * URL of organization's Facebook page.
    */
   facebookLink?: string
+  /**
+   * URL of where climbers can report bad hardware to the organization.
+   */
+  hardwareReportLink?: string
   /** longform to mediumform description of this organization.
    *
    * We expect org_admins to make a call about whatever kind of context may be appropriate
@@ -101,6 +105,7 @@ export interface OrganizationEditableFieldsType {
   donationLink?: string
   instagramLink?: string
   facebookLink?: string
+  hardwareReportLink?: string
   description?: string
 }
 

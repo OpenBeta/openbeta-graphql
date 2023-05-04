@@ -135,7 +135,7 @@ const findNonexistantAreas = async (areaIds: MUUID[]): Promise<MUUID[]> => {
 const sanitizeEditableFields = async (
   document: OrganizationEditableFieldsType
 ): Promise<Partial<OrganizationType>> => {
-  const { associatedAreaIds, excludedAreaIds, displayName, website, email, donationLink, instagramLink, facebookLink, description } = document
+  const { associatedAreaIds, excludedAreaIds, displayName, website, email, donationLink, instagramLink, facebookLink, hardwareReportLink, description } = document
   const orgFragment: Partial<OrganizationType> = {}
 
   if (associatedAreaIds !== undefined && associatedAreaIds.length > 0) {
@@ -154,6 +154,7 @@ const sanitizeEditableFields = async (
   if (donationLink !== undefined) { orgFragment['content.donationLink'] = sanitizeStrict(donationLink) }
   if (instagramLink !== undefined) { orgFragment['content.instagramLink'] = sanitizeStrict(instagramLink) }
   if (facebookLink !== undefined) { orgFragment['content.facebookLink'] = sanitizeStrict(facebookLink) }
+  if (hardwareReportLink !== undefined) { orgFragment['content.hardwareReportLink'] = sanitizeStrict(hardwareReportLink) }
   if (description !== undefined) { orgFragment['content.description'] = sanitize(description) }
 
   return orgFragment

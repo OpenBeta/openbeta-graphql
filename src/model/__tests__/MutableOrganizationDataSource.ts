@@ -39,6 +39,7 @@ describe('Organization', () => {
       donationLink: 'https://www.friendsofopenbeta.com/donate',
       instagramLink: 'https://www.instagram.com/friendsofopenbeta',
       facebookLink: 'https://www.facebook.com/friendsofopenbeta',
+      hardwareReportLink: 'https://www.friendsofopenbeta.com/reporthardware',
       description: 'We are friends of openbeta.\nWe are a 503(B) corporation.'
     }
     emptyOrg = {
@@ -68,6 +69,7 @@ describe('Organization', () => {
     expect(newOrg.content?.donationLink).toBe(document.donationLink)
     expect(newOrg.content?.instagramLink).toBe(document.instagramLink)
     expect(newOrg.content?.facebookLink).toBe(document.facebookLink)
+    expect(newOrg.content?.hardwareReportLink).toBe(document.hardwareReportLink)
     expect(newOrg.content?.description).toBe(document.description)
     expect(newOrg.associatedAreaIds.map(muuidToString)).toEqual([muuidToString(usa.metadata.area_id)])
     expect(newOrg._change?.operation).toBe('addOrganization')
@@ -114,6 +116,7 @@ describe('Organization', () => {
       expect(updatedOrg.content?.donationLink).toBe(document.donationLink)
       expect(updatedOrg.content?.instagramLink).toBe(document.instagramLink)
       expect(updatedOrg.content?.facebookLink).toBe(document.facebookLink)
+      expect(updatedOrg.content?.hardwareReportLink).toBe(document.hardwareReportLink)
       expect(updatedOrg.content?.description).toBe(document.description)
       expect(updatedOrg._change?.operation).toBe('updateOrganization')
       expect(updatedOrg._change?.seq).toBe(0)
