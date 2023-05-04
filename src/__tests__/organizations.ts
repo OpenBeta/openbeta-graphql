@@ -7,7 +7,8 @@ import { AreaType } from '../db/AreaTypes.js'
 import { OrgType, OrganizationType, OperationType, OrganizationEditableFieldsType } from '../db/OrganizationTypes.js'
 import { changelogDataSource } from '../model/ChangeLogDataSource.js'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
-import { muuidToString, isMuuidHexStr } from '../utils/helpers.js'
+import { muuidToString } from '../utils/helpers.js'
+import { validate as validateMuuid } from 'uuid'
 
 jest.setTimeout(60000)
 
@@ -72,6 +73,8 @@ describe('organizations API', () => {
             email
             donationLink
             instagramLink
+            facebookLink
+            hardwareReportLink
             description
           }
         }
@@ -90,7 +93,7 @@ describe('organizations API', () => {
       expect(createResponse.statusCode).toBe(200)
       const orgId = createResponse.body.data.organization.orgId
       // orgId is MUUID scalar type which should always be serialized into the muuid hex string format.
-      expect(isMuuidHexStr(orgId)).toBeTruthy()
+      expect(validateMuuid(orgId)).toBeTruthy()
       expect(createResponse.body.data.organization.orgType).toBe('LOCAL_CLIMBING_ORGANIZATION')
       expect(createResponse.body.data.organization.displayName).toBe('Friends of Openbeta')
       expect(createResponse.body.data.organization.associatedAreaIds).toStrictEqual([])
@@ -111,6 +114,8 @@ describe('organizations API', () => {
             email: 'admin@alliesofopenbeta.com',
             donationLink: 'https://donate.alliesofopenbeta.com',
             instagramLink: 'https://instagram.com/alliesofopenbeta',
+            facebookLink: 'https://www.facebook.com/alliesofopenbeta',
+            hardwareReportLink: 'https://www.alliesofopenbeta.com/reporthardware',
             description: 'We are allies of OpenBeta!'
           }
         },
@@ -128,6 +133,8 @@ describe('organizations API', () => {
       expect(orgResult.content.email).toBe('admin@alliesofopenbeta.com')
       expect(orgResult.content.donationLink).toBe('https://donate.alliesofopenbeta.com')
       expect(orgResult.content.instagramLink).toBe('https://instagram.com/alliesofopenbeta')
+      expect(orgResult.content.facebookLink).toBe('https://www.facebook.com/alliesofopenbeta')
+      expect(orgResult.content.hardwareReportLink).toBe('https://www.alliesofopenbeta.com/reporthardware')
       expect(orgResult.content.description).toBe('We are allies of OpenBeta!')
 
       // eslint-disable-next-line
@@ -180,6 +187,7 @@ describe('organizations API', () => {
             donationLink
             instagramLink
             facebookLink
+            hardwareReportLink
             description
           }
         }
@@ -207,7 +215,8 @@ describe('organizations API', () => {
         associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
         email: 'admin@alphaopenbeta.com',
         facebookLink: 'https://www.facebook.com/alphaopenbeta',
-        instagramLink: 'https://www.instagram.com/alphaopenbeta'
+        instagramLink: 'https://www.instagram.com/alphaopenbeta',
+        hardwareReportLink: 'https://alphaopenbeta.com/reporthardware'
       }
       alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, alphaFields)
         .then((res: OrganizationType | null) => {
@@ -251,6 +260,7 @@ describe('organizations API', () => {
       expect(orgResult.content.email).toBe(alphaFields.email)
       expect(orgResult.content.instagramLink).toBe(alphaFields.instagramLink)
       expect(orgResult.content.facebookLink).toBe(alphaFields.facebookLink)
+      expect(orgResult.content.hardwareReportLink).toBe(alphaFields.hardwareReportLink)
     })
 
     it('retrieves organizations using an exactMatch displayName filter', async () => {

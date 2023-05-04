@@ -14,22 +14,12 @@ export const isBase64Str = (s: string): boolean => {
 }
 
 /**
- * Detects if string is in uuid-mongodb's "relaxed" hex format.
- * @param s input string
- * @returns
- */
-export const isMuuidHexStr = (s: string): boolean => {
-  const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-  return regex.test(s)
-}
-
-/**
  * Ensures that type-checking errors out if enums are not
- * handlded exhaustively in switch statements.
+ * handled exhaustively in switch statements.
  * Eg.
  * switch(val) {
  *   case enumOne:
- *     ...
+ *   ...
  *   default:
  *     exhaustiveCheck(val)
  * }

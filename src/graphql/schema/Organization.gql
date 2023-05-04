@@ -34,6 +34,7 @@ type OrganizationContent {
   donationLink: String
   instagramLink: String
   facebookLink: String
+  hardwareReportLink: String
   description: String
 }
 
