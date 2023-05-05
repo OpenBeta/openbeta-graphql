@@ -1,27 +1,41 @@
-import muid from 'uuid-mongodb'
+import muid, { MUUID } from 'uuid-mongodb'
 import { AuthUserType } from '../types.js'
 import { verifyJWT } from './util.js'
 
 /**
  * Create a middleware context for Apollo server
  */
-export const createContext = async ({ req }): Promise<any> => {
-  const { headers } = req
+export const createContext = (() => {
+  let testUUID: MUUID
 
-  const user: AuthUserType = {
-    roles: [],
-    uuid: undefined
+  if (process.env.NODE_ENV === 'development') {
+    testUUID = muid.v4()
+    console.log(`The user.uuid for this session is: ${testUUID.toString()}`)
   }
 
-  const authHeader = String(headers?.authorization ?? '')
-  if (authHeader.startsWith('Bearer ')) {
-    const token = authHeader.substring(7, authHeader.length).trim()
-    const z = await verifyJWT(token)
+  return async ({ req }): Promise<any> => {
+    const { headers } = req
 
-    user.roles = z?.['https://tacos.openbeta.io/roles'] ?? []
-    const uidStr: string | undefined = z?.['https://tacos.openbeta.io/uuid']
-    user.uuid = uidStr != null ? muid.from(uidStr) : undefined
+    const user: AuthUserType = {
+      roles: [],
+      uuid: undefined
+    }
+
+    if (process.env.NODE_ENV === 'development' && (user.uuid == null)) {
+      user.roles = ['admin', 'editor']
+      user.uuid = testUUID
+    } else {
+      const authHeader = String(headers?.authorization ?? '')
+      if (authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7, authHeader.length).trim()
+        const z = await verifyJWT(token)
+
+        user.roles = z?.['https://tacos.openbeta.io/roles'] ?? []
+        const uidStr: string | undefined = z?.['https://tacos.openbeta.io/uuid']
+        user.uuid = uidStr != null ? muid.from(uidStr) : undefined
+      }
+    }
+
+    return { user }
   }
-
-  return { user }
-}
+})()

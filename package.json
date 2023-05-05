@@ -63,6 +63,7 @@
     "build-release": "tsc  -p tsconfig.release.json",
     "clean": "tsc -b --clean && rm -rf build/*",
     "serve": "yarn build && node --experimental-json-modules build/main.js",
+    "serve-dev": "NODE_ENV=development yarn serve",
     "refresh-db": "./refresh-db.sh",
     "seed-usa": "yarn build && node build/db/import/usa/USADay0Seed.js",
     "add-countries": "yarn build && node build/db/utils/jobs/AddCountriesJob.js",
