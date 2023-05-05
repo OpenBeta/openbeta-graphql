@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-import { MediaObjectType, RawTag } from './MediaMetaType.js'
+import { MediaObjectType, RawTag } from './MediaObjectType.js'
 
 const { Schema } = mongoose
 
@@ -20,10 +20,10 @@ const schema = new Schema<MediaObjectType>({
   height: { type: Schema.Types.Number, required: true },
   size: { type: Schema.Types.Number, required: true },
   format: { type: Schema.Types.String, required: true },
-  birthTime: { type: Schema.Types.Date, required: true },
-  mtime: { type: Schema.Types.Date, required: true },
   tags: [RawTagSchema]
 }, { _id: true, timestamps: true })
+
+schema.index({ tags: 1 })
 
 /**
  * Get media object model with embedded tag

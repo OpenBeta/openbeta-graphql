@@ -1,10 +1,10 @@
-import { connectDB, getMediaModel, gracefulExit } from '../../index.js'
-import { logger } from '../../../logger.js'
-import { getMediaObjectModel } from '../../MediaObjectSchema.js'
-import { MediaType } from '../../MediaTypes.js'
+import { connectDB, getMediaModel, gracefulExit } from '../../../index.js'
+import { logger } from '../../../../logger.js'
+import { getMediaObjectModel } from '../../../MediaObjectSchema.js'
+import { MediaType } from '../../../MediaTypes.js'
 
 /**
- * Photo metadata migration job: build a media metadata collection from media files on disk
+ * Move tags in Media collection to embedded tags in the new Media Objects collection.
  */
 const onConnected = async (): Promise<void> => {
   logger.info('Migrating tags...')

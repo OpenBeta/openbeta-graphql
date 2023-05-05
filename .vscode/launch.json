@@ -75,12 +75,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Create photo collection",
-            "program": "${workspaceFolder}/src/db/utils/jobs/CreateMediaMetaCollection.ts",
+            "name": "Create MediaObjects collection",
+            "program": "${workspaceFolder}/src/db/utils/jobs/migration/CreateMediaMetaCollection.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "env": {
-                "GOOGLE_APPLICATION_CREDENTIALS": "/Users/vnguyen/.config/gcloud/openbeta-staging-bucket.json"
-            },
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ],
@@ -91,12 +88,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Migrate tag to media metat collection",
-            "program": "${workspaceFolder}/src/db/utils/jobs/MigrateTagsToMediaCollection.ts",
+            "name": "Migrate old tags to MediaObjects collection",
+            "program": "${workspaceFolder}/src/db/utils/jobs/migration/MigrateTagsToMediaCollection.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "env": {
-                "GOOGLE_APPLICATION_CREDENTIALS": "/Users/vnguyen/.config/gcloud/openbeta-staging-bucket.json"
-            },
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ],

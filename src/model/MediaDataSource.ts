@@ -11,15 +11,23 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaType> {
    * A reusable list of fields for '$group' aggregation
    */
   mediaObjectGroupByFields = {
+    _id: '$_id',
     mediaUrl: '$mediaUrl',
     userUuid: '$userUuid',
     width: '$width',
     height: '$height',
-    birthTime: '$birthTime',
     createdAt: '$createdAt',
-    mtime: '$mtime',
     format: '$format',
     size: '$size'
+  }
+
+  /**
+   * A filter to exclude media objects without tags
+   */
+  matchMediaObjectsWithTags = {
+    $match: {
+      tags: { $exists: true, $type: 'array', $ne: [] }
+    }
   }
 
   /**
@@ -30,9 +38,7 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaType> {
   async getRecentTags (userLimit: number = 10): Promise<MediaByUsers[]> {
     const rs = await this.mediaObjectModel
       .aggregate<MediaByUsers>([
-      {
-        $match: { tags: { $ne: [] } }
-      },
+      this.matchMediaObjectsWithTags,
       {
         $sort: { 'tags._id': -1 }
       },
@@ -444,14 +450,7 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaType> {
       }
     ]
     const rs = await this.mediaObjectModel.aggregate<MediaWithTags>([
-      {
-        /**
-         * Only work with media objects with tags
-         */
-        $match: {
-          tags: { $ne: [] }
-        }
-      },
+      this.matchMediaObjectsWithTags,
       ...taggedClimbsPipeline,
       ...taggedAreasPipeline,
       {
@@ -486,6 +485,9 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaType> {
           taggedAreas: { $push: '$taggedArea' },
           taggedClimbs: { $push: '$taggedClimb' }
         }
+      },
+      {
+        $limit: 50
       },
       {
         /**

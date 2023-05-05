@@ -3,13 +3,12 @@ import { MUUID } from 'uuid-mongodb'
 
 export type ImageFormatType = 'jpeg' | 'png' | 'webp' | 'avif'
 export interface MediaObjectType {
+  _id: ObjectId
   userUuid: MUUID
   mediaUrl: string
   width: number
   height: number
   format: ImageFormatType
-  mtime: Date
-  birthTime: Date
   createdAt: Date
   size: number
   tags: RawTag[]

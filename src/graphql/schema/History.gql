@@ -43,10 +43,10 @@ type Query {
 
 """Author metadata"""
 type AuthorMetadata {
-  createdAt: Date!
-  createdBy: ID!
+  createdAt: Date
+  createdBy: ID
   createdByUser: String
-  updatedAt: Date!
-  updatedBy: ID!
+  updatedAt: Date
+  updatedBy: ID
   updatedByUser: String
 }

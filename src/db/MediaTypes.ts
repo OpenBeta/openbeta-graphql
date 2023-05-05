@@ -3,7 +3,7 @@ import { MUUID } from 'uuid-mongodb'
 
 import { AreaType } from './AreaTypes.js'
 import { ClimbType } from './ClimbTypes.js'
-import { MediaObjectType } from './MediaMetaType.js'
+import { MediaObjectType } from './MediaObjectType.js'
 
 // Type for 'Media' collection schema
 // This is a misnomer.  Should have been called Tag.

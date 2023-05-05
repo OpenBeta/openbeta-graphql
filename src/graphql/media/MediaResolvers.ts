@@ -10,6 +10,7 @@ const MediaResolvers = {
   },
 
   MediaWithTags: {
+    id: (node: MediaWithTags) => node._id,
     username: async (node: MediaWithTags) => (
       await getUserNickFromMediaDir(node.userUuid.toUUID().toString())),
     climbTags: (node: MediaWithTags) => node?.climbTags ?? [],

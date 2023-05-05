@@ -40,6 +40,9 @@ type TagsLeaderboard {
 
 "Media object metadata"
 interface IMediaMetadata {
+  """Unique id"""
+  id: ID!
+
   """Width in pixels"""
   width: Int!
 
@@ -48,12 +51,6 @@ interface IMediaMetadata {
 
   """Valid format: jpeg, png, webp, avif"""
   format: String!
-
-  """File modification time"""
-  mtime: Date!
-
-  """File creation time"""
-  birthTime: Date!
 
   """Upload time"""
   uploadTime: Date!
@@ -80,13 +77,12 @@ type SimpleTag {
 }
 
 type MediaWithTags implements IMediaMetadata {
+  id: ID!
   username: String
   mediaUrl: String!
   width: Int!
   height: Int!
   format: String!
-  mtime: Date!
-  birthTime: Date!
   uploadTime: Date!
   size: Int!
 
