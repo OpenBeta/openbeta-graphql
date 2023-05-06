@@ -5,9 +5,9 @@ import muuid from 'uuid-mongodb'
 
 import { connectDB, gracefulExit } from '../../../index.js'
 import { logger } from '../../../../logger.js'
-import { MediaObjectType } from '../../../MediaObjectType.js'
+import { MediaObject } from '../../../MediaObjectType.js'
 import { getMediaObjectModel } from '../../../MediaObjectSchema.js'
-import { getFileInfo } from './SrivClient.js'
+import { getFileInfo } from './SirvClient.js'
 
 const LOCAL_MEDIA_DIR = process.env.LOCAL_MEDIA_DIR
 
@@ -43,20 +43,20 @@ const onConnected = async (): Promise<void> => {
     const userUuid = muuid.from(folderUuidStr)
     const mediaUrl = `/u/${folderUuidStr}/${image.name}`
     const { btime } = await getFileInfo(mediaUrl)
-    const meta: Omit<MediaObjectType, '_id'> = {
+    const meta: Omit<MediaObject, '_id'> = {
       userUuid,
       mediaUrl,
       size: image.size,
       width,
       height,
       format,
-      tags: [],
+      entityTags: [],
       createdAt: btime
     }
     list.push(meta)
     count = count + 1
 
-    if (list.length === 10) {
+    if (list.length === 20) {
       await model.insertMany(list)
       list = []
     }

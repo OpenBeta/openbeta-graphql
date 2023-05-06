@@ -22,6 +22,7 @@ import TickMutations from './tick/TickMutations.js'
 import TickQueries from './tick/TickQueries.js'
 import MediaDataSource from '../model/MediaDataSource.js'
 import { getAuthorMetadataFromBaseNode } from '../db/utils/index.js'
+import { geojsonPointToLatitude, geojsonPointToLongitude } from '../utils/helpers.js'
 
 /**
  * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode.
@@ -159,8 +160,8 @@ const resolvers = {
       climb_id: node._id.toUUID().toString(),
       climbId: node._id.toUUID().toString(),
       // convert internal Geo type to simple lng,lat
-      lng: node.metadata.lnglat.coordinates[0],
-      lat: node.metadata.lnglat.coordinates[1]
+      lng: (node: ClimbGQLQueryType) => geojsonPointToLongitude(node.metadata.lnglat),
+      lat: (node: ClimbGQLQueryType) => geojsonPointToLongitude(node.metadata.lnglat)
     }),
 
     ancestors: (node: ClimbGQLQueryType) => node.ancestors.split(','),

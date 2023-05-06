@@ -123,11 +123,11 @@ describe('MediaDataSource', () => {
   it.skip('should return recent tags', async () => {
     if (areaForTagging == null) fail('Pre-seeded test area not found')
 
-    let tags = await media.getRecentTags()
+    let tags = await media.getMediaByUsers({})
     expect(tags).toHaveLength(0)
 
     await media.setTag(areaTag1)
-    tags = await media.getRecentTags()
+    tags = await media.getMediaByUsers({})
 
     expect(tags).toHaveLength(1)
     expect(tags[0].mediaWithTags).toHaveLength(1)

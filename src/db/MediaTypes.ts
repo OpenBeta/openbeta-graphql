@@ -3,11 +3,11 @@ import { MUUID } from 'uuid-mongodb'
 
 import { AreaType } from './AreaTypes.js'
 import { ClimbType } from './ClimbTypes.js'
-import { MediaObjectType } from './MediaObjectType.js'
+import { MediaObject } from './MediaObjectType.js'
 
-// Type for 'Media' collection schema
-// This is a misnomer.  Should have been called Tag.
-// TODO: Rename to TagType
+/**
+ * @deprecated to be removed in favor of MediaObject type
+ */
 export interface MediaType {
   _id?: mongoose.Types.ObjectId
   mediaUuid: MUUID
@@ -26,7 +26,7 @@ export enum RefModelType {
 /**
  * A tag with media metadata
  */
-export type BaseTagType = MediaType & MediaObjectType
+export type BaseTagType = MediaType & MediaObject
 
 export interface CompleteAreaTag extends BaseTagType {
   area: AreaType
@@ -37,22 +37,6 @@ export interface CompleteClimbTag extends BaseTagType {
 }
 
 export type TagType = CompleteAreaTag | CompleteClimbTag
-
-export interface MediaByUsers {
-  username: string
-  userUuid: MUUID
-  mediaWithTags: MediaWithTags[]
-}
-
-export interface SimpleTag {
-  targetId: MUUID
-  name: string
-  type: number
-}
-export interface MediaWithTags extends MediaObjectType {
-  climbTags: SimpleTag[]
-  areaTags: SimpleTag[]
-}
 
 export interface MediaInputType {
   mediaUuid: MUUID

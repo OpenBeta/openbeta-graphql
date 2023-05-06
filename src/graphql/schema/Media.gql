@@ -8,14 +8,14 @@ type Mutation {
 
 type Query {
   """
-  Get recent media with tags group by users.  Media without tags are excluded.
+  Get recent media with tags group by users.
   """
-  getRecentTags(userLimit: Int): [MediaByUsers]
+  getRecentTags(maxUsers: Int, maxFiles: Int): [MediaByUsers]
 
   """
   Get all media belonging to a user (media with or without tags).
   """
-  getUserMedia(userUuid: ID!, limit: Int): [MediaWithTags]
+  getUserMedia(userUuid: ID!, maxFiles: Int): [MediaWithTags]
 
   """
   Get a list of users and their tagged photo count
@@ -67,13 +67,25 @@ type MediaByUsers {
 }
 
 """A tag target (an area or a climb)"""
-type SimpleTag {
+type EntityTag {
+  id: ID!
   """Area or climb ID"""
   targetId: ID!
-  """Area or climb name"""
-  name: String!
+  """Climb name"""
+  climbName: String
+  """Area name"""
+  areaName: String!
+
+  """ancestors name"""
+  ancestors: String!
   """Target type: 0: climb, 1: area"""
   type: Int!
+
+  "Longitude"
+  lng: Float!
+
+  "Latitude"
+  lat: Float!
 }
 
 type MediaWithTags implements IMediaMetadata {
@@ -85,11 +97,7 @@ type MediaWithTags implements IMediaMetadata {
   format: String!
   uploadTime: Date!
   size: Int!
-
-  """A list of climb tags"""
-  climbTags: [SimpleTag]
-  """A list of area tags"""
-  areaTags: [SimpleTag]
+  entityTags: [EntityTag]
 }
 
 "Result of a delete tag operation"

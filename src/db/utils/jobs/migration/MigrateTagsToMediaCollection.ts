@@ -1,7 +1,7 @@
 import { connectDB, getMediaModel, gracefulExit } from '../../../index.js'
 import { logger } from '../../../../logger.js'
 import { getMediaObjectModel } from '../../../MediaObjectSchema.js'
-import { MediaType } from '../../../MediaTypes.js'
+import { EntityTag } from '../../../MediaObjectType.js'
 
 /**
  * Move tags in Media collection to embedded tags in the new Media Objects collection.
@@ -13,35 +13,125 @@ const onConnected = async (): Promise<void> => {
 
   let count = 0
 
-  await oldTagModel.aggregate([
+  const taggedClimbsPipeline = [
     {
-      $group: {
-        _id: '$mediaUrl',
-        tags: { $push: '$$ROOT' }
+      $lookup: {
+        from: 'climbs', // other collection name
+        foreignField: '_id', // climb._id
+        localField: 'destinationId',
+        as: 'taggedClimb',
+        pipeline: [{
+          $lookup: { // also allow ancestor areas to inherent climb photo
+            from: 'areas', // other collection name
+            foreignField: 'metadata.area_id',
+            localField: 'metadata.areaRef', // climb.metadata.areaRef
+            as: 'area'
+          }
+        },
+        {
+          $unwind: '$area'
+        }
+        ]
       }
     },
     {
-      $set: {
-        tags: {
-          $map: {
-            input: '$tags',
-            in: {
-              targetId: '$$this.destinationId',
-              type: '$$this.destType'
+      $unwind: {
+        path: '$taggedClimb',
+        preserveNullAndEmptyArrays: true
+      }
+    }
+  ]
+
+  const taggedAreasPipeline = [
+    {
+      $lookup: {
+        from: 'areas', // other collection name
+        foreignField: 'metadata.area_id',
+        localField: 'destinationId',
+        as: 'taggedArea'
+      }
+    },
+    {
+      $unwind: {
+        path: '$taggedArea',
+        preserveNullAndEmptyArrays: true
+      }
+    }
+  ]
+
+  const rs = await oldTagModel.aggregate([
+    ...taggedClimbsPipeline,
+    ...taggedAreasPipeline,
+    {
+      /**
+         * Only include documents with either climb or area tags
+         */
+      $match: {
+        $or: [
+          {
+            taggedClimb: {
+              $exists: true
+            }
+          },
+          {
+            taggedArea: {
+              $exists: true
             }
           }
-        }
+        ]
+      }
+    },
+    {
+      $group: {
+        _id: {
+          destType: '$destType',
+          mediaUrl: '$mediaUrl',
+          targetId: '$destinationId'
+        },
+        taggedAreas: { $push: '$taggedArea' },
+        taggedClimbs: { $push: '$taggedClimb' }
       }
     }
   ]).cursor().eachAsync(async doc => {
-    const mediaUrl: string = doc._id
-    const tags: MediaType = doc.tags
-    const rs = await mediaObjectModel.updateOne({ mediaUrl }, {
-      $set: {
-        tags
+    const mediaUrl: string = doc._id.mediaUrl
+
+    const rs = await mediaObjectModel.findOne({ mediaUrl })
+
+    let d: EntityTag[] = []
+    switch (doc._id.destType) {
+      case 0: {
+        console.log('#Add climb tags')
+        d = doc.taggedClimbs.map((tag) => ({
+          targetId: tag._id,
+          climbName: tag.name,
+          areaName: tag.area.area_name,
+          ancestors: tag.area.ancestors,
+          type: 0,
+          lnglat: tag.metadata.lnglat
+        }))
+
+        break
       }
-    })
-    count = count + rs.modifiedCount
+      case 1: {
+        console.log('#Add area tags')
+
+        doc.taggedAreas.map(tag => ({
+          targetId: tag.metadata.area_id,
+          areaName: tag.area_name,
+          ancestors: tag.ancestors,
+          type: 1,
+          lnglat: tag.metadata.lnglat
+        }))
+
+        break
+      }
+    }
+
+    if (d != null) {
+      rs?.set('entityTags', rs?.entityTags.concat(d))
+      await rs?.save()
+      count = count + d.length
+    }
   })
 
   console.log('##count', count)

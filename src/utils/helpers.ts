@@ -2,6 +2,9 @@ import { MUUID } from 'uuid-mongodb'
 import axios, { AxiosResponse } from 'axios'
 import pMemoize from 'p-memoize'
 import ExpiryMap from 'expiry-map'
+import { Point } from '@turf/helpers'
+
+import { logger } from '../logger.js'
 
 const cache = new ExpiryMap(600000) // TTL = 10 minutes
 
@@ -25,7 +28,7 @@ const _getUserNickFromMediaDir = async (uuid: string): Promise<string | null> =>
       return res?.data?.uid ?? null
     } else return null
   } catch (e) {
-    console.log(`Error fetching /u/${uuid}/uid.json`, res?.statusText)
+    logger.error(`Error fetching /u/${uuid}/uid.json`, e)
     return null
   }
 }
@@ -52,3 +55,6 @@ export const getUserNickFromMediaDir = pMemoize(_getUserNickFromMediaDir, { cach
 export function exhaustiveCheck (_value: never): never {
   throw new Error(`ERROR! Enum not handled for ${JSON.stringify(_value)}`)
 }
+
+export const geojsonPointToLongitude = (point: Point): number => point.coordinates[0]
+export const geojsonPointToLatitude = (point: Point): number => point.coordinates[1]

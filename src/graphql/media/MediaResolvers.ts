@@ -1,5 +1,6 @@
-import { MediaByUsers, SimpleTag, MediaWithTags, TagByUser } from '../../db/MediaTypes.js'
-import { getUserNickFromMediaDir } from '../../utils/helpers.js'
+import { EntityTag, MediaByUsers, MediaObject } from '../../db/MediaObjectType.js'
+import { TagByUser } from '../../db/MediaTypes.js'
+import { getUserNickFromMediaDir, geojsonPointToLatitude, geojsonPointToLongitude } from '../../utils/helpers.js'
 
 const MediaResolvers = {
 
@@ -10,16 +11,17 @@ const MediaResolvers = {
   },
 
   MediaWithTags: {
-    id: (node: MediaWithTags) => node._id,
-    username: async (node: MediaWithTags) => (
+    id: (node: MediaObject) => node._id,
+    username: async (node: MediaObject) => (
       await getUserNickFromMediaDir(node.userUuid.toUUID().toString())),
-    climbTags: (node: MediaWithTags) => node?.climbTags ?? [],
-    areaTags: (node: MediaWithTags) => node?.areaTags ?? [],
-    uploadTime: (node: MediaWithTags) => node.createdAt
+    uploadTime: (node: MediaObject) => node.createdAt
   },
 
-  SimpleTag: {
-    targetId: (node: SimpleTag) => node.targetId.toUUID().toString()
+  EntityTag: {
+    id: (node: EntityTag) => node._id,
+    targetId: (node: EntityTag) => node.targetId.toUUID().toString(),
+    lat: (node: EntityTag) => geojsonPointToLatitude(node.lnglat),
+    lng: (node: EntityTag) => geojsonPointToLongitude(node.lnglat)
   },
 
   DeleteTagResult: {
