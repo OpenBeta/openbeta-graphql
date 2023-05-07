@@ -28,13 +28,13 @@ const _getUserNickFromMediaDir = async (uuid: string): Promise<string | null> =>
       return res?.data?.uid ?? null
     } else return null
   } catch (e) {
-    logger.error(`Error fetching /u/${uuid}/uid.json`, e)
+    logger.error(e, `Error fetching /u/${uuid}/uid.json`)
     return null
   }
 }
 
 /**
- * Given a user uuid, locate the media server for the user home dir and their nick name
+ * Given a user uuid, locate the media server for the user home dir and their nick name.  In the future we will store uuid -> username mapping in this DB.
  * @param uuid
  * @returns user nick name or `null` if not found
  */
