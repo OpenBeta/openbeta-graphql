@@ -5,7 +5,7 @@ import muuid from 'uuid-mongodb'
 
 import { connectDB, gracefulExit } from '../../../index.js'
 import { logger } from '../../../../logger.js'
-import { MediaObject } from '../../../MediaObjectType.js'
+import { MediaObject } from '../../../MediaObjectTypes.js'
 import { getMediaObjectModel } from '../../../MediaObjectSchema.js'
 import { getFileInfo } from './SirvClient.js'
 
@@ -33,11 +33,14 @@ const onConnected = async (): Promise<void> => {
   for (const image of images) {
     const { width, height, format } = await sharp(image.fullpath()).metadata()
     if (width == null || height == null || image.size == null) continue
-    if ((format !== 'avif' && format !== 'jpeg' && format !== 'png' && format !== 'webp')) continue
+    if ((format !== 'avif' && format !== 'jpeg' && format !== 'png' && format !== 'webp')) {
+      logger.warn({ format, file: image.name }, 'Unexpected media format')
+      continue
+    }
 
     const folderUuidStr = image.parent?.name ?? ''
     if (!uuidValidate(folderUuidStr)) {
-      console.error('Error: expect folder name to have uuid format.  Found ', folderUuidStr)
+      logger.error({ file: image.name, parent: folderUuidStr }, 'Error: expect folder name to have uuid format.  Found ')
       continue
     }
     const userUuid = muuid.from(folderUuidStr)
@@ -66,7 +69,7 @@ const onConnected = async (): Promise<void> => {
     await model.insertMany(list)
   }
 
-  console.log('#count', count)
+  logger.info({ count }, 'Finish')
 
   await gracefulExit()
 }

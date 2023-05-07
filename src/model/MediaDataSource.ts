@@ -2,18 +2,19 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
 import { logger } from '../logger.js'
 import { getMediaObjectModel } from '../db/index.js'
-import { TagsLeaderboardType, AllTimeTagStats } from '../db/MediaTypes.js'
+import { TagsLeaderboardType, AllTimeTagStats, MediaByUsers, MediaByUsersInput, MediaObject } from '../db/MediaObjectTypes.js'
 
-import { MediaByUsers, MediaByUsersInput, MediaObject } from '../db/MediaObjectType.js'
+const HARD_MAX_FILES = 1000
+const HARD_MAX_USERS = 100
 
 export default class MediaDataSourcmnee extends MongoDataSource<MediaObject> {
   mediaObjectModel = getMediaObjectModel()
 
+  /**
+   * A reusable filter to exclude documents with empty entityTags
+   */
   entityTagsNotEmptyFilter = [{
     $match: {
-      /**
-       * exclude documents with empty entityTags
-       */
       entityTags: { $exists: true, $type: 4, $ne: [] }
     }
   }]
@@ -27,6 +28,9 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaObject> {
    * @returns MediaByUsers array
    */
   async getMediaByUsers ({ uuidStr, maxUsers = 10, maxFiles = 10, includesNoEntityTags = false }: MediaByUsersInput): Promise<MediaByUsers[]> {
+    const safeMaxFiles = maxFiles > HARD_MAX_FILES ? HARD_MAX_FILES : maxFiles
+    const safeMaxUsers = maxUsers > HARD_MAX_USERS ? HARD_MAX_USERS : maxUsers
+
     let userFilter: any[] = []
     if (uuidStr != null) {
       userFilter = [{
@@ -58,14 +62,14 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaObject> {
         }
       },
       {
-        $limit: maxUsers
+        $limit: safeMaxUsers
       },
       {
         $project: {
           _id: 0,
           userUuid: '$_id.userUuid',
           mediaWithTags: {
-            $slice: ['$mediaWithTags', maxFiles]
+            $slice: ['$mediaWithTags', safeMaxFiles]
           }
         }
       }
@@ -80,7 +84,7 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaObject> {
   async getOneUserMedia (uuidStr: string, limit: number): Promise<MediaObject[]> {
     const rs = await this.getMediaByUsers({ uuidStr, maxUsers: 1, maxFiles: limit, includesNoEntityTags: true })
     if (rs.length !== 1) {
-      logger.error('Expecting 1 user in result set but got ', rs.length)
+      logger.error(`Expecting 1 user in result set but got ${rs.length}`)
       return []
     }
     return rs[0].mediaWithTags
@@ -126,6 +130,7 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaObject> {
     ], {
       /**
        * Read from secondary node since data freshness is not too important
+       * for this query.
        * See https://www.mongodb.com/docs/manual/core/read-preference/
        */
       readPreference: 'secondaryPreferred'

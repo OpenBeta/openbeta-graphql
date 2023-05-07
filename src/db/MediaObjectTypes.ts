@@ -3,6 +3,7 @@ import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 
 export type ImageFormatType = 'jpeg' | 'png' | 'webp' | 'avif'
+
 export interface MediaObject {
   _id: ObjectId
   userUuid: MUUID
@@ -35,4 +36,18 @@ export interface MediaByUsersInput {
   maxUsers?: number
   maxFiles?: number
   includesNoEntityTags?: boolean
+}
+
+export interface TagByUser {
+  username?: string
+  userUuid: MUUID
+  total: number
+}
+
+export interface AllTimeTagStats {
+  totalMediaWithTags: number
+  byUsers: TagByUser[]
+}
+export interface TagsLeaderboardType {
+  allTime: AllTimeTagStats
 }

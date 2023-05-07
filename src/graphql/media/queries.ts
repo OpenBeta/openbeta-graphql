@@ -1,5 +1,4 @@
-import { TagsLeaderboardType } from '../../db/MediaTypes.js'
-import { MediaObject, MediaByUsers } from '../../db/MediaObjectType.js'
+import { TagsLeaderboardType, MediaObject, MediaByUsers } from '../../db/MediaObjectTypes.js'
 import { DataSourcesType } from '../../types.js'
 
 const MediaQueries = {

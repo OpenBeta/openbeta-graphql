@@ -1,5 +1,4 @@
-import { EntityTag, MediaByUsers, MediaObject } from '../../db/MediaObjectType.js'
-import { TagByUser } from '../../db/MediaTypes.js'
+import { EntityTag, MediaByUsers, MediaObject, TagByUser } from '../../db/MediaObjectTypes.js'
 import { getUserNickFromMediaDir, geojsonPointToLatitude, geojsonPointToLongitude } from '../../utils/helpers.js'
 
 const MediaResolvers = {

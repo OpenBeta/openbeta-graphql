@@ -3,7 +3,7 @@ import { MUUID } from 'uuid-mongodb'
 
 import { AreaType } from './AreaTypes.js'
 import { ClimbType } from './ClimbTypes.js'
-import { MediaObject } from './MediaObjectType.js'
+import { MediaObject } from './MediaObjectTypes.js'
 
 /**
  * @deprecated to be removed in favor of MediaObject type
@@ -73,18 +73,4 @@ export interface DeleteTagResult {
   mediaUuid: string
   destType: number
   destinationId: string
-}
-
-export interface TagByUser {
-  username?: string
-  userUuid: MUUID
-  total: number
-}
-
-export interface AllTimeTagStats {
-  totalMediaWithTags: number
-  byUsers: TagByUser[]
-}
-export interface TagsLeaderboardType {
-  allTime: AllTimeTagStats
 }

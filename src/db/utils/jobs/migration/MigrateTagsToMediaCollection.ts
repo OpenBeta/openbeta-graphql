@@ -1,7 +1,7 @@
 import { connectDB, getMediaModel, gracefulExit } from '../../../index.js'
 import { logger } from '../../../../logger.js'
 import { getMediaObjectModel } from '../../../MediaObjectSchema.js'
-import { EntityTag } from '../../../MediaObjectType.js'
+import { EntityTag } from '../../../MediaObjectTypes.js'
 
 /**
  * Move tags in Media collection to embedded tags in the new Media Objects collection.
@@ -10,6 +10,15 @@ const onConnected = async (): Promise<void> => {
   logger.info('Migrating tags...')
   const mediaObjectModel = getMediaObjectModel()
   const oldTagModel = getMediaModel()
+
+  /**
+   * Initialize entityTags to []
+   */
+  await mediaObjectModel.updateMany({}, {
+    $set: {
+      entityTags: []
+    }
+  })
 
   let count = 0
 
@@ -95,8 +104,6 @@ const onConnected = async (): Promise<void> => {
   ]).cursor().eachAsync(async doc => {
     const mediaUrl: string = doc._id.mediaUrl
 
-    const rs = await mediaObjectModel.findOne({ mediaUrl })
-
     let d: EntityTag[] = []
     switch (doc._id.destType) {
       case 0: {
@@ -115,7 +122,7 @@ const onConnected = async (): Promise<void> => {
       case 1: {
         console.log('#Add area tags')
 
-        doc.taggedAreas.map(tag => ({
+        d = doc.taggedAreas.map(tag => ({
           targetId: tag.metadata.area_id,
           areaName: tag.area_name,
           ancestors: tag.ancestors,
@@ -127,9 +134,11 @@ const onConnected = async (): Promise<void> => {
       }
     }
 
-    if (d != null) {
-      rs?.set('entityTags', rs?.entityTags.concat(d))
-      await rs?.save()
+    if (d.length > 0) {
+      const rs = await mediaObjectModel.updateOne({ mediaUrl }, {
+        $addToSet: { entityTags: d }
+      }).lean()
+
       count = count + d.length
     }
   })
