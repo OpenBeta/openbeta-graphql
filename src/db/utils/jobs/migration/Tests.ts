@@ -18,7 +18,7 @@ const knownIssuesFilter = {
 }
 
 /**
- * Move tags in Media collection to embedded tags in the new Media Objects collection.
+ * Verify existing tags are migrated to the new collection, MediaObjects.
  */
 const onConnected = async (): Promise<void> => {
   logger.info('Verifying...')
