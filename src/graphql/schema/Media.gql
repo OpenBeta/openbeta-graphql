@@ -10,12 +10,12 @@ type Query {
   """
   Get recent media with tags group by users.
   """
-  getRecentTags(maxUsers: Int, maxFiles: Int): [MediaByUsers]
+  getMediaForFeed(input: MediaForFeedInput): [MediaByUsers]
 
   """
   Get all media belonging to a user (media with or without tags).
   """
-  getUserMedia(userUuid: ID!, maxFiles: Int): [MediaWithTags]
+  getUserMedia(input: UserMediaInput): [MediaWithTags]
 
   """
   Get a list of users and their tagged photo count
@@ -115,4 +115,15 @@ input MediaInput {
   mediaType: Int!
   destinationId: ID!
   destType: Int!
+}
+
+"Input param for user media query"
+input UserMediaInput {
+  userUuid: ID!
+  maxFiles: Int
+}
+
+input MediaForFeedInput {
+  maxUsers: Int
+  maxFiles: Int
 }

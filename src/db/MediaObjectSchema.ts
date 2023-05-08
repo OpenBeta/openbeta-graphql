@@ -9,7 +9,7 @@ const UUID_TYPE = {
   type: 'object', value: { type: 'Buffer' }
 }
 
-const RawTagSchema = new Schema<EntityTag>({
+const EntitySchema = new Schema<EntityTag>({
   targetId: { ...UUID_TYPE, index: true },
   climbName: { type: Schema.Types.String },
   areaName: { type: Schema.Types.String, required: true },
@@ -28,13 +28,25 @@ const schema = new Schema<MediaObject>({
   height: { type: Schema.Types.Number, required: true },
   size: { type: Schema.Types.Number, required: true },
   format: { type: Schema.Types.String, required: true },
-  entityTags: [RawTagSchema]
+  entityTags: [EntitySchema]
 }, { _id: true, timestamps: true })
 
-schema.index({ entityTags: 1 })
+/**
+ * Additional indices
+ */
+schema.index({
+  /**
+   * For filtering media objects with/without tags
+   */
+  entityTags: 1,
+  /**
+   * For sorting media objects by insertion order
+   */
+  createdAt: -1 // ascending, more recent first
+})
 
 /**
- * Get media object model with embedded tag
+ * Get media object model
  * @returns MediaObjectType
  */
 export const getMediaObjectModel = (): mongoose.Model<MediaObject> => {

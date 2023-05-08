@@ -2,7 +2,7 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
 import { logger } from '../logger.js'
 import { getMediaObjectModel } from '../db/index.js'
-import { TagsLeaderboardType, AllTimeTagStats, MediaByUsers, MediaByUsersInput, MediaObject } from '../db/MediaObjectTypes.js'
+import { TagsLeaderboardType, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject } from '../db/MediaObjectTypes.js'
 
 const HARD_MAX_FILES = 1000
 const HARD_MAX_USERS = 100
@@ -27,7 +27,7 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaObject> {
    * @param includesNoEntityTags By default the query exludes media without tags. Specify 'true' override this behavoir.
    * @returns MediaByUsers array
    */
-  async getMediaByUsers ({ uuidStr, maxUsers = 10, maxFiles = 10, includesNoEntityTags = false }: MediaByUsersInput): Promise<MediaByUsers[]> {
+  async getMediaByUsers ({ uuidStr, maxUsers = 10, maxFiles = 10, includesNoEntityTags = false }: MediaForFeedInput): Promise<MediaByUsers[]> {
     const safeMaxFiles = maxFiles > HARD_MAX_FILES ? HARD_MAX_FILES : maxFiles
     const safeMaxUsers = maxUsers > HARD_MAX_USERS ? HARD_MAX_USERS : maxUsers
 
@@ -51,7 +51,7 @@ export default class MediaDataSourcmnee extends MongoDataSource<MediaObject> {
         /**
          * Sort by most recently uploaded media first
          */
-        $sort: { _id: -1 }
+        $sort: { createdAt: -1 }
       },
       {
         $group: {

@@ -54,7 +54,8 @@
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
-            ]
+            ],
+            "console": "integratedTerminal",
         },
         {
             "name": "Debug Jest Tests",

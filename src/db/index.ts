@@ -72,6 +72,7 @@ export const createIndexes = async (): Promise<void> => {
   await getTickModel().createIndexes()
   await getXMediaModel().createIndexes()
   await getPostModel().createIndexes()
+  await getMediaObjectModel().createIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {

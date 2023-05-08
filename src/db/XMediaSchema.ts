@@ -38,6 +38,11 @@ export const XMediaSchema = new Schema<XMediaType>({
 
 XMediaSchema.plugin(mongooseLeanVirtuals)
 
+/**
+ * @deprecated Superceded by MediaObjects
+ * @param name
+ * @returns
+ */
 export const getXMediaModel = (name: string = 'xmedia'): mongoose.Model<XMediaType> => {
   return mongoose.model(name, XMediaSchema)
 }

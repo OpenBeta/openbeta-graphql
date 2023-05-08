@@ -154,15 +154,21 @@ const resolvers = {
 
     grades: (node: ClimbGQLQueryType) => node.grades ?? null,
 
-    metadata: (node: ClimbGQLQueryType) => ({
-      ...node.metadata,
-      leftRightIndex: node.metadata.left_right_index,
-      climb_id: node._id.toUUID().toString(),
-      climbId: node._id.toUUID().toString(),
+    metadata: (node: ClimbGQLQueryType) => {
+      const { metadata } = node
       // convert internal Geo type to simple lng,lat
-      lng: (node: ClimbGQLQueryType) => geojsonPointToLongitude(node.metadata.lnglat),
-      lat: (node: ClimbGQLQueryType) => geojsonPointToLongitude(node.metadata.lnglat)
-    }),
+      const lng = geojsonPointToLongitude(metadata.lnglat)
+      const lat = geojsonPointToLatitude(metadata.lnglat)
+      const climbId = node._id.toUUID().toString()
+      return ({
+        ...node.metadata,
+        leftRightIndex: metadata.left_right_index,
+        climb_id: climbId,
+        climbId,
+        lng,
+        lat
+      })
+    },
 
     ancestors: (node: ClimbGQLQueryType) => node.ancestors.split(','),
 
@@ -220,18 +226,26 @@ const resolvers = {
       return areas.findManyClimbsByUuids(node.climbs)
     },
 
-    metadata: (node: AreaType) => ({
-      ...node.metadata,
-      isDestination: node.metadata?.isDestination ?? false,
-      isBoulder: node.metadata?.isBoulder ?? false,
-      leftRightIndex: node.metadata?.leftRightIndex ?? -1,
-      area_id: node.metadata.area_id.toUUID().toString(),
-      areaId: node.metadata.area_id.toUUID().toString(),
+    metadata: (node: AreaType) => {
+      const { metadata } = node
       // convert internal Geo type to simple lng,lat
-      lng: node.metadata.lnglat.coordinates[0],
-      lat: node.metadata.lnglat.coordinates[1],
-      mp_id: node.metadata.ext_id ?? ''
-    }),
+      const lng = geojsonPointToLongitude(metadata.lnglat)
+      const lat = geojsonPointToLatitude(metadata.lnglat)
+
+      const areaId = node.metadata.area_id.toUUID().toString()
+
+      return ({
+        ...node.metadata,
+        isDestination: metadata?.isDestination ?? false,
+        isBoulder: metadata?.isBoulder ?? false,
+        leftRightIndex: metadata?.leftRightIndex ?? -1,
+        area_id: areaId,
+        areaId,
+        lng,
+        lat,
+        mp_id: metadata.ext_id ?? ''
+      })
+    },
 
     media: async (node: any, args: any, { dataSources }) => {
       const { media }: { media: MediaDataSource } = dataSources

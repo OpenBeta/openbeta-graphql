@@ -68,7 +68,7 @@ const onConnected = async (): Promise<void> => {
     }
   ]
 
-  const rs = await oldTagModel.aggregate([
+  await oldTagModel.aggregate([
     ...taggedClimbsPipeline,
     ...taggedAreasPipeline,
     {
@@ -135,7 +135,7 @@ const onConnected = async (): Promise<void> => {
     }
 
     if (d.length > 0) {
-      const rs = await mediaObjectModel.updateOne({ mediaUrl }, {
+      await mediaObjectModel.updateOne({ mediaUrl }, {
         $addToSet: { entityTags: d }
       }).lean()
 

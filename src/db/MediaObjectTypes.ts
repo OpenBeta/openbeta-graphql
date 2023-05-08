@@ -31,7 +31,7 @@ export interface MediaByUsers {
   userUuid: MUUID
   mediaWithTags: MediaObject[]
 }
-export interface MediaByUsersInput {
+export interface MediaForFeedInput {
   uuidStr?: string
   maxUsers?: number
   maxFiles?: number
@@ -50,4 +50,9 @@ export interface AllTimeTagStats {
 }
 export interface TagsLeaderboardType {
   allTime: AllTimeTagStats
+}
+
+export interface UserMediaQueryInput {
+  userUuid: string
+  maxFiles?: number
 }

@@ -21,23 +21,28 @@ interface TokenParamsType {
   clientSecret: string | null
 }
 
-const getToken = async (): Promise<string> => {
+const getToken = async (): Promise<string | null> => {
   const params: TokenParamsType = {
     clientId: SIRV_CONFIG.clientId,
     clientSecret: SIRV_CONFIG.clientSecret
   }
 
-  const res = await client.post(
-    '/token',
-    params)
+  try {
+    const res = await client.post(
+      '/token',
+      params)
 
-  if (res.status === 200) {
-    return res.data.token
+    if (res.status === 200) {
+      return res.data.token
+    }
+  } catch (e) {
+    console.error(e)
+    process.exit(1)
   }
-  throw new Error('Sirv API.getToken() error' + res.statusText)
+  return null
 }
 
-const token = await getToken()
+const token = await getToken() ?? ''
 
 interface FileMetadaata {
   mtime: Date

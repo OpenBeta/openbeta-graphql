@@ -1,15 +1,17 @@
-import { TagsLeaderboardType, MediaObject, MediaByUsers } from '../../db/MediaObjectTypes.js'
+import { TagsLeaderboardType, MediaObject, MediaByUsers, UserMediaQueryInput, MediaForFeedInput } from '../../db/MediaObjectTypes.js'
 import { DataSourcesType } from '../../types.js'
 
 const MediaQueries = {
 
-  getRecentTags: async (_, { maxUsers = 10, maxFiles = 20 }: { maxUsers?: number, maxFiles?: number }, { dataSources }): Promise<MediaByUsers[]> => {
+  getMediaForFeed: async (_, { input }, { dataSources }): Promise<MediaByUsers[]> => {
     const { media }: DataSourcesType = dataSources
+    const { maxUsers = 10, maxFiles = 20 } = input as MediaForFeedInput
     return await media.getMediaByUsers({ maxUsers, maxFiles })
   },
 
-  getUserMedia: async (_, { userUuid, maxFiles = 1000 }: { maxFiles: number | undefined, userUuid: string }, { dataSources }): Promise<MediaObject[]> => {
+  getUserMedia: async (_: any, { input }, { dataSources }): Promise<MediaObject[]> => {
     const { media }: DataSourcesType = dataSources
+    const { userUuid, maxFiles = 1000 } = input as UserMediaQueryInput
     return await media.getOneUserMedia(userUuid, maxFiles)
   },
 
