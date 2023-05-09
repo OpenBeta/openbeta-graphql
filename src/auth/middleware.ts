@@ -23,7 +23,7 @@ export const createContext = (() => {
     }
 
     if (process.env.GOD_MODE === 'true' && (user.uuid == null)) {
-      user.roles = ['user_admin','org_admin', 'editor']
+      user.roles = ['user_admin', 'org_admin', 'editor']
       user.uuid = testUUID
     } else {
       const authHeader = String(headers?.authorization ?? '')
