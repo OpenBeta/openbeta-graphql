@@ -3,8 +3,11 @@ import { MUUID } from 'uuid-mongodb'
 
 import { AreaType } from './AreaTypes.js'
 import { ClimbType } from './ClimbTypes.js'
+import { MediaObject } from './MediaObjectTypes.js'
 
-// Type for 'Media' collection schema
+/**
+ * @deprecated to be removed in favor of MediaObject type
+ */
 export interface MediaType {
   _id?: mongoose.Types.ObjectId
   mediaUuid: MUUID
@@ -20,10 +23,20 @@ export enum RefModelType {
   areas = 'areas'
 }
 
-export interface MediaListByAuthorType {
-  _id: string
-  tagList: MediaType[]
+/**
+ * A tag with media metadata
+ */
+export type BaseTagType = MediaType & MediaObject
+
+export interface CompleteAreaTag extends BaseTagType {
+  area: AreaType
 }
+
+export interface CompleteClimbTag extends BaseTagType {
+  climb: ClimbType
+}
+
+export type TagType = CompleteAreaTag | CompleteClimbTag
 
 export interface MediaInputType {
   mediaUuid: MUUID
@@ -33,7 +46,10 @@ export interface MediaInputType {
   destType: number
 }
 
-interface BaseTagType {
+/**
+ * TODO: consolidate this type with BaseTagType
+ */
+interface LegacyBaseTagType {
   _id: mongoose.Types.ObjectId
   mediaUuid: MUUID
   mediaUrl: string
@@ -42,11 +58,11 @@ interface BaseTagType {
   onModel: RefModelType
 }
 
-export interface AreaTagType extends BaseTagType {
+export interface AreaTagType extends LegacyBaseTagType {
   area: AreaType
 }
 
-export interface ClimbTagType extends BaseTagType {
+export interface ClimbTagType extends LegacyBaseTagType {
   climb: ClimbType
 }
 
@@ -57,9 +73,4 @@ export interface DeleteTagResult {
   mediaUuid: string
   destType: number
   destinationId: string
-}
-
-export interface TagsLeaderboardType {
-  userUuid: string
-  total: number
 }

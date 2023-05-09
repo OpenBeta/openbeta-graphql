@@ -6,6 +6,7 @@ import { enableAllPlugins } from 'immer'
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
 import { getMediaModel } from './MediaSchema.js'
+import { getMediaObjectModel } from './MediaObjectSchema.js'
 import { getOrganizationModel } from './OrganizationSchema.js'
 import { getTickModel } from './TickSchema.js'
 import { getXMediaModel } from './XMediaSchema.js'
@@ -71,6 +72,7 @@ export const createIndexes = async (): Promise<void> => {
   await getTickModel().createIndexes()
   await getXMediaModel().createIndexes()
   await getPostModel().createIndexes()
+  await getMediaObjectModel().createIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
@@ -98,5 +100,6 @@ export {
   getChangeLogModel,
   getXMediaModel,
   getPostModel,
-  getExperimentalUserModel
+  getExperimentalUserModel,
+  getMediaObjectModel
 }

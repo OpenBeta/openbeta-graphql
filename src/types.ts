@@ -102,3 +102,10 @@ export interface Context {
 export interface ContextWithAuth extends Context {
   user: AuthUserType
 }
+
+export interface AuthorMetadata {
+  updatedAt?: Date
+  updatedBy?: MUUID
+  createdAt?: Date
+  createdBy?: MUUID
+}

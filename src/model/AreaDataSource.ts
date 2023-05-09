@@ -1,9 +1,9 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
-import muuid, { MUUID } from 'uuid-mongodb'
+import muuid from 'uuid-mongodb'
 import bboxPolygon from '@turf/bbox-polygon'
 
-import { getAreaModel, getMediaModel } from '../db/index.js'
+import { getAreaModel, getMediaModel, getMediaObjectModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
@@ -13,7 +13,8 @@ import { logger } from '../logger.js'
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
   climbModel = getClimbModel()
-  mediaModel = getMediaModel()
+  tagModel = getMediaModel()
+  mediaObjectModal = getMediaObjectModel()
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {
     let mongoFilter: any = {}
@@ -121,101 +122,6 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return rs
   }
 
-  async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<any> {
-    const rs1 = await getMediaModel().aggregate([
-      {
-        // SELECT *
-        // FROM media
-        // LEFT JOIN climbs
-        // ON media.destinationId == areas.metadata.area_id
-        $lookup: {
-          from: 'areas', // other collection name
-          foreignField: 'metadata.area_id',
-          localField: 'destinationId',
-          as: 'taggedArea',
-          pipeline: [{
-            $match: {
-              $expr: {
-                $or: [
-                  { // Case 1: given a child area, inheret its ancestor's photos
-                    //  - input: A,B,C <-- area I want to search for tags
-                    //  - regex: A,B
-                    $regexMatch: {
-                      input: ancestors,
-                      regex: '$ancestors',
-                      options: 'i'
-                    }
-                  },
-                  { // Case 2: given a ancestor area, inherit descendant photos
-                    // - input: A,B,C
-                    // - regex: A,B <-- area I want to search for tags
-                    $regexMatch: {
-                      input: '$ancestors',
-                      regex: ancestors,
-                      options: 'i'
-                    }
-                  }
-                ]
-              }
-            }
-          }]
-        }
-      },
-      {
-        $match: {
-          taggedArea: {
-            $ne: []
-          }
-        }
-      }
-    ])
-    const rs = await getMediaModel()
-      .aggregate([
-        {
-          // SELECT *
-          // FROM media
-          // LEFT OUTER climbs
-          // ON climbs._id == media.destinationId
-          $lookup: {
-            from: 'climbs', // other collection name
-            foreignField: '_id', // climb._id
-            localField: 'destinationId',
-            as: 'taggedClimb',
-            pipeline: [{
-              $lookup: { // also allow ancestor areas to inherent climb photo
-                from: 'areas', // other collection name
-                foreignField: 'metadata.area_id',
-                localField: 'metadata.areaRef', // climb.metadata.areaRef
-                as: 'area'
-              }
-            },
-            {
-              $match: {
-                'area.ancestors': { $regex: areaId.toUUID().toString() }
-              }
-            },
-            {
-              $unwind: '$area'
-            }
-            ]
-          }
-        },
-        {
-          $match: {
-            taggedClimb: {
-              $ne: []
-            }
-          }
-        }
-      ])
-
-    if (rs != null) {
-      return rs.concat(rs1)
-    } else {
-      return rs1
-    }
-  }
-
   /**
    * Find a climb by uuid.  Also return the parent area object (crag or boulder).
    *
@@ -256,14 +162,6 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
 
     if (rs != null && rs?.length === 1) {
       return rs[0]
-    }
-    return null
-  }
-
-  async findMediaByClimbId (climbId: MUUID): Promise<any> {
-    const rs = await getMediaModel().find({ destinationId: climbId }).lean()
-    if (rs != null) {
-      return rs
     }
     return null
   }

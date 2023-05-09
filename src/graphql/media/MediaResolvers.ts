@@ -1,39 +1,38 @@
-import { AreaTagType, ClimbTagType, MediaListByAuthorType, MediaType, RefModelType, TagEntryResultType } from '../../db/MediaTypes.js'
+import { EntityTag, MediaByUsers, MediaObject, TagByUser } from '../../db/MediaObjectTypes.js'
+import { getUserNickFromMediaDir, geojsonPointToLatitude, geojsonPointToLongitude } from '../../utils/helpers.js'
+
 const MediaResolvers = {
-  MediaTagType: {
-    mediaUuid: (node: MediaType) => node.mediaUuid.toUUID().toString(),
-    destination: (node: MediaType) => node.destinationId.toUUID().toString()
+
+  MediaByUsers: {
+    userUuid: (node: MediaByUsers) => node.userUuid.toUUID().toString(),
+    username: async (node: MediaByUsers) => (
+      await getUserNickFromMediaDir(node.userUuid.toUUID().toString()))
   },
 
-  TagEntryResult: {
-    __resolveType (obj: TagEntryResultType) {
-      if (obj.onModel === RefModelType.climbs) {
-        return 'ClimbTag'
-      }
-      if (obj.onModel === RefModelType.areas) {
-        return 'AreaTag'
-      }
-      return null
-    }
+  MediaWithTags: {
+    id: (node: MediaObject) => node._id,
+    username: async (node: MediaObject) => (
+      await getUserNickFromMediaDir(node.userUuid.toUUID().toString())),
+    uploadTime: (node: MediaObject) => node.createdAt
+  },
+
+  EntityTag: {
+    id: (node: EntityTag) => node._id,
+    targetId: (node: EntityTag) => node.targetId.toUUID().toString(),
+    lat: (node: EntityTag) => geojsonPointToLatitude(node.lnglat),
+    lng: (node: EntityTag) => geojsonPointToLongitude(node.lnglat)
   },
 
   DeleteTagResult: {
     // nothing to override
   },
 
-  MediaListByAuthorType: {
-    authorUuid: (node: MediaListByAuthorType) => node._id
-  },
-
-  ClimbTag: {
-    id: (node: ClimbTagType) => node._id.toString(),
-    mediaUuid: (node: ClimbTagType) => node.mediaUuid.toUUID().toString()
-  },
-
-  AreaTag: {
-    id: (node: AreaTagType) => node._id.toString(),
-    mediaUuid: (node: AreaTagType) => node.mediaUuid.toUUID().toString()
+  TagsByUser: {
+    userUuid: (node: TagByUser) => node.userUuid.toUUID().toString(),
+    username: async (node: TagByUser) => (
+      await getUserNickFromMediaDir(node.userUuid.toUUID().toString()))
   }
+
 }
 
 export default MediaResolvers

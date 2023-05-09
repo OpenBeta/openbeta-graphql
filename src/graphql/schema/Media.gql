@@ -1,5 +1,5 @@
 type Mutation {
-  setTag(input: MediaInput): TagEntryResult
+  setTag(input: MediaInput): MediaWithTags
 }
 
 type Mutation {
@@ -7,59 +7,97 @@ type Mutation {
 }
 
 type Query {
-  getTagsByMediaIdList(uuidList: [ID]): [TagEntryResult]
-}
+  """
+  Get recent media with tags group by users.
+  """
+  getMediaForFeed(input: MediaForFeedInput): [MediaByUsers]
 
-type Query {
-  getRecentTags(userLimit: Int): [MediaListByAuthorType]
-}
+  """
+  Get all media belonging to a user (media with or without tags).
+  """
+  getUserMedia(input: UserMediaInput): [MediaWithTags]
 
-type Query {
   """
   Get a list of users and their tagged photo count
   """
-  getTagsLeaderboard(limit: Int): [TagsLeaderboardType]
+  getTagsLeaderboard(limit: Int): TagsLeaderboard
 }
 
-type TagsLeaderboardType {
+type TagsByUser {
+  username: String
   userUuid: ID!
   total: Int!
 }
 
-"A tag linking the media with a climb or an area"
-type MediaTagType {
-  mediaUuid: ID!
-  mediaUrl: String!
-  mediaType: Int!
-  destination: ID!
-  destType: Int!
+type AllTimeTags {
+  totalMediaWithTags: Int!
+  byUsers: [TagsByUser]!
 }
 
-"A tag linking the media with a climb"
-type ClimbTag {
+type TagsLeaderboard {
+  allTime: AllTimeTags
+}
+
+"Media object metadata"
+interface IMediaMetadata {
+  """Unique id"""
   id: ID!
-  mediaUuid: ID!
-  mediaUrl: String!
-  mediaType: Int!
-  climb: Climb
-  destType: Int!
+
+  """Width in pixels"""
+  width: Int!
+
+  """Height in pixels"""
+  height: Int!
+
+  """Valid format: jpeg, png, webp, avif"""
+  format: String!
+
+  """Upload time"""
+  uploadTime: Date!
+
+  """File size in bytes"""
+  size: Int!
 }
 
-"A tag linking the media with an area"
-type AreaTag {
+"All tags by an author"
+type MediaByUsers {
+  username: String
+  userUuid: ID!
+  mediaWithTags: [MediaWithTags]
+}
+
+"""A tag target (an area or a climb)"""
+type EntityTag {
   id: ID!
-  mediaUuid: ID!
-  mediaUrl: String!
-  mediaType: Int!
-  area: Area
-  destType: Int!
+  """Area or climb ID"""
+  targetId: ID!
+  """Climb name"""
+  climbName: String
+  """Area name"""
+  areaName: String!
+
+  """ancestors name"""
+  ancestors: String!
+  """Target type: 0: climb, 1: area"""
+  type: Int!
+
+  "Longitude"
+  lng: Float!
+
+  "Latitude"
+  lat: Float!
 }
 
-union TagEntryResult = ClimbTag | AreaTag
-
-type MediaListByAuthorType {
-  authorUuid: ID!
-  tagList: [MediaTagType]
+type MediaWithTags implements IMediaMetadata {
+  id: ID!
+  username: String
+  mediaUrl: String!
+  width: Int!
+  height: Int!
+  format: String!
+  uploadTime: Date!
+  size: Int!
+  entityTags: [EntityTag]
 }
 
 "Result of a delete tag operation"
@@ -77,4 +115,15 @@ input MediaInput {
   mediaType: Int!
   destinationId: ID!
   destType: Int!
+}
+
+"Input param for user media query"
+input UserMediaInput {
+  userUuid: ID!
+  maxFiles: Int
+}
+
+input MediaForFeedInput {
+  maxUsers: Int
+  maxFiles: Int
 }

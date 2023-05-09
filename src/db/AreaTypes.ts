@@ -6,6 +6,7 @@ import { ClimbType } from './ClimbTypes.js'
 import { ChangeRecordMetadataType } from './ChangeLogType.js'
 import { GradeContexts } from '../GradeUtils.js'
 import { ExperimentalAuthorType } from './UserTypes.js'
+import { AuthorMetadata } from '../types.js'
 
 /**
  * Areas are a grouping mechanism in the OpenBeta data model that allow
@@ -32,7 +33,7 @@ export type AreaType = IAreaProps & {
  * See AreaType for the reified version of this object, and always use it
  * if you are working with data that exists inside the database.
 */
-export interface IAreaProps {
+export interface IAreaProps extends AuthorMetadata {
   _id: mongoose.Types.ObjectId
   /**
    * ShortCodes are short, globally uniqe codes that identify significant climbing areas
@@ -99,10 +100,6 @@ export interface IAreaProps {
   _change?: ChangeRecordMetadataType
   /** Used to delete an area.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
   _deleting?: Date
-  createdAt?: Date
-  updatedAt?: Date
-  updatedBy?: MUUID
-  createdBy?: MUUID
 }
 
 export interface IAreaMetadata {

@@ -52,17 +52,15 @@ type Climb {
   ancestors: [String!]!
 
   "Media associated with this climb"
-  media: [MediaTagType]
+  media: [MediaWithTags]
 
   yds: String @deprecated(reason: "Migrating to 'grades' field")
 
   "The parent area object"
   parent: Area!
 
-  createdAt: Date
-  updatedAt: Date
-  updatedBy: ID
-  createdBy: ID
+  "Metadata about creation & update of this climb"
+  authorMetadata: AuthorMetadata!
 }
 
 type ClimbMetadata {
