@@ -1,4 +1,5 @@
 import muid, { MUUID } from 'uuid-mongodb'
+import { logger } from '../logger.js'
 import { AuthUserType } from '../types.js'
 import { verifyJWT } from './util.js'
 
@@ -8,9 +9,9 @@ import { verifyJWT } from './util.js'
 export const createContext = (() => {
   let testUUID: MUUID
 
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.GOD_MODE === 'true') {
     testUUID = muid.v4()
-    console.log(`The user.uuid for this session is: ${testUUID.toString()}`)
+    logger.info(`The user.uuid for this session is: ${testUUID.toString()}`)
   }
 
   return async ({ req }): Promise<any> => {
@@ -21,8 +22,8 @@ export const createContext = (() => {
       uuid: undefined
     }
 
-    if (process.env.NODE_ENV === 'development' && (user.uuid == null)) {
-      user.roles = ['admin', 'editor']
+    if (process.env.GOD_MODE === 'true' && (user.uuid == null)) {
+      user.roles = ['user_admin','org_admin', 'editor']
       user.uuid = testUUID
     } else {
       const authHeader = String(headers?.authorization ?? '')
