@@ -73,6 +73,7 @@ export const createIndexes = async (): Promise<void> => {
   await getXMediaModel().createIndexes()
   await getPostModel().createIndexes()
   await getMediaObjectModel().createIndexes()
+  await getChangeLogModel().createIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {

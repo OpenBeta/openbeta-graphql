@@ -76,7 +76,7 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
           createdAt: -1
         }
       }
-    ]).limit(1000)
+    ]).limit(500)
     return rs
   }
 
