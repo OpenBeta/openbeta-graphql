@@ -12,28 +12,31 @@ import { createContext, permissions } from './auth/index.js'
 import XMediaDataSource from './model/XMediaDataSource.js'
 import PostDataSource from './model/PostDataSource.js'
 import { createInstance as createNewOrgDS } from './model/MutableOrganizationDataSource.js'
+import type { Context } from './types.js'
+import type { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 
 export async function createServer (): Promise<ApolloServer> {
   const schema = applyMiddleware(
     graphqlSchema,
     permissions.generate(graphqlSchema)
   )
+  const dataSources: () => DataSources<Context> = () => ({
+    climbs: createNewClimbDS(),
+    areas: createNewAreaDS(),
+    organizations: createNewOrgDS(),
+    ticks: new TickDataSource(mongoose.connection.db.collection('ticks')),
+    history: changelogDataSource, // see source for explantion why we don't instantiate the object
+    media: new MutableMediaDataSource(
+      mongoose.connection.db.collection('media')
+    ),
+    xmedia: new XMediaDataSource(mongoose.connection.db.collection('xmedia')),
+    post: new PostDataSource(mongoose.connection.db.collection('post'))
+  })
   const server = new ApolloServer({
     introspection: true,
     schema,
     context: createContext,
-    dataSources: () => ({
-      climbs: createNewClimbDS(),
-      areas: createNewAreaDS(),
-      organizations: createNewOrgDS(),
-      ticks: new TickDataSource(mongoose.connection.db.collection('ticks')),
-      history: changelogDataSource, // see source for explantion why we don't instantiate the object
-      media: new MutableMediaDataSource(
-        mongoose.connection.db.collection('media')
-      ),
-      xmedia: new XMediaDataSource(mongoose.connection.db.collection('xmedia')),
-      post: new PostDataSource(mongoose.connection.db.collection('post'))
-    }),
+    dataSources,
     cache: 'bounded'
   })
 

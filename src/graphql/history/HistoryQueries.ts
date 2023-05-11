@@ -5,11 +5,11 @@ import {
   GetAreaHistoryInputFilterType,
   GetOrganizationHistoryInputFilterType
 } from '../../db/ChangeLogType.js'
-import { DataSourcesType } from '../../types.js'
+import { Context } from '../../types.js'
 
 const HistoryQueries = {
-  getChangeHistory: async (_, { filter }, { dataSources }): Promise<any> => {
-    const { history }: DataSourcesType = dataSources
+  getChangeHistory: async (_, { filter }, { dataSources }: Context): Promise<any> => {
+    const { history } = dataSources
     const { uuidList }: GetHistoryInputFilterType = filter ?? {}
     // Note: userUuid, fromDate, toDate filters don't currently work.
     // Note: though we pull uuidList, we don't use it either.
@@ -19,15 +19,15 @@ const HistoryQueries = {
     return await history.getChangeSets(muidList)
   },
 
-  getAreaHistory: async (_, { filter }, { dataSources }): Promise<any> => {
-    const { history }: DataSourcesType = dataSources
+  getAreaHistory: async (_, { filter }, { dataSources }: Context): Promise<any> => {
+    const { history } = dataSources
     const { areaId }: GetAreaHistoryInputFilterType = filter ?? {}
     const id = muid.from(areaId)
     return await history.getAreaChangeSets(id)
   },
 
-  getOrganizationHistory: async (_, { filter }, { dataSources }): Promise<any> => {
-    const { history }: DataSourcesType = dataSources
+  getOrganizationHistory: async (_, { filter }, { dataSources }: Context): Promise<any> => {
+    const { history } = dataSources
     const { orgId }: GetOrganizationHistoryInputFilterType = filter ?? {}
     return await history.getOrganizationChangeSets(orgId)
   }

@@ -1,15 +1,15 @@
 import { XMediaType, RemoveXMediaInputType } from '../../db/XMediaTypes'
 import { getXMediaModel } from '../../db/XMediaSchema.js'
-import { DataSourcesType } from '../../types'
+import { Context } from '../../types'
 
 const XMediaMutations = {
   // addXMedia
   addXMedia: async (
     _: any,
     { input }: { input: XMediaType },
-    { dataSources }
+    { dataSources }: Context
   ) => {
-    const { xmedia }: DataSourcesType = dataSources
+    const { xmedia } = dataSources
 
     try {
       const newXMedia = await xmedia.addXMedia({

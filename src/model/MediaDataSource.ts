@@ -7,7 +7,7 @@ import { TagsLeaderboardType, AllTimeTagStats, MediaByUsers, MediaForFeedInput, 
 const HARD_MAX_FILES = 1000
 const HARD_MAX_USERS = 100
 
-export default class MediaDataSourcmnee extends MongoDataSource<MediaObject> {
+export default class MediaDataSource extends MongoDataSource<MediaObject> {
   mediaObjectModel = getMediaObjectModel()
 
   /**
