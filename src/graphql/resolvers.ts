@@ -18,8 +18,8 @@ import { TagMutations, TagQueries, TagResolvers } from './tag/index.js'
 import { AreaQueries, AreaMutations } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
 import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
-import TickMutations from './tick/TickMutations.js'
-import TickQueries from './tick/TickQueries.js'
+import { TickMutations, TickQueries } from './tick/index.js'
+import { UserQueries, UserMutations, UserResolvers } from './user/index.js'
 import MediaDataSource from '../model/MediaDataSource.js'
 import { getAuthorMetadataFromBaseNode } from '../db/utils/index.js'
 import { geojsonPointToLatitude, geojsonPointToLongitude } from '../utils/helpers.js'
@@ -48,6 +48,7 @@ const PostTypeDef = loadSchema('Post.gql')
 
 const XMediaTypeDef = loadSchema('XMedia.gql')
 const TagTypeDef = loadSchema('Tag.gql')
+const UserTypeDef = loadSchema('User.gql')
 
 const resolvers = {
   Mutation: {
@@ -58,7 +59,8 @@ const resolvers = {
     ...AreaMutations,
     ...ClimbMutations,
     ...OrganizationMutations,
-    ...TickMutations
+    ...TickMutations,
+    ...UserMutations
   },
   Query: {
     ...TagQueries,
@@ -69,6 +71,7 @@ const resolvers = {
     ...TickQueries,
     ...HistoryQueries,
     ...OrganizationQueries,
+    ...UserQueries,
 
     // Future To-do: Move climbs and areas' mutations/queries to their own folder Media, Tick, History
     climb: async (
@@ -129,6 +132,7 @@ const resolvers = {
   ...PostResolvers,
   ...XMediaResolvers,
   ...TagResolvers,
+  ...UserResolvers,
 
   Climb: {
     id: (node: ClimbGQLQueryType) => node._id.toUUID().toString(),
@@ -287,7 +291,8 @@ export const graphqlSchema = makeExecutableSchema({
     ClimbMutationTypeDefs,
     PostTypeDef,
     XMediaTypeDef,
-    TagTypeDef
+    TagTypeDef,
+    UserTypeDef
   ],
   resolvers,
   inheritResolversFromInterfaces: true

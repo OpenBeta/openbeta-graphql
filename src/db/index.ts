@@ -12,7 +12,7 @@ import { getTickModel } from './TickSchema.js'
 import { getXMediaModel } from './XMediaSchema.js'
 import { getPostModel } from './PostSchema.js'
 import { getChangeLogModel } from './ChangeLogSchema.js'
-import { getExperimentalUserModel } from './UserSchema.js'
+import { getExperimentalUserModel, getUserModel } from './UserSchema.js'
 import { logger } from '../logger.js'
 import streamListener from './edit/streamListener.js'
 
@@ -74,6 +74,7 @@ export const createIndexes = async (): Promise<void> => {
   await getPostModel().createIndexes()
   await getMediaObjectModel().createIndexes()
   await getChangeLogModel().createIndexes()
+  await getUserModel().createIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
@@ -102,5 +103,6 @@ export {
   getXMediaModel,
   getPostModel,
   getExperimentalUserModel,
-  getMediaObjectModel
+  getMediaObjectModel,
+  getUserModel
 }

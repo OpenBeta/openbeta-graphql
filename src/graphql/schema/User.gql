@@ -1,0 +1,23 @@
+type Mutation {
+  createUser(input: NewUserInput): Boolean
+  updateUsername(input: UsernameInput): Boolean
+}
+
+
+type Query {
+  getUsername(userUuid: ID!): UsernameInfo
+
+}
+input NewUserInput {
+  userUuid: ID!
+}
+
+input UsernameInput {
+  userUuid: ID!
+  username: String!
+}
+
+type UsernameInfo {
+   userUuid: ID!
+   username: String!
+}

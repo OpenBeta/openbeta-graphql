@@ -14,6 +14,7 @@ import PostDataSource from './model/PostDataSource.js'
 import { createInstance as createNewOrgDS } from './model/MutableOrganizationDataSource.js'
 import type { Context } from './types.js'
 import type { DataSources } from 'apollo-server-core/dist/graphqlOptions'
+import UserDataSource from './model/UserDataSource.js'
 
 export async function createServer (): Promise<ApolloServer> {
   const schema = applyMiddleware(
@@ -30,7 +31,8 @@ export async function createServer (): Promise<ApolloServer> {
       mongoose.connection.db.collection('media')
     ),
     xmedia: new XMediaDataSource(mongoose.connection.db.collection('xmedia')),
-    post: new PostDataSource(mongoose.connection.db.collection('post'))
+    post: new PostDataSource(mongoose.connection.db.collection('post')),
+    users: new UserDataSource(mongoose.connection.db.collection('user'))
   })
   const server = new ApolloServer({
     introspection: true,

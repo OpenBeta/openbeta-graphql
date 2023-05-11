@@ -13,3 +13,23 @@ export interface ExperimentalAuthorType {
   displayName: string
   url: string
 }
+
+export interface UsernameInfo {
+  username: string
+  updatedAt: Date
+}
+export interface User {
+  firstName?: string
+  lastName?: string
+  displayName?: string
+  usernameInfo?: UsernameInfo
+  userUuid: MUUID
+  homepage?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface UsernameLookupReturn {
+  userUuid: MUUID
+  username: string
+}
