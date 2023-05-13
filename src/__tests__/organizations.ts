@@ -236,7 +236,8 @@ describe('organizations API', () => {
 
       gammaFields = {
         displayName: 'Delta Gamma OpenBeta Club',
-        description: 'We are an offshoot of the delta club.\nSee our website for more details.'
+        description: 'We are an offshoot of the delta club.\nSee our website for more details.',
+        excludedAreaIds: [wa.metadata.area_id]
       }
       gammaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, gammaFields)
         .then((res: OrganizationType | null) => {
@@ -316,6 +317,19 @@ describe('organizations API', () => {
       const dataResult = response.body.data.organizations
       expect(dataResult.length).toBe(1)
       expect(dataResult[0].orgId).toBe(muuidToString(alphaOrg.orgId))
+    })
+
+    it('excludes organizations using an excludedAreaIds filter', async () => {
+      const response = await queryAPI({
+        query: organizationsQuery,
+        operationName: 'organizations',
+        variables: { filter: { excludedAreaIds: { excludes: [muuidToString(wa.metadata.area_id)] } } },
+        userUuid
+      })
+      expect(response.statusCode).toBe(200)
+      const dataResult = response.body.data.organizations
+      expect(dataResult.length).toBe(2)
+      expect(dataResult.map((o: OrganizationType) => o.orgId).includes(muuidToString(gammaOrg.orgId))).toBeFalsy()
     })
   })
 })

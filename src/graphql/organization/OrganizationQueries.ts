@@ -23,7 +23,7 @@ const OrganizationQueries = {
     if (sort != null) {
       return await filtered.collation({ locale: 'en' }).sort(sort).limit(limit).toArray()
     } else {
-      return await filtered.collation({ locale: 'en' }).limit(limit).toArray()
+      return await filtered.limit(limit).toArray()
     }
   }
 }

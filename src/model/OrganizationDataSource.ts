@@ -4,7 +4,7 @@ import type { FindCursor, WithId } from 'mongodb'
 import muuid from 'uuid-mongodb'
 
 import { getOrganizationModel } from '../db/index.js'
-import { AssociatedAreaIdsFilterParams, DisplayNameFilterParams, OrganizationGQLFilter } from '../types'
+import { AssociatedAreaIdsFilterParams, DisplayNameFilterParams, ExcludedAreaIdsFilterParams, OrganizationGQLFilter } from '../types'
 import { OrganizationType } from '../db/OrganizationTypes.js'
 import { muuidToString } from '../utils/helpers.js'
 
@@ -13,7 +13,7 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
 
   async findOrganizationsByFilter (filters?: OrganizationGQLFilter): Promise<FindCursor<WithId<OrganizationType>>> {
     let mongoFilter: any = {}
-    if (filters !== undefined) {
+    if (filters != null) {
       mongoFilter = Object.entries(filters).reduce<Filter<OrganizationType>>((acc, [key, filter]): Filter<OrganizationType> => {
         switch (key) {
           case 'displayName': {
@@ -25,6 +25,11 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
           case 'associatedAreaIds': {
             const associatedAreaIdFilter = (filter as AssociatedAreaIdsFilterParams)
             acc.associatedAreaIds = { $in: associatedAreaIdFilter.includes }
+            break
+          }
+          case 'excludedAreaIds': {
+            const excludedAreaIdFilter = (filter as ExcludedAreaIdsFilterParams)
+            acc.excludedAreaIds = { $not: { $in: excludedAreaIdFilter.excludes } }
             break
           }
           default:

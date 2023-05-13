@@ -7,7 +7,7 @@ import { DocumentNode } from 'graphql'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
-import { QueryByIdType, GQLFilter, Sort } from '../types'
+import { QueryByIdType, GQLFilter, Sort, Context } from '../types'
 import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
@@ -251,7 +251,20 @@ const resolvers = {
       const { media }: { media: MediaDataSource } = dataSources
       return await media.findMediaByAreaId(node.metadata.area_id, node.ancestors)
     },
-    authorMetadata: getAuthorMetadataFromBaseNode
+
+    authorMetadata: getAuthorMetadataFromBaseNode,
+
+    organizations: async (node: AreaType, args: any, { dataSources }: Context) => {
+      const { organizations } = dataSources
+      const areaIdsToSearch = [node.metadata.area_id, ...node.ancestors.split(',').map(s => muid.from(s))]
+      const associatedOrgsCursor = await organizations.findOrganizationsByFilter({
+        associatedAreaIds: { includes: areaIdsToSearch },
+        // Remove organizations that explicitly request not to be associated with this area.
+        // This specification has to be exact, we don't exclude the entire subtree, only the node itself.
+        excludedAreaIds: { excludes: [node.metadata.area_id] }
+      })
+      return await associatedOrgsCursor.toArray()
+    }
   },
 
   CountByDisciplineType: {

@@ -68,6 +68,8 @@ type Area {
   media: [MediaWithTags]
   "Metadata about creation & update of this area"
   authorMetadata: AuthorMetadata!
+  "Organizations associated with this area or its parent areas"
+  organizations: [Organization]
 }
 
 type AreaMetadata {
