@@ -46,6 +46,7 @@ input OrgSort {
 input OrgFilter {
   displayName: DisplayNameFilter
   associatedAreaIds: AssociatedAreaIdsFilter
+  excludedAreaIds: ExcludedAreaIdsFilter
 }
 
 input DisplayNameFilter {
@@ -53,6 +54,12 @@ input DisplayNameFilter {
   exactMatch: Boolean
 }
 
+"Filter for organizations that are associated with an area."
 input AssociatedAreaIdsFilter {
   includes: [MUUID]
+}
+
+"Filter for organizations that have not excluded themselves from an area."
+input ExcludedAreaIdsFilter {
+  excludes: [MUUID]
 }

@@ -55,9 +55,13 @@ export interface AssociatedAreaIdsFilterParams {
   includes: MUUID[]
 }
 
-type OrganizationFilterable = 'displayName' | 'associatedAreaIds'
+export interface ExcludedAreaIdsFilterParams {
+  excludes: MUUID[]
+}
 
-type OrganizationFilterParams = DisplayNameFilterParams | AssociatedAreaIdsFilterParams
+type OrganizationFilterable = 'displayName' | 'associatedAreaIds' | 'excludedAreaIds'
+
+type OrganizationFilterParams = DisplayNameFilterParams | AssociatedAreaIdsFilterParams | ExcludedAreaIdsFilterParams
 export type OrganizationGQLFilter = Partial<Record<OrganizationFilterable, OrganizationFilterParams>>
 
 export type LNGLAT = [number, number]
