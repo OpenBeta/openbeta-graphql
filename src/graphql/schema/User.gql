@@ -1,6 +1,7 @@
 type Mutation {
   createUser(input: NewUserInput): Boolean
-  updateUsername(input: UsernameInput): Boolean
+  # updateUsername(input: UsernameInput): Boolean
+  updateUserProfile(input: UserProfileInput): Boolean
 }
 
 
@@ -20,4 +21,9 @@ input UsernameInput {
 type UsernameInfo {
    userUuid: ID!
    username: String!
+}
+
+type UserProfileInput {
+  username: String
+  displayName: String
 }

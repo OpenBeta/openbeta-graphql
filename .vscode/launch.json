@@ -68,7 +68,7 @@
                 "--inspect-brk",
                 "${workspaceRoot}/node_modules/.bin/jest",
                 "--runInBand",
-                "MutableClimbDataSource"
+                "UserData"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",

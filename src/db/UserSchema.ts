@@ -27,37 +27,46 @@ export const getExperimentalUserModel = (): mongoose.Model<ExperimentalUserType>
 }
 
 const UsernameSchema = new Schema<UsernameInfo>({
-  username: { type: Schema.Types.String },
-  updatedAt: { type: Schema.Types.Date }
-}, { _id: false })
+  username: { type: Schema.Types.String }
+}, {
+  _id: false,
+  timestamps: {
+    updatedAt: true,
+    createdAt: false
+  }
+})
 
 export const UserSchema = new Schema<User>({
   firstName: { type: Schema.Types.String },
   lastName: { type: Schema.Types.String },
   displayName: { type: Schema.Types.String },
   usernameInfo: { type: UsernameSchema, required: false },
-  userUuid: { type: Schema.Types.Buffer, subtype: 4, index: true, unique: true },
-  // userUuid: {
-  //   type: 'object',
-  //   value: { type: 'Buffer' },
-  //   unique: true,
-  //   index: true,
-  //   required: true
-  // },
+  userUuid: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    unique: true,
+    index: true,
+    required: true
+  },
   homepage: { type: Schema.Types.String }
 }, {
-  _id: true,
+  _id: false,
   timestamps: true
 })
 
 /**
- * Create a compound index on user uuid and username to take
- * advantage of covered query.
+ * Create a compound index on user uuid and username so that
+ * uuid --> username look up is a covered query.
  */
 UserSchema.index({
   userUuid: 1,
   'usernameInfo.username': 1
 }, { unique: true, name: 'userUuid_username' })
+
+/**
+ * For sorting by most recent
+ */
+UserSchema.index({ createdAt: -1 })
 
 export const getUserModel = (): mongoose.Model<User> => {
   return mongoose.model('users', UserSchema)

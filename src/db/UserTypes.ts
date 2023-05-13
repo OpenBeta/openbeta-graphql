@@ -29,7 +29,13 @@ export interface User {
   updatedAt: Date
 }
 
-export interface UsernameLookupReturn {
+export interface UsernameTupple {
   userUuid: MUUID
   username: string
+}
+
+export interface UpdateProfileGQLInput {
+  username?: string
+  displayName?: string
+  userUuid: MUUID
 }
