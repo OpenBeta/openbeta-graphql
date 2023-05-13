@@ -13,7 +13,7 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
 
   async findOrganizationsByFilter (filters?: OrganizationGQLFilter): Promise<FindCursor<WithId<OrganizationType>>> {
     let mongoFilter: any = {}
-    if (filters !== undefined) {
+    if (filters != null) {
       mongoFilter = Object.entries(filters).reduce<Filter<OrganizationType>>((acc, [key, filter]): Filter<OrganizationType> => {
         switch (key) {
           case 'displayName': {

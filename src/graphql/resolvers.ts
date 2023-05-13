@@ -257,13 +257,13 @@ const resolvers = {
     organizations: async (node: AreaType, args: any, { dataSources }: Context) => {
       const { organizations } = dataSources
       const areaIdsToSearch = [node.metadata.area_id, ...node.ancestors.split(',').map(s => muid.from(s))]
-      const associatedOrgs = await (await organizations.findOrganizationsByFilter({
+      const associatedOrgsCursor = await organizations.findOrganizationsByFilter({
         associatedAreaIds: { includes: areaIdsToSearch },
         // Remove organizations that explicitly request not to be associated with this area.
         // This specification has to be exact, we don't exclude the entire subtree, only the node itself.
         excludedAreaIds: { excludes: [node.metadata.area_id] }
-      })).toArray()
-      return associatedOrgs
+      })
+      return await associatedOrgsCursor.toArray()
     }
   },
 

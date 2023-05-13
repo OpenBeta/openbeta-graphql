@@ -82,7 +82,8 @@ describe('Organization', () => {
   it('should retrieve documents based on displayName', async () => {
     const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, fullOrg)
     // Match should be case-insensitive.
-    const displayNameSearchRes = await (await organizations.findOrganizationsByFilter({ displayName: { match: 'openbeta', exactMatch: false } })).toArray()
+    const displayNameSearchCursor = await organizations.findOrganizationsByFilter({ displayName: { match: 'openbeta', exactMatch: false } })
+    const displayNameSearchRes = await displayNameSearchCursor.toArray()
     expect(displayNameSearchRes).toHaveLength(1)
     expect(displayNameSearchRes[0]._id).toEqual(newOrg._id)
   })
@@ -93,7 +94,8 @@ describe('Organization', () => {
       associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id]
     }
     await organizations.updateOrganization(testUser, newOrg.orgId, document)
-    const areaIdSearchRes = await (await organizations.findOrganizationsByFilter({ associatedAreaIds: { includes: [ca.metadata.area_id] } })).toArray()
+    const areaIdSearchCursor = await organizations.findOrganizationsByFilter({ associatedAreaIds: { includes: [ca.metadata.area_id] } })
+    const areaIdSearchRes = await areaIdSearchCursor.toArray()
     expect(areaIdSearchRes).toHaveLength(1)
     expect(areaIdSearchRes[0]._id).toEqual(newOrg._id)
   })
