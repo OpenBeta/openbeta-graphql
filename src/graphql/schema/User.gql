@@ -1,13 +1,15 @@
 type Mutation {
   createUser(input: NewUserInput): Boolean
-  # updateUsername(input: UsernameInput): Boolean
+
+  "Update a user profile.  Create a new profile if it doesn't exist."
   updateUserProfile(input: UserProfileInput): Boolean
 }
 
-
 type Query {
-  getUsername(userUuid: ID!): UsernameInfo
+  "Get user name from user uuid"
+  getUsername(userUuid: ID!): UsernameMapping
 
+  getUserProfile(userUuid: ID!): UserProfile
 }
 input NewUserInput {
   userUuid: ID!
@@ -18,12 +20,26 @@ input UsernameInput {
   username: String!
 }
 
-type UsernameInfo {
-   userUuid: ID!
-   username: String!
-}
-
-type UserProfileInput {
+input UserProfileInput {
   username: String
   displayName: String
+}
+
+type UserProfile {
+  userUuid: ID
+  usernameInfo: Username
+  displayName: String
+  bio: String
+  website: String
+}
+
+type Username {
+  username: String!
+  lastUpdated: Date!
+}
+
+type UsernameMapping {
+  userUuid: ID!
+  username: String!
+  lastUpdated: Date!
 }

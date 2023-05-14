@@ -1,12 +1,18 @@
-// import { Binary } from 'mongodb'
 import muuid from 'uuid-mongodb'
 import { DataSourcesType } from '../../types'
+import { GetUsernameReturn, User } from '../../db/UserTypes'
 
 const UserQueries = {
-  getUsername: async (_, { userUuid }, { dataSources }): Promise<any> => {
+  getUsername: async (_, { userUuid }, { dataSources }): Promise<GetUsernameReturn | null> => {
     const { users }: DataSourcesType = dataSources
     const uuid = muuid.from(userUuid)
     return await users.getUsername(uuid)
+  },
+
+  getUserProfile: async (_, { userUuid }, { dataSources }): Promise<User | null> => {
+    const { users }: DataSourcesType = dataSources
+    const uuid = muuid.from(userUuid)
+    return await users.getUserProfile(uuid)
   }
 }
 

@@ -1,18 +1,19 @@
-import { User } from '../../db/UserTypes.js'
+import { User, GetUsernameReturn } from '../../db/UserTypes.js'
 
-const UserResolvers = {
+const UserResolvers: object = {
 
-  UsernameInfo: {
+  UserProfile: {
     userUuid: (node: User) => node.userUuid.toUUID().toString()
+  },
+
+  Username: {
+    lastUpdated: (node: GetUsernameReturn) => node.updatedAt
+  },
+
+  UsernameMapping: {
+    userUuid: (node: GetUsernameReturn) => node.userUuid.toUUID().toString(),
+    lastUpdated: (node: GetUsernameReturn) => node.updatedAt
   }
-
-  // MediaWithTags: {
-  //   id: (node: MediaObject) => node._id,
-  //   username: async (node: MediaObject) => (
-  //     await getUserNickFromMediaDir(node.userUuid.toUUID().toString())),
-  //   uploadTime: (node: MediaObject) => node.createdAt
-  // }
-
 }
 
 export default UserResolvers

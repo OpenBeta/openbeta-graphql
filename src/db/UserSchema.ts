@@ -1,4 +1,4 @@
-import mongoose, { } from 'mongoose'
+import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
 import { ExperimentalUserType, User, UsernameInfo } from './UserTypes.js'
@@ -37,9 +37,9 @@ const UsernameSchema = new Schema<UsernameInfo>({
 })
 
 export const UserSchema = new Schema<User>({
-  firstName: { type: Schema.Types.String },
-  lastName: { type: Schema.Types.String },
   displayName: { type: Schema.Types.String },
+  bio: { type: Schema.Types.String },
+  homepage: { type: Schema.Types.String },
   usernameInfo: { type: UsernameSchema, required: false },
   userUuid: {
     type: 'object',
@@ -47,8 +47,7 @@ export const UserSchema = new Schema<User>({
     unique: true,
     index: true,
     required: true
-  },
-  homepage: { type: Schema.Types.String }
+  }
 }, {
   _id: false,
   timestamps: true

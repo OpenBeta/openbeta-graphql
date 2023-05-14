@@ -19,23 +19,21 @@ export interface UsernameInfo {
   updatedAt: Date
 }
 export interface User {
-  firstName?: string
-  lastName?: string
   displayName?: string
   usernameInfo?: UsernameInfo
   userUuid: MUUID
   homepage?: string
+  bio?: string
   createdAt: Date
   updatedAt: Date
 }
 
-export interface UsernameTupple {
-  userUuid: MUUID
-  username: string
+export type UpdateProfileGQLInput = Omit<User, 'userUuid' | 'usernameInfo' | 'createdAt' | 'updatedAt'> & {
+  username?: string
 }
 
-export interface UpdateProfileGQLInput {
-  username?: string
-  displayName?: string
+export interface GetUsernameReturn {
+  username: string
   userUuid: MUUID
+  updatedAt: Date
 }

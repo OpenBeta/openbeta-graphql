@@ -22,3 +22,22 @@ export const sanitizeStrict = (text: string): string => sanitizeHtml(text, {
   allowedAttributes: {
   }
 }).trim()
+
+export const trimToNull = (text?: string): string | null => {
+  return text?.trim() ?? null
+}
+
+// export const trimInputObjectToNull = (input: Record<string, string | undefined >): Record<string, string | undefined > | null => {
+//   const o: Record<string, string | undefined > = {}
+
+//   for (const k in input) {
+//     if (trimToNull(input[k]) == null) {
+//       o[k] = 'j'
+//     }
+//   }
+//   if (Object.keys(o).length === 0) {
+//     return null
+//   }
+
+//   return o
+// }

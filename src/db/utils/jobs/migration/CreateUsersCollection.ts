@@ -13,11 +13,10 @@ if (LOCAL_MEDIA_DIR_UID == null) {
 }
 
 /**
- * Build the media object collection from media files on disk
+ * Create a new Users collection from uid.json files in local media dir.
  */
 const onConnected = async (): Promise<void> => {
-  // const users = new UserDataSource(mongoose.connection.db.collection('users'))
-  logger.info('Creating photo collection')
+  logger.info('Creating users collection')
   const model = getUserModel()
   await model.ensureIndexes()
   const uidFIle = await glob(LOCAL_MEDIA_DIR_UID, {

@@ -4,7 +4,7 @@ import { jest } from '@jest/globals'
 
 import { connectDB, getUserModel } from '../../db/index.js'
 import UserDataSource from '../UserDataSource.js'
-import { UsernameTupple, UpdateProfileGQLInput } from '../../db/UserTypes.js'
+import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
 
 describe('MediaDataSource', () => {
   let users: UserDataSource
@@ -25,105 +25,113 @@ describe('MediaDataSource', () => {
     await mongoose.connection.close()
   })
 
-  it('should create a new user with username', async () => {
-    const input: UsernameTupple = {
-      username: 'cat',
-      userUuid: muuid.v4()
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('should create a new user with just username', async () => {
+    const userUuid = muuid.v4()
+    const input: UpdateProfileGQLInput = {
+      username: 'cat'
     }
 
-    let u = await users.getUsername(input.userUuid)
+    let u = await users.getUsername(userUuid)
 
     expect(u).toBeNull()
 
-    await users.updateUsername(input)
+    await users.createOrUpdateUserProfile(userUuid, input)
 
-    u = await users.getUsername(input.userUuid)
+    u = await users.getUsername(userUuid)
 
-    expect(u).toEqual(input)
+    expect(u).toMatchObject({ ...input, userUuid })
+    expect(u?.updatedAt.getTime() ?? 0).toBeGreaterThan(0)
+    expect(u?.updatedAt.getTime()).toBeLessThan(Date.now())
   })
 
   it('should create a new user from username and other fields', async () => {
+    const userUuid = muuid.v4()
     const input: UpdateProfileGQLInput = {
       username: 'user1',
-      displayName: 'user one',
-      userUuid: muuid.v4()
+      displayName: 'user one'
     }
 
-    const u = await users.getUsername(input.userUuid)
+    const u = await users.getUsername(userUuid)
 
     expect(u).toBeNull()
 
-    await users.updateUsername(input)
+    await users.createOrUpdateUserProfile(userUuid, input)
 
-    const u2 = await users.getUser(input.userUuid)
+    const u2 = await users.getUserProfile(userUuid)
 
     expect(u2).toMatchObject({
-      userUuid: input.userUuid.toUUID().toBinary(),
+      userUuid: userUuid.toUUID().toBinary(),
+      displayName: input.displayName,
       usernameInfo: {
         username: input.username
       }
     })
   })
 
-  it('should create a new user with display name', async () => {
+  it('should create a new user without username', async () => {
+    const userUuid = muuid.v4()
     const input: UpdateProfileGQLInput = {
       displayName: 'jane doe',
-      userUuid: muuid.from('b9f8ab3b-e6e5-4467-9adb-65d91c7ebe7c')
+      bio: 'test profile',
+      homepage: 'https://example.com'
     }
 
-    const u = await users.getUsername(input.userUuid)
+    const u = await users.getUsername(userUuid)
 
     expect(u).toBeNull()
 
-    await users.updateUsername(input)
+    await users.createOrUpdateUserProfile(userUuid, input)
 
-    const u2 = await users.getUser(input.userUuid)
+    const u2 = await users.getUserProfile(userUuid)
 
     // check selected fields
     expect(u2).toMatchObject({
       ...input,
-      userUuid: input.userUuid.toUUID().toBinary()
+      userUuid: userUuid.toUUID().toBinary()
     })
 
     // explicitly verify that usernameInfo subdocument is undefined
     expect(u2?.usernameInfo).toBeUndefined()
   })
 
-  it('should enforce waiting period for updating username', async () => {
-    const input: UsernameTupple = {
-      username: 'woof',
-      userUuid: muuid.v4()
+  it('should enforce waiting period for username update', async () => {
+    const userUuid = muuid.v4()
+    const input: UpdateProfileGQLInput = {
+      username: 'woof'
     }
 
-    await users.updateUsername(input)
+    await users.createOrUpdateUserProfile(userUuid, input)
 
     await expect(
-      users.updateUsername({
-        userUuid: input.userUuid,
+      users.createOrUpdateUserProfile(userUuid, {
         username: 'woof1234'
       })
     ).rejects.toThrowError(/frequent update/i)
   })
 
   it('should allow username update after the waiting period', async () => {
-    const input: UsernameTupple = {
-      username: 'winnie',
-      userUuid: muuid.v4()
+    const userUuid = muuid.v4()
+    const input: UpdateProfileGQLInput = {
+      username: 'winnie'
     }
 
-    await users.updateUsername(input)
+    await users.createOrUpdateUserProfile(userUuid, input)
 
     jest
       .spyOn(UserDataSource, 'calculateLastUpdatedInDays')
       .mockImplementation(() => 14)
 
     const newInput = {
-      userUuid: input.userUuid,
-      username: 'pooh'
+      username: 'pooh',
+      bio: 'I\'m a bear'
     }
-    await users.updateUsername(newInput)
+    await users.createOrUpdateUserProfile(userUuid, newInput)
 
-    const updatedUser = await users.getUser(input.userUuid)
+    const updatedUser = await users.getUserProfile(userUuid)
 
     expect(updatedUser?.usernameInfo?.username).toEqual(newInput.username)
   })
