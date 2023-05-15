@@ -3,15 +3,16 @@ import { User, GetUsernameReturn } from '../../db/UserTypes.js'
 const UserResolvers: object = {
 
   UserProfile: {
-    userUuid: (node: User) => node.userUuid.toUUID().toString()
+    userUuid: (node: User) => node._id.toUUID().toString()
   },
 
   Username: {
+    // userUuid: (node: GetUsernameReturn) => node._id.toUUID().toString(),
     lastUpdated: (node: GetUsernameReturn) => node.updatedAt
   },
 
   UsernameMapping: {
-    userUuid: (node: GetUsernameReturn) => node.userUuid.toUUID().toString(),
+    userUuid: (node: GetUsernameReturn) => node._id.toUUID().toString(),
     lastUpdated: (node: GetUsernameReturn) => node.updatedAt
   }
 }

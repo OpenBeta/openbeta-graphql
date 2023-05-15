@@ -43,7 +43,7 @@ describe('MediaDataSource', () => {
 
     u = await users.getUsername(userUuid)
 
-    expect(u).toMatchObject({ ...input, userUuid })
+    expect(u).toMatchObject({ ...input, _id: userUuid.toUUID().toBinary() })
     expect(u?.updatedAt.getTime() ?? 0).toBeGreaterThan(0)
     expect(u?.updatedAt.getTime()).toBeLessThan(Date.now())
   })
@@ -64,7 +64,7 @@ describe('MediaDataSource', () => {
     const u2 = await users.getUserProfile(userUuid)
 
     expect(u2).toMatchObject({
-      userUuid: userUuid.toUUID().toBinary(),
+      _id: userUuid.toUUID().toBinary(),
       displayName: input.displayName,
       usernameInfo: {
         username: input.username
@@ -77,7 +77,7 @@ describe('MediaDataSource', () => {
     const input: UpdateProfileGQLInput = {
       displayName: 'jane doe',
       bio: 'test profile',
-      homepage: 'https://example.com'
+      website: 'https://example.com'
     }
 
     const u = await users.getUsername(userUuid)
@@ -91,7 +91,7 @@ describe('MediaDataSource', () => {
     // check selected fields
     expect(u2).toMatchObject({
       ...input,
-      userUuid: userUuid.toUUID().toBinary()
+      _id: userUuid.toUUID().toBinary()
     })
 
     // explicitly verify that usernameInfo subdocument is undefined
@@ -134,5 +134,16 @@ describe('MediaDataSource', () => {
     const updatedUser = await users.getUserProfile(userUuid)
 
     expect(updatedUser?.usernameInfo?.username).toEqual(newInput.username)
+  })
+
+  it('should reject invalid website url', async () => {
+    const userUuid = muuid.v4()
+    const input: UpdateProfileGQLInput = {
+      website: 'badurl'
+    }
+
+    await expect(
+      users.createOrUpdateUserProfile(userUuid, input)
+    ).rejects.toThrowError(/invalid website/i)
   })
 })

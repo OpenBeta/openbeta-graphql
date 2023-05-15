@@ -1,14 +1,13 @@
 type Mutation {
-  createUser(input: NewUserInput): Boolean
-
   "Update a user profile.  Create a new profile if it doesn't exist."
   updateUserProfile(input: UserProfileInput): Boolean
 }
 
 type Query {
-  "Get user name from user uuid"
+  "Get user name mapping"
   getUsername(userUuid: ID!): UsernameMapping
 
+  "Get user profile"
   getUserProfile(userUuid: ID!): UserProfile
 }
 input NewUserInput {
@@ -23,21 +22,27 @@ input UsernameInput {
 input UserProfileInput {
   username: String
   displayName: String
+  bio: String
+  website: String
 }
 
+"User profile"
 type UserProfile {
   userUuid: ID
+  "User name detail.  May be 'null' if the user hasn't logged in and created a username."
   usernameInfo: Username
   displayName: String
   bio: String
   website: String
 }
 
+"Username detail"
 type Username {
   username: String!
   lastUpdated: Date!
 }
 
+"Provide a mapping between user UUID and username"
 type UsernameMapping {
   userUuid: ID!
   username: String!

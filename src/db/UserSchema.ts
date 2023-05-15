@@ -37,30 +37,18 @@ const UsernameSchema = new Schema<UsernameInfo>({
 })
 
 export const UserSchema = new Schema<User>({
+  _id: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  },
   displayName: { type: Schema.Types.String },
   bio: { type: Schema.Types.String },
-  homepage: { type: Schema.Types.String },
-  usernameInfo: { type: UsernameSchema, required: false },
-  userUuid: {
-    type: 'object',
-    value: { type: 'Buffer' },
-    unique: true,
-    index: true,
-    required: true
-  }
+  website: { type: Schema.Types.String },
+  usernameInfo: { type: UsernameSchema, required: false }
 }, {
   _id: false,
   timestamps: true
 })
-
-/**
- * Create a compound index on user uuid and username so that
- * uuid --> username look up is a covered query.
- */
-UserSchema.index({
-  userUuid: 1,
-  'usernameInfo.username': 1
-}, { unique: true, name: 'userUuid_username' })
 
 /**
  * For sorting by most recent

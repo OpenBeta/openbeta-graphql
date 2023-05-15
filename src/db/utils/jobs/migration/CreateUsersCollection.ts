@@ -38,7 +38,7 @@ const onConnected = async (): Promise<void> => {
 
     const { uid, ts } = JSON.parse(f)
     const newUser: Omit<User, 'createdAt' | 'updatedAt'> = {
-      userUuid,
+      _id: userUuid,
       usernameInfo: {
         username: uid as string,
         updatedAt: new Date(ts)
