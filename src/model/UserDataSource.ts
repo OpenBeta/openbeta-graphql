@@ -156,7 +156,7 @@ const regUsernameKeywords = /openbeta|0penbeta|admin/i
  * @param username
  * @returns true if has valid format
  */
-export const isValidUsername = (username: string): boolean => {
+const isValidUsername = (username: string): boolean => {
   return username != null && username.length <= 30 &&
   !regUsernameKeywords.test(username) &&
   regUsername.test(username)

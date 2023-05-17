@@ -1,5 +1,5 @@
 import muuid from 'uuid-mongodb'
-import { DataSourcesType } from '../../types'
+import { DataSourcesType, ContextWithAuth } from '../../types'
 import { GetUsernameReturn, User } from '../../db/UserTypes'
 
 const UserQueries = {
@@ -9,7 +9,7 @@ const UserQueries = {
     return await users.getUsername(uuid)
   },
 
-  getUserProfile: async (_, { userUuid }, { dataSources }): Promise<User | null> => {
+  getUserProfile: async (_, { userUuid }, { dataSources }: ContextWithAuth): Promise<User | null> => {
     const { users }: DataSourcesType = dataSources
     const uuid = muuid.from(userUuid)
     return await users.getUserProfile(uuid)

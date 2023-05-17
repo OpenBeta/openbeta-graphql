@@ -87,6 +87,7 @@ export interface QueryByIdType {
 export interface AuthUserType {
   roles: string[]
   uuid: MUUID | undefined
+  isBuilder: boolean
 }
 
 export interface DataSourcesType {
