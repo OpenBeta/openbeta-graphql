@@ -277,13 +277,26 @@ describe('Areas', () => {
         })
       }))
 
+    // Able to overwrite existing leftRightIndices without duplicate key errors
+    const change3: UpdateSortingOrderType = {
+      areaId: a1.metadata.area_id.toUUID().toString(),
+      leftRightIndex: 9
+    }
+    const change4: UpdateSortingOrderType = {
+      areaId: a2.metadata.area_id.toUUID().toString(),
+      leftRightIndex: 10
+    }
+
+    await expect(areas.updateSortingOrder(testUser, [change3, change4])).resolves.toStrictEqual(
+      [a1.metadata.area_id.toUUID().toString(), a2.metadata.area_id.toUUID().toString()])
+
     // Make sure we can't have duplicate leftToRight indices >= 0
     await expect(
-      areas.updateSortingOrder(testUser, [{ ...change1, leftRightIndex: change2.leftRightIndex }]))
+      areas.updateSortingOrder(testUser, [{ ...change3, leftRightIndex: change4.leftRightIndex }]))
       .rejects.toThrowError(/E11000/)
 
     // But we can have duplicate indices < 0 to indicate unsorted
     await areas.updateSortingOrder(testUser,
-      [{ ...change1, leftRightIndex: -1 }, { ...change2, leftRightIndex: -1 }])
+      [{ ...change3, leftRightIndex: -1 }, { ...change4, leftRightIndex: -1 }])
   })
 })
