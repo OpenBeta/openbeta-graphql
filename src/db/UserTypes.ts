@@ -20,15 +20,21 @@ export interface UsernameInfo {
 }
 export interface User {
   _id: MUUID
+  email?: string
+  emailVerified?: boolean
   displayName?: string
   usernameInfo?: UsernameInfo
   website?: string
   bio?: string
   createdAt: Date
   updatedAt: Date
+  createdBy: MUUID
+  updatedBy?: MUUID
 }
 
-export type UpdateProfileGQLInput = Omit<User, '_id' | 'usernameInfo' | 'createdAt' | 'updatedAt'> & {
+type NotUpdatableFields = 'usernameInfo' | 'createdAt' | 'updatedAt' | 'createdBy'
+
+export type UpdateProfileGQLInput = Omit<User, NotUpdatableFields> & {
   username?: string
 }
 

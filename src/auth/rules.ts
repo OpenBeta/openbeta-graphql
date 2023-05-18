@@ -1,4 +1,4 @@
-import { rule } from 'graphql-shield'
+import { rule, inputRule } from 'graphql-shield'
 import muuid from 'uuid-mongodb'
 
 export const isEditor = rule()(async (parent, args, ctx, info) => {
@@ -16,6 +16,14 @@ export const isOwner = rule()(async (parent, args, ctx, info) => {
 export const isBuilderServiceAccount = rule()(async (parent, args, ctx: Context, info) => {
   return _hasUserUuid(ctx) && ctx.user.isBuilder
 })
+
+export const isValidEmail = inputRule()(
+  (yup) =>
+    yup.object({
+      email: yup.string().email('Please provide a valid email')
+    }),
+  { abortEarly: false }
+)
 
 interface Context {
   user: {

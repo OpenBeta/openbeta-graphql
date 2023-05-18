@@ -42,8 +42,8 @@ const onConnected = async (): Promise<void> => {
       usernameInfo: {
         username: uid as string,
         updatedAt: new Date(ts)
-      }
-
+      },
+      createdBy: userUuid
     }
     list.push(newUser)
 

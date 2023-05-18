@@ -20,10 +20,13 @@ input UsernameInput {
 }
 
 input UserProfileInput {
+  userUuid: ID!
   username: String
   displayName: String
   bio: String
   website: String
+  email: String
+  emailVerified: Boolean
 }
 
 "User profile"
@@ -34,6 +37,8 @@ type UserProfile {
   displayName: String
   bio: String
   website: String
+  email: String
+  emailVerified: Boolean
 }
 
 "Username detail"

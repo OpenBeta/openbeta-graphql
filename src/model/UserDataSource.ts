@@ -22,8 +22,16 @@ export default class UserDataSource extends MongoDataSource<User> {
    * @param input profile params
    * @returns true if successful
    */
-  async createOrUpdateUserProfile (userUuid: MUUID, input: UpdateProfileGQLInput): Promise<boolean> {
-    const { username: _username, displayName: _displayName, bio: _bio, website: _website } = input
+  async createOrUpdateUserProfile (updater: MUUID, input: UpdateProfileGQLInput): Promise<boolean> {
+    const {
+      username: _username,
+      displayName: _displayName,
+      bio: _bio,
+      website: _website,
+      email,
+      emailVerified,
+      _id
+    } = input
 
     if (Object.keys(input).length === 0) {
       throw new Error('Nothing to update. Must provide at least one field.')
@@ -46,11 +54,14 @@ export default class UserDataSource extends MongoDataSource<User> {
       throw new Error('Invalid website address.')
     }
 
-    const rs = await this.userModel.findOne({ _id: userUuid })
+    const rs = await this.userModel.findOne({ _id })
 
     const isNew = rs == null
 
     if (isNew) {
+      if (email == null) {
+        throw new Error('Email is required when creating a new profile')
+      }
       let usernameInfo: UsernameInfo | null = null
 
       if (username != null) {
@@ -62,11 +73,14 @@ export default class UserDataSource extends MongoDataSource<User> {
 
       await this.userModel.insertMany(
         [{
-          _id: userUuid,
+          _id,
+          email,
           ...displayName != null && { displayName: displayName.trim() },
           ...usernameInfo != null && { usernameInfo },
           ...bio != null && { bio },
-          ...website != null && { website }
+          ...website != null && { website },
+          ...emailVerified === true && { emailVerified },
+          updatedBy: updater
         }])
 
       return true
@@ -96,6 +110,20 @@ export default class UserDataSource extends MongoDataSource<User> {
     if (website != null && website !== rs.website) {
       rs.website = website
     }
+
+    if (emailVerified === true && rs.emailVerified === true) {
+      rs.emailVerified = true
+    }
+
+    /**
+     * Only update email if field is empty.  We need a separate flow
+     * for updating/verifying email (TBD).
+     */
+    if (email != null && rs.email == null) {
+      rs.email = email
+    }
+
+    rs.updatedBy = updater
 
     await rs.save()
     return true

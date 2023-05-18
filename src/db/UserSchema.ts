@@ -41,10 +41,20 @@ export const UserSchema = new Schema<User>({
     type: 'object',
     value: { type: 'Buffer' }
   },
+  email: { type: Schema.Types.String },
+  emailVerified: { type: Schema.Types.Boolean },
   displayName: { type: Schema.Types.String },
   bio: { type: Schema.Types.String },
   website: { type: Schema.Types.String },
-  usernameInfo: { type: UsernameSchema, required: false }
+  usernameInfo: { type: UsernameSchema, required: false },
+  createdBy: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  },
+  updatedBy: {
+    type: 'object',
+    value: { type: 'Buffer' }
+  }
 }, {
   _id: false,
   timestamps: true
