@@ -1,18 +1,26 @@
 import { EntityTag, MediaByUsers, MediaObject, TagByUser } from '../../db/MediaObjectTypes.js'
-import { getUserNickFromMediaDir, geojsonPointToLatitude, geojsonPointToLongitude } from '../../utils/helpers.js'
+import { geojsonPointToLatitude, geojsonPointToLongitude } from '../../utils/helpers.js'
+import { DataSourcesType } from '../../types.js'
 
 const MediaResolvers = {
 
   MediaByUsers: {
     userUuid: (node: MediaByUsers) => node.userUuid.toUUID().toString(),
-    username: async (node: MediaByUsers) => (
-      await getUserNickFromMediaDir(node.userUuid.toUUID().toString()))
+    username:
+    async (node: MediaByUsers, _: any, { dataSources }) => {
+      const { users } = dataSources as DataSourcesType
+      const u = await users.getUsername(node.userUuid)
+      return u?.username ?? null
+    }
   },
 
   MediaWithTags: {
     id: (node: MediaObject) => node._id,
-    username: async (node: MediaObject) => (
-      await getUserNickFromMediaDir(node.userUuid.toUUID().toString())),
+    username: async (node: MediaObject, _: any, { dataSources }) => {
+      const { users } = dataSources as DataSourcesType
+      const u = await users.getUsername(node.userUuid)
+      return u?.username ?? null
+    },
     uploadTime: (node: MediaObject) => node.createdAt
   },
 
@@ -29,10 +37,12 @@ const MediaResolvers = {
 
   TagsByUser: {
     userUuid: (node: TagByUser) => node.userUuid.toUUID().toString(),
-    username: async (node: TagByUser) => (
-      await getUserNickFromMediaDir(node.userUuid.toUUID().toString()))
+    username: async (node: TagByUser, _: any, { dataSources }) => {
+      const { users } = dataSources as DataSourcesType
+      const u = await users.getUsername(node.userUuid)
+      return u?.username ?? null
+    }
   }
-
 }
 
 export default MediaResolvers

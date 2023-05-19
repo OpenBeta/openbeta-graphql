@@ -7,7 +7,6 @@ const UserResolvers: object = {
   },
 
   Username: {
-    // userUuid: (node: GetUsernameReturn) => node._id.toUUID().toString(),
     lastUpdated: (node: GetUsernameReturn) => node.updatedAt
   },
 
