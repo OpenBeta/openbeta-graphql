@@ -368,9 +368,25 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const doUpdate = async (session: ClientSession, user: MUUID, input: UpdateSortingOrderType[]): Promise<string[]> => {
       const opType = OperationType.orderAreas
       const change = await changelogDataSource.create(session, user, opType)
+      const updates: any[] = []
+      let expectedOpCount = input.length
 
-      const bulkData = input.map(({ areaId, leftRightIndex }, index) => (
-        {
+      // Clear existing indices so we can re-order without running into duplicate key errors.
+      if (input.some(i => i.leftRightIndex >= 0)) {
+        updates.push({
+          updateMany: {
+            filter: { 'metadata.area_id': { $in: input.map(i => muuid.from(i.areaId)) } },
+            update: {
+              $set: { 'metadata.leftRightIndex': -1 }
+              // Don't record change since this is an intermediate step.
+            }
+          }
+        })
+        expectedOpCount = expectedOpCount * 2
+      }
+
+      input.forEach(({ areaId, leftRightIndex }, index) => {
+        updates.push({
           updateOne: {
             filter: { 'metadata.area_id': muuid.from(areaId) },
             update: {
@@ -387,11 +403,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
             }
           }
         })
-      )
+      })
 
-      const rs = (await this.areaModel.bulkWrite(bulkData, { session })).toJSON()
+      const rs = (await this.areaModel.bulkWrite(updates, { session })).toJSON()
 
-      if (rs.ok === 1 && rs.nMatched === rs.nModified && rs.nMatched === input.length) {
+      if (rs.ok === 1 && rs.nMatched === rs.nModified && rs.nMatched === expectedOpCount) {
         return input.map(item => item.areaId)
       } else {
         throw new Error(`Expect to update ${input.length} areas but found ${rs.nMatched}.`)
