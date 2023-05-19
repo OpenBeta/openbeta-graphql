@@ -112,7 +112,19 @@ describe('MediaDataSource', () => {
     expect(u2?.usernameInfo).toBeUndefined()
   })
 
-  it('should enforce waiting period for username update', async () => {
+  it('should require an email when creating new profile', async () => {
+    const updater = muuid.v4()
+    const input: UpdateProfileGQLInput = {
+      _id: muuid.v4(),
+      username: 'woof'
+    }
+
+    await expect(
+      users.createOrUpdateUserProfile(updater, input)
+    ).rejects.toThrowError(/Email is required/i)
+  })
+
+  it('should enforce a waiting period for username update', async () => {
     const updater = muuid.v4()
     const input: UpdateProfileGQLInput = {
       _id: muuid.v4(),
