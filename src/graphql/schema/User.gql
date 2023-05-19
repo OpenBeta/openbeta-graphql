@@ -1,5 +1,16 @@
 type Mutation {
-  "Update a user profile.  Create a new profile if it doesn't exist."
+  """
+  Update a user profile.  Create a new profile if it doesn't exist.
+
+
+  Note:  The email field is required when creating a new profile and
+  will be ignore in subsequent update calls to prevent users from 
+  changing their email.  The frontend  calls this API whenever a user 
+  logs in; their email therefore should have been verified at this point.
+  When we support email address change in the future, we will need to 
+  create a separate update-email mutation to make sure users take the
+  neccessary steps.
+  """
   updateUserProfile(input: UserProfileInput): Boolean
 }
 
@@ -10,6 +21,7 @@ type Query {
   "Get user profile"
   getUserProfile(userUuid: ID!): UserProfile
 }
+
 input NewUserInput {
   userUuid: ID!
 }
