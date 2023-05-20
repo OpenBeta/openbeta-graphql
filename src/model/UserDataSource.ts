@@ -3,16 +3,16 @@ import { MUUID } from 'uuid-mongodb'
 import differenceInDays from 'date-fns/differenceInDays/index.js'
 
 import { getUserModel } from '../db/index.js'
-import { User, UpdateProfileGQLInput, UsernameInfo, GetUsernameReturn } from '../db/UserTypes.js'
+import {
+  User,
+  UpdateProfileGQLInput,
+  UsernameInfo,
+  GetUsernameReturn
+} from '../db/UserTypes.js'
 import { trimToNull } from '../utils/sanitize.js'
 
 const USERNAME_UPDATE_WAITING_IN_DAYS = 14
 
-interface UsernameQueryReturnType {
-  username?: string
-  createdAt?: string
-  userUuid: string
-}
 export default class UserDataSource extends MongoDataSource<User> {
   userModel = getUserModel()
 
@@ -22,7 +22,10 @@ export default class UserDataSource extends MongoDataSource<User> {
    * @param input profile params
    * @returns true if successful
    */
-  async createOrUpdateUserProfile (updater: MUUID, input: UpdateProfileGQLInput): Promise<boolean> {
+  async createOrUpdateUserProfile (
+    updater: MUUID,
+    input: UpdateProfileGQLInput
+  ): Promise<boolean> {
     const {
       username: _username,
       displayName: _displayName,
@@ -37,17 +40,22 @@ export default class UserDataSource extends MongoDataSource<User> {
       throw new Error('Nothing to update. Must provide at least one field.')
     }
 
+    if (!isValidUsername(_username)) {
+      throw new Error('Invalid username format.')
+    }
+
     const username = trimToNull(_username)
     const displayName = trimToNull(_displayName)
     const bio = trimToNull(_bio)
     const website = trimToNull(_website)
 
-    if (username == null && displayName == null && bio == null && website == null) {
+    if (
+      username == null &&
+      displayName == null &&
+      bio == null &&
+      website == null
+    ) {
       throw new Error('Nothing to update. Must provide at least one field.')
-    }
-
-    if (username != null && !isValidUsername(username)) {
-      throw new Error('Invalid username format.')
     }
 
     if (website != null && !isValidUrl(website)) {
@@ -71,17 +79,18 @@ export default class UserDataSource extends MongoDataSource<User> {
         }
       }
 
-      await this.userModel.insertMany(
-        [{
+      await this.userModel.insertMany([
+        {
           _id,
           email,
-          ...displayName != null && { displayName: displayName.trim() },
-          ...usernameInfo != null && { usernameInfo },
-          ...bio != null && { bio },
-          ...website != null && { website },
-          ...emailVerified === true && { emailVerified },
+          ...(displayName != null && { displayName }),
+          ...(usernameInfo != null && { usernameInfo }),
+          ...(bio != null && { bio }),
+          ...(website != null && { website }),
+          ...(emailVerified === true && { emailVerified }),
           updatedBy: updater
-        }])
+        }
+      ])
 
       return true
     }
@@ -90,10 +99,13 @@ export default class UserDataSource extends MongoDataSource<User> {
 
     if (username != null && username !== usernameInfo?.username) {
       const lastUpdated = usernameInfo?.updatedAt ?? new Date()
-      const lastUpdatedInDays = UserDataSource.calculateLastUpdatedInDays(lastUpdated)
+      const lastUpdatedInDays =
+        UserDataSource.calculateLastUpdatedInDays(lastUpdated)
       if (lastUpdatedInDays < USERNAME_UPDATE_WAITING_IN_DAYS) {
-        const waitDays = USERNAME_UPDATE_WAITING_IN_DAYS - lastUpdatedInDays
-        throw new Error(`Too frequent update.  Please wait ${waitDays.toString()} more days.`)
+        const daysToWait = USERNAME_UPDATE_WAITING_IN_DAYS - lastUpdatedInDays
+        throw new Error(
+          `Too frequent update.  Please wait ${daysToWait.toString()} more days.`
+        )
       }
 
       rs.set('usernameInfo.username', username)
@@ -141,7 +153,7 @@ export default class UserDataSource extends MongoDataSource<User> {
      * See https://www.mongodb.com/docs/manual/core/query-optimization/#covered-query
      */
     const rs = await this.userModel
-      .find<UsernameQueryReturnType>(
+      .find<GetUsernameReturn>(
       { _id: userUuid },
       {
         _id: 1,
@@ -150,7 +162,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       }
     ).lean()
 
-    if (rs != null && rs.length === 1) {
+    if (rs?.length === 1) {
       // @ts-expect-error
       return rs[0]
     }
@@ -162,8 +174,7 @@ export default class UserDataSource extends MongoDataSource<User> {
    * @param userUuid
    */
   async getUserProfile (userUuid: MUUID): Promise<User | null> {
-    const rs = await this.userModel
-      .findOne({ _id: userUuid }).lean()
+    const rs = await this.userModel.findOne({ _id: userUuid }).lean()
 
     return rs
   }
@@ -174,20 +185,22 @@ export default class UserDataSource extends MongoDataSource<User> {
 }
 
 const regUsername = /^[a-zA-Z0-9]+([_\\.-]?[a-zA-Z0-9])*$/i
-const regUsernameKeywords = /openbeta|0penbeta|admin/i
+const regUsernameKeywords = /openbeta|0penbeta|admin|undefined|null/i
 
 /**
  * Username validation
- * Only does format validation, does not check against database
- * or anything like that.
  *
  * @param username
  * @returns true if has valid format
  */
-const isValidUsername = (username: string): boolean => {
-  return username != null && username.length <= 30 &&
-  !regUsernameKeywords.test(username) &&
-  regUsername.test(username)
+const isValidUsername = (username?: string): boolean => {
+  return (
+    username != null &&
+    username.length <= 30 &&
+    username.length >= 2 &&
+    !regUsernameKeywords.test(username) &&
+    regUsername.test(username)
+  )
 }
 
 const isValidUrl = (url: string): boolean => {
