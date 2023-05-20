@@ -19,7 +19,7 @@ export const createContext = async ({ req }): Promise<any> => {
     const token = authHeader.substring(7, authHeader.length).trim()
     const z = await verifyJWT(token)
 
-    user.isBuilder = z?.scope?.includes('builder:default')
+    user.isBuilder = z?.scope?.includes('builder:default') ?? false
     user.roles = z?.['https://tacos.openbeta.io/roles'] ?? []
     const uidStr: string | undefined = z?.['https://tacos.openbeta.io/uuid']
     user.uuid = uidStr != null ? muid.from(uidStr) : undefined

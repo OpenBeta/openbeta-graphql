@@ -79,10 +79,11 @@ describe('areas API', () => {
         variables: { input: wa.metadata.area_id },
         userUuid
       })
+
       expect(response.statusCode).toBe(200)
       const areaResult = response.body.data.area
       expect(areaResult.uuid).toBe(muuidToString(wa.metadata.area_id))
-      expect(areaResult.organizations.length).toBe(1)
+      expect(areaResult.organizations).toHaveLength(1)
       expect(areaResult.organizations[0].orgId).toBe(muuidToString(alphaOrg.orgId))
     })
 
@@ -98,7 +99,7 @@ describe('areas API', () => {
       expect(areaResult.uuid).toBe(muuidToString(ca.metadata.area_id))
       // Even though alphaOrg associates with ca's parent, usa, it excludes
       // ca and so should not be listed.
-      expect(areaResult.organizations.length).toBe(0)
+      expect(areaResult.organizations).toHaveLength(0)
     })
   })
 })
