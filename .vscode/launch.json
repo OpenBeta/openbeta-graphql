@@ -68,7 +68,7 @@
                 "--inspect-brk",
                 "${workspaceRoot}/node_modules/.bin/jest",
                 "--runInBand",
-                "MutableClimbDataSource"
+                "UserData"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
@@ -98,6 +98,20 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Create Users collection",
+            "program": "${workspaceFolder}/src/db/utils/jobs/migration/CreateUsersCollection.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "console": "integratedTerminal",
         },
     ]
 }

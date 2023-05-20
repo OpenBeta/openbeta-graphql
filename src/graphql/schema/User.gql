@@ -1,0 +1,67 @@
+type Mutation {
+  """
+  Update a user profile.  Create a new profile if it doesn't exist.
+
+
+  Note:  The email field is required when creating a new profile and
+  will be ignore in subsequent update calls to prevent users from 
+  changing their email.  The frontend  calls this API whenever a user 
+  logs in; their email therefore should have been verified at this point.
+  When we support email address change in the future, we will need to 
+  create a separate update-email mutation to make sure users take the
+  neccessary steps.
+  """
+  updateUserProfile(input: UserProfileInput): Boolean
+}
+
+type Query {
+  "Get user name mapping"
+  getUsername(userUuid: ID!): UsernameMapping
+
+  "Get user profile"
+  getUserProfile(userUuid: ID!): UserProfile
+}
+
+input NewUserInput {
+  userUuid: ID!
+}
+
+input UsernameInput {
+  userUuid: ID!
+  username: String!
+}
+
+input UserProfileInput {
+  userUuid: ID!
+  username: String
+  displayName: String
+  bio: String
+  website: String
+  email: String
+  emailVerified: Boolean
+}
+
+"User profile"
+type UserProfile {
+  userUuid: ID
+  "User name detail.  May be 'null' if the user hasn't logged in and created a username."
+  usernameInfo: Username
+  displayName: String
+  bio: String
+  website: String
+  email: String
+  emailVerified: Boolean
+}
+
+"Username detail"
+type Username {
+  username: String!
+  lastUpdated: Date!
+}
+
+"Provide a mapping between user UUID and username"
+type UsernameMapping {
+  userUuid: ID!
+  username: String!
+  lastUpdated: Date!
+}

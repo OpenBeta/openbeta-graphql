@@ -1,9 +1,10 @@
-import { shield, allow } from 'graphql-shield'
-import { isEditor, isUserAdmin } from './rules.js'
+import { shield, allow, or, and } from 'graphql-shield'
+import { isEditor, isUserAdmin, isOwner, isBuilderServiceAccount, isValidEmail } from './rules.js'
 
 const permissions = shield({
   Query: {
-    '*': allow
+    '*': allow,
+    getUserProfile: or(isOwner, isBuilderServiceAccount)
   },
   Mutation: {
     addOrganization: isUserAdmin,
@@ -12,7 +13,8 @@ const permissions = shield({
     addArea: isEditor,
     updateArea: isEditor,
     updateClimbs: isEditor,
-    deleteClimbs: isEditor
+    deleteClimbs: isEditor,
+    updateUserProfile: and(isOwner, isValidEmail)
   }
 },
 {

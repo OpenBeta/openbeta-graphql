@@ -10,6 +10,7 @@ import MutableClimbDataSource from './model/MutableClimbDataSource.js'
 import XMediaDataSource from './model/XMediaDataSource.js'
 import PostDataSource from './model/PostDataSource.js'
 import MutableOrganizationDataSource from './model/MutableOrganizationDataSource.js'
+import type UserDataSource from './model/UserDataSource.js'
 
 export enum SortDirection {
   ASC = 1,
@@ -86,6 +87,7 @@ export interface QueryByIdType {
 export interface AuthUserType {
   roles: string[]
   uuid: MUUID | undefined
+  isBuilder: boolean
 }
 
 export interface DataSourcesType {
@@ -97,6 +99,7 @@ export interface DataSourcesType {
   climbs: MutableClimbDataSource
   xmedia: XMediaDataSource
   post: PostDataSource
+  users: UserDataSource
 }
 
 export interface Context {
