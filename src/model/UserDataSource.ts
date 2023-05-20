@@ -40,7 +40,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       throw new Error('Nothing to update. Must provide at least one field.')
     }
 
-    if (!isValidUsername(_username)) {
+    if (_username != null && !isValidUsername(_username)) {
       throw new Error('Invalid username format.')
     }
 
