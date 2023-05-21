@@ -1,6 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
-import muid from 'uuid-mongodb'
+import muid, { MUUID } from 'uuid-mongodb'
 import fs from 'fs'
 import { gql } from 'apollo-server'
 import { DocumentNode } from 'graphql'
@@ -20,7 +19,6 @@ import { ClimbMutations } from './climb/index.js'
 import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
 import { TickMutations, TickQueries } from './tick/index.js'
 import { UserQueries, UserMutations, UserResolvers } from './user/index.js'
-import MediaDataSource from '../model/MediaDataSource.js'
 import { getAuthorMetadataFromBaseNode } from '../db/utils/index.js'
 import { geojsonPointToLatitude, geojsonPointToLongitude } from '../utils/helpers.js'
 
@@ -77,8 +75,8 @@ const resolvers = {
     climb: async (
       _,
       { uuid }: QueryByIdType,
-      { dataSources }) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
+      { dataSources }: Context) => {
+      const { areas } = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
       }
@@ -88,33 +86,34 @@ const resolvers = {
     areas: async (
       _,
       { filter, sort }: { filter?: GQLFilter, sort?: Sort },
-      { dataSources }
+      { dataSources }: Context
     ) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
+      const { areas } = dataSources
       const filtered = await areas.findAreasByFilter(filter)
       return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
 
     area: async (_: any,
       { uuid }: QueryByIdType,
-      context, info) => {
-      const { dataSources } = context
-      const { areas }: { areas: AreaDataSource } = dataSources
+      { dataSources }: Context
+    ) => {
+      const { areas } = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneAreaByUUID(muid.from(uuid))
       }
       return null
     },
 
-    stats: async (parent: any, args: any, { dataSources }) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
+    stats: async (parent: any, args: any, { dataSources }: Context) => {
+      const { areas } = dataSources
       return await areas.getStats()
     },
 
     cragsNear: async (
       node: any,
       args,
-      { dataSources }: { dataSources: DataSources<AreaDataSource> }) => {
+      { dataSources }: Context
+    ) => {
       const { placeId, lnglat, minDistance, maxDistance, includeCrags } = args
       const areas = dataSources.areas as AreaDataSource
       return await areas.getCragsNear(
@@ -176,8 +175,8 @@ const resolvers = {
 
     ancestors: (node: ClimbGQLQueryType) => node.ancestors.split(','),
 
-    media: async (node: ClimbType, args: any, { dataSources }) => {
-      const { media }: { media: MediaDataSource } = dataSources
+    media: async (node: ClimbType, args: any, { dataSources }: Context) => {
+      const { media } = dataSources
       return await media.findMediaByClimbId(node._id, node.name)
     },
 
@@ -201,9 +200,9 @@ const resolvers = {
     // New camel case field
     areaName: async (node: AreaType) => node.area_name,
 
-    children: async (parent: AreaType, _, { dataSources: { areas } }) => {
+    children: async (parent: AreaType, _, { dataSources: { areas } }: Context) => {
       if (parent.children.length > 0) {
-        return areas.findManyByIds(parent.children)
+        return await areas.findManyByIds(parent.children)
       }
       return []
     },
@@ -214,20 +213,19 @@ const resolvers = {
 
     ancestors: async (parent) => parent.ancestors.split(','),
 
-    climbs: async (node: AreaType, _, { dataSources: { areas } }) => {
+    climbs: async (node: AreaType, _, { dataSources: { areas } }: Context) => {
       if ((node?.climbs?.length ?? 0) === 0) {
         return []
       }
-
-      const { climbs } = node
-
+      const result = node.climbs
       // Test to see if we have actual climb object returned from findOneAreaByUUID()
-      if ((climbs[0] as ClimbType)?.name != null) {
-        return climbs
+      const isClimbTypeArray = (x: any[]): x is ClimbType[] => x[0].name != null
+      if (isClimbTypeArray(result)) {
+        return result
       }
 
       // List of IDs, we need to convert them into actual climbs
-      return areas.findManyClimbsByUuids(node.climbs)
+      return await areas.findManyClimbsByUuids(result as MUUID[])
     },
 
     metadata: (node: AreaType) => {
@@ -251,8 +249,8 @@ const resolvers = {
       })
     },
 
-    media: async (node: any, args: any, { dataSources }) => {
-      const { media }: { media: MediaDataSource } = dataSources
+    media: async (node: any, args: any, { dataSources }: Context) => {
+      const { media } = dataSources
       return await media.findMediaByAreaId(node.metadata.area_id, node.ancestors)
     },
 
