@@ -7,7 +7,7 @@ import { getAreaModel, getMediaModel, getMediaObjectModel } from '../db/index.js
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
-import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
+import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import { logger } from '../logger.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
@@ -117,7 +117,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     throw new Error(`Area ${uuid.toUUID().toString()} not found.`)
   }
 
-  async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<any> {
+  async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<ClimbType[]> {
     const rs = await this.climbModel.find().where('_id').in(uuidList)
     return rs
   }
