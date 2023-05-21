@@ -9,7 +9,7 @@ import MediaDataSource from './MediaDataSource.js'
 
 const QUERY_OPTIONS = { upsert: true, new: true, overwrite: false }
 
-export default class MutableAreaDataSource extends MediaDataSource {
+export default class MutableMediaDataSource extends MediaDataSource {
   async setTag ({ mediaUuid, mediaType, mediaUrl, destType, destinationId }: MediaInputType): Promise<TagEntryResultType | null> {
     let modelType: RefModelType
     const media = getMediaModel()
