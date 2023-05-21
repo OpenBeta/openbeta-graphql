@@ -15,6 +15,9 @@ type Mutation {
 }
 
 type Query {
+  "Check to see if a username already exist in the database"
+  usernameExists(username: String!): Boolean
+
   "Get user name mapping"
   getUsername(userUuid: ID!): UsernameMapping
 

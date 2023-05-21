@@ -13,8 +13,33 @@ import { trimToNull } from '../utils/sanitize.js'
 
 const USERNAME_UPDATE_WAITING_IN_DAYS = 14
 
+export const nonAlphanumericRegex = /[\W_\s]+/g
+
 export default class UserDataSource extends MongoDataSource<User> {
   userModel = getUserModel()
+
+  /**
+   * Check to see if a username exists.
+   * @param username
+   * @returns true if exists
+   */
+  async usernameExists (username: string): Promise<boolean> {
+    const _username = trimToNull(username)
+    if (_username == null) {
+      return false
+    }
+    try {
+      const rs = await this.userModel.find(
+        { 'usernameInfo.canonicalName': { $exists: true, $eq: _username.replaceAll(nonAlphanumericRegex, '') } },
+        {
+          _id: 0,
+          'usernameInfo.canonicalName': 1
+        }).lean()
+      return rs?.length > 0
+    } catch (e) {
+      return true // assume the username exists in case of an unexpected error
+    }
+  }
 
   /**
    * Update user profile.  Create a new user object if not defined.
@@ -75,6 +100,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       if (username != null) {
         usernameInfo = {
           username,
+          canonicalName: username.replaceAll(nonAlphanumericRegex, ''),
           updatedAt: new Date()
         }
       }

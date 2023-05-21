@@ -16,6 +16,7 @@ export interface ExperimentalAuthorType {
 
 export interface UsernameInfo {
   username: string
+  canonicalName: string
   updatedAt: Date
 }
 export interface User {

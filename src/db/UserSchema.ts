@@ -27,7 +27,8 @@ export const getExperimentalUserModel = (): mongoose.Model<ExperimentalUserType>
 }
 
 const UsernameSchema = new Schema<UsernameInfo>({
-  username: { type: Schema.Types.String }
+  username: { type: Schema.Types.String, required: true },
+  canonicalName: { type: Schema.Types.String, required: true }
 }, {
   _id: false,
   timestamps: {
@@ -64,6 +65,7 @@ export const UserSchema = new Schema<User>({
  * For sorting by most recent
  */
 UserSchema.index({ createdAt: -1 })
+UserSchema.index({ 'usernameInfo.canonicalName': 1 }, { sparse: true, unique: true })
 
 export const getUserModel = (): mongoose.Model<User> => {
   return mongoose.model('users', UserSchema)

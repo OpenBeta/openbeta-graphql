@@ -5,6 +5,7 @@ import fs from 'fs'
 import { connectDB, gracefulExit, getUserModel } from '../../../index.js'
 import { logger } from '../../../../logger.js'
 import { User } from '../../../UserTypes.js'
+import { nonAlphanumericRegex } from '../../../../model/UserDataSource.js'
 
 const LOCAL_MEDIA_DIR_UID = process.env.LOCAL_MEDIA_DIR_UID
 
@@ -41,6 +42,7 @@ const onConnected = async (): Promise<void> => {
       _id: userUuid,
       usernameInfo: {
         username: uid as string,
+        canonicalName: uid.replaceAll(nonAlphanumericRegex, ''),
         updatedAt: new Date(ts)
       },
       createdBy: userUuid
