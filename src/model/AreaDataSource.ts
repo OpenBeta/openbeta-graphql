@@ -108,6 +108,12 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
           $set: {
             'climbs.gradeContext': '$gradeContext' // manually set area's grade context to climb
           }
+        },
+        {
+          $set: {
+            climbs: { $sortArray: { input: '$climbs', sortBy: { 'metadata.left_right_index': 1 } } },
+            children: { $sortArray: { input: '$children', sortBy: { 'metadata.leftRightIndex': 1 } } }
+          }
         }
       ])
 

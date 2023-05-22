@@ -20,7 +20,7 @@ import { OrganizationMutations, OrganizationQueries } from './organization/index
 import { TickMutations, TickQueries } from './tick/index.js'
 import { UserQueries, UserMutations, UserResolvers } from './user/index.js'
 import { getAuthorMetadataFromBaseNode } from '../db/utils/index.js'
-import { compareAreaLeftRightIndex, compareClimbLeftRightIndex, geojsonPointToLatitude, geojsonPointToLongitude } from '../utils/helpers.js'
+import { geojsonPointToLatitude, geojsonPointToLongitude } from '../utils/helpers.js'
 
 /**
  * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode.
@@ -202,7 +202,7 @@ const resolvers = {
 
     children: async (parent: AreaType, _, { dataSources: { areas } }: Context) => {
       if (parent.children.length > 0) {
-        return (await areas.findManyByIds(parent.children)).sort(compareAreaLeftRightIndex)
+        return await areas.findManyByIds(parent.children)
       }
       return []
     },
@@ -221,11 +221,11 @@ const resolvers = {
       // Test to see if we have actual climb object returned from findOneAreaByUUID()
       const isClimbTypeArray = (x: any[]): x is ClimbType[] => x[0].name != null
       if (isClimbTypeArray(result)) {
-        return result.sort(compareClimbLeftRightIndex)
+        return result
       }
 
       // List of IDs, we need to convert them into actual climbs
-      return (await areas.findManyClimbsByUuids(result as MUUID[])).sort(compareClimbLeftRightIndex)
+      return await areas.findManyClimbsByUuids(result as MUUID[])
     },
 
     metadata: (node: AreaType) => {

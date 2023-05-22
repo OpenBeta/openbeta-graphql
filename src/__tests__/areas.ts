@@ -202,6 +202,7 @@ describe('areas API', () => {
       })
       expect(areaClimbsResponse.statusCode).toBe(200)
       const areaResult = areaClimbsResponse.body.data.area
+      console.log(areaClimbsResponse.body)
       // In leftRightIndex order
       expect(areaResult.climbs[0]).toMatchObject({ name: 'left', metadata: { leftRightIndex: 0 } })
       expect(areaResult.climbs[1]).toMatchObject({ name: 'middle', metadata: { leftRightIndex: 1 } })
