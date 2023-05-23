@@ -202,7 +202,7 @@ const resolvers = {
 
     children: async (parent: AreaType, _, { dataSources: { areas } }: Context) => {
       if (parent.children.length > 0) {
-        return await areas.findManyByIds(parent.children)
+        return await areas.findChildren(parent.children)
       }
       return []
     },

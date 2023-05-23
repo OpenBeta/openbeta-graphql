@@ -2,6 +2,7 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import muuid from 'uuid-mongodb'
 import bboxPolygon from '@turf/bbox-polygon'
+import { Types as mongooseTypes } from 'mongoose'
 
 import { getAreaModel, getMediaModel, getMediaObjectModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
@@ -111,8 +112,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         },
         {
           $set: {
-            climbs: { $sortArray: { input: '$climbs', sortBy: { 'metadata.left_right_index': 1 } } },
-            children: { $sortArray: { input: '$children', sortBy: { 'metadata.leftRightIndex': 1 } } }
+            climbs: { $sortArray: { input: '$climbs', sortBy: { 'metadata.left_right_index': 1 } } }
           }
         }
       ])
@@ -121,6 +121,11 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       return rs[0]
     }
     throw new Error(`Area ${uuid.toUUID().toString()} not found.`)
+  }
+
+  async findChildren (children: mongooseTypes.ObjectId[]): Promise<AreaType[]> {
+    return await this.areaModel.find().where('_id').in(children)
+      .sort({ 'metadata.leftRightIndex': 1 }).lean()
   }
 
   async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<ClimbType[]> {
