@@ -105,6 +105,14 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             as: 'climbs' // clobber array of climb IDs with climb objects
           }
         },
+        { // Self-join to populate children areas.
+          $lookup: {
+            from: 'areas',
+            localField: 'children',
+            foreignField: '_id',
+            as: 'children'
+          }
+        },
         {
           $set: {
             'climbs.gradeContext': '$gradeContext' // manually set area's grade context to climb
@@ -112,7 +120,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         },
         {
           $set: {
-            climbs: { $sortArray: { input: '$climbs', sortBy: { 'metadata.left_right_index': 1 } } }
+            climbs: { $sortArray: { input: '$climbs', sortBy: { 'metadata.left_right_index': 1 } } },
+            children: { $sortArray: { input: '$children', sortBy: { 'metadata.leftRightIndex': 1 } } }
           }
         }
       ])
@@ -121,11 +130,6 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       return rs[0]
     }
     throw new Error(`Area ${uuid.toUUID().toString()} not found.`)
-  }
-
-  async findChildren (children: mongooseTypes.ObjectId[]): Promise<AreaType[]> {
-    return await this.areaModel.find().where('_id').in(children)
-      .sort({ 'metadata.leftRightIndex': 1 }).lean()
   }
 
   async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<ClimbType[]> {
