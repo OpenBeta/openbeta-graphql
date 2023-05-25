@@ -2,12 +2,13 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import muuid from 'uuid-mongodb'
 import bboxPolygon from '@turf/bbox-polygon'
+import { Types as mongooseTypes } from 'mongoose'
 
 import { getAreaModel, getMediaModel, getMediaObjectModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
-import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
+import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import { logger } from '../logger.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
@@ -104,9 +105,23 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
             as: 'climbs' // clobber array of climb IDs with climb objects
           }
         },
+        { // Self-join to populate children areas.
+          $lookup: {
+            from: 'areas',
+            localField: 'children',
+            foreignField: '_id',
+            as: 'children'
+          }
+        },
         {
           $set: {
             'climbs.gradeContext': '$gradeContext' // manually set area's grade context to climb
+          }
+        },
+        {
+          $set: {
+            climbs: { $sortArray: { input: '$climbs', sortBy: { 'metadata.left_right_index': 1 } } },
+            children: { $sortArray: { input: '$children', sortBy: { 'metadata.leftRightIndex': 1 } } }
           }
         }
       ])
@@ -117,7 +132,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     throw new Error(`Area ${uuid.toUUID().toString()} not found.`)
   }
 
-  async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<any> {
+  async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<ClimbType[]> {
     const rs = await this.climbModel.find().where('_id').in(uuidList)
     return rs
   }
