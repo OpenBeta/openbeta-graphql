@@ -74,8 +74,9 @@ export interface TickType {
    * Not the same as date created. Ticks can be back-filled by the user, and do
    * not need to be logged at the time that the tick is created inside the mongo
    * database.
+   * This is a string because we do not enforce any particular date format at this time.
    */
-  dateClimbed: Date
+  dateClimbed: string
 
   /**
    * What grade is this tick ascociated with?
