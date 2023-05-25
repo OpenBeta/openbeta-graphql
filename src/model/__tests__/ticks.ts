@@ -11,7 +11,7 @@ const toTest: TickType = {
   userId: 'abc123',
   style: 'Lead',
   attemptType: 'Onsight',
-  dateClimbed: '12/12/12',
+  dateClimbed: new Date('2012-12-12'),
   grade: '5.7',
   source: 'MP'
 }
@@ -23,7 +23,7 @@ const toTest2: TickType = {
   userId: 'abc123',
   style: 'Lead',
   attemptType: 'Flash',
-  dateClimbed: '12/10/15',
+  dateClimbed: new Date('2012-10-15'),
   grade: '5.10',
   source: 'MP'
 }
@@ -181,7 +181,7 @@ describe('Ticks', () => {
       userId: 'user123',
       style: 'Lead',
       attemptType: 'Fell/Hung',
-      dateClimbed: '12/12/12',
+      dateClimbed: new Date('2012-12-12'),
       grade: '5.7',
       source: 'OB'
     }

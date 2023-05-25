@@ -18,7 +18,7 @@ export const TickSchema = new Schema<TickType>({
   userId: { type: Schema.Types.String, required: true, index: true },
   style: { type: Schema.Types.String, required: true, default: '' },
   attemptType: { type: Schema.Types.String, required: true, index: true, default: '' },
-  dateClimbed: { type: Schema.Types.String, required: true },
+  dateClimbed: { type: Schema.Types.Date, required: true },
   grade: { type: Schema.Types.String, required: true, index: true },
   // Bear in mind that these enum types must be kept in sync with the TickSource enum
   source: { type: Schema.Types.String, enum: ['MP', 'OB'] as TickSource[], required: true, index: true }
