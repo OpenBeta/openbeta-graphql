@@ -5,14 +5,16 @@ import { getTickModel } from '../../../TickSchema.js'
 /**
  * Converts dateClimbed field on ticks from string to date.
  */
-const onConnected = async (): Promise<void> => {
+export const onConnected = async (): Promise<void> => {
   logger.info('Migrating ticks...')
   const tickModel = getTickModel()
 
-  await (await tickModel.updateMany(
-    { dateClimbed: { $exists: true } },
+  await (await tickModel.aggregate([
     {
-      $set: {
+      $match: { dateClimbed: { $exists: true } }
+    },
+    {
+      $project: {
         dateClimbed: {
           $dateFromString: {
             dateString: '$dateClimbed',
@@ -24,7 +26,7 @@ const onConnected = async (): Promise<void> => {
         }
       }
     }
-  ))
+  ]))
 }
 
 void connectDB(onConnected)

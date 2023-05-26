@@ -30,7 +30,7 @@ describe('ticks API', () => {
       userId: userUuid,
       style: 'Lead',
       attemptType: 'Onsight',
-      dateClimbed: '2016-07-20T17:30:15+05:30',
+      dateClimbed: new Date('2016-07-20T17:30:15+05:30'),
       grade: '5.8',
       source: 'MP'
     }
@@ -94,7 +94,7 @@ describe('ticks API', () => {
       expect(createTickRes.userId).toBe(tickOne.userId)
       expect(createTickRes.style).toBe(tickOne.style)
       expect(createTickRes.attemptType).toBe(tickOne.attemptType)
-      expect(createTickRes.dateClimbed).toBe(tickOne.dateClimbed)
+      expect(createTickRes.dateClimbed).toBe(new Date(tickOne.dateClimbed).getTime())
       expect(createTickRes.grade).toBe(tickOne.grade)
       expect(createTickRes.source).toBe(tickOne.source)
       expect(createTickRes._id).toBeTruthy()

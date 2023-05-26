@@ -95,7 +95,7 @@ type TickType {
   database.
   This is a string because we do not enforce any particular date format at this time.
   """
-  dateClimbed: String
+  dateClimbed: Date
   """
   What grade is this tick ascociated with?
   This exists in the tick document both for easy-fetching and to ensure
@@ -127,7 +127,7 @@ input Tick {
   userId: String!
   style: String
   attemptType: String
-  dateClimbed: String!
+  dateClimbed: Date!
   grade: String!
   source: TickSource!
 }
@@ -136,7 +136,7 @@ input Tick {
 Takes in the MongoId and a tick object to replace the old tick object with
 """
 input TickFilter {
-  _id: String
+  _id: ID!
   updatedTick: Tick
 }
 
