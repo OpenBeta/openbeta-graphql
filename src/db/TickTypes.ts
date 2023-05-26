@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 
 /**
  * Ticks may be sourced from a number of places. They may come from external sources,
@@ -20,7 +21,11 @@ export const TickSourceValues: TickSource[] = ['OB', 'MP']
  * Ticks represent log entries for a user's climbing activity. They contain
  * pointers to the climb, user, and some additional context for the climb.
  */
-export interface TickType {
+export interface TickType extends TickInput {
+  _id: mongoose.Types.ObjectId
+}
+
+export interface TickInput {
   /**
    * freeform text field that a user fills out as commentary on this tick. This unstructured data
    * is one of the most important ones on the tick, as users may give their human opinion on the
@@ -95,5 +100,5 @@ export interface TickType {
 }
 
 export interface TickEditFilterType {
-  _id: string
+  _id: mongoose.Types.ObjectId
 }

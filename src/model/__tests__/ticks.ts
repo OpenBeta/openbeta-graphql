@@ -2,9 +2,9 @@ import mongoose from 'mongoose'
 import { produce } from 'immer'
 import TickDataSource from '../TickDataSource.js'
 import { connectDB, getTickModel } from '../../db/index.js'
-import { TickType } from '../../db/TickTypes.js'
+import { TickInput } from '../../db/TickTypes.js'
 
-const toTest: TickType = {
+const toTest: TickInput = {
   name: 'Small Dog',
   notes: 'Sandbagged',
   climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',
@@ -16,7 +16,7 @@ const toTest: TickType = {
   source: 'MP'
 }
 
-const toTest2: TickType = {
+const toTest2: TickInput = {
   name: 'Sloppy Peaches',
   notes: 'v sloppy',
   climbId: 'b767d949-0daf-5af3-b1f1-626de8c84b2a',
@@ -28,13 +28,13 @@ const toTest2: TickType = {
   source: 'MP'
 }
 
-const tickUpdate: TickType = produce(toTest, draft => {
+const tickUpdate: TickInput = produce(toTest, draft => {
   draft.notes = 'Not sandbagged'
   draft.attemptType = 'Fell/Hung'
   draft.source = 'OB'
 })
 
-const testImport: TickType[] = [
+const testImport: TickInput[] = [
   toTest, toTest2, tickUpdate
 ]
 
@@ -174,7 +174,7 @@ describe('Ticks', () => {
   })
 
   it('should reject duplicate ticks', async () => {
-    const tick1: TickType = {
+    const tick1: TickInput = {
       name: 'Small Dog',
       notes: 'Not sandbagged',
       climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',

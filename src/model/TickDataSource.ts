@@ -1,47 +1,34 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
-import { TickEditFilterType, TickType } from '../db/TickTypes'
+import type { DeleteResult } from 'mongodb'
+import mongoose from 'mongoose'
+
+import { TickEditFilterType, TickInput, TickType } from '../db/TickTypes'
 import { getTickModel } from '../db/index.js'
 
 export default class TickDataSource extends MongoDataSource<TickType> {
   tickModel = getTickModel()
 
   /**
-     * @param tick
-     * takes in a new tick
-     * @returns
-     * returns that new tick
-     */
-  async addTick (tick: TickType): Promise<any> {
-    if (tick === undefined || tick === null) {
-      throw new Error('Failed to add tick, Reason: a tick was not provided')
-    }
-    const res: TickType = await this.tickModel.create({ ...tick })
-    return res
+   * @param tick takes in a new tick
+   * @returns new tick
+   */
+  async addTick (tick: TickInput): Promise<TickType> {
+    return await this.tickModel.create({ ...tick })
   }
 
   /**
-   *
-   * @param userId
-   * takes in the userId and deletes all ticks previously imported
-   * from mountain project
-   *
+   * Deletes all ticks previously imported from Mountain Project
+   * @param userId user to delete ticks of
    */
-  async deleteImportedTicks (userId: string): Promise<any> {
-    if (userId === undefined || userId === null) {
-      throw new Error('Failed to delete previously imported ticks, Reason: userId was not provided')
-    }
+  async deleteImportedTicks (userId: string): Promise<DeleteResult> {
     try {
-      const res = await this.tickModel.deleteMany({ userId, source: 'MP' })
-      return res
+      return await this.tickModel.deleteMany({ userId, source: 'MP' })
     } catch (e) {
       throw new Error(e)
     }
   }
 
-  async deleteAllTicks (userId: string): Promise<any> {
-    if (userId === undefined || userId === null) {
-      throw new Error('Failed to delete previously imported ticks, Reason: userId was not provided')
-    }
+  async deleteAllTicks (userId: string): Promise<DeleteResult> {
     try {
       const res = await this.tickModel.deleteMany({ userId })
       return res
@@ -51,48 +38,31 @@ export default class TickDataSource extends MongoDataSource<TickType> {
   }
 
   /**
-     * @param _id
-     * takes in the mongodb _id value of the tick
-     * and deletes that tick
-     */
-  async deleteTick (_id: string): Promise<any> {
-    if (_id === undefined) {
-      throw new Error('Failed to delete tick, Reason: an Id needs to be provided')
-    }
+   * Takes in the MongoDB _id value of the tick and deletes that tick
+   * @param _id
+   */
+  async deleteTick (_id: mongoose.Types.ObjectId): Promise<DeleteResult> {
     try {
-      const res = await this.tickModel.deleteOne({ _id })
-      return res
+      return await this.tickModel.deleteOne({ _id })
     } catch (e) {
       throw new Error(e)
     }
   }
 
   /**
-     * @param filter
-     * the mongodb _id value of the tick
-     * @param updatedTick
-     * the changes to be made to the tick
-     * @returns
-     * the new/updated tick
-     */
-  async editTick (filter: TickEditFilterType, updatedTick: TickType): Promise<any> {
-    if (filter === undefined) {
-      throw new Error('Failed to edit tick, Reason: filter is not defined')
-    }
-    if (updatedTick === undefined || updatedTick === null) {
-      throw new Error('Failed to edit tick, Reason: updated tick is not defined')
-    }
-    const res: TickType | null = await this.tickModel.findOneAndUpdate(filter, updatedTick, { new: true })
-    return res
+   * @param filter the MongoDB _id value of the tick
+   * @param updatedTick the changes to be made to the tick
+   * @returns the new/updated tick
+   */
+  async editTick (filter: TickEditFilterType, updatedTick: TickInput): Promise<TickType | null> {
+    return await this.tickModel.findOneAndUpdate(filter, updatedTick, { new: true })
   }
 
   /**
-     * @param ticks
-     * takes in an array of ticks, with the Mountain project id already hashed to the open-tacos id
-     * @returns
-     * an array of ticks, just created in the database
-     */
-  async importTicks (ticks: TickType[]): Promise<any> {
+   * @param ticks an array of ticks, with the Mountain Project id already hashed to the OpenTacos id
+   * @returns an array of ticks, just created in the database
+   */
+  async importTicks (ticks: TickInput[]): Promise<TickType[]> {
     if (ticks.length > 0) {
       const res: TickType[] = await this.tickModel.insertMany(ticks)
       return res
@@ -101,17 +71,13 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     }
   }
 
-  async ticksByUser (userId: string): Promise<any> {
-    if (userId != null) {
-      const res: TickType[] = await this.tickModel.find({ userId })
-      return res
-    }
+  async ticksByUser (userId: string): Promise<TickType[]> {
+    return await this.tickModel.find({ userId })
   }
 
-  async ticksByUserAndClimb (userId: string, climbId: string): Promise<any> {
-    if (userId != null && climbId != null) {
-      const res: TickType[] = await this.tickModel.find({ userId, climbId })
-      return res
-    }
+  async ticksByUserAndClimb (userId: string, climbId: string): Promise<TickType[]> {
+    return await this.tickModel.find({ userId, climbId })
   }
 }
+
+export const createInstance = (): TickDataSource => new TickDataSource(mongoose.connection.db.collection('ticks'))
