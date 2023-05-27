@@ -1,4 +1,4 @@
-import { connectDB } from '../../../index.js'
+import { /* connectDB, */gracefulExit } from '../../../index.js'
 import { logger } from '../../../../logger.js'
 import { getTickModel } from '../../../TickSchema.js'
 
@@ -27,6 +27,9 @@ export const onConnected = async (): Promise<void> => {
       }
     }
   ]))
+
+  await gracefulExit()
 }
 
-void connectDB(onConnected)
+// This makes ../__test__/ConvertTickDateClimbedToDate.ts error when importing this file.
+// void connectDB(onConnected)
