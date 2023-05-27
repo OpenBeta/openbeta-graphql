@@ -28,9 +28,7 @@ describe('ConvertTickDateClimbedToDate migration', () => {
     await inMemoryDB.close()
   })
 
-  // This will throw an error due to multiple Mongoose connections.
-  // To test locally, comment out `void connectDB(onConnected)` in ../ConvertTickDateClimbedToDate
-  it.skip('migrates dateClimbed from string to date', async () => {
+  it('migrates dateClimbed from string to date', async () => {
     // Mock data in existing state where dateClimbed is a string.
     const docs = [{
       name: 'myclimbname',
@@ -51,7 +49,6 @@ describe('ConvertTickDateClimbedToDate migration', () => {
     // Verify migration worked
     const tickRes = await ticks.ticksByUser(userUuid)
     expect(tickRes).toHaveLength(1)
-    console.log(tickRes[0])
     expect(tickRes[0].dateClimbed).toEqual(new Date('2022-12-01'))
     // ^ Somehow timezone setting doesn't work in local Mongo -- so these get converted to UTC.
   })
