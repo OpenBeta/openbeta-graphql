@@ -9,16 +9,17 @@ import { logger } from '../logger.js'
  * More portable than requiring user to set up Mongo in a background Docker process.
  * Need a replset to faciliate transactions.
  */
-const mongod = await MongoMemoryReplSet.create({
-  // Stream listener listens on DB denoted by 'MONGO_DBNAME' env var.
-  replSet: { count: 1, storageEngine: 'wiredTiger', dbName: checkVar('MONGO_DBNAME') }
-})
+let mongod: MongoMemoryReplSet
 let stream: ChangeStream
 
 /**
  * Connect to the in-memory database.
  */
 const connect = async (): Promise<void> => {
+  mongod = await MongoMemoryReplSet.create({
+    // Stream listener listens on DB denoted by 'MONGO_DBNAME' env var.
+    replSet: { count: 1, storageEngine: 'wiredTiger', dbName: checkVar('MONGO_DBNAME') }
+  })
   const uri = await mongod.getUri(checkVar('MONGO_DBNAME'))
   logger.info(`Connecting to in-memory database ${uri}`)
   const mongooseOpts: ConnectOptions = {
