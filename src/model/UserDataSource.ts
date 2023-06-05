@@ -17,6 +17,16 @@ const USERNAME_UPDATE_WAITING_IN_DAYS = 14
 export const nonAlphanumericRegex = /[\W_\s]+/g
 
 export default class UserDataSource extends MongoDataSource<User> {
+  static PUBLIC_PROFILE_PROJECTION = {
+    _id: 1,
+    username: '$usernameInfo.username',
+    displayName: 1,
+    bio: 1,
+    website: 1,
+    avatar: 1,
+    email: 1
+  }
+
   userModel = getUserModel()
 
   /**
@@ -61,6 +71,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       displayName: _displayName,
       bio: _bio,
       website: _website,
+      avatar: _avatar,
       email,
       userUuid
     } = input
@@ -77,13 +88,15 @@ export default class UserDataSource extends MongoDataSource<User> {
     const displayName = trimToNull(_displayName)
     const bio = trimToNull(_bio)
     const website = trimToNull(_website)
+    const avatar = trimToNull(_avatar)
 
     const _id = muid.from(userUuid)
     if (
       username == null &&
       displayName == null &&
       bio == null &&
-      website == null
+      website == null &&
+      avatar == null
     ) {
       throw new Error('Nothing to update. Must provide at least one field.')
     }
@@ -118,6 +131,7 @@ export default class UserDataSource extends MongoDataSource<User> {
           ...(usernameInfo != null && { usernameInfo }),
           ...(bio != null && { bio }),
           ...(website != null && { website }),
+          ...(avatar != null && { avatar }),
           emailVerified: true,
           updatedBy: updater
         }
@@ -155,16 +169,8 @@ export default class UserDataSource extends MongoDataSource<User> {
       rs.website = website
     }
 
-    // if (emailVerified === true && rs.emailVerified === true) {
-    //   rs.emailVerified = true
-    // }
-
-    /**
-     * Only update email if field is empty.  We need a separate flow
-     * for updating/verifying email (TBD).
-     */
-    if (email != null && rs.email == null) {
-      rs.email = email
+    if (avatar != null && avatar !== rs.avatar) {
+      rs.avatar = avatar
     }
 
     rs.updatedBy = updater
@@ -202,18 +208,16 @@ export default class UserDataSource extends MongoDataSource<User> {
   }
 
   /**
-   * Get user profile data by user id
+   * Get user public profile by userUuid
    * @param userUuid
    */
-  async getUserProfile (userUuid: MUUID): Promise<User | null> {
-    const rs = await this.userModel.findOne({ _id: userUuid }).lean()
-
-    return rs
+  async getUserPublicProfileByUuid (userUuid: MUUID): Promise<UserPublicProfile | null> {
+    return await this.userModel.findOne({ _id: userUuid }, UserDataSource.PUBLIC_PROFILE_PROJECTION).lean()
   }
 
   /**
-   * Get user profile data by user id
-   * @param userUuid
+   * Get user profile data by user name
+   * @param username username
    */
   async getUserPublicProfile (username: string): Promise<UserPublicProfile | null> {
     if (!isValidUsername(username)) {
@@ -225,15 +229,7 @@ export default class UserDataSource extends MongoDataSource<User> {
           $exists: true, $eq: username
         }
       },
-      {
-        _id: 1,
-        username: '$usernameInfo.username',
-        displayName: 1,
-        bio: 1,
-        website: 1,
-        avatar: 1,
-        email: 1
-      }
+      UserDataSource.PUBLIC_PROFILE_PROJECTION
     ).lean()
   }
 

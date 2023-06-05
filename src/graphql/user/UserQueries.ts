@@ -2,7 +2,7 @@ import muuid from 'uuid-mongodb'
 import { GraphQLError } from 'graphql'
 
 import { DataSourcesType, ContextWithAuth, Context } from '../../types'
-import { GetUsernameReturn, User, UserPublicPage } from '../../db/UserTypes'
+import { GetUsernameReturn, UserPublicProfile, UserPublicPage } from '../../db/UserTypes'
 
 const UserQueries = {
 
@@ -17,10 +17,10 @@ const UserQueries = {
     return await users.getUsername(uuid)
   },
 
-  getUserProfile: async (_: any, { input }, { dataSources }: ContextWithAuth): Promise<User | null> => {
+  getUserPublicProfileByUuid: async (_: any, { input }, { dataSources }: ContextWithAuth): Promise<UserPublicProfile | null> => {
     const { users }: DataSourcesType = dataSources
     const uuid = muuid.from(input.userUuid)
-    return await users.getUserProfile(uuid)
+    return await users.getUserPublicProfileByUuid(uuid)
   },
 
   getUserPublicPage: async (_: any, { input }, { dataSources }: Context): Promise<UserPublicPage | null> => {

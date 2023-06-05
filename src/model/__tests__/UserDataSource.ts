@@ -139,9 +139,9 @@ describe('UserDataSource', () => {
     }
     await users.createOrUpdateUserProfile(updater, newInput)
 
-    const updatedUser = await users.getUserProfile(muuid.from(newInput.userUuid))
+    const updatedUser = await users.getUserPublicProfileByUuid(muuid.from(newInput.userUuid))
 
-    expect(updatedUser?.usernameInfo?.username).toEqual(newInput.username)
+    expect(updatedUser?.username).toEqual(newInput.username)
   })
 
   it('should reject invalid website url', async () => {

@@ -10,11 +10,7 @@ const UserResolvers: object = {
     userUuid: (node: UserPublicProfile) => node._id.toUUID().toString()
   },
 
-  Username: {
-    lastUpdated: (node: GetUsernameReturn) => node.updatedAt
-  },
-
-  UsernameMapping: {
+  UsernameDetail: {
     userUuid: (node: GetUsernameReturn) => node._id.toUUID().toString(),
     lastUpdated: (node: GetUsernameReturn) => node.updatedAt
   }
