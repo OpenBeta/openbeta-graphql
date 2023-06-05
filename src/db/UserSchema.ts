@@ -47,6 +47,7 @@ export const UserSchema = new Schema<User>({
   displayName: { type: Schema.Types.String },
   bio: { type: Schema.Types.String },
   website: { type: Schema.Types.String },
+  avatar: { type: Schema.Types.String },
   usernameInfo: { type: UsernameSchema, required: false },
   createdBy: {
     type: 'object',

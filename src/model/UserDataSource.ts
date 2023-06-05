@@ -7,7 +7,8 @@ import {
   User,
   UpdateProfileGQLInput,
   UsernameInfo,
-  GetUsernameReturn
+  GetUsernameReturn,
+  UserPublicProfile
 } from '../db/UserTypes.js'
 import { trimToNull } from '../utils/sanitize.js'
 
@@ -208,6 +209,32 @@ export default class UserDataSource extends MongoDataSource<User> {
     const rs = await this.userModel.findOne({ _id: userUuid }).lean()
 
     return rs
+  }
+
+  /**
+   * Get user profile data by user id
+   * @param userUuid
+   */
+  async getUserPublicProfile (username: string): Promise<UserPublicProfile | null> {
+    if (!isValidUsername(username)) {
+      throw new Error('Invalid username')
+    }
+    return await this.userModel.findOne<UserPublicProfile>(
+      {
+        'usernameInfo.username': {
+          $exists: true, $eq: username
+        }
+      },
+      {
+        _id: 1,
+        username: '$usernameInfo.username',
+        displayName: 1,
+        bio: 1,
+        website: 1,
+        avatar: 1,
+        email: 1
+      }
+    ).lean()
   }
 
   static calculateLastUpdatedInDays (lastUpdated: Date): number {

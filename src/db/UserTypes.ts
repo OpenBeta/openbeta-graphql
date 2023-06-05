@@ -1,5 +1,5 @@
 import { MUUID } from 'uuid-mongodb'
-
+import { MediaObject } from './MediaObjectTypes.js'
 export interface ExperimentalUserType {
   _id: MUUID
   displayName: string
@@ -27,6 +27,7 @@ export interface User {
   usernameInfo?: UsernameInfo
   website?: string
   bio?: string
+  avatar?: string
   createdAt: Date
   updatedAt: Date
   createdBy: MUUID
@@ -40,6 +41,7 @@ export interface UpdateProfileGQLInput {
   bio?: string
   website?: string
   email?: string
+  avatar?: string
 }
 
 export interface UsernameGQLInput {
@@ -54,4 +56,13 @@ export interface GetUsernameReturn {
   _id: MUUID
   username: string
   updatedAt: Date
+}
+
+export type UserPublicProfile = Pick<User, '_id' | 'displayName' | 'bio' | 'website' | 'avatar'> & {
+  username: string
+}
+
+export interface UserPublicPage {
+  profile: UserPublicProfile
+  mediaList: MediaObject[]
 }

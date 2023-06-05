@@ -45,7 +45,7 @@ const onConnected = async (): Promise<void> => {
 
     if (metadataFromAuth0 == null) continue
 
-    const { username, email, displayName, website, bio } = metadataFromAuth0
+    const { username, email, displayName, website, bio, avatar } = metadataFromAuth0
 
     const newUser: Omit<User, 'createdAt' | 'updatedAt'> = {
       _id: userUuid,
@@ -53,6 +53,7 @@ const onConnected = async (): Promise<void> => {
       displayName,
       bio,
       website,
+      avatar,
       usernameInfo: {
         username,
         canonicalName: username.replaceAll(nonAlphanumericRegex, ''),
@@ -62,11 +63,11 @@ const onConnected = async (): Promise<void> => {
     }
     list.push(newUser)
 
-    // await changelogDataSource._testRemoveAll()
+    // add a delay to avoid hitting Auth0 API rate limits
     // eslint-disable-next-line
-    await new Promise(res => setTimeout(res, 1500))
+    await new Promise(res => setTimeout(res, 800))
 
-    if (list.length === 40) {
+    if (list.length === 10) {
       const rs = await model.insertMany(list)
       count = count + rs.length
       list = []
@@ -113,7 +114,6 @@ const getUserMetadata = async (userUuid: string): Promise<UserFromAtuh0 | null> 
 
   const user = newEmailPasswordUsers[0]
 
-  console.log('#user ', newEmailPasswordUsers, userUuid)
   const { user_metadata: umeta } = user
 
   if (umeta == null) throw new Error('Expect user_metadata but found null: ' + JSON.stringify(user))
@@ -123,8 +123,9 @@ const getUserMetadata = async (userUuid: string): Promise<UserFromAtuh0 | null> 
     userUuid,
     username: umeta.nick,
     email: user.email ?? '',
-    displayName: umeta.displayName ?? '',
-    bio: umeta.bio ?? '',
-    website: umeta?.website ?? ''
+    displayName: umeta.name ?? '',
+    bio: umeta.bio?.trim() ?? '',
+    website: umeta?.website?.trim() ?? '',
+    avatar: user?.picture ?? ''
   }
 }

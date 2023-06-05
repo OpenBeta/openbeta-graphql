@@ -16,11 +16,13 @@ type Query {
   "Check to see if a username already exist in the database"
   usernameExists(input: UsernameInput!): Boolean
 
-  "Get user name from user Uuid"
+  "Get username object by user uuid"
   getUsername(input: UserIDInput!): UsernameMapping
 
   "Get user profile"
   getUserProfile(input: UserIDInput!): UserProfile
+
+  getUserPublicPage(input: UsernameInput!): UserPublicPage
 }
 
 input UsernameInput {
@@ -64,4 +66,18 @@ type UsernameMapping {
   userUuid: ID!
   username: String
   lastUpdated: Date
+}
+
+type UserPublicPage {
+  profile: UserPublicProfile
+  mediaList: [MediaWithTags]
+}
+
+type UserPublicProfile {
+  userUuid: ID!
+  username: String!
+  displayName: String
+  bio: String
+  website: String
+  avatar: String
 }
