@@ -1,8 +1,6 @@
 type Mutation {
   """
   Update a user profile.  Create a new profile if it doesn't exist.
-
-
   Note:  The email field is required when creating a new profile and
   will be ignore in subsequent update calls to prevent users from 
   changing their email.  The frontend  calls this API whenever a user 
@@ -16,22 +14,21 @@ type Mutation {
 
 type Query {
   "Check to see if a username already exist in the database"
-  usernameExists(username: String!): Boolean
+  usernameExists(input: UsernameInput!): Boolean
 
-  "Get user name mapping"
-  getUsername(userUuid: ID!): UsernameMapping
+  "Get user name from user Uuid"
+  getUsername(input: UserIDInput!): UsernameMapping
 
   "Get user profile"
-  getUserProfile(userUuid: ID!): UserProfile
-}
-
-input NewUserInput {
-  userUuid: ID!
+  getUserProfile(input: UserIDInput!): UserProfile
 }
 
 input UsernameInput {
-  userUuid: ID!
   username: String!
+}
+
+input UserIDInput {
+  userUuid: ID!
 }
 
 input UserProfileInput {
@@ -46,7 +43,7 @@ input UserProfileInput {
 
 "User profile"
 type UserProfile {
-  userUuid: ID
+  userUuid: ID!
   "User name detail.  May be 'null' if the user hasn't logged in and created a username."
   usernameInfo: Username
   displayName: String
@@ -65,6 +62,6 @@ type Username {
 "Provide a mapping between user UUID and username"
 type UsernameMapping {
   userUuid: ID!
-  username: String!
-  lastUpdated: Date!
+  username: String
+  lastUpdated: Date
 }

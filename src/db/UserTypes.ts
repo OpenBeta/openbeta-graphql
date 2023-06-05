@@ -33,10 +33,21 @@ export interface User {
   updatedBy?: MUUID
 }
 
-type NotUpdatableFields = 'usernameInfo' | 'createdAt' | 'updatedAt' | 'createdBy'
-
-export type UpdateProfileGQLInput = Omit<User, NotUpdatableFields> & {
+export interface UpdateProfileGQLInput {
   username?: string
+  userUuid: string
+  displayName?: string
+  bio?: string
+  website?: string
+  email?: string
+}
+
+export interface UsernameGQLInput {
+  username: string
+}
+
+export interface UserIdGQLInput {
+  userUuid: string
 }
 
 export interface GetUsernameReturn {

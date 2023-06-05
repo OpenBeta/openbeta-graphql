@@ -93,6 +93,9 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
   }
 
   async findOneAreaByUUID (uuid: muuid.MUUID): Promise<AreaType> {
+    // await this.areaModel.find().where('metadata.leftRightIndex').in([]).sort({ 'metadata.leftRightIndex': 1 }).lean()
+    // // sort({ 'metadata.leftRightIndex': 1 })
+
     const rs = await this.areaModel
       .aggregate([
         { $match: { 'metadata.area_id': uuid, _deleting: { $exists: false } } },
@@ -119,6 +122,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
 
   async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<any> {
     const rs = await this.climbModel.find().where('_id').in(uuidList)
+
     return rs
   }
 

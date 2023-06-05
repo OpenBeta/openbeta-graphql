@@ -1,5 +1,5 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
-import { MUUID } from 'uuid-mongodb'
+import muid, { MUUID } from 'uuid-mongodb'
 import differenceInDays from 'date-fns/differenceInDays/index.js'
 
 import { getUserModel } from '../db/index.js'
@@ -30,7 +30,11 @@ export default class UserDataSource extends MongoDataSource<User> {
     }
     try {
       const rs = await this.userModel.find(
-        { 'usernameInfo.canonicalName': { $exists: true, $eq: _username.replaceAll(nonAlphanumericRegex, '') } },
+        {
+          'usernameInfo.canonicalName': {
+            $exists: true, $eq: _username.replaceAll(nonAlphanumericRegex, '')
+          }
+        },
         {
           _id: 0,
           'usernameInfo.canonicalName': 1
@@ -43,7 +47,7 @@ export default class UserDataSource extends MongoDataSource<User> {
 
   /**
    * Update user profile.  Create a new user object if not defined.
-   * @param userUuid userUuid to update/add
+   * @param updater UUID of the account doing the update
    * @param input profile params
    * @returns true if successful
    */
@@ -57,8 +61,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       bio: _bio,
       website: _website,
       email,
-      emailVerified,
-      _id
+      userUuid
     } = input
 
     if (Object.keys(input).length === 0) {
@@ -74,6 +77,7 @@ export default class UserDataSource extends MongoDataSource<User> {
     const bio = trimToNull(_bio)
     const website = trimToNull(_website)
 
+    const _id = muid.from(userUuid)
     if (
       username == null &&
       displayName == null &&
@@ -113,7 +117,7 @@ export default class UserDataSource extends MongoDataSource<User> {
           ...(usernameInfo != null && { usernameInfo }),
           ...(bio != null && { bio }),
           ...(website != null && { website }),
-          ...(emailVerified === true && { emailVerified }),
+          emailVerified: true,
           updatedBy: updater
         }
       ])
@@ -135,6 +139,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       }
 
       rs.set('usernameInfo.username', username)
+      rs.set('usernameInfo.canonicalName', username.replaceAll(nonAlphanumericRegex, ''))
     }
 
     if (displayName != null && displayName !== rs.displayName) {
@@ -149,9 +154,9 @@ export default class UserDataSource extends MongoDataSource<User> {
       rs.website = website
     }
 
-    if (emailVerified === true && rs.emailVerified === true) {
-      rs.emailVerified = true
-    }
+    // if (emailVerified === true && rs.emailVerified === true) {
+    //   rs.emailVerified = true
+    // }
 
     /**
      * Only update email if field is empty.  We need a separate flow
