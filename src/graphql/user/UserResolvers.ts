@@ -1,10 +1,6 @@
-import { User, GetUsernameReturn, UserPublicProfile } from '../../db/UserTypes.js'
+import { GetUsernameReturn, UserPublicProfile } from '../../db/UserTypes.js'
 
 const UserResolvers: object = {
-
-  UserProfile: {
-    userUuid: (node: User) => node._id.toUUID().toString()
-  },
 
   UserPublicProfile: {
     userUuid: (node: UserPublicProfile) => node._id.toUUID().toString()
