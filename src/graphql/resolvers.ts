@@ -6,7 +6,7 @@ import { DocumentNode } from 'graphql'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
-import { QueryByIdType, GQLFilter, Sort, Context, DataSourcesType } from '../types'
+import { QueryByIdType, GQLFilter, Sort, Context } from '../types'
 import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
