@@ -7,6 +7,7 @@
   "author": "<openbeta@noreply>",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
+    "@types/auth0": "^3.3.2",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.13.0",
     "@types/supertest": "^2.0.12",
@@ -35,6 +36,7 @@
     "@types/uuid": "^8.3.3",
     "apollo-datasource-mongodb": "^0.5.4",
     "apollo-server": "^3.9.0",
+    "auth0": "^3.4.0",
     "axios": "^1.3.6",
     "cors": "^2.8.5",
     "date-fns": "^2.30.0",
@@ -78,7 +80,8 @@
     "update-search": "tsc ; node build/db/export/Typesense/Typesense.js --areas --climbs",
     "export:json:full": "yarn build && node build/db/export/json/index.js",
     "export-prod": "./export.sh",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "import-users": "tsc ; node build/db/utils/jobs/migration/CreateUsersCollection.js"
   },
   "standard": {
     "plugins": [

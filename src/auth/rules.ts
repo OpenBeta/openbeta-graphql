@@ -1,5 +1,4 @@
 import { rule, inputRule } from 'graphql-shield'
-import muuid from 'uuid-mongodb'
 
 export const isEditor = rule()(async (parent, args, ctx, info) => {
   return _hasUserUuid(ctx) && ctx.user.roles.includes('editor')
@@ -10,7 +9,7 @@ export const isUserAdmin = rule()(async (parent, args, ctx, info) => {
 })
 
 export const isOwner = rule()(async (parent, args, ctx, info) => {
-  return _hasUserUuid(ctx) && ctx.user.uuid === muuid.from(args.userUuid)
+  return _hasUserUuid(ctx) && ctx.user.uuid.toUUID().toString() === args.input.userUuid
 })
 
 export const isBuilderServiceAccount = rule()(async (parent, args, ctx: Context, info) => {

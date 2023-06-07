@@ -1,5 +1,5 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
-import { MUUID } from 'uuid-mongodb'
+import muid, { MUUID } from 'uuid-mongodb'
 import differenceInDays from 'date-fns/differenceInDays/index.js'
 
 import { getUserModel } from '../db/index.js'
@@ -7,18 +7,58 @@ import {
   User,
   UpdateProfileGQLInput,
   UsernameInfo,
-  GetUsernameReturn
+  GetUsernameReturn,
+  UserPublicProfile
 } from '../db/UserTypes.js'
 import { trimToNull } from '../utils/sanitize.js'
 
 const USERNAME_UPDATE_WAITING_IN_DAYS = 14
 
+export const nonAlphanumericRegex = /[\W_\s]+/g
+
 export default class UserDataSource extends MongoDataSource<User> {
+  static PUBLIC_PROFILE_PROJECTION = {
+    _id: 1,
+    username: '$usernameInfo.username',
+    displayName: 1,
+    bio: 1,
+    website: 1,
+    avatar: 1,
+    email: 1
+  }
+
   userModel = getUserModel()
 
   /**
+   * Check to see if a username exists.
+   * @param username
+   * @returns true if exists
+   */
+  async usernameExists (username: string): Promise<boolean> {
+    const _username = trimToNull(username)
+    if (_username == null) {
+      return false
+    }
+    try {
+      const rs = await this.userModel.find(
+        {
+          'usernameInfo.canonicalName': {
+            $exists: true, $eq: _username.replaceAll(nonAlphanumericRegex, '')
+          }
+        },
+        {
+          _id: 0,
+          'usernameInfo.canonicalName': 1
+        }).lean()
+      return rs?.length > 0
+    } catch (e) {
+      return true // assume the username exists in case of an unexpected error
+    }
+  }
+
+  /**
    * Update user profile.  Create a new user object if not defined.
-   * @param userUuid userUuid to update/add
+   * @param updater UUID of the account doing the update
    * @param input profile params
    * @returns true if successful
    */
@@ -31,9 +71,9 @@ export default class UserDataSource extends MongoDataSource<User> {
       displayName: _displayName,
       bio: _bio,
       website: _website,
+      avatar: _avatar,
       email,
-      emailVerified,
-      _id
+      userUuid
     } = input
 
     if (Object.keys(input).length === 0) {
@@ -48,12 +88,15 @@ export default class UserDataSource extends MongoDataSource<User> {
     const displayName = trimToNull(_displayName)
     const bio = trimToNull(_bio)
     const website = trimToNull(_website)
+    const avatar = trimToNull(_avatar)
 
+    const _id = muid.from(userUuid)
     if (
       username == null &&
       displayName == null &&
       bio == null &&
-      website == null
+      website == null &&
+      avatar == null
     ) {
       throw new Error('Nothing to update. Must provide at least one field.')
     }
@@ -75,6 +118,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       if (username != null) {
         usernameInfo = {
           username,
+          canonicalName: username.replaceAll(nonAlphanumericRegex, ''),
           updatedAt: new Date()
         }
       }
@@ -87,7 +131,8 @@ export default class UserDataSource extends MongoDataSource<User> {
           ...(usernameInfo != null && { usernameInfo }),
           ...(bio != null && { bio }),
           ...(website != null && { website }),
-          ...(emailVerified === true && { emailVerified }),
+          ...(avatar != null && { avatar }),
+          emailVerified: true,
           updatedBy: updater
         }
       ])
@@ -109,6 +154,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       }
 
       rs.set('usernameInfo.username', username)
+      rs.set('usernameInfo.canonicalName', username.replaceAll(nonAlphanumericRegex, ''))
     }
 
     if (displayName != null && displayName !== rs.displayName) {
@@ -123,16 +169,8 @@ export default class UserDataSource extends MongoDataSource<User> {
       rs.website = website
     }
 
-    if (emailVerified === true && rs.emailVerified === true) {
-      rs.emailVerified = true
-    }
-
-    /**
-     * Only update email if field is empty.  We need a separate flow
-     * for updating/verifying email (TBD).
-     */
-    if (email != null && rs.email == null) {
-      rs.email = email
+    if (avatar != null && avatar !== rs.avatar) {
+      rs.avatar = avatar
     }
 
     rs.updatedBy = updater
@@ -170,13 +208,29 @@ export default class UserDataSource extends MongoDataSource<User> {
   }
 
   /**
-   * Get user profile data by user id
+   * Get user public profile by userUuid
    * @param userUuid
    */
-  async getUserProfile (userUuid: MUUID): Promise<User | null> {
-    const rs = await this.userModel.findOne({ _id: userUuid }).lean()
+  async getUserPublicProfileByUuid (userUuid: MUUID): Promise<UserPublicProfile | null> {
+    return await this.userModel.findOne({ _id: userUuid }, UserDataSource.PUBLIC_PROFILE_PROJECTION).lean()
+  }
 
-    return rs
+  /**
+   * Get user profile data by user name
+   * @param username username
+   */
+  async getUserPublicProfile (username: string): Promise<UserPublicProfile | null> {
+    if (!isValidUsername(username)) {
+      throw new Error('Invalid username')
+    }
+    return await this.userModel.findOne<UserPublicProfile>(
+      {
+        'usernameInfo.username': {
+          $exists: true, $eq: username
+        }
+      },
+      UserDataSource.PUBLIC_PROFILE_PROJECTION
+    ).lean()
   }
 
   static calculateLastUpdatedInDays (lastUpdated: Date): number {

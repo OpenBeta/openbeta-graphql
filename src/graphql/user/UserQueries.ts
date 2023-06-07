@@ -1,18 +1,43 @@
 import muuid from 'uuid-mongodb'
-import { DataSourcesType, ContextWithAuth } from '../../types'
-import { GetUsernameReturn, User } from '../../db/UserTypes'
+import { GraphQLError } from 'graphql'
+
+import { DataSourcesType, ContextWithAuth, Context } from '../../types'
+import { GetUsernameReturn, UserPublicProfile, UserPublicPage } from '../../db/UserTypes'
 
 const UserQueries = {
-  getUsername: async (_, { userUuid }, { dataSources }): Promise<GetUsernameReturn | null> => {
+
+  usernameExists: async (_: any, { input }, { dataSources }): Promise<boolean> => {
     const { users }: DataSourcesType = dataSources
-    const uuid = muuid.from(userUuid)
+    return await users.usernameExists(input.username)
+  },
+
+  getUsername: async (_: any, { input }, { dataSources }): Promise<GetUsernameReturn | null> => {
+    const { users }: DataSourcesType = dataSources
+    const uuid = muuid.from(input.userUuid)
     return await users.getUsername(uuid)
   },
 
-  getUserProfile: async (_, { userUuid }, { dataSources }: ContextWithAuth): Promise<User | null> => {
+  getUserPublicProfileByUuid: async (_: any, { input }, { dataSources }: ContextWithAuth): Promise<UserPublicProfile | null> => {
     const { users }: DataSourcesType = dataSources
-    const uuid = muuid.from(userUuid)
-    return await users.getUserProfile(uuid)
+    const uuid = muuid.from(input.userUuid)
+    return await users.getUserPublicProfileByUuid(uuid)
+  },
+
+  getUserPublicPage: async (_: any, { input }, { dataSources }: Context): Promise<UserPublicPage | null> => {
+    const { users, media }: DataSourcesType = dataSources
+    const profile = await users.getUserPublicProfile(input.username)
+    if (profile == null) {
+      throw new GraphQLError('User profile not found.', {
+        extensions: {
+          code: 'NOT_FOUND'
+        }
+      })
+    }
+    const mediaList = await media.getOneUserMedia(profile._id.toUUID().toString(), 500)
+    return {
+      profile,
+      mediaList
+    }
   }
 }
 

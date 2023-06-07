@@ -200,7 +200,7 @@ const resolvers = {
     // New camel case field
     areaName: async (node: AreaType) => node.area_name,
 
-    children: async (parent: AreaType, _, { dataSources: { areas } }: Context) => {
+    children: async (parent: AreaType, _: any, { dataSources: { areas } }: Context) => {
       if (parent.children.length > 0) {
         return await areas.findManyByIds(parent.children)
       }
