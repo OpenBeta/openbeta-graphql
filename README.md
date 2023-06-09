@@ -84,11 +84,11 @@ query Example1 {
 docker compose up -d
 ```
 
-2. Seed the development database
+2. Seed your local database with data from staging environment
 
 ```bash
 yarn install
-yarn seed-db   # Create test data from staging database
+yarn seed-db   # May take a few minutes to download a large databse file
 ```
 
 3. Start the GraphQL server
