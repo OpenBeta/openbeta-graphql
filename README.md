@@ -88,7 +88,7 @@ docker compose up -d
 
 ```bash
 yarn install
-yarn seed-db   # May take a few minutes to download a large databse file
+yarn seed-db   # May take a few minutes to download a large database file
 ```
 
 3. Start the GraphQL server
