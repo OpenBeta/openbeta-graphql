@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import muuid from 'uuid-mongodb'
+import muuid, { MUUID } from 'uuid-mongodb'
 import MutableMediaDataSource from '../MutableMediaDataSource'
 import AreaDataSource from '../MutableAreaDataSource'
 import ClimbDataSource from '../MutableClimbDataSource'
@@ -7,9 +7,8 @@ import ClimbDataSource from '../MutableClimbDataSource'
 import { connectDB, createIndexes } from '../../db/index.js'
 import { AddEntityInput } from '../../db/MediaTypes.js'
 import { AreaType } from '../../db/AreaTypes.js'
-import { ClimbType } from '../../db/ClimbTypes'
-import { MediaObject, MediaObjectGQLInput } from '../../db/MediaObjectTypes'
-import { newSportClimb1 } from './MutableClimbDataSource'
+import { EntityTag, MediaObject, MediaObjectGQLInput } from '../../db/MediaObjectTypes.js'
+import { newSportClimb1 } from './MutableClimbDataSource.js'
 
 const TEST_MEDIA: MediaObjectGQLInput = {
   userUuid: 'a2eb6353-65d1-445f-912c-53c6301404bd',
@@ -24,11 +23,15 @@ describe('MediaDataSource', () => {
   let media: MutableMediaDataSource
   let areas: AreaDataSource
   let climbs: ClimbDataSource
-  let areaForTagging: AreaType | null
-  let climbIdForTagging: string
+
+  let areaForTagging1: AreaType
+  let areaForTagging2: AreaType
+  let climbIdForTagging: MUUID
+
   let areaTag1: AddEntityInput
   let areaTag2: AddEntityInput
-  let badClimbTag: AddEntityInput
+  let climbTag: AddEntityInput
+
   let testMediaObject: MediaObject
 
   beforeAll(async () => {
@@ -49,12 +52,13 @@ describe('MediaDataSource', () => {
     await createIndexes()
 
     await areas.addCountry('USA')
-    areaForTagging = await areas.addArea(muuid.v4(), 'Yosemite NP', null, 'USA')
-    if (areaForTagging == null) fail('Fail to pre-seed test areas')
+    areaForTagging1 = await areas.addArea(muuid.v4(), 'Yosemite NP', null, 'USA')
+    areaForTagging2 = await areas.addArea(muuid.v4(), 'Lake Tahoe', null, 'USA')
+    if (areaForTagging1 == null || areaForTagging2 == null) fail('Fail to pre-seed test areas')
 
-    const rs = await climbs.addOrUpdateClimbs(muuid.v4(), areaForTagging.metadata.area_id, [newSportClimb1])
+    const rs = await climbs.addOrUpdateClimbs(muuid.v4(), areaForTagging1.metadata.area_id, [newSportClimb1])
     if (rs == null) fail('Fail to pre-seed test climbs')
-    climbIdForTagging = rs[0]
+    climbIdForTagging = muuid.from(rs[0])
 
     // @ts-expect-error
     testMediaObject = await media.addMedia(TEST_MEDIA)
@@ -65,7 +69,19 @@ describe('MediaDataSource', () => {
     areaTag1 = {
       mediaId: testMediaObject._id,
       entityType: 1,
-      entityUuid: areaForTagging.metadata.area_id
+      entityUuid: areaForTagging1.metadata.area_id
+    }
+
+    areaTag2 = {
+      mediaId: testMediaObject._id,
+      entityType: 1,
+      entityUuid: areaForTagging2.metadata.area_id
+    }
+
+    climbTag = {
+      mediaId: testMediaObject._id,
+      entityType: 0,
+      entityUuid: climbIdForTagging
     }
 
     // areaTag2 = {
@@ -102,68 +118,61 @@ describe('MediaDataSource', () => {
     await expect(media.addEntityTag(badClimbTag)).rejects.toThrow(/climb .* not found/i)
   })
 
-  // it('should set & remove an area tag', async () => {
-  //   if (areaForTagging == null) fail('Pre-seeded test area not found')
+  it('should tag & remove an area tag', async () => {
+    if (areaForTagging1 == null) fail('Pre-seeded test area not found')
 
-  //   // add 1st tag
-  //   await media.addEntityTag(areaTag1)
+    // verify the number tags before test
+    let mediaObjects = await media.getOneUserMedia(TEST_MEDIA.userUuid, 10)
+    expect(mediaObjects[0].entityTags).toHaveLength(0)
 
-  //   // add 2nd tag
-  //   const tag: TagEntryResultType | null = await media.addEntityTag(areaTag2)
+    // add 1st tag
+    await media.addEntityTag(areaTag1)
 
-  //   if (tag == null) fail('Tag shouldn\'t be null')
+    // add 2nd tag
+    const tag = await media.addEntityTag(climbTag)
 
-  //   expect(tag).toMatchObject({
-  //     mediaType: areaTag2.mediaType,
-  //     mediaUrl: areaTag2.mediaUrl,
-  //     area: expect.objectContaining({
-  //       area_name: areaForTagging.area_name
-  //     })
-  //   })
+    expect(tag).toMatchObject<Partial<EntityTag>>({
+      targetId: climbTag.entityUuid,
+      type: climbTag.entityType,
+      areaName: areaForTagging1.area_name,
+      ancestors: areaForTagging1.ancestors,
+      climbName: newSportClimb1.name,
+      lnglat: areaForTagging1.metadata.lnglat
+    })
 
-  //   expect(tag.mediaUuid.toUUID().toString()).toEqual(areaTag2.mediaUuid.toUUID().toString())
+    // verify the number tags
+    mediaObjects = await media.getOneUserMedia(TEST_MEDIA.userUuid, 10)
+    expect(mediaObjects[0].entityTags).toHaveLength(2)
 
-  //   // remove tag
-  //   const res = await media.removeEntityTag(tag._id.toString())
-  //   expect(res.id).toEqual(tag._id.toString())
-  //   expect(res.mediaUuid).toEqual(tag.mediaUuid.toUUID().toString())
-  // })
+    // remove tag
+    const res = await media.removeEntityTag({ mediaId: climbTag.mediaId, tagId: tag._id })
+    expect(res).toBe(true)
 
-  it('should handle delete tag error gracefully', async () => {
-    // Calling with invalid id format
-    await expect(media.removeEntityTag({
-      mediaId: 'a9879d30-79ae-414a-a1f0-95fd6f523b4d',
-      tagId: 'abc' // bad ObjectId format
-    })).rejects.toThrowError(/Argument passed in must be a string of 12/)
+    // verify the number tags
+    mediaObjects = await media.getOneUserMedia(TEST_MEDIA.userUuid, 10)
+    expect(mediaObjects[0].entityTags).toHaveLength(1)
   })
 
-  it('should not add a duplicate area tag', async () => {
-    const tag1 = await media.addEntityTag(areaTag1)
-    expect(tag1?.targetId).toEqual(areaTag1.entityUuid)
+  it('should handle delete tag errors gracefully', async () => {
+    // with invalid id format
+    await expect(media.removeEntityTag({
+      mediaId: testMediaObject._id,
+      // @ts-expect-error
+      tagId: 'abc' // bad ObjectId format
+    })).rejects.toThrowError(/Cast to ObjectId failed/i)
+
+    // remove a random tag that doesn't exist
+    await expect(media.removeEntityTag({
+      mediaId: new mongoose.Types.ObjectId(),
+      tagId: new mongoose.Types.ObjectId()
+    })).rejects.toThrowError(/not found/i)
+  })
+
+  it('should not add a duplicate tag', async () => {
+    const newTag = await media.addEntityTag(areaTag2)
+    expect(newTag.targetId).toEqual(areaTag2.entityUuid)
 
     // Insert the same tag again
-    const tag1a = await media.addEntityTag(areaTag1)
-    expect(tag1a).toBeNull()
+    await expect(media.addEntityTag(areaTag2)).rejects.toThrowError(/tag already exists/i)
   })
-
-  // it.skip('should return recent tags', async () => {
-  //   if (areaForTagging == null) fail('Pre-seeded test area not found')
-
-  //   let tags = await media.getMediaByUsers({})
-  //   expect(tags).toHaveLength(0)
-
-  //   await media.addEntityTag(areaTag1)
-  //   tags = await media.getMediaByUsers({})
-
-  //   expect(tags).toHaveLength(1)
-  //   expect(tags[0].mediaWithTags).toHaveLength(1)
-
-  //   expect(tags[0].mediaWithTags[0]).toMatchObject({
-  //     mediaType: areaTag1.mediaType,
-  //     mediaUrl: areaTag1.mediaUrl
-  //   })
-
-  //   // @ts-expect-error
-  //   expect(tags[0].mediaWithTags[0].mediaUuid.toUUID().toString()).toEqual(areaTag1.mediaUuid.toUUID().toString())
-  // })
 })

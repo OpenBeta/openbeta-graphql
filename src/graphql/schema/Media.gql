@@ -2,12 +2,12 @@ type Mutation {
   """
   Add an entity tag
   """
-  addEntityTag(input: MediaEntityTagInput): EntityTag
+  addEntityTag(input: MediaEntityTagInput): EntityTag!
 
   """
   Remove an entity tag
   """
-  removeEntityTag(input: EntityTagDeleteInput!): Boolean
+  removeEntityTag(input: EntityTagDeleteInput!): Boolean!
 }
 
 type Query {

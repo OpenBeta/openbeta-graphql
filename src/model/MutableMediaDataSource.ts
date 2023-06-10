@@ -4,7 +4,7 @@ import muuid from 'uuid-mongodb'
 
 import { AddEntityInput } from '../db/MediaTypes.js'
 import MediaDataSource from './MediaDataSource.js'
-import { EntityTag, EntityTagDeleteGQLInput, MediaObject, MediaObjectGQLInput } from '../db/MediaObjectTypes.js'
+import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput } from '../db/MediaObjectTypes.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
 
 export default class MutableMediaDataSource extends MediaDataSource {
@@ -14,7 +14,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
    * Add a new entity tag (a climb or area) to a media object.
    * @returns new EntityTag . 'null' if the entity already exists.
    */
-  async addEntityTag ({ mediaId, entityUuid, entityType }: AddEntityInput): Promise<EntityTag | null> {
+  async addEntityTag ({ mediaId, entityUuid, entityType }: AddEntityInput): Promise<EntityTag> {
     switch (entityType) {
       case 0: {
         // Check whether the climb referencing this tag exists before we allow
@@ -35,7 +35,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
           lnglat: climb.metadata.lnglat
         }
 
-        // We treat 'entityTags' like a Set - can't tag the same climb/area twice.
+        // We treat 'entityTags' like a Set - can't tag the same climb/area id twice.
         // See https://stackoverflow.com/questions/33576223/using-mongoose-mongodb-addtoset-functionality-on-array-of-objects
         const filter = {
           _id: new mongoose.Types.ObjectId(mediaId),
@@ -51,7 +51,10 @@ export default class MutableMediaDataSource extends MediaDataSource {
               }
             }).lean()
 
-        return rs.modifiedCount === 1 ? doc : null
+        if (rs.modifiedCount === 1) {
+          return doc
+        }
+        throw new UserInputError('Media not found or tag already exists.')
       }
 
       case 1: {
@@ -72,7 +75,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
           lnglat: area.metadata.lnglat
         }
 
-        // We treat 'entityTags' like a Set - can't tag the same climb/area twice.
+        // We treat 'entityTags' like a Set - can't tag the same climb/area id twice.
         // See https://stackoverflow.com/questions/33576223/using-mongoose-mongodb-addtoset-functionality-on-array-of-objects
         const filter = {
           _id: new mongoose.Types.ObjectId(mediaId),
@@ -88,29 +91,29 @@ export default class MutableMediaDataSource extends MediaDataSource {
               }
             }).lean()
 
-        return rs.modifiedCount === 1 ? doc : null
+        if (rs.modifiedCount === 1) {
+          return doc
+        }
+        throw new UserInputError('Media not found or tag already exists.')
       }
 
-      default: return null
+      default: throw new UserInputError(`Entity type ${entityType} not supported.`)
     }
   }
 
   /**
    *  Remove a climb/area entity tag
    */
-  async removeEntityTag ({ mediaId, tagId }: EntityTagDeleteGQLInput): Promise<boolean> {
-    const mediaUuid = new mongoose.Types.ObjectId(mediaId)
-    const tagMongoId = new mongoose.Types.ObjectId(tagId)
-
+  async removeEntityTag ({ mediaId, tagId }: EntityTagDeleteInput): Promise<boolean> {
     const rs = await this.mediaObjectModel
       .updateOne<MediaObject>(
       {
-        _id: mediaUuid,
-        'entityTags._id': tagMongoId
+        _id: mediaId,
+        'entityTags._id': tagId
       },
       {
         $pull: {
-          entityTags: { _id: tagMongoId }
+          entityTags: { _id: tagId }
         }
       },
       { multi: true })
@@ -134,7 +137,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
 
   static instance: MutableMediaDataSource
 
-  static getInstance(): MutableMediaDataSource {
+  static getInstance (): MutableMediaDataSource {
     if (MutableMediaDataSource.instance == null) {
       MutableMediaDataSource.instance = new MutableMediaDataSource(mongoose.connection.db.collection('media'))
     }

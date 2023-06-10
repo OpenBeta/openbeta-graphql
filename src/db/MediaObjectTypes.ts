@@ -57,11 +57,25 @@ export interface UserMediaQueryInput {
   maxFiles?: number
 }
 
+/**
+ * GQL user input type for remove tag api
+ */
 export interface EntityTagDeleteGQLInput {
   mediaId: string
   tagId: string
 }
 
+/**
+ * Formal input type for remove tag api
+ */
+export interface EntityTagDeleteInput {
+  mediaId: mongoose.Types.ObjectId
+  tagId: mongoose.Types.ObjectId
+}
+
+/**
+ * GQL user input type for add media api
+ */
 export type MediaObjectGQLInput = Pick<MediaObject, 'mediaUrl' | 'width' | 'height' | 'format' | 'size'> & {
   userUuid: string
 }
