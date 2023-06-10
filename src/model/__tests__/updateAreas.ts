@@ -2,8 +2,8 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { geometry } from '@turf/helpers'
 
-import MutableAreaDataSource, { createInstance } from '../MutableAreaDataSource.js'
-import MutableClimbDataSource, { createInstance as createNewClimbDS } from '../MutableClimbDataSource.js'
+import MutableAreaDataSource from '../MutableAreaDataSource.js'
+import MutableClimbDataSource from '../MutableClimbDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { AreaEditableFieldsType, UpdateSortingOrderType } from '../../db/AreaTypes.js'
 
@@ -22,8 +22,8 @@ describe('Areas', () => {
       console.log('Cleaning up db before test', e)
     }
     await createIndexes()
-    areas = createInstance()
-    climbs = createNewClimbDS()
+    areas = MutableAreaDataSource.getInstance()
+    climbs = MutableClimbDataSource.getInstance()
   })
 
   afterAll(async () => {

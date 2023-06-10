@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
 import MutableOrganizationDataSource, { createInstance as createOrgInstance } from '../MutableOrganizationDataSource.js'
-import MutableAreaDataSource, { createInstance as createAreaInstance } from '../MutableAreaDataSource.js'
+import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getOrganizationModel } from '../../db/index.js'
 import { OrganizationEditableFieldsType, OrgType } from '../../db/OrganizationTypes.js'
 import { AreaType } from '../../db/AreaTypes.js'
@@ -26,7 +26,7 @@ describe('Organization', () => {
       console.log('Cleaning up area model before test', e)
     }
     organizations = createOrgInstance()
-    areas = createAreaInstance()
+    areas = MutableAreaDataSource.getInstance()
     usa = await areas.addCountry('usa')
     ca = await areas.addArea(testUser, 'CA', usa.metadata.area_id)
     wa = await areas.addArea(testUser, 'WA', usa.metadata.area_id)

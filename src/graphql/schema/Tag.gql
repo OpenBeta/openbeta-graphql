@@ -1,13 +1,13 @@
 # Tag stands for extendend media. It should support photos, links, videos, etc.
 # It is used to link media to the Post documents.
 
-type Mutation {
-  # addTag
-  addTag(input: AddTagInput): AddTagResponse
+# type Mutation {
+#   # addTag
+#   addTag(input: AddTagInput): AddTagResponse
 
-  # deleteTag
-  deleteTag(input: RemoveTagInput): RemoveTagResponse
-}
+#   # deleteTag
+#   deleteTag(input: RemoveTagInput): RemoveTagResponse
+# }
 
 type Query {
   getTags(input: GetTagInput): GetTagResponse

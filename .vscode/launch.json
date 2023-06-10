@@ -68,7 +68,7 @@
                 "--inspect-brk",
                 "${workspaceRoot}/node_modules/.bin/jest",
                 "--runInBand",
-                "UserData"
+                "MediaData"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",

@@ -2,8 +2,8 @@ import mongoose from 'mongoose'
 import muid from 'uuid-mongodb'
 import { ChangeStream } from 'mongodb'
 
-import MutableClimbDataSource, { createInstance as createNewClimbDS } from '../MutableClimbDataSource.js'
-import MutableAreaDataSource, { createInstance as createNewAreaDS } from '../MutableAreaDataSource.js'
+import MutableClimbDataSource from '../MutableClimbDataSource.js'
+import MutableAreaDataSource from '../MutableAreaDataSource.js'
 
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { logger } from '../../logger.js'
@@ -11,6 +11,16 @@ import { ClimbType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
 import { sanitizeDisciplines } from '../../GradeUtils.js'
 import streamListener from '../../db/edit/streamListener.js'
 import { changelogDataSource } from '../ChangeLogDataSource.js'
+
+export const newSportClimb1: ClimbChangeInputType = {
+  name: 'Cool route 1',
+  disciplines: {
+    sport: true
+  },
+  description: 'A good warm up problem',
+  location: 'Start from the left arete',
+  protection: '2 bolts'
+}
 
 describe('Climb CRUD', () => {
   let climbs: MutableClimbDataSource
@@ -36,16 +46,6 @@ describe('Climb CRUD', () => {
       }
     }
   ]
-
-  const newSportClimb1: ClimbChangeInputType = {
-    name: 'Cool route 1',
-    disciplines: {
-      sport: true
-    },
-    description: 'A good warm up problem',
-    location: 'Start from the left arete',
-    protection: '2 bolts'
-  }
 
   const newSportClimb2: ClimbChangeInputType = {
     name: 'Cool route 2',
@@ -86,8 +86,8 @@ describe('Climb CRUD', () => {
 
     await createIndexes()
 
-    climbs = createNewClimbDS()
-    areas = createNewAreaDS()
+    climbs = MutableClimbDataSource.getInstance()
+    areas = MutableAreaDataSource.getInstance()
     await changelogDataSource._testRemoveAll()
     await areas.addCountry('fr')
   })

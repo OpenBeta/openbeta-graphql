@@ -38,39 +38,13 @@ export interface CompleteClimbTag extends BaseTagType {
 
 export type TagType = CompleteAreaTag | CompleteClimbTag
 
-export interface MediaInputType {
-  mediaUuid: MUUID
-  mediaUrl: string
-  mediaType: number
-  destinationId: MUUID
-  destType: number
+export interface AddEntityTagGQLInput {
+  mediaId: string
+  entityId: string
+  entityType: number
 }
 
-/**
- * TODO: consolidate this type with BaseTagType
- */
-interface LegacyBaseTagType {
-  _id: mongoose.Types.ObjectId
-  mediaUuid: MUUID
-  mediaUrl: string
-  mediaType: number
-  destType: number
-  onModel: RefModelType
-}
-
-export interface AreaTagType extends LegacyBaseTagType {
-  area: AreaType
-}
-
-export interface ClimbTagType extends LegacyBaseTagType {
-  climb: ClimbType
-}
-
-export type TagEntryResultType = AreaTagType | ClimbTagType
-
-export interface DeleteTagResult {
-  id: string
-  mediaUuid: string
-  destType: number
-  destinationId: string
+export type AddEntityInput = Pick<AddEntityTagGQLInput, 'entityType'> & {
+  mediaId: mongoose.Types.ObjectId
+  entityUuid: MUUID
 }
