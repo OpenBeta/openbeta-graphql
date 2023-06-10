@@ -73,6 +73,7 @@
     "serve": "yarn build && node --experimental-json-modules build/main.js",
     "refresh-db": "./refresh-db.sh",
     "seed-usa": "yarn build && node build/db/import/usa/USADay0Seed.js",
+    "seed-db": "./seed-db.sh",
     "add-countries": "yarn build && node build/db/utils/jobs/AddCountriesJob.js",
     "update-stats": "yarn build && node build/db/utils/jobs/UpdateStatsJob.js",
     "update-climb-search": "tsc ; node build/db/export/Typesense/Typesense.js --climbs",

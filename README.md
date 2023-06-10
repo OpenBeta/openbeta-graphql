@@ -84,12 +84,11 @@ query Example1 {
 docker compose up -d
 ```
 
-2. Seed the development database
+2. Seed your local database with data from staging environment
 
 ```bash
 yarn install
-yarn refresh-db   # download USA data files locally and import
-yarn update-stats      # update statistics
+yarn seed-db   # May take a few minutes to download a large database file
 ```
 
 3. Start the GraphQL server
@@ -134,23 +133,6 @@ yarn serve
   ...
   ```
   Why?  See [this issue](https://github.com/microsoft/TypeScript/issues/40878) for an explanation.
-
-- Advanced database commands:
-
-  ```bash
-  # Download & import USA data files.  Also create all other countries.
-  yarn refresh-db full #  Remove 'full' to import only a small dataset
-
-  # Re-import USA from previously downloaded data files (cache dir: ./tmp)
-  # Note: this command will drop and recreate the 'areas' and 'climbs' collection.
-  yarn seed-usa
-
-  # Add all countries (except for USA)
-  yarn add-countries
-
-  # Update area statistics (can be rerun as needed)
-  yarn update-stats
-  ```
 
 - MongoDB playground: https://mongoplayground.net/
 
