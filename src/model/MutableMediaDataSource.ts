@@ -2,7 +2,7 @@ import { UserInputError } from 'apollo-server'
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { AddEntityInput } from '../db/MediaTypes.js'
+import { AddTagEntityInput } from '../db/MediaTypes.js'
 import MediaDataSource from './MediaDataSource.js'
 import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput } from '../db/MediaObjectTypes.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
@@ -14,7 +14,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
    * Add a new entity tag (a climb or area) to a media object.
    * @returns new EntityTag . 'null' if the entity already exists.
    */
-  async addEntityTag ({ mediaId, entityUuid, entityType }: AddEntityInput): Promise<EntityTag> {
+  async addEntityTag ({ mediaId, entityUuid, entityType }: AddTagEntityInput): Promise<EntityTag> {
     switch (entityType) {
       case 0: {
         // Check whether the climb referencing this tag exists before we allow
@@ -49,12 +49,11 @@ export default class MutableMediaDataSource extends MediaDataSource {
               $push: {
                 entityTags: doc
               }
-            }).lean()
+            })
+          .orFail(new UserInputError('Media not found or tag already exists.'))
+          .lean()
 
-        if (rs.modifiedCount === 1) {
-          return doc
-        }
-        throw new UserInputError('Media not found or tag already exists.')
+        return doc
       }
 
       case 1: {
@@ -89,12 +88,11 @@ export default class MutableMediaDataSource extends MediaDataSource {
               $push: {
                 entityTags: doc
               }
-            }).lean()
+            })
+          .orFail(new UserInputError('Media not found or tag already exists.'))
+          .lean()
 
-        if (rs.modifiedCount === 1) {
-          return doc
-        }
-        throw new UserInputError('Media not found or tag already exists.')
+        return doc
       }
 
       default: throw new UserInputError(`Entity type ${entityType} not supported.`)
@@ -117,7 +115,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
         }
       },
       { multi: true })
-      .orFail(new Error('Tag not found'))
+      .orFail(new UserInputError('Tag not found'))
       .lean()
 
     return rs.modifiedCount === 1

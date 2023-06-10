@@ -1,5 +1,6 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
+import mongoose from 'mongoose'
 import { logger } from '../logger.js'
 import { getMediaObjectModel } from '../db/index.js'
 import { TagsLeaderboardType, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject } from '../db/MediaObjectTypes.js'
@@ -172,5 +173,21 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       'entityTags.ancestors': { $regex: areaId.toUUID().toString() }
     }).lean()
     return rs
+  }
+
+  /**
+   * Test whether a user is the owner of a media object
+   * @param userUuid user id to check
+   * @param mediaId media id to check
+   * @returns true if userUuid is the owner
+   */
+  async isMediaOwner (userUuid: MUUID, mediaId: string): Promise<boolean> {
+    const _id = new mongoose.Types.ObjectId(mediaId)
+    /**
+     * According to the query planner 'find()' is a cover query
+     * whereas `exists()` uses IXSCAN but has more more stages (LIMT and PROJECTION)
+     */
+    const doc = await this.mediaObjectModel.find({ _id, userUuid }, { _id: 1 }).lean()
+    return doc != null
   }
 }

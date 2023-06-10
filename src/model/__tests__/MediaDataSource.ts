@@ -5,7 +5,7 @@ import AreaDataSource from '../MutableAreaDataSource'
 import ClimbDataSource from '../MutableClimbDataSource'
 
 import { connectDB, createIndexes } from '../../db/index.js'
-import { AddEntityInput } from '../../db/MediaTypes.js'
+import { AddTagEntityInput } from '../../db/MediaTypes.js'
 import { AreaType } from '../../db/AreaTypes.js'
 import { EntityTag, MediaObject, MediaObjectGQLInput } from '../../db/MediaObjectTypes.js'
 import { newSportClimb1 } from './MutableClimbDataSource.js'
@@ -28,9 +28,9 @@ describe('MediaDataSource', () => {
   let areaForTagging2: AreaType
   let climbIdForTagging: MUUID
 
-  let areaTag1: AddEntityInput
-  let areaTag2: AddEntityInput
-  let climbTag: AddEntityInput
+  let areaTag1: AddTagEntityInput
+  let areaTag2: AddTagEntityInput
+  let climbTag: AddTagEntityInput
 
   let testMediaObject: MediaObject
 
@@ -101,7 +101,7 @@ describe('MediaDataSource', () => {
   })
 
   it('should not tag a nonexistent area', async () => {
-    const badAreaTag: AddEntityInput = {
+    const badAreaTag: AddTagEntityInput = {
       mediaId: testMediaObject._id,
       entityType: 1,
       entityUuid: muuid.v4() // some random area
@@ -110,7 +110,7 @@ describe('MediaDataSource', () => {
   })
 
   it('should not tag a nonexistent *climb*', async () => {
-    const badClimbTag: AddEntityInput = {
+    const badClimbTag: AddTagEntityInput = {
       mediaId: testMediaObject._id,
       entityType: 0,
       entityUuid: muuid.v4() // some random climb

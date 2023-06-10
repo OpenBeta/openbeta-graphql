@@ -44,7 +44,7 @@ export interface AddEntityTagGQLInput {
   entityType: number
 }
 
-export type AddEntityInput = Pick<AddEntityTagGQLInput, 'entityType'> & {
+export type AddTagEntityInput = Pick<AddEntityTagGQLInput, 'entityType'> & {
   mediaId: mongoose.Types.ObjectId
   entityUuid: MUUID
 }

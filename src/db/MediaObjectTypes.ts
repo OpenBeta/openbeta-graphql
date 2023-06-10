@@ -2,6 +2,8 @@ import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 
+import { AuthUserType } from '../types'
+
 export type ImageFormatType = 'jpeg' | 'png' | 'webp' | 'avif'
 
 export interface MediaObject {
