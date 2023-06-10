@@ -82,17 +82,6 @@ describe('MediaDataSource', () => {
       entityType: 0,
       entityUuid: climbIdForTagging
     }
-
-    // areaTag2 = {
-
-    // }
-    // badClimbTag = {
-    //   mediaType: 0,
-    //   mediaUuid: muuid.v4(),
-    //   mediaUrl: `/u/${muuid.v4().toUUID().toString()}/woof.jpg`,
-    //   entityId: muuid.v4(), // climb doesn't exist
-    //   destType: 0 // 0: climb, 1: area
-    // }
   })
 
   afterAll(async () => {
