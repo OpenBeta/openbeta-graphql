@@ -2,9 +2,8 @@ import { UserInputError } from 'apollo-server'
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { AddTagEntityInput } from '../db/MediaTypes.js'
 import MediaDataSource from './MediaDataSource.js'
-import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput } from '../db/MediaObjectTypes.js'
+import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput, AddTagEntityInput } from '../db/MediaObjectTypes.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
 
 export default class MutableMediaDataSource extends MediaDataSource {
@@ -42,7 +41,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
           'entityTags.targetId': { $ne: entityUuid }
         }
 
-        const rs = await this.mediaObjectModel
+        await this.mediaObjectModel
           .updateOne(
             filter,
             {
@@ -81,7 +80,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
           'entityTags.targetId': { $ne: entityUuid }
         }
 
-        const rs = await this.mediaObjectModel
+        await this.mediaObjectModel
           .updateOne(
             filter,
             {

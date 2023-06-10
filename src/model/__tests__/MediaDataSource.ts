@@ -5,9 +5,8 @@ import AreaDataSource from '../MutableAreaDataSource'
 import ClimbDataSource from '../MutableClimbDataSource'
 
 import { connectDB, createIndexes } from '../../db/index.js'
-import { AddTagEntityInput } from '../../db/MediaTypes.js'
 import { AreaType } from '../../db/AreaTypes.js'
-import { EntityTag, MediaObject, MediaObjectGQLInput } from '../../db/MediaObjectTypes.js'
+import { EntityTag, MediaObject, MediaObjectGQLInput, AddTagEntityInput } from '../../db/MediaObjectTypes.js'
 import { newSportClimb1 } from './MutableClimbDataSource.js'
 
 const TEST_MEDIA: MediaObjectGQLInput = {

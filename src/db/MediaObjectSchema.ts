@@ -53,6 +53,9 @@ schema.index({
   userUuid: 1
 })
 
+/**
+ * For removeEntityTag update query
+ */
 schema.index({
   _id: 1,
   'entityTag._id': 1

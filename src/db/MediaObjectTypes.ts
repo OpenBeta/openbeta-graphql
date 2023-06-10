@@ -2,8 +2,6 @@ import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 
-import { AuthUserType } from '../types'
-
 export type ImageFormatType = 'jpeg' | 'png' | 'webp' | 'avif'
 
 export interface MediaObject {
@@ -60,7 +58,7 @@ export interface UserMediaQueryInput {
 }
 
 /**
- * GQL user input type for remove tag api
+ * GQL user input type for remove tag mutation
  */
 export interface EntityTagDeleteGQLInput {
   mediaId: string
@@ -68,7 +66,7 @@ export interface EntityTagDeleteGQLInput {
 }
 
 /**
- * Formal input type for remove tag api
+ * Formal input type for remove tag function
  */
 export interface EntityTagDeleteInput {
   mediaId: mongoose.Types.ObjectId
@@ -76,8 +74,25 @@ export interface EntityTagDeleteInput {
 }
 
 /**
- * GQL user input type for add media api
+ * GQL user input type for add media mutation
  */
 export type MediaObjectGQLInput = Pick<MediaObject, 'mediaUrl' | 'width' | 'height' | 'format' | 'size'> & {
   userUuid: string
+}
+
+/**
+ * GQL user input for addEntityTag mutation
+ */
+export interface AddEntityTagGQLInput {
+  mediaId: string
+  entityId: string
+  entityType: number
+}
+
+/**
+ * Formal input type for addEntityTag function
+ */
+export type AddTagEntityInput = Pick<AddEntityTagGQLInput, 'entityType'> & {
+  mediaId: mongoose.Types.ObjectId
+  entityUuid: MUUID
 }

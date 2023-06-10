@@ -1,11 +1,11 @@
 type Mutation {
   """
-  Add an entity tag
+  Add an entity tag to a media
   """
   addEntityTag(input: MediaEntityTagInput): EntityTag!
 
   """
-  Remove an entity tag
+  Remove an entity tag from a media
   """
   removeEntityTag(input: EntityTagDeleteInput!): Boolean!
 }
@@ -106,8 +106,11 @@ type MediaWithTags implements IMediaMetadata {
 
 "Input param for creating a new tag"
 input MediaEntityTagInput {
+  "Target media id"
   mediaId: ID!
+  "What this tag is pointing to (a climb/area)"
   entityId: ID!
+  "0: climb, 1: area"
   entityType: Int!
 }
 

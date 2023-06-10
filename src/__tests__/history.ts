@@ -2,7 +2,7 @@ import { ApolloServer } from 'apollo-server'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
-import MutableOrganizationDataSource, { createInstance as createOrgInstance } from '../model/MutableOrganizationDataSource.js'
+import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
 import MutableClimbDataSource from '../model/MutableClimbDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
 import { OrgType, OrganizationType } from '../db/OrganizationTypes.js'
@@ -33,7 +33,7 @@ describe('history API', () => {
   beforeEach(async () => {
     await inMemoryDB.clear()
     areas = MutableAreaDataSource.getInstance()
-    organizations = createOrgInstance()
+    organizations = MutableOrganizationDataSource.getInstance()
     climbs = MutableClimbDataSource.getInstance()
   })
 

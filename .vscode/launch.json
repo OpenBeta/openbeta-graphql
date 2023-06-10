@@ -33,19 +33,6 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Seed USA",
-            "program": "${workspaceFolder}/src/db/import/usa/USADay0Seed.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
-            ],
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-        },
-        {
-            "type": "node",
-            "request": "launch",
             "name": "Launch API server",
             "skipFiles": [
                 "<node_internals>/**"
@@ -72,46 +59,6 @@
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Create MediaObjects collection",
-            "program": "${workspaceFolder}/src/db/utils/jobs/migration/CreateMediaMetaCollection.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
-            ],
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Migrate old tags to MediaObjects collection",
-            "program": "${workspaceFolder}/src/db/utils/jobs/migration/MigrateTagsToMediaCollection.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
-            ],
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Create Users collection",
-            "program": "${workspaceFolder}/src/db/utils/jobs/migration/CreateUsersCollection.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
-            ],
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "console": "integratedTerminal",
-        },
+        }
     ]
 }

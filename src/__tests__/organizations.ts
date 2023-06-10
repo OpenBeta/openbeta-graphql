@@ -2,7 +2,7 @@ import { ApolloServer } from 'apollo-server'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
-import MutableOrganizationDataSource, { createInstance as createOrgInstance } from '../model/MutableOrganizationDataSource.js'
+import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
 import { OrgType, OrganizationType, OperationType, OrganizationEditableFieldsType } from '../db/OrganizationTypes.js'
 import { changelogDataSource } from '../model/ChangeLogDataSource.js'
@@ -36,7 +36,7 @@ describe('organizations API', () => {
   beforeEach(async () => {
     await inMemoryDB.clear()
     areas = MutableAreaDataSource.getInstance()
-    organizations = createOrgInstance()
+    organizations = MutableOrganizationDataSource.getInstance()
     usa = await areas.addCountry('usa')
     ca = await areas.addArea(user, 'CA', usa.metadata.area_id)
     wa = await areas.addArea(user, 'WA', usa.metadata.area_id)

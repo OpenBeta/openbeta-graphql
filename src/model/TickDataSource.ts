@@ -78,6 +78,13 @@ export default class TickDataSource extends MongoDataSource<TickType> {
   async ticksByUserAndClimb (userId: string, climbId: string): Promise<TickType[]> {
     return await this.tickModel.find({ userId, climbId })
   }
-}
 
-export const createInstance = (): TickDataSource => new TickDataSource(mongoose.connection.db.collection('ticks'))
+  static instance: TickDataSource
+
+  static getInstance (): TickDataSource {
+    if (TickDataSource.instance == null) {
+      TickDataSource.instance = new TickDataSource(mongoose.connection.db.collection('ticks'))
+    }
+    return TickDataSource.instance
+  }
+}

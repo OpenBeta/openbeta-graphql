@@ -5,7 +5,6 @@ import { enableAllPlugins } from 'immer'
 
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
-import { getMediaModel } from './MediaSchema.js'
 import { getMediaObjectModel } from './MediaObjectSchema.js'
 import { getOrganizationModel } from './OrganizationSchema.js'
 import { getTickModel } from './TickSchema.js'
@@ -67,7 +66,6 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
 export const createIndexes = async (): Promise<void> => {
   await getClimbModel().createIndexes()
   await getAreaModel().createIndexes()
-  await getMediaModel().createIndexes()
   await getOrganizationModel().createIndexes()
   await getTickModel().createIndexes()
   await getXMediaModel().createIndexes()
@@ -94,7 +92,6 @@ export const defaultPostConnect = async (): Promise<ChangeStream> => {
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
 export {
-  getMediaModel,
   getOrganizationModel,
   getAreaModel,
   getTickModel,

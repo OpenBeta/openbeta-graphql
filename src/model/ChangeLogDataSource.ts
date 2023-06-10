@@ -83,6 +83,19 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
   async _testRemoveAll (): Promise<void> {
     await this.changeLogModel.deleteMany()
   }
+
+  static instance: ChangeLogDataSource
+
+  static getInstance (): ChangeLogDataSource {
+    if (ChangeLogDataSource.instance == null) {
+      /**
+       * Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
+       */
+      // @ts-expect-error
+      ChangeLogDataSource.instance = new ChangeLogDataSource(getChangeLogModel())
+    }
+    return ChangeLogDataSource.instance
+  }
 }
 
 // Normally we instantiate the data source in the server main function because

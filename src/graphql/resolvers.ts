@@ -13,7 +13,6 @@ import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { PostMutations, PostQueries, PostResolvers } from './posts/index.js'
 import { XMediaMutations, XMediaQueries, XMediaResolvers } from './xmedia/index.js'
-import { TagMutations, TagQueries, TagResolvers } from './tag/index.js'
 import { AreaQueries, AreaMutations } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
 import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
@@ -50,7 +49,6 @@ const UserTypeDef = loadSchema('User.gql')
 
 const resolvers = {
   Mutation: {
-    ...TagMutations,
     ...XMediaMutations,
     ...PostMutations,
     ...MediaMutations,
@@ -61,7 +59,6 @@ const resolvers = {
     ...UserMutations
   },
   Query: {
-    ...TagQueries,
     ...XMediaQueries,
     ...PostQueries,
     ...MediaQueries,
@@ -130,7 +127,6 @@ const resolvers = {
   ...HistoryFieldResolvers,
   ...PostResolvers,
   ...XMediaResolvers,
-  ...TagResolvers,
   ...UserResolvers,
 
   Climb: {
