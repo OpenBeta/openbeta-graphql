@@ -21,3 +21,6 @@ export function exhaustiveCheck (_value: never): never {
 
 export const geojsonPointToLongitude = (point: Point): number => point.coordinates[0]
 export const geojsonPointToLatitude = (point: Point): number => point.coordinates[1]
+
+export const NON_ALPHANUMERIC_REGEX = /[\W_\s]+/g
+export const canonicalizeUsername = (username: string): string => username.replaceAll(NON_ALPHANUMERIC_REGEX, '')

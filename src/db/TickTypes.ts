@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { MUUID } from 'uuid-mongodb'
 
 /**
  * Ticks may be sourced from a number of places. They may come from external sources,
@@ -100,4 +101,9 @@ export interface TickInput {
 
 export interface TickEditFilterType {
   _id: mongoose.Types.ObjectId
+}
+
+export interface TickUserSelectors {
+  userId?: MUUID
+  username?: string
 }

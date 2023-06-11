@@ -1,8 +1,8 @@
 type Query {
   """
-  Gets all of the users current ticks by their Auth-0 userId
+  Gets all of the users current ticks by their Auth-0 userId or username
   """
-  userTicks(userId: String): [TickType]
+  userTicks(userId: MUUID, username: String): [TickType]
   """
   Gets all of the users current ticks for a specific climb by their
   Auth-0 userId and Open-Beta ClimbId

@@ -2,6 +2,7 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
 import differenceInDays from 'date-fns/differenceInDays/index.js'
+import mongoose from 'mongoose'
 
 import { getUserModel } from '../db/index.js'
 import {
@@ -12,10 +13,9 @@ import {
   UserPublicProfile
 } from '../db/UserTypes.js'
 import { trimToNull } from '../utils/sanitize.js'
+import { canonicalizeUsername } from '../utils/helpers.js'
 
 const USERNAME_UPDATE_WAITING_IN_DAYS = 14
-
-export const nonAlphanumericRegex = /[\W_\s]+/g
 
 export default class UserDataSource extends MongoDataSource<User> {
   static PUBLIC_PROFILE_PROJECTION = {
@@ -44,7 +44,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       const rs = await this.userModel.find(
         {
           'usernameInfo.canonicalName': {
-            $exists: true, $eq: _username.replaceAll(nonAlphanumericRegex, '')
+            $exists: true, $eq: canonicalizeUsername(_username)
           }
         },
         {
@@ -119,7 +119,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       if (username != null) {
         usernameInfo = {
           username,
-          canonicalName: username.replaceAll(nonAlphanumericRegex, ''),
+          canonicalName: canonicalizeUsername(username),
           updatedAt: new Date()
         }
       }
@@ -155,7 +155,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       }
 
       rs.set('usernameInfo.username', username)
-      rs.set('usernameInfo.canonicalName', username.replaceAll(nonAlphanumericRegex, ''))
+      rs.set('usernameInfo.canonicalName', canonicalizeUsername(username))
     }
 
     if (displayName != null && displayName !== rs.displayName) {
@@ -275,3 +275,5 @@ const isValidUrl = (url: string): boolean => {
     return false
   }
 }
+
+export const createInstance = (): UserDataSource => new UserDataSource(mongoose.connection.db.collection('users'))

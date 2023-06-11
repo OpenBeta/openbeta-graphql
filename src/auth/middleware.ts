@@ -24,7 +24,7 @@ export const createContext = async ({ req }): Promise<any> => {
       payload = await verifyJWT(token)
     } catch (e) {
       logger.error(`Can't verify JWT token ${e.toString() as string}`)
-      throw new Error('An unxpected error has occurred.  Please notify us at support@openbeta.io.')
+      throw new Error('An unexpected error has occurred.  Please notify us at support@openbeta.io.')
     }
 
     user.isBuilder = payload?.scope?.includes('builder:default') ?? false
