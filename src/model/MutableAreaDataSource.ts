@@ -305,16 +305,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
         const sanitizedName = sanitizeStrict(areaName)
         area.set({ area_name: sanitizedName })
 
+        // change our pathTokens
         const newPath = [...area.pathTokens]
         newPath.pop()
         newPath.push(sanitizedName)
         area.set({ pathTokens: newPath })
 
+        // iterate over the DB id's in the child list and update pathTokens
         for (const childId of area.children) {
           await this.updatePathTokens(childId, sanitizedName)
         }
       }
-      
+
       if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
       if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
       if (isLeaf != null) area.set({ 'metadata.leaf': isLeaf })
@@ -382,17 +384,19 @@ export default class MutableAreaDataSource extends AreaDataSource {
     }
 
     if (area.pathTokens.length > 0) {
+      // copy old tokens
       const newPath = [...area.pathTokens]
+      // update the correct index in path tokens -> (length - depth)
       newPath[newPath.length - index] = newAreaName
+      // set tokens in the object and save the object to the DB
       area.set({ pathTokens: newPath })
       area.save(function (err, result) {
         if (err != null) {
           throw new Error('pathTokens update error.  Reason: save operation failed.')
-        } else {
-          console.log(result)
         }
       })
 
+      // iterate over the DB id's in the child list
       for (const childId of area.children) {
         await this.updatePathTokens(childId, newAreaName, index + 1)
       }
