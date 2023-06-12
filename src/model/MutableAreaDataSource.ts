@@ -1,7 +1,7 @@
 import { geometry, Point } from '@turf/helpers'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
-import mongoose, { ClientSession } from 'mongoose'
+import mongoose, { ClientSession, Types } from 'mongoose'
 import { produce } from 'immer'
 import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
@@ -301,7 +301,20 @@ export default class MutableAreaDataSource extends AreaDataSource {
         throw new Error('Area update error.  Reason: Updating leaf or boulder status of an area with subareas is not allowed.')
       }
 
-      if (areaName != null) area.set({ area_name: sanitizeStrict(areaName) })
+      if (areaName != null) {
+        const sanitizedName = sanitizeStrict(areaName)
+        area.set({ area_name: sanitizedName })
+
+        const newPath = [...area.pathTokens]
+        newPath.pop()
+        newPath.push(sanitizedName)
+        area.set({ pathTokens: newPath })
+
+        for (const childId of area.children) {
+          await this.updatePathTokens(childId, sanitizedName)
+        }
+      }
+      
       if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
       if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
       if (isLeaf != null) area.set({ 'metadata.leaf': isLeaf })
@@ -356,6 +369,34 @@ export default class MutableAreaDataSource extends AreaDataSource {
         return ret
       })
     return ret
+  }
+
+  async updatePathTokens (childId: Types.ObjectId, newAreaName: string, index: number = 2): Promise<void> {
+    // const session = await this.areaModel.startSession()
+    const filter = { _id: childId }
+    // const area = await this.areaModel.findOne(filter).session(session)
+    const area = await this.areaModel.findOne(filter)
+
+    if (area == null) {
+      throw new Error('pathTokens update error.  Reason: child area not found.')
+    }
+
+    if (area.pathTokens.length > 0) {
+      const newPath = [...area.pathTokens]
+      newPath[newPath.length - index] = newAreaName
+      area.set({ pathTokens: newPath })
+      area.save(function (err, result) {
+        if (err != null) {
+          throw new Error('pathTokens update error.  Reason: save operation failed.')
+        } else {
+          console.log(result)
+        }
+      })
+
+      for (const childId of area.children) {
+        await this.updatePathTokens(childId, newAreaName, index + 1)
+      }
+    }
   }
 
   /**
