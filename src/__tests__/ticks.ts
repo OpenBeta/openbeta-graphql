@@ -4,6 +4,9 @@ import { jest } from '@jest/globals'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
 import { muuidToString } from '../utils/helpers.js'
 import { TickInput } from '../db/TickTypes.js'
+import TickDataSource from '../model/TickDataSource.js'
+import UserDataSource from '../model/UserDataSource.js'
+import { UpdateProfileGQLInput } from '../db/UserTypes.js'
 
 jest.setTimeout(60000)
 
@@ -14,13 +17,13 @@ describe('ticks API', () => {
   let inMemoryDB
 
   // Mongoose models for mocking pre-existing state.
+  let ticks: TickDataSource
+  let users: UserDataSource
   let tickOne: TickInput
 
   beforeAll(async () => {
     ({ server, inMemoryDB } = await setUpServer())
-    // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
-    // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
-    user = muuid.mode('relaxed').v4()
+    user = muuid.v4()
     userUuid = muuidToString(user)
 
     tickOne = {
@@ -37,12 +40,70 @@ describe('ticks API', () => {
   })
 
   beforeEach(async () => {
+    ticks = TickDataSource.getInstance()
+    users = UserDataSource.getInstance()
     await inMemoryDB.clear()
   })
 
   afterAll(async () => {
     await server.stop()
     await inMemoryDB.close()
+  })
+
+  describe('queries', () => {
+    const userQuery = `
+      query userTicks($userId: MUUID, $username: String) {
+        userTicks(userId: $userId, username: $username) {
+          _id
+          name
+          notes
+          climbId
+          style
+          attemptType
+          dateClimbed
+          grade
+          userId
+        }
+      }
+    `
+
+    it('queries by userId', async () => {
+      const userProfileInput: UpdateProfileGQLInput = {
+        userUuid,
+        username: 'cat.dog',
+        email: 'cat@example.com'
+      }
+      await users.createOrUpdateUserProfile(user, userProfileInput)
+      await ticks.addTick(tickOne)
+      const response = await queryAPI({
+        query: userQuery,
+        variables: { userId: userUuid },
+        userUuid
+      })
+      expect(response.statusCode).toBe(200)
+      const res = response.body.data.userTicks
+      expect(res).toHaveLength(1)
+      expect(res[0].name).toBe(tickOne.name)
+    })
+
+    it('queries by username', async () => {
+      const userProfileInput: UpdateProfileGQLInput = {
+        userUuid,
+        username: 'cat.dog',
+        email: 'cat@example.com'
+      }
+      await users.createOrUpdateUserProfile(user, userProfileInput)
+      await ticks.addTick(tickOne)
+      const response = await queryAPI({
+        query: userQuery,
+        variables: { username: 'cat.dog' },
+        userUuid
+      })
+      expect(response.statusCode).toBe(200)
+      const res = response.body.data.userTicks
+      expect(res).toHaveLength(1)
+      expect(res[0].name).toBe(tickOne.name)
+    })
   })
 
   describe('mutations', () => {

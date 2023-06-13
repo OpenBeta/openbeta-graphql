@@ -2,11 +2,13 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import type { DeleteResult } from 'mongodb'
 import mongoose from 'mongoose'
 
-import { TickEditFilterType, TickInput, TickType } from '../db/TickTypes'
-import { getTickModel } from '../db/index.js'
+import { TickEditFilterType, TickInput, TickType, TickUserSelectors } from '../db/TickTypes'
+import { getTickModel, getUserModel } from '../db/index.js'
+import type { User } from '../db/UserTypes'
 
 export default class TickDataSource extends MongoDataSource<TickType> {
   tickModel = getTickModel()
+  userModel = getUserModel()
 
   /**
    * @param tick takes in a new tick
@@ -71,11 +73,39 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     }
   }
 
-  async ticksByUser (userId: string): Promise<TickType[]> {
-    return await this.tickModel.find({ userId })
+  /**
+   * Retrieve ticks of a user given their details
+   * @param userSelectors Attributes that can be used to identify the user
+   * @returns
+   */
+  async ticksByUser (userSelectors: TickUserSelectors): Promise<TickType[]> {
+    const { userId: requestedUserId, username } = userSelectors
+    if (requestedUserId == null && username == null) {
+      throw new Error('Username or userId must be supplied')
+    }
+    const filters: any[] = []
+    if (requestedUserId != null) {
+      filters.push({ _id: requestedUserId })
+    }
+    if (username != null) {
+      filters.push({
+        'usernameInfo.username': {
+          $exists: true, $eq: username
+        }
+      })
+    }
+    const userIdObject = await this.userModel.findOne<Pick<User, '_id'>>(
+      { $or: filters },
+      { _id: 1 }
+    ).lean()
+    if (userIdObject == null) {
+      throw new Error('No such user')
+    }
+    // Unfortunately, userIds on ticks are stored as strings not MUUIDs.
+    return await this.tickModel.find({ userId: userIdObject._id.toUUID().toString() })
   }
 
-  async ticksByUserAndClimb (userId: string, climbId: string): Promise<TickType[]> {
+  async ticksByUserIdAndClimb (userId: string, climbId: string): Promise<TickType[]> {
     return await this.tickModel.find({ userId, climbId })
   }
 

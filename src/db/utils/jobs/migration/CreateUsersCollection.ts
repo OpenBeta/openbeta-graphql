@@ -8,7 +8,7 @@ import type { User as Auth0User } from 'auth0'
 import { connectDB, gracefulExit, getUserModel } from '../../../index.js'
 import { logger } from '../../../../logger.js'
 import { User, UpdateProfileGQLInput } from '../../../UserTypes.js'
-import { nonAlphanumericRegex } from '../../../../model/UserDataSource.js'
+import { canonicalizeUsername } from '../../../../utils/helpers.js'
 
 const LOCAL_MEDIA_DIR_UID = process.env.LOCAL_MEDIA_DIR_UID
 
@@ -56,7 +56,7 @@ const onConnected = async (): Promise<void> => {
       avatar,
       usernameInfo: {
         username,
-        canonicalName: username.replaceAll(nonAlphanumericRegex, ''),
+        canonicalName: canonicalizeUsername(username),
         updatedAt: new Date(ts)
       },
       createdBy: userUuid
