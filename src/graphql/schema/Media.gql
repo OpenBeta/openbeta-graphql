@@ -1,9 +1,13 @@
 type Mutation {
-  setTag(input: MediaInput): MediaWithTags
-}
+  """
+  Add an entity tag to a media
+  """
+  addEntityTag(input: MediaEntityTagInput): EntityTag!
 
-type Mutation {
-  removeTag(tagId: ID!): DeleteTagResult
+  """
+  Remove an entity tag from a media
+  """
+  removeEntityTag(input: EntityTagDeleteInput!): Boolean!
 }
 
 type Query {
@@ -100,21 +104,20 @@ type MediaWithTags implements IMediaMetadata {
   entityTags: [EntityTag]
 }
 
-"Result of a delete tag operation"
-type DeleteTagResult {
-  id: ID!
-  mediaUuid: ID!
-  destinationId: ID!
-  destType: Int!
+"Input param for creating a new tag"
+input MediaEntityTagInput {
+  "Target media id"
+  mediaId: ID!
+  "What this tag is pointing to (a climb/area)"
+  entityId: ID!
+  "0: climb, 1: area"
+  entityType: Int!
 }
 
-"Input param for creating a new tag"
-input MediaInput {
-  mediaUuid: ID!
-  mediaUrl: String!
-  mediaType: Int!
-  destinationId: ID!
-  destType: Int!
+"Input param for deleteing a tag"
+input EntityTagDeleteInput {
+  mediaId: ID!
+  tagId: ID!
 }
 
 "Input param for user media query"

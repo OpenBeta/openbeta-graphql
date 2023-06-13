@@ -46,6 +46,30 @@ schema.index({
 })
 
 /**
+ * For checking media ownership
+ */
+schema.index({
+  _id: 1,
+  userUuid: 1
+})
+
+/**
+ * For removeEntityTag update query
+ */
+schema.index({
+  _id: 1,
+  'entityTag._id': 1
+})
+
+/**
+ * For addEntityTag() update query to check whether an existing entity already exists.
+ */
+schema.index({
+  _id: 1,
+  'entityTag.targetId': 1
+})
+
+/**
  * Get media object model
  * @returns MediaObjectType
  */

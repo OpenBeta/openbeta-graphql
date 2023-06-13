@@ -275,8 +275,15 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       })
     return ret
   }
-}
 
-// Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
-// @ts-expect-error
-export const createInstance = (): MutableClimbDataSource => new MutableClimbDataSource(getClimbModel())
+  static instance: MutableClimbDataSource
+
+  static getInstance (): MutableClimbDataSource {
+    if (MutableClimbDataSource.instance == null) {
+      // Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
+      // @ts-expect-error
+      MutableClimbDataSource.instance = new MutableClimbDataSource(getClimbModel())
+    }
+    return MutableClimbDataSource.instance
+  }
+}

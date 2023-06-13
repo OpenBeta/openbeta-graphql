@@ -1,5 +1,6 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
+import mongoose from 'mongoose'
 import differenceInDays from 'date-fns/differenceInDays/index.js'
 
 import { getUserModel } from '../db/index.js'
@@ -235,6 +236,15 @@ export default class UserDataSource extends MongoDataSource<User> {
 
   static calculateLastUpdatedInDays (lastUpdated: Date): number {
     return differenceInDays(Date.now(), lastUpdated.getTime())
+  }
+
+  static instance: UserDataSource
+
+  static getInstance (): UserDataSource {
+    if (UserDataSource.instance == null) {
+      UserDataSource.instance = new UserDataSource(mongoose.connection.db.collection('user'))
+    }
+    return UserDataSource.instance
   }
 }
 

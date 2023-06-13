@@ -2,6 +2,9 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { XMediaType } from '../db/XMediaTypes'
 import { getXMediaModel } from '../db/index.js'
 
+/**
+ * Not being used at the moment
+ */
 export default class XMediaDataSource extends MongoDataSource<XMediaType> {
   xMediaModel = getXMediaModel()
 

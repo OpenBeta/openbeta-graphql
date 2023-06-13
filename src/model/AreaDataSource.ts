@@ -3,7 +3,7 @@ import { Filter } from 'mongodb'
 import muuid from 'uuid-mongodb'
 import bboxPolygon from '@turf/bbox-polygon'
 
-import { getAreaModel, getMediaModel, getMediaObjectModel } from '../db/index.js'
+import { getAreaModel, getMediaObjectModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
@@ -13,7 +13,6 @@ import { logger } from '../logger.js'
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
   climbModel = getClimbModel()
-  tagModel = getMediaModel()
   mediaObjectModal = getMediaObjectModel()
 
   async findAreasByFilter (filters?: GQLFilter): Promise<any> {

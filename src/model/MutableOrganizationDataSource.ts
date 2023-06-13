@@ -108,6 +108,15 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
     const cursor = await org.save()
     return cursor.toObject()
   }
+
+  static instance: MutableOrganizationDataSource
+
+  static getInstance (): MutableOrganizationDataSource {
+    if (MutableOrganizationDataSource.instance == null) {
+      MutableOrganizationDataSource.instance = new MutableOrganizationDataSource(mongoose.connection.db.collection('organizations'))
+    }
+    return MutableOrganizationDataSource.instance
+  }
 }
 
 /**
@@ -159,5 +168,3 @@ const sanitizeEditableFields = async (
 
   return orgFragment
 }
-
-export const createInstance = (): MutableOrganizationDataSource => new MutableOrganizationDataSource(mongoose.connection.db.collection('organizations'))

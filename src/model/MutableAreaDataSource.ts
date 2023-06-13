@@ -427,6 +427,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // @ts-expect-error
     return ret
   }
+
+  static instance: MutableAreaDataSource
+
+  static getInstance (): MutableAreaDataSource {
+    if (MutableAreaDataSource.instance == null) {
+      MutableAreaDataSource.instance = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
+    }
+    return MutableAreaDataSource.instance
+  }
 }
 
 export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: GradeContexts): AreaType => {
@@ -494,5 +503,3 @@ export const genMUIDFromPaths = (parentPathTokens: string[], thisPath: string): 
   keys.push(thisPath)
   return muuid.from(uuidv5(keys.join('|').toUpperCase(), NIL))
 }
-
-export const createInstance = (): MutableAreaDataSource => new MutableAreaDataSource(mongoose.connection.db.collection('areas'))

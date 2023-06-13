@@ -1,11 +1,11 @@
-import { ObjectId } from 'mongoose'
+import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 
 export type ImageFormatType = 'jpeg' | 'png' | 'webp' | 'avif'
 
 export interface MediaObject {
-  _id: ObjectId
+  _id: mongoose.Types.ObjectId
   userUuid: MUUID
   mediaUrl: string
   width: number
@@ -17,7 +17,7 @@ export interface MediaObject {
 }
 
 export interface EntityTag {
-  _id: ObjectId
+  _id: mongoose.Types.ObjectId
   targetId: MUUID
   type: number
   ancestors: string
@@ -55,4 +55,44 @@ export interface TagsLeaderboardType {
 export interface UserMediaQueryInput {
   userUuid: string
   maxFiles?: number
+}
+
+/**
+ * GQL user input type for remove tag mutation
+ */
+export interface EntityTagDeleteGQLInput {
+  mediaId: string
+  tagId: string
+}
+
+/**
+ * Formal input type for remove tag function
+ */
+export interface EntityTagDeleteInput {
+  mediaId: mongoose.Types.ObjectId
+  tagId: mongoose.Types.ObjectId
+}
+
+/**
+ * GQL user input type for add media mutation
+ */
+export type MediaObjectGQLInput = Pick<MediaObject, 'mediaUrl' | 'width' | 'height' | 'format' | 'size'> & {
+  userUuid: string
+}
+
+/**
+ * GQL user input for addEntityTag mutation
+ */
+export interface AddEntityTagGQLInput {
+  mediaId: string
+  entityId: string
+  entityType: number
+}
+
+/**
+ * Formal input type for addEntityTag function
+ */
+export type AddTagEntityInput = Pick<AddEntityTagGQLInput, 'entityType'> & {
+  mediaId: mongoose.Types.ObjectId
+  entityUuid: MUUID
 }

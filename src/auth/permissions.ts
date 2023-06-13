@@ -1,5 +1,5 @@
-import { shield, allow, and } from 'graphql-shield'
-import { isEditor, isUserAdmin, isOwner, isValidEmail } from './rules.js'
+import { shield, allow, and, or } from 'graphql-shield'
+import { isEditor, isUserAdmin, isOwner, isValidEmail, isMediaOwner } from './rules.js'
 
 const permissions = shield({
   Query: {
@@ -13,7 +13,9 @@ const permissions = shield({
     updateArea: isEditor,
     updateClimbs: isEditor,
     deleteClimbs: isEditor,
-    updateUserProfile: and(isOwner, isValidEmail)
+    updateUserProfile: and(isOwner, isValidEmail),
+    addEntityTag: or(isMediaOwner, isUserAdmin),
+    removeEntityTag: or(isMediaOwner, isUserAdmin)
   }
 },
 {

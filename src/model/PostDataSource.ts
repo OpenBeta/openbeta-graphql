@@ -2,6 +2,9 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { PostType } from '../db/PostTypes'
 import { getPostModel } from '../db/index.js'
 
+/**
+ * Not being used at the moment
+ */
 export default class PostDataSource extends MongoDataSource<PostType> {
   postModel = getPostModel()
 
