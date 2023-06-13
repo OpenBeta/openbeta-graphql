@@ -307,13 +307,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
         // change our pathTokens
         const newPath = [...area.pathTokens]
-        newPath.pop()
-        newPath.push(sanitizedName)
+        newPath[newPath.length - 1] = sanitizedName
         area.set({ pathTokens: newPath })
 
         // iterate over the DB id's in the child list and update pathTokens
         for (const childId of area.children) {
-          await this.updatePathTokens(childId, sanitizedName)
+          await this.updatePathTokens(session, childId, sanitizedName)
         }
       }
 
@@ -373,32 +372,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async updatePathTokens (childId: Types.ObjectId, newAreaName: string, index: number = 2): Promise<void> {
-    // const session = await this.areaModel.startSession()
+  async updatePathTokens (session: ClientSession, childId: Types.ObjectId, newAreaName: string, index: number = 2): Promise<any> {
     const filter = { _id: childId }
-    // const area = await this.areaModel.findOne(filter).session(session)
-    const area = await this.areaModel.findOne(filter)
-
-    if (area == null) {
-      throw new Error('pathTokens update error.  Reason: child area not found.')
-    }
+    const area = await this.areaModel.findOne(filter).session(session).orFail(new Error('pathTokens update error.  Reason: child area not found.'))
 
     if (area.pathTokens.length > 0) {
-      // copy old tokens
       const newPath = [...area.pathTokens]
-      // update the correct index in path tokens -> (length - depth)
       newPath[newPath.length - index] = newAreaName
-      // set tokens in the object and save the object to the DB
       area.set({ pathTokens: newPath })
-      area.save(function (err, result) {
-        if (err != null) {
-          throw new Error('pathTokens update error.  Reason: save operation failed.')
-        }
-      })
+      await area.save()
 
-      // iterate over the DB id's in the child list
       for (const childId of area.children) {
-        await this.updatePathTokens(childId, newAreaName, index + 1)
+        await this.updatePathTokens(session, childId, newAreaName, index + 1)
       }
     }
   }
