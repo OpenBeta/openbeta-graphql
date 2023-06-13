@@ -380,7 +380,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
       const newPath = [...area.pathTokens]
       newPath[newPath.length - index] = newAreaName
       area.set({ pathTokens: newPath })
-      await area.save()
+      area.save((err) => {
+        if (err != null) {
+          throw new Error('pathTokens update error.  Reason: save operation failed.')
+        }
+      })
 
       for (const childId of area.children) {
         await this.updatePathTokens(session, childId, newAreaName, index + 1)
