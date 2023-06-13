@@ -4,7 +4,6 @@ import mongoose from 'mongoose'
 
 import { TickEditFilterType, TickInput, TickType, TickUserSelectors } from '../db/TickTypes'
 import { getTickModel, getUserModel } from '../db/index.js'
-import { canonicalizeUsername } from '../utils/helpers'
 import type { User } from '../db/UserTypes'
 
 export default class TickDataSource extends MongoDataSource<TickType> {
@@ -89,9 +88,9 @@ export default class TickDataSource extends MongoDataSource<TickType> {
       filters.push({ _id: requestedUserId })
     }
     if (username != null) {
-      filters.push({ // Fuzzy match based on canonicalName since those are unique to a user.
-        'usernameInfo.canonicalName': {
-          $exists: true, $eq: canonicalizeUsername(username)
+      filters.push({
+        'usernameInfo.username': {
+          $exists: true, $eq: username
         }
       })
     }

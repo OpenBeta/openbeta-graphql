@@ -1,10 +1,10 @@
 import mongoose from 'mongoose'
 import { produce } from 'immer'
-import TickDataSource, { createInstance as createTickInstance } from '../TickDataSource.js'
+import TickDataSource from '../TickDataSource.js'
 import { connectDB, getTickModel, getUserModel } from '../../db/index.js'
 import { TickInput } from '../../db/TickTypes.js'
 import muuid from 'uuid-mongodb'
-import UserDataSource, { createInstance as createUserInstance } from '../UserDataSource.js'
+import UserDataSource from '../UserDataSource.js'
 import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
 
 const userId = muuid.v4()
@@ -60,8 +60,8 @@ describe('Ticks', () => {
       console.log('Cleaning db')
     }
 
-    ticks = createTickInstance()
-    users = createUserInstance()
+    ticks = TickDataSource.getInstance()
+    users = UserDataSource.getInstance()
   })
 
   afterAll(async () => {

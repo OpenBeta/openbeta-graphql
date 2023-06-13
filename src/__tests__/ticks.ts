@@ -4,8 +4,8 @@ import { jest } from '@jest/globals'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
 import { muuidToString } from '../utils/helpers.js'
 import { TickInput } from '../db/TickTypes.js'
-import TickDataSource, { createInstance as createTickInstance } from '../model/TickDataSource.js'
-import UserDataSource, { createInstance as createUserInstance } from '../model/UserDataSource.js'
+import TickDataSource from '../model/TickDataSource.js'
+import UserDataSource from '../model/UserDataSource.js'
 import { UpdateProfileGQLInput } from '../db/UserTypes.js'
 
 jest.setTimeout(60000)
@@ -40,8 +40,8 @@ describe('ticks API', () => {
   })
 
   beforeEach(async () => {
-    ticks = createTickInstance()
-    users = createUserInstance()
+    ticks = TickDataSource.getInstance()
+    users = UserDataSource.getInstance()
     await inMemoryDB.clear()
   })
 
@@ -96,7 +96,7 @@ describe('ticks API', () => {
       await ticks.addTick(tickOne)
       const response = await queryAPI({
         query: userQuery,
-        variables: { username: 'catdog' }, // Any username that reduces to the user's canonical name should work.
+        variables: { username: 'cat.dog' },
         userUuid
       })
       expect(response.statusCode).toBe(200)

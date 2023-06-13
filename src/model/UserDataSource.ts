@@ -2,7 +2,6 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
 import differenceInDays from 'date-fns/differenceInDays/index.js'
-import mongoose from 'mongoose'
 
 import { getUserModel } from '../db/index.js'
 import {
@@ -275,5 +274,3 @@ const isValidUrl = (url: string): boolean => {
     return false
   }
 }
-
-export const createInstance = (): UserDataSource => new UserDataSource(mongoose.connection.db.collection('users'))
