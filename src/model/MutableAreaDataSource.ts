@@ -1,7 +1,7 @@
 import { geometry, Point } from '@turf/helpers'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
-import mongoose, { ClientSession, Types } from 'mongoose'
+import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
 import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
@@ -21,6 +21,8 @@ import { ExperimentalAuthorType } from '../db/UserTypes.js'
 import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
 
 isoCountries.registerLocale(enJson)
+
+type AreaDocumnent = mongoose.Document<unknown, any, AreaType> & AreaType
 
 export default class MutableAreaDataSource extends AreaDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
@@ -293,6 +295,25 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
       const { areaName, description, shortCode, isDestination, isLeaf, isBoulder, lat, lng, experimentalAuthor } = document
 
+      // See https://github.com/OpenBeta/openbeta-graphql/issues/244
+      let experimentaAuthorId: MUUID | null = null
+      if (experimentalAuthor != null) {
+        experimentaAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
+      }
+
+      const opType = OperationType.updateArea
+      const change = await changelogDataSource.create(session, user, opType)
+
+      const _change: ChangeRecordMetadataType = {
+        user: experimentaAuthorId ?? user,
+        historyId: change._id,
+        prevHistoryId: area._change?.historyId._id,
+        operation: opType,
+        seq: 0
+      }
+      area.set({ _change })
+      area.updatedBy = experimentaAuthorId ?? user
+
       if (area.pathTokens.length === 1) {
         if (areaName != null || shortCode != null) throw new Error('Area update error.  Reason: Updating country name or short code is not allowed.')
       }
@@ -306,14 +327,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
         area.set({ area_name: sanitizedName })
 
         // change our pathTokens
-        const newPath = [...area.pathTokens]
-        newPath[newPath.length - 1] = sanitizedName
-        area.set({ pathTokens: newPath })
-
-        // iterate over the DB id's in the child list and update pathTokens
-        for (const childId of area.children) {
-          await this.updatePathTokens(session, childId, sanitizedName)
-        }
+        await this.updatePathTokens(session, _change, area, sanitizedName)
       }
 
       if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
@@ -337,24 +351,6 @@ export default class MutableAreaDataSource extends AreaDataSource {
         })
       }
 
-      // See https://github.com/OpenBeta/openbeta-graphql/issues/244
-      let experimentaAuthorId: MUUID | null = null
-      if (experimentalAuthor != null) {
-        experimentaAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
-      }
-
-      const opType = OperationType.updateArea
-      const change = await changelogDataSource.create(session, user, opType)
-
-      const _change: ChangeRecordMetadataType = {
-        user: experimentaAuthorId ?? user,
-        historyId: change._id,
-        prevHistoryId: area._change?.historyId._id,
-        operation: opType,
-        seq: 0
-      }
-      area.set({ _change })
-      area.updatedBy = experimentaAuthorId ?? user
       const cursor = await area.save()
       return cursor.toObject()
     }
@@ -372,23 +368,31 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async updatePathTokens (session: ClientSession, childId: Types.ObjectId, newAreaName: string, index: number = 2): Promise<any> {
-    const filter = { _id: childId }
-    const area = await this.areaModel.findOne(filter).session(session).orFail(new Error('pathTokens update error.  Reason: child area not found.'))
-
-    if (area.pathTokens.length > 0) {
+  /**
+   * Update path tokens
+   * @param session Mongoose session
+   * @param changeRecord Changeset metadata
+   * @param area area to update
+   * @param newAreaName new area name
+   * @param depth tree depth
+   */
+  async updatePathTokens (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, depth: number = 2): Promise<void> {
+    if (area.pathTokens.length > 1) {
       const newPath = [...area.pathTokens]
-      newPath[newPath.length - index] = newAreaName
+      newPath[newPath.length - depth] = newAreaName
       area.set({ pathTokens: newPath })
-      area.save((err) => {
-        if (err != null) {
-          throw new Error('pathTokens update error.  Reason: save operation failed.')
-        }
-      })
+      area.set({ _change: changeRecord })
+      await area.save({ session })
 
-      for (const childId of area.children) {
-        await this.updatePathTokens(session, childId, newAreaName, index + 1)
-      }
+      // hydrate children_ids array with actual area documents
+      await area.populate('children')
+
+      await Promise.all(area.children.map(async childArea => {
+        // TS complains about ObjectId type
+        // Fix this when we upgrade Mongoose library
+        // @ts-expect-error
+        await this.updatePathTokens(session, changeRecord, childArea, newAreaName, depth + 1)
+      }))
     }
   }
 
