@@ -376,7 +376,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param newAreaName new area name
    * @param depth tree depth
    */
-  async updatePathTokens (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, depth: number = 2): Promise<void> {
+  async updatePathTokens (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, depth: number = 1): Promise<void> {
     if (area.pathTokens.length > 1) {
       const newPath = [...area.pathTokens]
       newPath[newPath.length - depth] = newAreaName
