@@ -96,6 +96,11 @@ yarn seed-db   # May take a few minutes to download a large database file
 yarn serve
 ```
 
+#### Navigating the codebase
+These links explain the structure and key abstractions of our codebase. It's a good place to start before you go spelunking in the code.
+ - [Layers](documentation/layers.md). 
+ - [Testing](documentation/testing.md). 
+
 ### Troubleshooting
 
 - Fix "permissions on /opt/keyfile/keyfile are too open" error
