@@ -376,10 +376,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param newAreaName new area name
    * @param depth tree depth
    */
-  async updatePathTokens (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, depth: number = 1): Promise<void> {
+  async updatePathTokens (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, changeIndex: number = -1): Promise<void> {
     if (area.pathTokens.length > 1) {
+      if (changeIndex === -1) { changeIndex = area.pathTokens.length - 1 }
+
       const newPath = [...area.pathTokens]
-      newPath[newPath.length - depth] = newAreaName
+      newPath[changeIndex] = newAreaName
       area.set({ pathTokens: newPath })
       area.set({ _change: changeRecord })
       await area.save({ session })
@@ -391,7 +393,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
         // TS complains about ObjectId type
         // Fix this when we upgrade Mongoose library
         // @ts-expect-error
-        await this.updatePathTokens(session, changeRecord, childArea, newAreaName, depth + 1)
+        await this.updatePathTokens(session, changeRecord, childArea, newAreaName, changeIndex)
       }))
     }
   }
