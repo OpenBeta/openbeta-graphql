@@ -66,6 +66,21 @@ describe('ticks API', () => {
         }
       }
     `
+    const userTickByClimbQuery = `
+      query userTicksByClimbId($userId: String, $climbId: String) {
+        userTicksByClimbId(userId: $userId, climbId: $climbId) {
+          _id
+          name
+          notes
+          climbId
+          style
+          attemptType
+          dateClimbed
+          grade
+          userId
+        }
+      }
+    `
 
     it('queries by userId', async () => {
       const userProfileInput: UpdateProfileGQLInput = {
@@ -101,6 +116,19 @@ describe('ticks API', () => {
       })
       expect(response.statusCode).toBe(200)
       const res = response.body.data.userTicks
+      expect(res).toHaveLength(1)
+      expect(res[0].name).toBe(tickOne.name)
+    })
+
+    it('queries by userId and climbId', async () => {
+      await ticks.addTick(tickOne)
+      const response = await queryAPI({
+        query: userTickByClimbQuery,
+        variables: { userId: userUuid, climbId: tickOne.climbId },
+        userUuid
+      })
+      expect(response.statusCode).toBe(200)
+      const res = response.body.data.userTicksByClimbId
       expect(res).toHaveLength(1)
       expect(res[0].name).toBe(tickOne.name)
     })
