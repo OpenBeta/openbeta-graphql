@@ -1,4 +1,5 @@
 # Layers
+*Updated 2023-06-15*
 
 ## Overview
 One way to think of our backend is comprising three layers wrapping the raw data sitting in Mongo DB.
@@ -23,4 +24,4 @@ Code is in `src/model/`.
 ## Models
 The inner Mongoose models/schemas that represent how data is stored in the MongoDB.
 
-Code is in `src/db/`
+Code is in `src/db/`.
