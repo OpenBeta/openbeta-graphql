@@ -124,7 +124,7 @@ describe('ticks API', () => {
       await ticks.addTick(tickOne)
       const response = await queryAPI({
         query: userTickByClimbQuery,
-        variables: { userId: userUuid, climbId: tickOne.climbId  },
+        variables: { userId: userUuid, climbId: tickOne.climbId },
         userUuid
       })
       expect(response.statusCode).toBe(200)
