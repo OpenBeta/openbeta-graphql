@@ -89,6 +89,7 @@ export interface IGradeType {
   ewbank?: string
   french?: string
   font?: string
+  uiaa?: string
 }
 
 /**
