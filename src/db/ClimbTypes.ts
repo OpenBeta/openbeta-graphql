@@ -88,6 +88,7 @@ export interface IGradeType {
   yds?: string
   french?: string
   font?: string
+  uiaa?: string
 }
 
 /**

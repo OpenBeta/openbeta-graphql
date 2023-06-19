@@ -149,6 +149,12 @@ type GradeType {
   https://www.99boulders.com/bouldering-grades#font-scale-aka-fontainebleau-scale
   """
   font: String
+  """
+  UIAA grading system, typically used in Central Europe (e.g. Germany, Austria, Switzerland).
+  Uses Roman numerals, e.g. "7-", "7", "7+". (Arabic numerals, like "VII-", are not supported).
+  https://en.wikipedia.org/wiki/Grade_(climbing)#UIAA
+  """
+  uiaa: String
 }
 
 """
