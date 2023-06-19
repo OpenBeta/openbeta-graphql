@@ -7,7 +7,7 @@ FILE_NAME="openbeta-stg-db.tar.gz"
 REMOTE_FILE="https://storage.googleapis.com/openbeta-dev-dbs/$FILE_NAME"
 
 echo "Downloading db file(s)..."
-#wget --content-disposition $REMOTE_FILE
+wget --content-disposition $REMOTE_FILE
 
 rm -rf ./db-dumps/staging/openbeta
 
