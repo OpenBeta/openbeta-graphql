@@ -21,10 +21,34 @@ type Query {
   """
   getUserMedia(input: UserMediaInput): [MediaWithTags]
 
+  getUserMediaPagination(input: UserMediaInput): [UserMedia]
+
   """
   Get a list of users and their tagged photo count
   """
   getTagsLeaderboard(limit: Int): TagsLeaderboard
+}
+
+type UserMedia {
+  username: String
+  userUuid: ID!
+  media: MediaConnection!
+}
+
+type MediaConnection {
+  # total: Int!
+  edges: [MediaEdge!]!
+  pageInfo: PageInfo!
+}
+
+type MediaEdge {
+  node: MediaWithTags
+  cursor: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  endCursor: String
 }
 
 type TagsByUser {
@@ -124,6 +148,8 @@ input EntityTagDeleteInput {
 input UserMediaInput {
   userUuid: ID!
   maxFiles: Int
+  first: Int
+  after: ID
 }
 
 input MediaForFeedInput {

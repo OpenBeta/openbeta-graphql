@@ -55,6 +55,8 @@ export interface TagsLeaderboardType {
 export interface UserMediaQueryInput {
   userUuid: string
   maxFiles?: number
+  first?: number
+  after?: string
 }
 
 /**

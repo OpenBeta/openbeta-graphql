@@ -15,6 +15,11 @@ const MediaQueries = {
     return await media.getOneUserMedia(userUuid, maxFiles)
   },
 
+  getUserMediaPagination: async (_: any, { input }, { dataSources }: Context): Promise<any> => {
+    const { media } = dataSources
+    return await media.getOneUserMediaPagination(input as UserMediaQueryInput)
+  },
+
   getTagsLeaderboard: async (_, { limit = 30 }: { limit: number }, { dataSources }: Context): Promise<TagsLeaderboardType> => {
     const { media } = dataSources
     return await media.getTagsLeaderboard(limit)

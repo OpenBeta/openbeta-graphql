@@ -1,9 +1,9 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
-import mongoose from 'mongoose'
+import mongoose, { ObjectId } from 'mongoose'
 import { logger } from '../logger.js'
 import { getMediaObjectModel } from '../db/index.js'
-import { TagsLeaderboardType, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject } from '../db/MediaObjectTypes.js'
+import { TagsLeaderboardType, UserMediaQueryInput, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject } from '../db/MediaObjectTypes.js'
 
 const HARD_MAX_FILES = 1000
 const HARD_MAX_USERS = 100
@@ -53,6 +53,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
          * Sort by most recently uploaded media first
          */
         $sort: { createdAt: -1 }
+        // $sort: { _id: 1 }
       },
       {
         $group: {
@@ -89,6 +90,54 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       return []
     }
     return rs[0].mediaWithTags
+  }
+
+  async getOneUserMediaPagination (input: UserMediaQueryInput): Promise<any> {
+    // const rs = await this.getMediaByUsers({ uuidStr, maxUsers: 1, maxFiles: limit, includesNoEntityTags: true })
+    // if (rs.length !== 1) {
+    //   logger.error(`Expecting 1 user in result set but got ${rs.length}`)
+    //   return []
+    // }
+    // return rs[0].mediaWithTags
+
+    const { userUuid: userUuidStr, first = 4, after } = input
+    let nextLaunchDate: number
+    let nextId: mongoose.Types.ObjectId
+    let filter: any[] = []
+    if (after != null) {
+      const d = after.split('_')
+      nextLaunchDate = Number.parseInt(d[0])
+      nextId = new mongoose.Types.ObjectId(d[1])
+      filter = [{
+        $or: [
+          {
+            createdDate: { $lt: nextLaunchDate }
+          }, {
+            // If the launchDate is an exact match, we need a tiebreaker, so we use the _id field from the cursor.
+            createdDate: nextLaunchDate,
+            _id: { $lt: nextId }
+          }
+        ]
+      }]
+    }
+
+    const rs = await this.mediaObjectModel.aggregate<MediaObject>([
+      {
+        $match: { userUuid: muid.from(userUuidStr) }
+      },
+      ...filter,
+      {
+        $sort: { createdAt: -1, _id: -1 }
+      },
+      {
+        $limit: first
+      }
+    ])
+    console.log('#', rs)
+    const lastItem = rs[rs.length - 1]
+    const cursor = `${lastItem.createdAt.getTime()}_${lastItem._id.toString()}`
+    console.log(cursor)
+    return null
   }
 
   /**
