@@ -294,6 +294,36 @@ describe('Climb CRUD', () => {
     }
   })
 
+  it('handles UIAA grades correctly', async () => {
+    await areas.addCountry('deu') // Assuming Germany since UIAA is dominant grading system
+
+    // A roped climbing area
+    const newClimbingArea = await areas.addArea(testUser, 'Climbing area 1', null, 'deu')
+    if (newClimbingArea == null) fail('Expect new area to be created')
+
+    const newIDs = await climbs.addOrUpdateClimbs(
+      testUser,
+      newClimbingArea.metadata.area_id,
+      [{ ...newSportClimb1, grade: '6+' }, // good UIAA grade
+        { ...newSportClimb2, grade: '7-' }, // good UIAA grade
+        { ...newSportClimb2, grade: '5' }, // good UIAA grade
+        { ...newSportClimb1, grade: 'V6' }]) // bad UIAA grade (V-scale used)
+
+    expect(newIDs).toHaveLength(4)
+
+    const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+    expect(climb1?.grades).toEqual({ uiaa: '6+' })
+
+    const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
+    expect(climb2?.grades).toEqual({ uiaa: '7-' })
+
+    const climb3 = await climbs.findOneClimbByMUUID(muid.from(newIDs[2]))
+    expect(climb3?.grades).toEqual({ uiaa: '5' })
+
+    const climb4 = await climbs.findOneClimbByMUUID(muid.from(newIDs[3]))
+    expect(climb4?.grades).toEqual(undefined)
+  })
+
   it('can update boulder problems', async () => {
     const newDestination = await areas.addArea(testUser, 'Bouldering area A100', null, 'fr')
 
