@@ -3,8 +3,14 @@ import { MUUID } from 'uuid-mongodb'
 
 import { OperationType as AreaOpType, AreaType } from './AreaTypes.js'
 import { ClimbEditOperationType, ClimbType } from './ClimbTypes.js'
+import { OperationType as OrganizationOpType, OrganizationType } from './OrganizationTypes.js'
 
 export type DBOperation = 'insert' | 'update' | 'delete'
+export enum DocumentKind {
+  areas = 'areas',
+  climbs = 'climbs',
+  organizations = 'organizations'
+}
 
 export interface ChangeLogType<T = SupportedCollectionTypes> {
   _id: mongose.Types.ObjectId
@@ -13,7 +19,7 @@ export interface ChangeLogType<T = SupportedCollectionTypes> {
   changes: Array<BaseChangeRecordType<T>>
 }
 
-// DIY since ResumeToke is defined as unknown in mongo TS
+// DIY since ResumeToken is defined as unknown in mongo TS
 export interface ResumeToken {
   _data: string
 }
@@ -28,10 +34,10 @@ export interface BaseChangeRecordType<FullDocumentType = SupportedCollectionType
   dbOp: DBOperation
   fullDocument: FullDocumentType
   updateDescription: UpdateDescription
-  kind: string
+  kind: DocumentKind
 }
 
-export type OpType = AreaOpType | ClimbEditOperationType
+export type OpType = AreaOpType | ClimbEditOperationType | OrganizationOpType
 
 export interface ChangeRecordMetadataType {
   /** The UUID of the user to whom this change of the document is attributed  */
@@ -46,15 +52,19 @@ export interface ChangeRecordMetadataType {
 }
 
 export interface WithDiscriminator {
-  kind: string
+  kind: DocumentKind
 }
 
 export type AreaChangeLogType = ChangeLogType<AreaType>
 export type AreaChangeRecordType = BaseChangeRecordType<AreaType>
 
 export type ClimbChangeLogType = ChangeLogType<ClimbType>
+export type OrganizationChangeLogType = ChangeLogType<OrganizationType>
 
-export type SupportedCollectionTypes = AreaType & WithDiscriminator | ClimbType & WithDiscriminator
+export type SupportedCollectionTypes =
+  | AreaType & WithDiscriminator
+  | ClimbType & WithDiscriminator
+  | OrganizationType & WithDiscriminator
 
 export interface GetHistoryInputFilterType {
   uuidList: string[]
@@ -65,4 +75,8 @@ export interface GetHistoryInputFilterType {
 
 export interface GetAreaHistoryInputFilterType {
   areaId: string
+}
+
+export interface GetOrganizationHistoryInputFilterType {
+  orgId: MUUID
 }

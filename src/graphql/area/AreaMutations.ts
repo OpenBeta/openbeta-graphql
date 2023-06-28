@@ -65,6 +65,16 @@ const AreaMutations = {
       areaUuid,
       input
     )
+  },
+
+  updateAreasSortingOrder: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<string[] | null> => {
+    const { areas } = dataSources
+
+    if (user?.uuid == null) throw new Error('Missing user uuid')
+    return await areas.updateSortingOrder(
+      user.uuid,
+      input
+    )
   }
 }
 

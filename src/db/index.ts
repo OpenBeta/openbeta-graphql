@@ -1,15 +1,17 @@
 import mongoose from 'mongoose'
+import { ChangeStream } from 'mongodb'
 import { config } from 'dotenv'
 import { enableAllPlugins } from 'immer'
 
 import { getAreaModel } from './AreaSchema.js'
 import { getClimbModel } from './ClimbSchema.js'
-import { getMediaModel } from './MediaSchema.js'
+import { getMediaObjectModel } from './MediaObjectSchema.js'
+import { getOrganizationModel } from './OrganizationSchema.js'
 import { getTickModel } from './TickSchema.js'
 import { getXMediaModel } from './XMediaSchema.js'
 import { getPostModel } from './PostSchema.js'
 import { getChangeLogModel } from './ChangeLogSchema.js'
-import { getExperimentalUserModel } from './UserSchema.js'
+import { getExperimentalUserModel, getUserModel } from './UserSchema.js'
 import { logger } from '../logger.js'
 import streamListener from './edit/streamListener.js'
 
@@ -64,10 +66,13 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
 export const createIndexes = async (): Promise<void> => {
   await getClimbModel().createIndexes()
   await getAreaModel().createIndexes()
-  await getMediaModel().createIndexes()
+  await getOrganizationModel().createIndexes()
   await getTickModel().createIndexes()
   await getXMediaModel().createIndexes()
   await getPostModel().createIndexes()
+  await getMediaObjectModel().createIndexes()
+  await getChangeLogModel().createIndexes()
+  await getUserModel().createIndexes()
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
@@ -77,22 +82,24 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
   })
 }
 
-export const defaultPostConnect = async (): Promise<void> => {
+export const defaultPostConnect = async (): Promise<ChangeStream> => {
   console.log('Kudos!')
   await createIndexes()
-  await streamListener()
+  return await streamListener()
 }
 
 // eslint-disable-next-line
 process.on('SIGINT', gracefulExit).on('SIGTERM', gracefulExit)
 
 export {
-  getMediaModel,
+  getOrganizationModel,
   getAreaModel,
   getTickModel,
   getClimbModel,
   getChangeLogModel,
   getXMediaModel,
   getPostModel,
-  getExperimentalUserModel
+  getExperimentalUserModel,
+  getMediaObjectModel,
+  getUserModel
 }

@@ -1,16 +1,15 @@
-import { TickType } from '../../db/TickTypes'
+import { TickType, TickUserSelectors } from '../../db/TickTypes'
 import type TickDataSource from '../../model/TickDataSource'
 
 const TickQueries = {
-  userTicks: async (_, input, { dataSources }): Promise<TickType[] | null> => {
+  userTicks: async (_, input: TickUserSelectors, { dataSources }): Promise<TickType[] | null> => {
     const { ticks }: { ticks: TickDataSource } = dataSources
-    const { userId } = input
-    return await ticks.ticksByUser(userId)
+    return await ticks.ticksByUser(input)
   },
   userTicksByClimbId: async (_, input, { dataSources }): Promise<TickType[] | null> => {
     const { ticks }: { ticks: TickDataSource } = dataSources
     const { climbId, userId } = input
-    return await ticks.ticksByUserAndClimb(userId, climbId)
+    return await ticks.ticksByUserIdAndClimb(userId, climbId)
   }
 }
 

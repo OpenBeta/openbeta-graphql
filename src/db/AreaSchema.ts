@@ -33,7 +33,7 @@ const MetadataSchema = new Schema<IAreaMetadata>({
     index: '2dsphere'
   },
   bbox: [{ type: Number, required: true }],
-  left_right_index: { type: Number, required: false },
+  leftRightIndex: { type: Number, required: false },
   ext_id: { type: String, required: false, index: true },
   area_id: {
     type: 'object',
@@ -117,6 +117,14 @@ export const AreaSchema = new Schema<AreaType>({
 }, { timestamps: true })
 
 AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
+AreaSchema.index({ 'metadata.leftRightIndex': 1 }, {
+  unique: true,
+  partialFilterExpression: {
+    'metadata.leftRightIndex': {
+      $gt: -1
+    }
+  }
+})
 
 export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> => {
   return connection.model(name, AreaSchema)

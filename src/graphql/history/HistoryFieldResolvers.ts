@@ -1,12 +1,21 @@
-import { ChangeLogType, BaseChangeRecordType, SupportedCollectionTypes } from '../../db/ChangeLogType.js'
+import { ChangeLogType, BaseChangeRecordType, SupportedCollectionTypes, DocumentKind } from '../../db/ChangeLogType.js'
+import { AuthorMetadata, DataSourcesType } from '../../types.js'
+import { exhaustiveCheck } from '../../utils/helpers.js'
 
 /**
- * Customize to resolve individual fields
+ * History schama field resolvers
  */
 const resolvers = {
   History: {
     id: (node: ChangeLogType) => node._id.toString(),
-    editedBy: (node: ChangeLogType) => node.editedBy.toUUID().toString()
+
+    editedBy: (node: ChangeLogType) => node.editedBy.toUUID().toString(),
+
+    editedByUser: async (node: ChangeLogType, _: any, { dataSources }) => {
+      const { users } = dataSources as DataSourcesType
+      const u = await users.getUsername(node.editedBy)
+      return u?.username ?? null
+    }
   },
 
   Change: {
@@ -24,13 +33,35 @@ const resolvers = {
 
   Document: {
     __resolveType (node: SupportedCollectionTypes) {
-      if (node.kind === 'areas') {
-        return 'Area'
+      switch (node.kind) {
+        case DocumentKind.areas:
+          return 'Area'
+        case DocumentKind.climbs:
+          return 'Climb'
+        case DocumentKind.organizations:
+          return 'Organization'
+        default:
+          return exhaustiveCheck(node.kind)
       }
-      if (node.kind === 'climbs') {
-        return 'Climb'
-      }
-      return null
+    }
+  },
+
+  AuthorMetadata: {
+    createdBy: (node: AuthorMetadata) => node?.createdBy?.toUUID().toString(),
+    updatedBy: (node: AuthorMetadata) => node?.updatedBy?.toUUID().toString(),
+
+    createdByUser: async (node: AuthorMetadata, _: any, { dataSources }) => {
+      const { users } = dataSources as DataSourcesType
+      if (node?.createdBy == null) return null
+      const u = await users.getUsername(node.createdBy)
+      return u?.username ?? null
+    },
+
+    updatedByUser: async (node: AuthorMetadata, _: any, { dataSources }) => {
+      const { users } = dataSources as DataSourcesType
+      if (node?.updatedBy == null) return null
+      const u = await users.getUsername(node.updatedBy)
+      return u?.username ?? null
     }
   }
 }

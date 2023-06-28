@@ -25,14 +25,15 @@ const transformClimbRecord = (row: any): ClimbType => {
     grades: {
       ...boulderingDiscipline,
       yds: grade.YDS,
+      ewbank: grade.Ewbank,
       font: grade.Font,
       french: grade.French,
       uiaa: grade.UIAA
     },
-    gradeContext: gradeContext,
-    safety: safety,
+    gradeContext,
+    safety,
     type: disciplines,
-    fa: fa,
+    fa,
     metadata: {
       lnglat: geometry('Point', parent_lnglat) as Point,
       left_right_index: left_right_seq,

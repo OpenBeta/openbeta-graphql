@@ -1,25 +1,25 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import { DataSources } from 'apollo-server-core/dist/graphqlOptions'
-import muid from 'uuid-mongodb'
+import muid, { MUUID } from 'uuid-mongodb'
+import fs from 'fs'
+import { gql } from 'apollo-server'
+import { DocumentNode } from 'graphql'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
-import { QueryByIdType, GQLFilter, Sort } from '../types'
+import { QueryByIdType, GQLFilter, Sort, Context } from '../types'
 import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { PostMutations, PostQueries, PostResolvers } from './posts/index.js'
 import { XMediaMutations, XMediaQueries, XMediaResolvers } from './xmedia/index.js'
-import { TagMutations, TagQueries, TagResolvers } from './tag/index.js'
 import { AreaQueries, AreaMutations } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
-import TickMutations from './tick/TickMutations.js'
-import TickQueries from './tick/TickQueries.js'
-import fs from 'fs'
-
-import { gql } from 'apollo-server'
-import { DocumentNode } from 'graphql'
+import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
+import { TickMutations, TickQueries } from './tick/index.js'
+import { UserQueries, UserMutations, UserResolvers } from './user/index.js'
+import { getAuthorMetadataFromBaseNode } from '../db/utils/index.js'
+import { geojsonPointToLatitude, geojsonPointToLongitude } from '../utils/helpers.js'
 
 /**
  * It takes a file name as an argument, reads the file, and returns a GraphQL DocumentNode.
@@ -35,40 +35,45 @@ function loadSchema (file: string): DocumentNode {
 const TickTypeDef = loadSchema('Tick.gql')
 const ClimbTypeDef = loadSchema('Climb.gql')
 const AreaTypeDef = loadSchema('Area.gql')
+const OrganizationTypeDef = loadSchema('Organization.gql')
 const MediaTypeDef = loadSchema('Media.gql')
 const HistoryTypeDef = loadSchema('History.gql')
 const AreaEditTypeDef = loadSchema('AreaEdit.gql')
+const OrganizationEditTypeDef = loadSchema('OrganizationEdit.gql')
 const ClimbMutationTypeDefs = loadSchema('ClimbEdit.gql')
 const PostTypeDef = loadSchema('Post.gql')
 
 const XMediaTypeDef = loadSchema('XMedia.gql')
 const TagTypeDef = loadSchema('Tag.gql')
+const UserTypeDef = loadSchema('User.gql')
 
 const resolvers = {
   Mutation: {
-    ...TagMutations,
     ...XMediaMutations,
     ...PostMutations,
     ...MediaMutations,
     ...AreaMutations,
     ...ClimbMutations,
-    ...TickMutations
+    ...OrganizationMutations,
+    ...TickMutations,
+    ...UserMutations
   },
   Query: {
-    ...TagQueries,
     ...XMediaQueries,
     ...PostQueries,
     ...MediaQueries,
     ...AreaQueries,
     ...TickQueries,
     ...HistoryQueries,
+    ...OrganizationQueries,
+    ...UserQueries,
 
     // Future To-do: Move climbs and areas' mutations/queries to their own folder Media, Tick, History
     climb: async (
       _,
       { uuid }: QueryByIdType,
-      { dataSources }) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
+      { dataSources }: Context) => {
+      const { areas } = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
       }
@@ -78,33 +83,34 @@ const resolvers = {
     areas: async (
       _,
       { filter, sort }: { filter?: GQLFilter, sort?: Sort },
-      { dataSources }
+      { dataSources }: Context
     ) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
+      const { areas } = dataSources
       const filtered = await areas.findAreasByFilter(filter)
       return filtered.collation({ locale: 'en' }).sort(sort).toArray()
     },
 
     area: async (_: any,
       { uuid }: QueryByIdType,
-      context, info) => {
-      const { dataSources } = context
-      const { areas }: { areas: AreaDataSource } = dataSources
+      { dataSources }: Context
+    ) => {
+      const { areas } = dataSources
       if (uuid !== undefined && uuid !== '') {
         return await areas.findOneAreaByUUID(muid.from(uuid))
       }
       return null
     },
 
-    stats: async (parent: any, args: any, { dataSources }) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
+    stats: async (parent: any, args: any, { dataSources }: Context) => {
+      const { areas } = dataSources
       return await areas.getStats()
     },
 
     cragsNear: async (
       node: any,
       args,
-      { dataSources }: { dataSources: DataSources<AreaDataSource> }) => {
+      { dataSources }: Context
+    ) => {
       const { placeId, lnglat, minDistance, maxDistance, includeCrags } = args
       const areas = dataSources.areas as AreaDataSource
       return await areas.getCragsNear(
@@ -121,7 +127,7 @@ const resolvers = {
   ...HistoryFieldResolvers,
   ...PostResolvers,
   ...XMediaResolvers,
-  ...TagResolvers,
+  ...UserResolvers,
 
   Climb: {
     id: (node: ClimbGQLQueryType) => node._id.toUUID().toString(),
@@ -147,21 +153,27 @@ const resolvers = {
 
     grades: (node: ClimbGQLQueryType) => node.grades ?? null,
 
-    metadata: (node: ClimbGQLQueryType) => ({
-      ...node.metadata,
-      leftRightIndex: node.metadata.left_right_index,
-      climb_id: node._id.toUUID().toString(),
-      climbId: node._id.toUUID().toString(),
+    metadata: (node: ClimbGQLQueryType) => {
+      const { metadata } = node
       // convert internal Geo type to simple lng,lat
-      lng: node.metadata.lnglat.coordinates[0],
-      lat: node.metadata.lnglat.coordinates[1]
-    }),
+      const lng = geojsonPointToLongitude(metadata.lnglat)
+      const lat = geojsonPointToLatitude(metadata.lnglat)
+      const climbId = node._id.toUUID().toString()
+      return ({
+        ...node.metadata,
+        leftRightIndex: metadata.left_right_index,
+        climb_id: climbId,
+        climbId,
+        lng,
+        lat
+      })
+    },
 
     ancestors: (node: ClimbGQLQueryType) => node.ancestors.split(','),
 
-    media: async (node: any, args: any, { dataSources }) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
-      return await areas.findMediaByClimbId(node._id)
+    media: async (node: ClimbType, args: any, { dataSources }: Context) => {
+      const { media } = dataSources
+      return await media.findMediaByClimbId(node._id, node.name)
     },
 
     content: (node: ClimbGQLQueryType) => node.content == null
@@ -172,8 +184,7 @@ const resolvers = {
         }
       : node.content,
 
-    createdBy: (node: ClimbGQLQueryType) => node?.createdBy?.toUUID().toString(),
-    updatedBy: (node: ClimbGQLQueryType) => node?.updatedBy?.toUUID().toString()
+    authorMetadata: getAuthorMetadataFromBaseNode
   },
 
   Area: {
@@ -185,9 +196,9 @@ const resolvers = {
     // New camel case field
     areaName: async (node: AreaType) => node.area_name,
 
-    children: async (parent: AreaType, _, { dataSources: { areas } }) => {
+    children: async (parent: AreaType, _: any, { dataSources: { areas } }: Context) => {
       if (parent.children.length > 0) {
-        return areas.findManyByIds(parent.children)
+        return await areas.findManyByIds(parent.children)
       }
       return []
     },
@@ -198,42 +209,60 @@ const resolvers = {
 
     ancestors: async (parent) => parent.ancestors.split(','),
 
-    climbs: async (node: AreaType, _, { dataSources: { areas } }) => {
+    climbs: async (node: AreaType, _, { dataSources: { areas } }: Context) => {
       if ((node?.climbs?.length ?? 0) === 0) {
         return []
       }
-
-      const { climbs } = node
-
+      const result = node.climbs
       // Test to see if we have actual climb object returned from findOneAreaByUUID()
-      if ((climbs[0] as ClimbType)?.name != null) {
-        return climbs
+      const isClimbTypeArray = (x: any[]): x is ClimbType[] => x[0].name != null
+      if (isClimbTypeArray(result)) {
+        return result
       }
 
       // List of IDs, we need to convert them into actual climbs
-      return areas.findManyClimbsByUuids(node.climbs)
+      return await areas.findManyClimbsByUuids(result as MUUID[])
     },
 
-    metadata: (node: AreaType) => ({
-      ...node.metadata,
-      isDestination: node.metadata?.isDestination ?? false,
-      isBoulder: node.metadata?.isBoulder ?? false,
-      leftRightIndex: node.metadata.left_right_index,
-      area_id: node.metadata.area_id.toUUID().toString(),
-      areaId: node.metadata.area_id.toUUID().toString(),
+    metadata: (node: AreaType) => {
+      const { metadata } = node
       // convert internal Geo type to simple lng,lat
-      lng: node.metadata.lnglat.coordinates[0],
-      lat: node.metadata.lnglat.coordinates[1],
-      mp_id: node.metadata.ext_id ?? ''
-    }),
+      const lng = geojsonPointToLongitude(metadata.lnglat)
+      const lat = geojsonPointToLatitude(metadata.lnglat)
 
-    media: async (node: any, args: any, { dataSources }) => {
-      const { areas }: { areas: AreaDataSource } = dataSources
-      return await areas.findMediaByAreaId(node.metadata.area_id, node.ancestors)
+      const areaId = node.metadata.area_id.toUUID().toString()
+
+      return ({
+        ...node.metadata,
+        isDestination: metadata?.isDestination ?? false,
+        isBoulder: metadata?.isBoulder ?? false,
+        leftRightIndex: metadata?.leftRightIndex ?? -1,
+        area_id: areaId,
+        areaId,
+        lng,
+        lat,
+        mp_id: metadata.ext_id ?? ''
+      })
     },
 
-    createdBy: (node: AreaType) => node?.createdBy?.toUUID().toString(),
-    updatedBy: (node: AreaType) => node?.updatedBy?.toUUID().toString()
+    media: async (node: any, args: any, { dataSources }: Context) => {
+      const { media } = dataSources
+      return await media.findMediaByAreaId(node.metadata.area_id, node.ancestors)
+    },
+
+    authorMetadata: getAuthorMetadataFromBaseNode,
+
+    organizations: async (node: AreaType, args: any, { dataSources }: Context) => {
+      const { organizations } = dataSources
+      const areaIdsToSearch = [node.metadata.area_id, ...node.ancestors.split(',').map(s => muid.from(s))]
+      const associatedOrgsCursor = await organizations.findOrganizationsByFilter({
+        associatedAreaIds: { includes: areaIdsToSearch },
+        // Remove organizations that explicitly request not to be associated with this area.
+        // This specification has to be exact, we don't exclude the entire subtree, only the node itself.
+        excludedAreaIds: { excludes: [node.metadata.area_id] }
+      })
+      return await associatedOrgsCursor.toArray()
+    }
   },
 
   CountByDisciplineType: {
@@ -247,14 +276,18 @@ export const graphqlSchema = makeExecutableSchema({
     CommonTypeDef,
     ClimbTypeDef,
     AreaTypeDef,
+    OrganizationTypeDef,
     MediaTypeDef,
     AreaEditTypeDef,
+    OrganizationEditTypeDef,
     TickTypeDef,
     HistoryTypeDef,
     ClimbMutationTypeDefs,
     PostTypeDef,
     XMediaTypeDef,
-    TagTypeDef
+    TagTypeDef,
+    UserTypeDef
   ],
-  resolvers
+  resolvers,
+  inheritResolversFromInterfaces: true
 })

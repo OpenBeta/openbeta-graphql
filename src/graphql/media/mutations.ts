@@ -1,19 +1,28 @@
 import muid from 'uuid-mongodb'
-import { DataSourcesType } from '../../types.js'
+import mongoose from 'mongoose'
+import { Context } from '../../types.js'
+import { EntityTag, EntityTagDeleteGQLInput, AddEntityTagGQLInput } from '../../db/MediaObjectTypes.js'
 
 const MediaMutations = {
-  setTag: async (_: any, { input }, { dataSources }) => {
-    const { media }: DataSourcesType = dataSources
-    return await media.setTag({
-      ...input,
-      mediaUuid: muid.from(input.mediaUuid),
-      destinationId: muid.from(input.destinationId)
+  addEntityTag: async (_: any, args, { dataSources }: Context): Promise<EntityTag> => {
+    const { media } = dataSources
+    const { input }: { input: AddEntityTagGQLInput } = args
+    const { mediaId, entityId, entityType } = input
+    return await media.addEntityTag({
+      mediaId: new mongoose.Types.ObjectId(mediaId),
+      entityUuid: muid.from(entityId),
+      entityType
     })
   },
 
-  removeTag: async (_: any, { tagId }, { dataSources }) => {
-    const { media }: DataSourcesType = dataSources
-    return await media.removeTag(tagId)
+  removeEntityTag: async (_: any, args, { dataSources }: Context): Promise<boolean> => {
+    const { media } = dataSources
+    const { input }: { input: EntityTagDeleteGQLInput } = args
+    const { mediaId, tagId } = input
+    return await media.removeEntityTag({
+      mediaId: new mongoose.Types.ObjectId(mediaId),
+      tagId: new mongoose.Types.ObjectId(tagId)
+    })
   }
 }
 

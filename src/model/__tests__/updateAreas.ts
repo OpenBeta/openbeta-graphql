@@ -2,10 +2,10 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { geometry } from '@turf/helpers'
 
-import MutableAreaDataSource, { createInstance } from '../MutableAreaDataSource.js'
-import MutableClimbDataSource, { createInstance as createNewClimbDS } from '../MutableClimbDataSource.js'
+import MutableAreaDataSource from '../MutableAreaDataSource.js'
+import MutableClimbDataSource from '../MutableClimbDataSource.js'
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
-import { AreaEditableFieldsType } from '../../db/AreaTypes.js'
+import { AreaEditableFieldsType, UpdateSortingOrderType } from '../../db/AreaTypes.js'
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource
@@ -22,8 +22,8 @@ describe('Areas', () => {
       console.log('Cleaning up db before test', e)
     }
     await createIndexes()
-    areas = createInstance()
-    climbs = createNewClimbDS()
+    areas = MutableAreaDataSource.getInstance()
+    climbs = MutableClimbDataSource.getInstance()
   })
 
   afterAll(async () => {
@@ -224,19 +224,79 @@ describe('Areas', () => {
       .rejects.toThrowError('E11000 duplicate key error')
   })
 
-  it('should fail when calling without a parent country', async () => {
+  it('should fail when adding without a parent country', async () => {
     await expect(areas.addArea(testUser, 'Peak District ', null, 'GB'))
       .rejects.toThrowError()
   })
 
-  it('should fail when calling with a non-existent parent id', async () => {
+  it('should fail when adding with a non-existent parent id', async () => {
     const notInDb = muuid.from('abf6cb8b-8461-45c3-b46b-5997444be867')
     await expect(areas.addArea(testUser, 'Land\'s End ', notInDb))
       .rejects.toThrowError()
   })
 
-  it('should fail when calling with null parents', async () => {
+  it('should fail when adding with null parents', async () => {
     await expect(areas.addArea(testUser, 'Land\'s End ', null, '1q1'))
       .rejects.toThrowError()
+  })
+
+  it('should update areas sorting order', async () => {
+    // Setup
+    await areas.addCountry('MX')
+    const a1 = await areas.addArea(testUser, 'A1', null, 'MX')
+    const a2 = await areas.addArea(testUser, 'A2', null, 'MX')
+
+    const change1: UpdateSortingOrderType = {
+      areaId: a1.metadata.area_id.toUUID().toString(),
+      leftRightIndex: 10
+    }
+    const change2: UpdateSortingOrderType = {
+      areaId: a2.metadata.area_id.toUUID().toString(),
+      leftRightIndex: 9
+    }
+
+    // Update
+    await areas.updateSortingOrder(testUser, [change1, change2])
+
+    // Verify
+    const a1Actual = await areas.findOneAreaByUUID(a1.metadata.area_id)
+    expect(a1Actual).toEqual(
+      expect.objectContaining({
+        area_name: a1.area_name,
+        metadata: expect.objectContaining({
+          leftRightIndex: change1.leftRightIndex
+        })
+      }))
+
+    const a2Actual = await areas.findOneAreaByUUID(a2.metadata.area_id)
+    expect(a2Actual).toEqual(
+      expect.objectContaining({
+        area_name: a2.area_name,
+        metadata: expect.objectContaining({
+          leftRightIndex: change2.leftRightIndex
+        })
+      }))
+
+    // Able to overwrite existing leftRightIndices without duplicate key errors
+    const change3: UpdateSortingOrderType = {
+      areaId: a1.metadata.area_id.toUUID().toString(),
+      leftRightIndex: 9
+    }
+    const change4: UpdateSortingOrderType = {
+      areaId: a2.metadata.area_id.toUUID().toString(),
+      leftRightIndex: 10
+    }
+
+    await expect(areas.updateSortingOrder(testUser, [change3, change4])).resolves.toStrictEqual(
+      [a1.metadata.area_id.toUUID().toString(), a2.metadata.area_id.toUUID().toString()])
+
+    // Make sure we can't have duplicate leftToRight indices >= 0
+    await expect(
+      areas.updateSortingOrder(testUser, [{ ...change3, leftRightIndex: change4.leftRightIndex }]))
+      .rejects.toThrowError(/E11000/)
+
+    // But we can have duplicate indices < 0 to indicate unsorted
+    await areas.updateSortingOrder(testUser,
+      [{ ...change3, leftRightIndex: -1 }, { ...change4, leftRightIndex: -1 }])
   })
 })

@@ -52,17 +52,15 @@ type Climb {
   ancestors: [String!]!
 
   "Media associated with this climb"
-  media: [MediaTagType]
+  media: [MediaWithTags]
 
   yds: String @deprecated(reason: "Migrating to 'grades' field")
 
   "The parent area object"
   parent: Area!
 
-  createdAt: Date
-  updatedAt: Date
-  updatedBy: ID
-  createdBy: ID
+  "Metadata about creation & update of this climb"
+  authorMetadata: AuthorMetadata!
 }
 
 type ClimbMetadata {
@@ -142,6 +140,11 @@ type GradeType {
   https://en.wikipedia.org/wiki/Grade_(climbing)#Yosemite_Decimal_System
   """
   yds: String
+  """
+  Ewbank grade
+  https://en.wikipedia.org/wiki/Grade_(climbing)#Ewbank
+  """
+  ewbank: String
   french: String
   """
   Fontainebleau grading system, the most widely used grading system in Europe.

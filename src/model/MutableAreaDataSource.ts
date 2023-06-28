@@ -7,7 +7,7 @@ import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
-import { AreaType, AreaEditableFieldsType, OperationType } from '../db/AreaTypes.js'
+import { AreaType, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
 import { createRootNode } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
@@ -357,6 +357,85 @@ export default class MutableAreaDataSource extends AreaDataSource {
       })
     return ret
   }
+
+  /**
+   *
+   * @param user user id
+   * @param input area sorting input array
+   * @returns
+   */
+  async updateSortingOrder (user: MUUID, input: UpdateSortingOrderType[]): Promise<string[] | null> {
+    const doUpdate = async (session: ClientSession, user: MUUID, input: UpdateSortingOrderType[]): Promise<string[]> => {
+      const opType = OperationType.orderAreas
+      const change = await changelogDataSource.create(session, user, opType)
+      const updates: any[] = []
+      let expectedOpCount = input.length
+
+      // Clear existing indices so we can re-order without running into duplicate key errors.
+      if (input.some(i => i.leftRightIndex >= 0)) {
+        updates.push({
+          updateMany: {
+            filter: { 'metadata.area_id': { $in: input.map(i => muuid.from(i.areaId)) } },
+            update: {
+              $set: { 'metadata.leftRightIndex': -1 }
+              // Don't record change since this is an intermediate step.
+            }
+          }
+        })
+        expectedOpCount = expectedOpCount * 2
+      }
+
+      input.forEach(({ areaId, leftRightIndex }, index) => {
+        updates.push({
+          updateOne: {
+            filter: { 'metadata.area_id': muuid.from(areaId) },
+            update: {
+              $set: {
+                'metadata.leftRightIndex': leftRightIndex,
+                updatedBy: user,
+                _change: {
+                  user,
+                  historyId: change._id,
+                  operation: opType,
+                  seq: index
+                }
+              }
+            }
+          }
+        })
+      })
+
+      const rs = (await this.areaModel.bulkWrite(updates, { session })).toJSON()
+
+      if (rs.ok === 1 && rs.nMatched === rs.nModified && rs.nMatched === expectedOpCount) {
+        return input.map(item => item.areaId)
+      } else {
+        throw new Error(`Expect to update ${input.length} areas but found ${rs.nMatched}.`)
+      }
+    }
+
+    const session = await this.areaModel.startSession()
+    let ret: string[] | null
+
+    // withTransaction() doesn't return the callback result
+    // see https://jira.mongodb.org/browse/NODE-2014
+    await session.withTransaction(
+      async (session) => {
+        ret = await doUpdate(session, user, input)
+        return ret
+      })
+    // @ts-expect-error
+    return ret
+  }
+
+  static instance: MutableAreaDataSource
+
+  static getInstance (): MutableAreaDataSource {
+    if (MutableAreaDataSource.instance == null) {
+      MutableAreaDataSource.instance = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
+    }
+    return MutableAreaDataSource.instance
+  }
 }
 
 export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: GradeContexts): AreaType => {
@@ -379,12 +458,12 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
       area_id: uuid,
       lnglat: geometry('Point', [0, 0]) as Point,
       bbox: [-180, -90, 180, 90],
-      left_right_index: -1,
+      leftRightIndex: -1,
       ext_id: ''
     },
-    ancestors: ancestors,
+    ancestors,
     climbs: [],
-    pathTokens: pathTokens,
+    pathTokens,
     gradeContext: parentGradeContext,
     aggregate: {
       byGrade: [],
@@ -424,5 +503,3 @@ export const genMUIDFromPaths = (parentPathTokens: string[], thisPath: string): 
   keys.push(thisPath)
   return muuid.from(uuidv5(keys.join('|').toUpperCase(), NIL))
 }
-
-export const createInstance = (): MutableAreaDataSource => new MutableAreaDataSource(mongoose.connection.db.collection('areas'))

@@ -1,6 +1,6 @@
 [![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 # Climbing Route Catalog API 
@@ -59,6 +59,7 @@ query Example1 {
        ...
         ]
       }
+    ]
   }
 }
 ```
@@ -83,18 +84,22 @@ query Example1 {
 docker compose up -d
 ```
 
-2. Seed the development database
+2. Seed your local database with data from staging environment
 
 ```bash
 yarn install
-yarn refresh-db   # download USA data files locally and import
-yarn update-stats      # update statistics
+yarn seed-db   # May take a few minutes to download a large database file
 ```
 
 3. Start the GraphQL server
 ```bash
 yarn serve
 ```
+
+#### Navigating the codebase
+These links explain the structure and key abstractions of our codebase. It's a good place to start before you go spelunking in the code.
+ - [Layers](documentation/layers.md). 
+ - [Testing](documentation/testing.md). 
 
 ### Troubleshooting
 
@@ -134,23 +139,6 @@ yarn serve
   ```
   Why?  See [this issue](https://github.com/microsoft/TypeScript/issues/40878) for an explanation.
 
-- Advanced database commands:
-
-  ```bash
-  # Download & import USA data files.  Also create all other countries.
-  yarn refresh-db full #  Remove 'full' to import only a small dataset
-
-  # Re-import USA from previously downloaded data files (cache dir: ./tmp)
-  # Note: this command will drop and recreate the 'areas' and 'climbs' collection.
-  yarn seed-usa
-
-  # Add all countries (except for USA)
-  yarn add-countries
-
-  # Update area statistics (can be rerun as needed)
-  yarn update-stats
-  ```
-
 - MongoDB playground: https://mongoplayground.net/
 
 ### Questions?
@@ -182,6 +170,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="http://siman4457.github.io"><img src="https://avatars.githubusercontent.com/u/28658492?v=4?s=100" width="100px;" alt="Siman Shrestha"/><br /><sub><b>Siman Shrestha</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=siman4457" title="Code">💻</a> <a href="#ideas-siman4457" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.michaelreichenbach.de"><img src="https://avatars.githubusercontent.com/u/755327?v=4?s=100" width="100px;" alt="Silthus"/><br /><sub><b>Silthus</b></sub></a><br /><a href="#ideas-Silthus" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=Silthus" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bradleyDean"><img src="https://avatars.githubusercontent.com/u/10867313?v=4?s=100" width="100px;" alt="Bradley Lignoski"/><br /><sub><b>Bradley Lignoski</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=bradleyDean" title="Code">💻</a> <a href="#ideas-bradleyDean" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://kaomorphism.com"><img src="https://avatars.githubusercontent.com/u/3641356?v=4?s=100" width="100px;" alt="zkao"/><br /><sub><b>zkao</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=zichongkao" title="Code">💻</a> <a href="#ideas-zichongkao" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://nathan.musoke.ca"><img src="https://avatars.githubusercontent.com/u/16665084?v=4?s=100" width="100px;" alt="Nathan Musoke"/><br /><sub><b>Nathan Musoke</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=musoke" title="Code">💻</a> <a href="#ideas-musoke" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>

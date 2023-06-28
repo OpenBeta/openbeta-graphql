@@ -9,6 +9,8 @@ import type MutableMediaDataSource from './model/MutableMediaDataSource.js'
 import MutableClimbDataSource from './model/MutableClimbDataSource.js'
 import XMediaDataSource from './model/XMediaDataSource.js'
 import PostDataSource from './model/PostDataSource.js'
+import MutableOrganizationDataSource from './model/MutableOrganizationDataSource.js'
+import type UserDataSource from './model/UserDataSource.js'
 
 export enum SortDirection {
   ASC = 1,
@@ -45,6 +47,24 @@ export interface PathTokenParams {
 type FilterParams = AreaFilterParams | LeafStatusParams | PathTokenParams | ComparisonFilterParams[]
 export type GQLFilter = Record<Filterable, FilterParams>
 
+export interface DisplayNameFilterParams {
+  match: string
+  exactMatch: boolean | undefined
+}
+
+export interface AssociatedAreaIdsFilterParams {
+  includes: MUUID[]
+}
+
+export interface ExcludedAreaIdsFilterParams {
+  excludes: MUUID[]
+}
+
+type OrganizationFilterable = 'displayName' | 'associatedAreaIds' | 'excludedAreaIds'
+
+type OrganizationFilterParams = DisplayNameFilterParams | AssociatedAreaIdsFilterParams | ExcludedAreaIdsFilterParams
+export type OrganizationGQLFilter = Partial<Record<OrganizationFilterable, OrganizationFilterParams>>
+
 export type LNGLAT = [number, number]
 export type BBoxType = BBox
 export interface StatisticsType {
@@ -61,21 +81,25 @@ export interface CragsNear {
 export interface QueryByIdType {
   id?: string
   uuid?: string
+  muuid?: MUUID
 }
 
 export interface AuthUserType {
   roles: string[]
   uuid: MUUID | undefined
+  isBuilder: boolean
 }
 
 export interface DataSourcesType {
   areas: MutableAreaDataSource
+  organizations: MutableOrganizationDataSource
   ticks: TickDataSource
   history: HistoryDataSouce
   media: MutableMediaDataSource
   climbs: MutableClimbDataSource
   xmedia: XMediaDataSource
   post: PostDataSource
+  users: UserDataSource
 }
 
 export interface Context {
@@ -84,4 +108,11 @@ export interface Context {
 
 export interface ContextWithAuth extends Context {
   user: AuthUserType
+}
+
+export interface AuthorMetadata {
+  updatedAt?: Date
+  updatedBy?: MUUID
+  createdAt?: Date
+  createdBy?: MUUID
 }

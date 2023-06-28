@@ -1,119 +1,128 @@
 import { UserInputError } from 'apollo-server'
 import mongoose from 'mongoose'
+import muuid from 'uuid-mongodb'
 
-import { AreaType } from '../db/AreaTypes.js'
-import { ClimbType } from '../db/ClimbTypes.js'
-import { getMediaModel, getClimbModel, getAreaModel } from '../db/index.js'
-import { MediaType, MediaInputType, RefModelType, TagEntryResultType, AreaTagType, DeleteTagResult, ClimbTagType } from '../db/MediaTypes.js'
 import MediaDataSource from './MediaDataSource.js'
+import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput, AddTagEntityInput } from '../db/MediaObjectTypes.js'
+import MutableAreaDataSource from './MutableAreaDataSource.js'
 
-const QUERY_OPTIONS = { upsert: true, new: true, overwrite: false }
+export default class MutableMediaDataSource extends MediaDataSource {
+  areaDS = MutableAreaDataSource.getInstance()
 
-export default class MutableAreaDataSource extends MediaDataSource {
-  async setTag ({ mediaUuid, mediaType, mediaUrl, destType, destinationId }: MediaInputType): Promise<TagEntryResultType | null> {
-    let modelType: RefModelType
-    const media = getMediaModel()
-
-    switch (destType) {
+  /**
+   * Add a new entity tag (a climb or area) to a media object.
+   * @returns new EntityTag . 'null' if the entity already exists.
+   */
+  async addEntityTag ({ mediaId, entityUuid, entityType }: AddTagEntityInput): Promise<EntityTag> {
+    let newEntityTagDoc: EntityTag
+    switch (entityType) {
       case 0: {
-        modelType = RefModelType.climbs
         // Check whether the climb referencing this tag exists before we allow
         // the tag to be added
-        const climb = await getClimbModel().findOne({ _id: destinationId })
-          .orFail(new UserInputError(`Climb with id: ${destinationId.toUUID().toString()} doesn't exist`))
+        const climb = await this.areaDS.findOneClimbByUUID(entityUuid)
 
-        const doc: MediaType = {
-          mediaUuid,
-          mediaType,
-          mediaUrl,
-          destType,
-          destinationId,
-          onModel: modelType
+        if (climb == null) {
+          throw new UserInputError(`Climb with id: ${entityUuid.toUUID().toString()} not found`)
         }
 
-        const filter = { mediaUuid: doc.mediaUuid, destinationId }
-
-        if (await media.exists(filter) != null) throw new UserInputError('Duplicate mediaUuid and destinationId not allowed')
-
-        const rs = await media
-          .findOneAndUpdate(
-            filter,
-            doc,
-            QUERY_OPTIONS)
-          .lean()
-
-        if (rs == null) return rs
-
-        const climbTag: ClimbTagType = {
-          _id: rs._id,
-          mediaUuid: rs.mediaUuid,
-          mediaType: rs.mediaType,
-          mediaUrl: rs.mediaUrl,
-          destType: rs.destType,
-          climb: climb as ClimbType,
-          onModel: RefModelType.climbs
+        newEntityTagDoc = {
+          _id: new mongoose.Types.ObjectId(),
+          targetId: entityUuid,
+          type: entityType,
+          ancestors: climb.parent.ancestors,
+          climbName: climb.name,
+          areaName: climb.parent.area_name,
+          lnglat: climb.metadata.lnglat
         }
-        return climbTag
+
+        break
       }
 
       case 1: {
-        modelType = RefModelType.areas
         // Check whether the area referencing this tag exists before we allow
         // the tag to be added
-        const area = await getAreaModel()
-          .findOne({ 'metadata.area_id': destinationId })
-          .lean()
-          .orFail(new UserInputError(`Area with id: ${destinationId.toUUID().toString()} doesn't exist`))
+        const area = await this.areaDS.findOneAreaByUUID(entityUuid)
 
-        const doc: MediaType = {
-          mediaUuid,
-          mediaType,
-          mediaUrl,
-          destType,
-          destinationId,
-          onModel: modelType
+        if (area == null) {
+          throw new UserInputError(`Area with id: ${entityUuid.toUUID().toString()} not found`)
         }
 
-        const filter = { mediaUuid: doc.mediaUuid, destinationId }
-
-        if (await media.exists(filter) != null) throw new UserInputError('Duplicate mediaUuid and destinationId now allowed')
-
-        const rs = await media
-          .findOneAndUpdate(
-            filter,
-            doc,
-            QUERY_OPTIONS)
-          .lean()
-
-        if (rs == null) return null
-
-        const areaTag: AreaTagType = {
-          _id: rs._id,
-          mediaUuid: rs.mediaUuid,
-          mediaType: rs.mediaType,
-          mediaUrl: rs.mediaUrl,
-          destType: rs.destType,
-          area: area as AreaType,
-          onModel: RefModelType.areas
+        newEntityTagDoc = {
+          _id: new mongoose.Types.ObjectId(),
+          targetId: entityUuid,
+          type: entityType,
+          ancestors: area.ancestors,
+          areaName: area.area_name,
+          lnglat: area.metadata.lnglat
         }
-        return areaTag
+
+        break
       }
 
-      default: return null
+      default: throw new UserInputError(`Entity type ${entityType} not supported.`)
     }
+
+    // We treat 'entityTags' like a Set - can't tag the same climb/area id twice.
+    // See https://stackoverflow.com/questions/33576223/using-mongoose-mongodb-addtoset-functionality-on-array-of-objects
+    const filter = {
+      _id: new mongoose.Types.ObjectId(mediaId),
+      'entityTags.targetId': { $ne: entityUuid }
+    }
+
+    await this.mediaObjectModel
+      .updateOne(
+        filter,
+        {
+          $push: {
+            entityTags: newEntityTagDoc
+          }
+        })
+      .orFail(new UserInputError('Media not found or tag already exists.'))
+      .lean()
+
+    return newEntityTagDoc
   }
 
-  async removeTag (mongoIdStr: string): Promise<DeleteTagResult> {
-    const _id = new mongoose.Types.ObjectId(mongoIdStr)
-    const rs = await getMediaModel()
-      .findOneAndDelete({ _id })
-      .orFail(new Error('Tag not found'))
+  /**
+   *  Remove a climb/area entity tag
+   */
+  async removeEntityTag ({ mediaId, tagId }: EntityTagDeleteInput): Promise<boolean> {
+    const rs = await this.mediaObjectModel
+      .updateOne<MediaObject>(
+      {
+        _id: mediaId,
+        'entityTags._id': tagId
+      },
+      {
+        $pull: {
+          entityTags: { _id: tagId }
+        }
+      },
+      { multi: true })
+      .orFail(new UserInputError('Tag not found'))
       .lean()
-    return {
-      id: rs._id.toString(),
-      mediaUuid: rs.mediaUuid.toUUID().toString(),
-      destinationId: rs.destinationId.toUUID().toString(),
-      destType: rs.destType
+
+    return rs.modifiedCount === 1
+  }
+
+  /**
+   * Add a new media object.
+   */
+  async addMedia (input: MediaObjectGQLInput): Promise<MediaObject | null> {
+    const doc = {
+      ...input,
+      userUuid: muuid.from(input.userUuid)
     }
+    const rs = await this.mediaObjectModel.insertMany([doc], { lean: true })
+    return rs != null && rs.length === 1 ? rs[0] : null
+  }
+
+  static instance: MutableMediaDataSource
+
+  static getInstance (): MutableMediaDataSource {
+    if (MutableMediaDataSource.instance == null) {
+      MutableMediaDataSource.instance = new MutableMediaDataSource(mongoose.connection.db.collection('media'))
+    }
+    return MutableMediaDataSource.instance
   }
 }

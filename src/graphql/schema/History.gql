@@ -9,6 +9,10 @@ input AreaHistoryFilter {
   areaId: ID
 }
 
+input OrganizationHistoryFilter {
+  orgId: MUUID
+}
+
 type UpdateDescription {
   updatedFields: [String]
 }
@@ -20,11 +24,12 @@ type Change {
   updateDescription: UpdateDescription
 }
 
-union Document = Area | Climb
+union Document = Area | Climb | Organization
 
 type History {
   id: ID!
-  editedBy: String!
+  editedBy: ID!
+  editedByUser: String
   operation: String!
   createdAt: Date!
   changes: [Change]
@@ -33,4 +38,15 @@ type History {
 type Query {
   getChangeHistory(filter: AllHistoryFilter): [History]
   getAreaHistory(filter: AreaHistoryFilter): [History]
+  getOrganizationHistory(filter: OrganizationHistoryFilter): [History]
+}
+
+"""Author metadata"""
+type AuthorMetadata {
+  createdAt: Date
+  createdBy: ID
+  createdByUser: String
+  updatedAt: Date
+  updatedBy: ID
+  updatedByUser: String
 }

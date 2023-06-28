@@ -65,11 +65,11 @@ type Area {
   "The total number of climbs in this area"
   totalClimbs: Int!
   "Media associated with this area, or its child climbs"
-  media: [MediaTagType]
-  createdAt: Date
-  createdBy: ID
-  updatedAt: Date
-  updatedBy: ID
+  media: [MediaWithTags]
+  "Metadata about creation & update of this area"
+  authorMetadata: AuthorMetadata!
+  "Organizations associated with this area or its parent areas"
+  organizations: [Organization]
 }
 
 type AreaMetadata {
@@ -94,8 +94,8 @@ type AreaMetadata {
   "NE and SW corners of the bounding box for this area"
   bbox: [Float]!
 
-  left_right_index: Int!
-  leftRightIndex: Int!
+  "Left-to-right sorting index.  Undefined or -1 or unsorted area."
+  leftRightIndex: Int
 
   "Mountainproject ID (if associated)"
   mp_id: String!

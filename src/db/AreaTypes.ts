@@ -6,6 +6,7 @@ import { ClimbType } from './ClimbTypes.js'
 import { ChangeRecordMetadataType } from './ChangeLogType.js'
 import { GradeContexts } from '../GradeUtils.js'
 import { ExperimentalAuthorType } from './UserTypes.js'
+import { AuthorMetadata } from '../types.js'
 
 /**
  * Areas are a grouping mechanism in the OpenBeta data model that allow
@@ -32,7 +33,7 @@ export type AreaType = IAreaProps & {
  * See AreaType for the reified version of this object, and always use it
  * if you are working with data that exists inside the database.
 */
-export interface IAreaProps {
+export interface IAreaProps extends AuthorMetadata {
   _id: mongoose.Types.ObjectId
   /**
    * ShortCodes are short, globally uniqe codes that identify significant climbing areas
@@ -99,10 +100,6 @@ export interface IAreaProps {
   _change?: ChangeRecordMetadataType
   /** Used to delete an area.  See https://www.mongodb.com/docs/manual/core/index-ttl/ */
   _deleting?: Date
-  createdAt?: Date
-  updatedAt?: Date
-  updatedBy?: MUUID
-  createdBy?: MUUID
 }
 
 export interface IAreaMetadata {
@@ -130,7 +127,12 @@ export interface IAreaMetadata {
    * all of this areas children (Both sub-areas and climbs).
    */
   bbox: BBox
-  left_right_index: number
+
+  /**
+   * Left-to-right sorting index.  Undefined or -1 for unsorted area,
+   */
+  leftRightIndex?: number
+
   /**
    * Some areas have been directly imported into the OpenBeta dataset, and if they have
    * this field will record their external relation.
@@ -153,9 +155,9 @@ export interface IAreaContent {
   description?: string
 }
 
-/** Fields that may be directly modified by users
+/** Fields that may be directly modified by users.
  * This does not define the total set of mutable fields in the area, only the ones that users
- * may directly submit and over-write
+ * may directly submit and over-write.
  */
 export interface AreaEditableFieldsType {
   areaName?: string
@@ -166,8 +168,13 @@ export interface AreaEditableFieldsType {
   shortCode?: string
   lat?: number
   lng?: number
+  leftRightIndex?: number
   experimentalAuthor?: ExperimentalAuthorType
 }
+
+export type UpdateSortingOrderType = {
+  areaId: string
+} & Required<Pick<AreaEditableFieldsType, 'leftRightIndex'>>
 
 export interface CountByGroupType {
   count: number
@@ -225,5 +232,8 @@ export enum OperationType {
    */
   updateDestination = 'updateDestination',
   /** signals that a user has pushed new user-changable data has been pushed into an area document. */
-  updateArea = 'updateArea'
+  updateArea = 'updateArea',
+
+  /** Set areas' sorting index */
+  orderAreas = 'orderArea'
 }

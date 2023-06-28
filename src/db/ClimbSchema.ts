@@ -62,6 +62,7 @@ const MetadataSchema = new Schema<IClimbMetadata>({
 const GradeTypeSchema = new Schema<GradeScalesTypes>({
   vscale: Schema.Types.String,
   yds: { type: Schema.Types.String, required: false },
+  ewbank: { type: Schema.Types.String, required: false },
   french: { type: Schema.Types.String, required: false },
   font: { type: Schema.Types.String, required: false },
   UIAA: { type: Schema.Types.String, required: false }

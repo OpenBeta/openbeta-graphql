@@ -2,15 +2,25 @@ import mongoose from 'mongoose'
 import muid from 'uuid-mongodb'
 import { ChangeStream } from 'mongodb'
 
-import MutableClimbDataSource, { createInstance as createNewClimbDS } from '../MutableClimbDataSource.js'
-import MutableAreaDataSource, { createInstance as createNewAreaDS } from '../MutableAreaDataSource.js'
+import MutableClimbDataSource from '../MutableClimbDataSource.js'
+import MutableAreaDataSource from '../MutableAreaDataSource.js'
 
 import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { logger } from '../../logger.js'
-import { ClimbType, ClimbChangeDocType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
+import { ClimbType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
 import { sanitizeDisciplines } from '../../GradeUtils.js'
 import streamListener from '../../db/edit/streamListener.js'
 import { changelogDataSource } from '../ChangeLogDataSource.js'
+
+export const newSportClimb1: ClimbChangeInputType = {
+  name: 'Cool route 1',
+  disciplines: {
+    sport: true
+  },
+  description: 'A good warm up problem',
+  location: 'Start from the left arete',
+  protection: '2 bolts'
+}
 
 describe('Climb CRUD', () => {
   let climbs: MutableClimbDataSource
@@ -18,29 +28,41 @@ describe('Climb CRUD', () => {
   let stream: ChangeStream
   const testUser = muid.v4()
 
-  const newClimbsToAdd: ClimbChangeDocType[] = [
+  const newClimbsToAdd: ClimbChangeInputType[] = [
     {
       name: 'Sport 1',
       // Intentionally disable TS check to make sure input is sanitized
-      // @ts-expect-error
       disciplines: {
         sport: true
-      }
+      },
+      description: 'The best climb',
+      location: '5m left of the big tree',
+      protection: '5 quickdraws'
     },
     {
       name: 'Cool trad one',
-      // @ts-expect-error
       disciplines: {
         trad: true
       }
     }
   ]
 
+  const newSportClimb2: ClimbChangeInputType = {
+    name: 'Cool route 2',
+    disciplines: {
+      sport: true
+    },
+    description: 'A local testpiece'
+  }
+
   const newBoulderProblem1: ClimbChangeInputType = {
     name: 'Cool boulder 1',
     disciplines: {
       bouldering: true
-    }
+    },
+    description: 'A good warm up problem',
+    location: 'Start from the left arete',
+    protection: '2 pads'
   }
 
   const newBoulderProblem2: ClimbChangeInputType = {
@@ -64,8 +86,8 @@ describe('Climb CRUD', () => {
 
     await createIndexes()
 
-    climbs = createNewClimbDS()
-    areas = createNewAreaDS()
+    climbs = MutableClimbDataSource.getInstance()
+    areas = MutableAreaDataSource.getInstance()
     await changelogDataSource._testRemoveAll()
     await areas.addCountry('fr')
   })
@@ -93,6 +115,19 @@ describe('Climb CRUD', () => {
       newClimbsToAdd)
 
     expect(newIDs).toHaveLength(newClimbsToAdd.length)
+
+    const climb0 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+
+    // Validate new climb
+    expect(climb0).toMatchObject({
+      name: newClimbsToAdd[0].name,
+      type: sanitizeDisciplines(newClimbsToAdd[0].disciplines),
+      content: {
+        description: newClimbsToAdd[0].description,
+        location: newClimbsToAdd[0].location,
+        protection: newClimbsToAdd[0].protection
+      }
+    })
 
     // California contains subareas.  Should fail.
     await expect(
@@ -204,6 +239,61 @@ describe('Climb CRUD', () => {
     expect(climb2?.grades).toEqual(undefined)
   })
 
+  it('handles Australian grade context correctly', async () => {
+    await areas.addCountry('aus')
+
+    {
+      // A roped climbing area
+      const newClimbingArea = await areas.addArea(testUser, 'Climbing area 1', null, 'aus')
+      if (newClimbingArea == null) fail('Expect new area to be created')
+
+      const newIDs = await climbs.addOrUpdateClimbs(
+        testUser,
+        newClimbingArea.metadata.area_id,
+        [{ ...newSportClimb1, grade: '17' }, // good sport grade
+          { ...newSportClimb2, grade: '29/30', disciplines: { trad: true } }, // good trad and slash grade
+          { ...newSportClimb2, grade: '5.9' }]) // bad AU context grade
+
+      expect(newIDs).toHaveLength(3)
+
+      const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+      expect(climb1?.grades).toEqual({ ewbank: '17' })
+      expect(climb1?.type.sport).toBe(true)
+
+      const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
+      expect(climb2?.grades).toEqual({ ewbank: '29/30' })
+      expect(climb2?.type.sport).toBe(false)
+      expect(climb2?.type.trad).toBe(true)
+
+      const climb3 = await climbs.findOneClimbByMUUID(muid.from(newIDs[2]))
+      expect(climb3?.grades).toEqual(undefined)
+    }
+
+    {
+      // A bouldering area
+      const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'aus')
+      if (newBoulderingArea == null) fail('Expect new area to be created')
+
+      const newIDs = await climbs.addOrUpdateClimbs(
+        testUser,
+        newBoulderingArea.metadata.area_id,
+        [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
+          { ...newBoulderProblem2, grade: '23' }, // bad boulder grade
+          { ...newBoulderProblem2, grade: '7B' }]) // invalid grade (font grade for a AU context boulder problem)
+
+      expect(newIDs).toHaveLength(3)
+
+      const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+      expect(climb1?.grades).toEqual({ vscale: 'V3' })
+
+      const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
+      expect(climb2?.grades).toEqual(undefined)
+
+      const climb3 = await climbs.findOneClimbByMUUID(muid.from(newIDs[2]))
+      expect(climb3?.grades).toEqual(undefined)
+    }
+  })
+
   it('can update boulder problems', async () => {
     const newDestination = await areas.addArea(testUser, 'Bouldering area A100', null, 'fr')
 
@@ -250,7 +340,13 @@ describe('Climb CRUD', () => {
       grades: {
         font: changes[0].grade
       },
-      type: sanitizeDisciplines(changes[0].disciplines)
+      // Make sure update doesn't touch other fields
+      type: sanitizeDisciplines(changes[0].disciplines),
+      content: {
+        description: newBoulderProblem1.description,
+        location: newBoulderProblem1.location,
+        protection: newBoulderProblem1.protection
+      }
     })
 
     expect(actual1?.createdBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())

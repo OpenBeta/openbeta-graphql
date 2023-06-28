@@ -22,3 +22,7 @@ export const sanitizeStrict = (text: string): string => sanitizeHtml(text, {
   allowedAttributes: {
   }
 }).trim()
+
+export const trimToNull = (text?: string): string | null => {
+  return text?.trim() ?? null
+}

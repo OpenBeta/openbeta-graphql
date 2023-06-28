@@ -117,8 +117,6 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         experimentalUserId = await this.experimentalUserDataSource.updateUser(session, author.displayName, author.url)
       }
 
-      console.log('#xperimental uiser', experimentalUserId)
-
       const typeSafeDisciplines = sanitizeDisciplines(userInput[i]?.disciplines)
 
       const grade = userInput[i].grade
@@ -137,6 +135,14 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ...protection != null && { protection: sanitize(protection) }
       }
 
+      /**
+       * Construct the document object to send to Mongo.
+       *
+       * Idiomatic way to only include the field if it's not null:
+       * ```
+       * ...field != null && { fieldName: field }
+       * ```
+       */
       const doc: ClimbChangeDocType = {
         _id: newClimbIds[i],
         ...name != null && { name: sanitizeStrict(name) },
@@ -145,7 +151,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         gradeContext: parent.gradeContext,
         ...fa != null && { fa },
         ...length != null && length > 0 && { length },
-        content: Object.keys(content).length === 0 ? undefined : content,
+        ...Object.keys(content).length > 0 && { content },
         metadata: {
           areaRef: parent.metadata.area_id,
           lnglat: parent.metadata.lnglat,
@@ -269,8 +275,15 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       })
     return ret
   }
-}
 
-// Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
-// @ts-expect-error
-export const createInstance = (): MutableClimbDataSource => new MutableClimbDataSource(getClimbModel())
+  static instance: MutableClimbDataSource
+
+  static getInstance (): MutableClimbDataSource {
+    if (MutableClimbDataSource.instance == null) {
+      // Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
+      // @ts-expect-error
+      MutableClimbDataSource.instance = new MutableClimbDataSource(getClimbModel())
+    }
+    return MutableClimbDataSource.instance
+  }
+}

@@ -92,6 +92,36 @@
         "ideas",
         "code"
       ]
+    },
+    {
+      "login": "bradleyDean",
+      "name": "Bradley Lignoski",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10867313?v=4",
+      "profile": "https://github.com/bradleyDean",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "zichongkao",
+      "name": "zkao",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3641356?v=4",
+      "profile": "http://kaomorphism.com",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "musoke",
+      "name": "Nathan Musoke",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16665084?v=4",
+      "profile": "http://nathan.musoke.ca",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -1,17 +1,28 @@
 type Mutation {
-  setDestinationFlag(input: DestinationFlagInput): Area
-}
-
-type Mutation {
+  """
+  Add an area attributes
+  """
   addArea(input: AreaInput): Area
-}
 
-type Mutation {
-  removeArea(input: RemoveAreaInput): Area
-}
-
-type Mutation {
+  """
+  Update area attributes
+  """
   updateArea(input: AreEditableFieldsInput): Area
+
+  """
+  Set area destination flag
+  """
+  setDestinationFlag(input: DestinationFlagInput): Area
+
+  """
+  Remove an area
+  """
+  removeArea(input: RemoveAreaInput): Area
+
+  """
+  Update area sorting order in bulk
+  """
+  updateAreasSortingOrder(input: [AreaSortingInput]): [ID]
 }
 
 input DestinationFlagInput {
@@ -46,4 +57,13 @@ input AreEditableFieldsInput {
   lng: Float
   description: String
   experimentalAuthor: ExperimentalAuthorType
+  leftRightIndex: Int
+}
+
+"Area sorting input param"
+input AreaSortingInput {
+  "Area UUID"
+  areaId: String!
+  "Left-to-right sorting index. The backend enforces uniqueness for value >= 0.  Use -1 to indicate unsorted order."
+  leftRightIndex: Int!
 }

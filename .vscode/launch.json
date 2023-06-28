@@ -33,19 +33,6 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Seed USA",
-            "program": "${workspaceFolder}/src/db/import/usa/USADay0Seed.ts",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
-            ],
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-        },
-        {
-            "type": "node",
-            "request": "launch",
             "name": "Launch API server",
             "skipFiles": [
                 "<node_internals>/**"
@@ -54,7 +41,8 @@
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
-            ]
+            ],
+            "console": "integratedTerminal",
         },
         {
             "name": "Debug Jest Tests",
@@ -67,7 +55,7 @@
                 "--inspect-brk",
                 "${workspaceRoot}/node_modules/.bin/jest",
                 "--runInBand",
-                "MutableClimbDataSource"
+                "MediaData"
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",

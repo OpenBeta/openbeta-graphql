@@ -28,7 +28,7 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
   // Build a tree from each record in the state data file
   const tree = new Tree(root)
   areas.forEach(record => {
-    const { path }: {path: string} = record
+    const { path }: { path: string } = record
     /* eslint-disable-next-line */
     const fullPath = `${record.us_state}|${path}` // 'path' doesn't have a parent (a US state)
     tree.insertMany(fullPath, record)
@@ -84,7 +84,7 @@ export const makeDBArea = (node: AreaNode): AreaType => {
       area_id: uuid,
       lnglat: geometry('Point', isLeaf ? node.jsonLine.lnglat : [0, 0]) as Point,
       bbox: [-180, -90, 180, 90],
-      left_right_index: -1,
+      leftRightIndex: -1,
       ext_id: isLeaf ? extractMpId(node.jsonLine.url) : ''
     },
     ancestors: uuidArrayToString(node.getAncestors()),

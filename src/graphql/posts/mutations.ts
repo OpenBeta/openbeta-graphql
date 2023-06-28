@@ -1,6 +1,6 @@
 import { AddPostInputType, RemovePostInputType } from '../../db/PostTypes'
 import { getPostModel } from '../../db/PostSchema.js'
-import { DataSourcesType } from '../../types'
+import { Context } from '../../types'
 import muid from 'uuid-mongodb'
 import { XMediaType } from '../../db/XMediaTypes'
 
@@ -9,10 +9,9 @@ const PostMutations = {
   addPost: async (
     _: any,
     { input }: { input: AddPostInputType },
-    { dataSources }
+    { dataSources }: Context
   ) => {
-    const { xmedia }: DataSourcesType = dataSources
-    const { post }: DataSourcesType = dataSources
+    const { xmedia, post } = dataSources
     const { userId, description, photoUrls }: AddPostInputType = input
     const userMMUID = muid.from(userId)
     // Create new XMedia documents

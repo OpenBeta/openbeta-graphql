@@ -1,18 +1,19 @@
 import mongoose from 'mongoose'
-import { ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
+import { ChangeStream, ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
 import dot from 'dot-object'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
-import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation, SupportedCollectionTypes } from '../ChangeLogType.js'
+import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation, SupportedCollectionTypes, DocumentKind } from '../ChangeLogType.js'
 import { checkVar } from '../index.js'
 import { updateAreaIndex } from '../export/Typesense/Client.js'
 import { AreaType } from '../AreaTypes.js'
+import { exhaustiveCheck } from '../../utils/helpers.js'
 
 /**
  * Start a new stream listener to track changes
  */
-export default async function streamListener (): Promise<any> {
+export default async function streamListener (): Promise<ChangeStream> {
   const resumeId = await mostRecentResumeId()
   logger.info({ resumeId }, 'Starting stream listener')
 
@@ -31,7 +32,7 @@ export default async function streamListener (): Promise<any> {
         },
         {
           'ns.coll': {
-            $in: ['climbs', 'areas']
+            $in: ['climbs', 'areas', 'organizations']
           }
         }
       ]
@@ -49,7 +50,7 @@ const onChange = (change: ChangeStreamDocument): void => {
     case 'replace':
     case 'update': {
       let dbOp: DBOperation = 'update'
-      const source = change.ns.coll
+      const source = DocumentKind[change.ns.coll]
       const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
@@ -60,7 +61,7 @@ const onChange = (change: ChangeStreamDocument): void => {
     }
     case 'insert': {
       const dbOp = 'insert'
-      const source = change.ns.coll
+      const source = DocumentKind[change.ns.coll]
       const { fullDocument, _id } = change
       void recordChange({ _id: _id as ResumeToken, source, fullDocument: fullDocument as SupportedCollectionTypes, dbOp })
       break
@@ -70,7 +71,7 @@ const onChange = (change: ChangeStreamDocument): void => {
 
 interface ChangeRecordType {
   _id: ResumeToken
-  source: string
+  source: DocumentKind
   fullDocument: SupportedCollectionTypes
   updateDescription?: any
   dbOp: DBOperation
@@ -79,30 +80,42 @@ interface ChangeRecordType {
 const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
   fullDocument.kind = source
   switch (source) {
-    case 'climbs': {
+    case DocumentKind.climbs: {
       const newDocument: BaseChangeRecordType = {
         _id,
         dbOp,
         fullDocument,
         updateDescription: dotifyUpdateDescription(updateDescription),
-        kind: 'climbs'
+        kind: DocumentKind.climbs
       }
       void changelogDataSource.record(newDocument)
       break
     }
-    case 'areas': {
+    case DocumentKind.areas: {
       const newDocument: BaseChangeRecordType = {
         _id,
         dbOp,
         fullDocument,
         updateDescription: dotifyUpdateDescription(updateDescription),
-        kind: 'areas'
+        kind: DocumentKind.areas
       }
       void changelogDataSource.record(newDocument)
       void updateAreaIndex(fullDocument as AreaType, dbOp)
       break
     }
+    case DocumentKind.organizations: {
+      const newDocument: BaseChangeRecordType = {
+        _id,
+        dbOp,
+        fullDocument,
+        updateDescription: dotifyUpdateDescription(updateDescription),
+        kind: DocumentKind.organizations
+      }
+      void changelogDataSource.record(newDocument)
+      break
+    }
     default:
+      exhaustiveCheck(source)
   }
 }
 
