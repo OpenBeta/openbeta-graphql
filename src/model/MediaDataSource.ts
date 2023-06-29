@@ -65,8 +65,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
         /**
          * Sort by most recently uploaded media first
          */
-        $sort: { createdAt: -1 }
-        // $sort: { _id: 1 }
+        $sort: { createdAt: -1, _id: -1 }
       },
       {
         $group: {
@@ -105,6 +104,16 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
     return rs[0].mediaWithTags
   }
 
+  /**
+   * Get user media by page.
+   *
+   * See
+   * - https://engage.so/blog/a-deep-dive-into-offset-and-cursor-based-pagination-in-mongodb/#what-is-cursor-based-pagination
+   * - https://www.mixmax.com/engineering/api-paging-built-the-right-way
+   * - https://graphql.org/learn/pagination/
+   * @param input
+   * @returns
+   */
   async getOneUserMediaPagination (input: UserMediaQueryInput): Promise<UserMedia> {
     const { userUuid, first = 6, after } = input
     let nextCreatedDate: number
@@ -149,6 +158,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
 
     let hasNextPage = false
     if (rs.length > first) {
+      // ok there's a next page. remove the extra item.
       rs.pop()
       hasNextPage = true
     }

@@ -238,10 +238,9 @@ const verifyPageData = (
   expect(pageEdges).toHaveLength(itemsPerPage)
 
   /**
-   * Is there a better way to partially compare an array of objects?
    * We only need to spot check key fields.
    */
-  expect(pageEdges[0].node._id).toEqual(expectedMedia[0]._id)
-  expect(pageEdges[1].node._id).toEqual(expectedMedia[1]._id)
-  expect(pageEdges[2].node._id).toEqual(expectedMedia[2]._id)
+  pageEdges.forEach((edge, index) => {
+    expect(edge.node._id).toEqual(expectedMedia[index]._id)
+  })
 }
