@@ -73,6 +73,7 @@ export const CountByDisciplineSchema = new Schema<CountByDisciplineType>({
   trad: { type: DisciplineStatsSchema, required: false },
   sport: { type: DisciplineStatsSchema, required: false },
   bouldering: { type: DisciplineStatsSchema, required: false },
+  deepwatersolo: { type: DisciplineStatsSchema, required: false },
   alpine: { type: DisciplineStatsSchema, required: false },
   snow: { type: DisciplineStatsSchema, required: false },
   ice: { type: DisciplineStatsSchema, required: false },

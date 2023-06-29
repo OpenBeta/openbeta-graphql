@@ -103,6 +103,8 @@ export interface DisciplineType {
   sport?: boolean
   /** https://en.wikipedia.org/wiki/Bouldering */
   bouldering?: boolean
+  /** https://en.wikipedia.org/wiki/Deep-water_soloing */
+  deepwatersolo?: boolean
   /** https://en.wikipedia.org/wiki/Alpine_climbing */
   alpine?: boolean
   /** https://en.wikipedia.org/wiki/Ice_climbing */

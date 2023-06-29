@@ -7,6 +7,7 @@ export interface IFlatClimbTypes {
   typeTrad: boolean
   typeTR: boolean
   typeBouldering: boolean
+  typeDeepWaterSolo: boolean
   typeMixed: boolean
   typeAlpine: boolean
   typeSnow: boolean
@@ -20,6 +21,7 @@ export const flattenDisciplines = (type: DisciplineType): IFlatClimbTypes => {
     typeTrad: type?.trad ?? false,
     typeTR: type?.tr ?? false,
     typeBouldering: type?.bouldering ?? false,
+    typeDeepWaterSolo: type?.deepwatersolo ?? false,
     typeMixed: type?.mixed ?? false,
     typeAlpine: type?.alpine ?? false,
     typeSnow: type?.snow ?? false,

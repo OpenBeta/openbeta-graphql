@@ -42,6 +42,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     sport: GradeScales.EWBANK,
     bouldering: GradeScales.VSCALE,
     tr: GradeScales.EWBANK,
+    deepwatersolo: GradeScales.EWBANK,
     alpine: GradeScales.YDS,
     mixed: GradeScales.YDS,
     aid: GradeScales.YDS,
@@ -53,6 +54,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     sport: GradeScales.YDS,
     bouldering: GradeScales.VSCALE,
     tr: GradeScales.YDS,
+    deepwatersolo: GradeScales.YDS,
     alpine: GradeScales.YDS,
     mixed: GradeScales.YDS,
     aid: GradeScales.YDS,
@@ -64,6 +66,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     sport: GradeScales.FRENCH,
     bouldering: GradeScales.FONT,
     tr: GradeScales.FRENCH,
+    deepwatersolo: GradeScales.FRENCH,
     alpine: GradeScales.FRENCH,
     mixed: GradeScales.FRENCH,
     aid: GradeScales.FRENCH,
@@ -75,6 +78,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     sport: GradeScales.FRENCH,
     bouldering: GradeScales.FONT,
     tr: GradeScales.FRENCH,
+    deepwatersolo: GradeScales.FRENCH,
     alpine: GradeScales.FRENCH,
     mixed: GradeScales.FRENCH,
     aid: GradeScales.FRENCH,
@@ -205,7 +209,7 @@ export const getCountriesDefaultGradeContext = (): { [x: string]: GradeContexts 
   return countries
 }
 
-export const validDisciplines = ['trad', 'sport', 'bouldering', 'alpine', 'snow', 'ice', 'mixed', 'aid', 'tr']
+export const validDisciplines = ['trad', 'sport', 'bouldering', 'deepwatersolo', 'alpine', 'snow', 'ice', 'mixed', 'aid', 'tr']
 
 /**
  * Perform runtime validation of climb discipline object
@@ -234,6 +238,7 @@ export const defaultDisciplines = (): DisciplineType => ({
   trad: false,
   sport: false,
   bouldering: false,
+  deepwatersolo: false,
   alpine: false,
   snow: false,
   ice: false,

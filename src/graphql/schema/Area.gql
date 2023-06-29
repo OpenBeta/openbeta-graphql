@@ -126,6 +126,7 @@ type CountByDisciplineType {
   sport: DisciplineStatsType
   bouldering: DisciplineStatsType
   boulder: DisciplineStatsType @deprecated(reason: "Migrating to 'bouldering'")
+  deepwatersolo: DisciplineStatsType
   alpine: DisciplineStatsType
   snow: DisciplineStatsType
   ice: DisciplineStatsType
