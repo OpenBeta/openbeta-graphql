@@ -49,6 +49,21 @@ describe('Test grade utilities', () => {
       yds: '5.9'
     })
 
+    actual = createGradeObject('5.10a', sanitizeDisciplines({ trad: true }), context)
+    expect(actual).toEqual({
+      yds: '5.10a'
+    })
+
+    actual = createGradeObject('A1', sanitizeDisciplines({ aid: true }), context)
+    expect(actual).toEqual({
+      aid: 'A1'
+    })
+
+    actual = createGradeObject('C2+', sanitizeDisciplines({ aid: true }), context)
+    expect(actual).toEqual({
+      aid: 'C2+'
+    })
+
     actual = createGradeObject('V4', sanitizeDisciplines({ bouldering: true }), context)
     expect(actual).toEqual({
       vscale: 'V4'
@@ -92,6 +107,16 @@ describe('Test grade utilities', () => {
       ewbank: '5'
     })
 
+    actual = createGradeObject('A2', sanitizeDisciplines({ aid: true }), context)
+    expect(actual).toEqual({
+      aid: 'A2'
+    })
+
+    actual = createGradeObject('C3+', sanitizeDisciplines({ aid: true }), context)
+    expect(actual).toEqual({
+      aid: 'C3+'
+    })
+
     actual = createGradeObject('v11', sanitizeDisciplines({ bouldering: true }), context)
     expect(actual).toEqual({
       vscale: 'v11'
@@ -119,6 +144,16 @@ describe('Test grade utilities', () => {
     let actual = createGradeObject('5a', sanitizeDisciplines({ sport: true }), context)
     expect(actual).toEqual({
       french: '5a'
+    })
+
+    actual = createGradeObject('A2', sanitizeDisciplines({ aid: true }), context)
+    expect(actual).toEqual({
+      aid: 'A2'
+    })
+
+    actual = createGradeObject('C1', sanitizeDisciplines({ aid: true }), context)
+    expect(actual).toEqual({
+      aid: 'C1'
     })
 
     actual = createGradeObject('7c', sanitizeDisciplines({ bouldering: true }), context)

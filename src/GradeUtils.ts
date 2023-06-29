@@ -45,7 +45,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     deepwatersolo: GradeScales.EWBANK,
     alpine: GradeScales.YDS,
     mixed: GradeScales.YDS,
-    aid: GradeScales.YDS,
+    aid: GradeScales.AID,
     snow: GradeScales.YDS, // is this the same as alpine?
     ice: GradeScales.WI
   },
@@ -57,7 +57,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     deepwatersolo: GradeScales.YDS,
     alpine: GradeScales.YDS,
     mixed: GradeScales.YDS,
-    aid: GradeScales.YDS,
+    aid: GradeScales.AID,
     snow: GradeScales.YDS, // is this the same as alpine?
     ice: GradeScales.WI
   },
@@ -69,7 +69,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     deepwatersolo: GradeScales.FRENCH,
     alpine: GradeScales.FRENCH,
     mixed: GradeScales.FRENCH,
-    aid: GradeScales.FRENCH,
+    aid: GradeScales.AID,
     snow: GradeScales.FRENCH, // is this the same as alpine?
     ice: GradeScales.WI
   },
@@ -81,7 +81,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     deepwatersolo: GradeScales.FRENCH,
     alpine: GradeScales.FRENCH,
     mixed: GradeScales.FRENCH,
-    aid: GradeScales.FRENCH,
+    aid: GradeScales.AID,
     snow: GradeScales.FRENCH, // SA does not have a whole lot of snow
     ice: GradeScales.WI
   }
