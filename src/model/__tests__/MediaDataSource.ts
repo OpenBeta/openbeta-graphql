@@ -164,7 +164,7 @@ describe('MediaDataSource', () => {
     await expect(media.addEntityTag(areaTag2)).rejects.toThrowError(/tag already exists/i)
   })
 
-  it.only('should return paginated media cursor', async () => {
+  it('should return paginated media results', async () => {
     const ITEMS_PER_PAGE = 3
     const MEDIA_TEMPLATE: MediaObjectGQLInput = {
       ...TEST_MEDIA,
