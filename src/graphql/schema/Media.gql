@@ -63,8 +63,9 @@ Media edge.
 See https://graphql.org/learn/pagination/
 """
 type MediaEdge {
-  ""
+  "Media object"
   node: MediaWithTags
+  "Current node cursor.  The frontend can pass this value to the `after` input parameter to fetch the next page."
   cursor: ID!
 }
 
@@ -153,12 +154,12 @@ type MediaWithTags implements IMediaMetadata {
   entityTags: [EntityTag]
 }
 
-"Input param for querying a single media object"
+"Input parameters for querying a single media object"
 input MediaInput {
   id: ID!
 }
 
-"Input param for creating a new tag"
+"Input parameters for creating a new tag"
 input MediaEntityTagInput {
   "Target media id"
   mediaId: ID!
@@ -168,21 +169,21 @@ input MediaEntityTagInput {
   entityType: Int!
 }
 
-"Input param for deleteing a tag"
+"Input parameters for deleting a tag"
 input EntityTagDeleteInput {
   mediaId: ID!
   tagId: ID!
 }
 
-"Input param for user media query"
+"Input parameters for user media queries."
 input UserMediaInput {
   "User UUID.  Ex: a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5"
   userUuid: ID!
-  "Max number of objects return.  Ignore when using with pagination"
+  "Max number of objects return.  Ignore when using with pagination query."
   maxFiles: Int
-  "Number of objects per page (default to  6)."
+  "Number of objects per page (Default = 6)."
   first: Int
-  "Starting cursor ID (excluive).  Return the first page if omitted."
+  "Returning page data after this cursor (exclusive).  Return the first page if omitted."
   after: ID
 }
 
