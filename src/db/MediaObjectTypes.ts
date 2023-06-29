@@ -52,11 +52,15 @@ export interface TagsLeaderboardType {
   allTime: AllTimeTagStats
 }
 
-export interface UserMediaQueryInput {
+export interface UserMediaGQLQueryInput {
   userUuid: string
   maxFiles?: number
   first?: number
   after?: string
+}
+
+export type UserMediaQueryInput = Omit<UserMediaGQLQueryInput, 'userUuid'> & {
+  userUuid: MUUID
 }
 
 /**
@@ -97,4 +101,20 @@ export interface AddEntityTagGQLInput {
 export type AddTagEntityInput = Pick<AddEntityTagGQLInput, 'entityType'> & {
   mediaId: mongoose.Types.ObjectId
   entityUuid: MUUID
+}
+
+export interface UserMedia {
+  userUuid: string
+  mediaConnection: {
+    edges: MediaEdge[]
+    pageInfo: {
+      hasNextPage: boolean
+      endCursor: string | null
+    }
+  }
+}
+
+interface MediaEdge {
+  node: MediaObject
+  cursor: string
 }

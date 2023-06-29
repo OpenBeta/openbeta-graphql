@@ -12,6 +12,11 @@ type Mutation {
 
 type Query {
   """
+  Get single media object
+  """
+  media(input: MediaInput): MediaWithTags
+
+  """
   Get recent media with tags group by users.
   """
   getMediaForFeed(input: MediaForFeedInput): [MediaByUsers]
@@ -21,7 +26,13 @@ type Query {
   """
   getUserMedia(input: UserMediaInput): [MediaWithTags]
 
-  getUserMediaPagination(input: UserMediaInput): [UserMedia]
+  """
+  Get media cursor with pagination support.  We only support forward cursor.
+  See 
+  - https://graphql.org/learn/pagination/
+  - https://relay.dev/graphql/connections.htm
+  """
+  getUserMediaPagination(input: UserMediaInput): UserMedia
 
   """
   Get a list of users and their tagged photo count
@@ -29,25 +40,38 @@ type Query {
   getTagsLeaderboard(limit: Int): TagsLeaderboard
 }
 
+"""
+User media cursor with pagination support.
+See https://graphql.org/learn/pagination/
+"""
 type UserMedia {
-  username: String
   userUuid: ID!
-  media: MediaConnection!
+  mediaConnection: MediaConnection!
 }
 
+"""
+Media connection.
+See https://graphql.org/learn/pagination/
+"""
 type MediaConnection {
-  # total: Int!
   edges: [MediaEdge!]!
   pageInfo: PageInfo!
 }
 
+"""
+Media edge.
+See https://graphql.org/learn/pagination/
+"""
 type MediaEdge {
+  ""
   node: MediaWithTags
   cursor: ID!
 }
 
 type PageInfo {
+  "True if there are more data after the last cursor."
   hasNextPage: Boolean!
+  "Not yet supported."
   endCursor: String
 }
 
@@ -116,6 +140,7 @@ type EntityTag {
   lat: Float!
 }
 
+"Represent a media object"
 type MediaWithTags implements IMediaMetadata {
   id: ID!
   username: String
@@ -126,6 +151,11 @@ type MediaWithTags implements IMediaMetadata {
   uploadTime: Date!
   size: Int!
   entityTags: [EntityTag]
+}
+
+"Input param for querying a single media object"
+input MediaInput {
+  id: ID!
 }
 
 "Input param for creating a new tag"
@@ -146,9 +176,13 @@ input EntityTagDeleteInput {
 
 "Input param for user media query"
 input UserMediaInput {
+  "User UUID.  Ex: a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5"
   userUuid: ID!
+  "Max number of objects return.  Ignore when using with pagination"
   maxFiles: Int
+  "Number of objects per page (default to  6)."
   first: Int
+  "Starting cursor ID (excluive).  Return the first page if omitted."
   after: ID
 }
 
