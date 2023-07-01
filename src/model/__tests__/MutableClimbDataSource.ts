@@ -38,7 +38,7 @@ describe('Climb CRUD', () => {
       },
       description: 'The best climb',
       location: '5m left of the big tree',
-      protection: '5 quickdraws',
+      protection: '5 quickdraws'
     },
     {
       name: 'Deep water 1',
@@ -301,7 +301,7 @@ describe('Climb CRUD', () => {
       const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
       expect(climb1?.grades).toEqual({ ewbank: '17' })
       expect(climb1?.type.sport).toBe(true)
-      expect(newSportClimb1?.boltsCount).toEqual(2);
+      expect(newSportClimb1?.boltsCount).toEqual(2)
 
       const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
       expect(climb2?.grades).toEqual({ ewbank: '29/30' })
