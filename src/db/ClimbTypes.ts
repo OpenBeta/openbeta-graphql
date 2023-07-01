@@ -40,6 +40,8 @@ export interface IClimbProps {
 
   /** Total length in metersif known.  We will support individual pitch lenth in the future. */
   length?: number
+  /** Total number of bolts (fixed anchors) */
+  boltsCount?: number
   /**
    * Grades appear within as an I18n-safe format.
    * We achieve this via a larger data encapsulation, and perform interpretation and comparison
@@ -111,6 +113,7 @@ export interface DisciplineType {
   snow?: boolean
   /** https://en.wikipedia.org/wiki/Ice_climbing */
   ice?: boolean
+  /** https://en.wikipedia.org/wiki/Mixed_climbing */
   mixed?: boolean
   /** https://en.wikipedia.org/wiki/Aid_climbing */
   aid?: boolean
@@ -155,6 +158,7 @@ export interface ClimbChangeInputType {
   description?: string
   location?: string
   protection?: string
+  boltsCount?: number
   fa?: string
   length?: number
   experimentalAuthor?: {
@@ -163,7 +167,7 @@ export interface ClimbChangeInputType {
   }
 }
 
-type UpdatableClimbFieldsType = Pick<ClimbType, 'fa' | 'name' | 'type' | 'gradeContext' | 'grades' | 'content' | 'length'>
+type UpdatableClimbFieldsType = Pick<ClimbType, 'fa' | 'name' | 'type' | 'gradeContext' | 'grades' | 'content' | 'length' | 'boltsCount'>
 /**
  * Minimum required fields when adding a new climb or boulder problem
  */
