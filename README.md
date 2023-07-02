@@ -23,7 +23,7 @@ Get all sub-areas at Smith Rock
 
 ```graphql
 query Example1 {
-  areas(name: "Smith Rock") {
+  areas(filter: {area_name: {match: "Smith Rock"}}) {
     area_name
     children {
       area_name
