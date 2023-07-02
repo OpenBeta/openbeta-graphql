@@ -122,6 +122,15 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "billykeyss",
+      "name": "Bill Huang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8950053?v=4",
+      "profile": "http://yichenhuang.me",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -130,5 +139,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "commitConvention": "angular"
+  "commitConvention": "angular",
+  "commitType": "docs"
 }
