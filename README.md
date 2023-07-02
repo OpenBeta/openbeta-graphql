@@ -1,6 +1,6 @@
 [![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-13-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 # Climbing Route Catalog API 
@@ -173,6 +173,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bradleyDean"><img src="https://avatars.githubusercontent.com/u/10867313?v=4?s=100" width="100px;" alt="Bradley Lignoski"/><br /><sub><b>Bradley Lignoski</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=bradleyDean" title="Code">💻</a> <a href="#ideas-bradleyDean" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://kaomorphism.com"><img src="https://avatars.githubusercontent.com/u/3641356?v=4?s=100" width="100px;" alt="zkao"/><br /><sub><b>zkao</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=zichongkao" title="Code">💻</a> <a href="#ideas-zichongkao" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://nathan.musoke.ca"><img src="https://avatars.githubusercontent.com/u/16665084?v=4?s=100" width="100px;" alt="Nathan Musoke"/><br /><sub><b>Nathan Musoke</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=musoke" title="Code">💻</a> <a href="#ideas-musoke" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://yichenhuang.me"><img src="https://avatars.githubusercontent.com/u/8950053?v=4?s=100" width="100px;" alt="Bill Huang"/><br /><sub><b>Bill Huang</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=billykeyss" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
