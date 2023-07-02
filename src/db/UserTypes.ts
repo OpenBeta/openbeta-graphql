@@ -1,5 +1,5 @@
 import { MUUID } from 'uuid-mongodb'
-import { MediaObject } from './MediaObjectTypes.js'
+import { UserMedia } from './MediaObjectTypes.js'
 export interface ExperimentalUserType {
   _id: MUUID
   displayName: string
@@ -64,5 +64,5 @@ export type UserPublicProfile = Pick<User, '_id' | 'displayName' | 'bio' | 'webs
 
 export interface UserPublicPage {
   profile: UserPublicProfile
-  mediaList: MediaObject[]
+  media: UserMedia
 }

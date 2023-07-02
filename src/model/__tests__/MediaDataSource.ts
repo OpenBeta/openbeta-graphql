@@ -6,7 +6,7 @@ import ClimbDataSource from '../MutableClimbDataSource'
 
 import { connectDB, createIndexes } from '../../db/index.js'
 import { AreaType } from '../../db/AreaTypes.js'
-import { EntityTag, MediaObject, MediaObjectGQLInput, AddTagEntityInput } from '../../db/MediaObjectTypes.js'
+import { EntityTag, MediaObject, MediaObjectGQLInput, AddTagEntityInput, UserMediaQueryInput, UserMedia } from '../../db/MediaObjectTypes.js'
 import { newSportClimb1 } from './MutableClimbDataSource.js'
 
 const TEST_MEDIA: MediaObjectGQLInput = {
@@ -163,4 +163,84 @@ describe('MediaDataSource', () => {
     // Insert the same tag again
     await expect(media.addEntityTag(areaTag2)).rejects.toThrowError(/tag already exists/i)
   })
+
+  it('should return paginated media results', async () => {
+    const ITEMS_PER_PAGE = 3
+    const MEDIA_TEMPLATE: MediaObjectGQLInput = {
+      ...TEST_MEDIA,
+      userUuid: 'a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5'
+    }
+
+    /**
+     * Let's insert 7 media objects.
+     * With 3 items per page we should expect 3 pages.
+     */
+    let expectedMedia: MediaObject[] = []
+    for (let i = 0; i < 7; i = i + 1) {
+      MEDIA_TEMPLATE.mediaUrl = `/photo${i}.jpg`
+      const rs = await media.addMedia(MEDIA_TEMPLATE)
+      if (rs == null) {
+        fail('Seeding test media fail')
+      }
+      // Since the paginaton query returns most recent first
+      // we want to append new items to the front of the array
+      expectedMedia = [rs].concat(expectedMedia)
+    }
+    const input: UserMediaQueryInput = {
+      userUuid: muuid.from(MEDIA_TEMPLATE.userUuid),
+      first: ITEMS_PER_PAGE
+    }
+
+    const page1 = await media.getOneUserMediaPagination(input)
+
+    verifyPageData(page1, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(0, 3), ITEMS_PER_PAGE, true)
+
+    const page1Edges = page1.mediaConnection.edges
+    const input2: UserMediaQueryInput = {
+      userUuid: muuid.from(MEDIA_TEMPLATE.userUuid),
+      first: ITEMS_PER_PAGE,
+      after: page1Edges[page1Edges.length - 1].cursor
+    }
+    const page2 = await media.getOneUserMediaPagination(input2)
+
+    verifyPageData(page2, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(3, 6), ITEMS_PER_PAGE, true)
+
+    const page2Edges = page2.mediaConnection.edges
+    const input3: UserMediaQueryInput = {
+      userUuid: muuid.from(MEDIA_TEMPLATE.userUuid),
+      first: ITEMS_PER_PAGE,
+      after: page2Edges[page2Edges.length - 1].cursor
+    }
+    const page3 = await media.getOneUserMediaPagination(input3)
+
+    verifyPageData(page3, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(6, 7), 1, false)
+  })
 })
+
+/**
+ * Verify media page data
+ * @param actualPage
+ * @param expectedUserUuid
+ * @param expectedMedia
+ * @param itemsPerPage
+ * @param hasNextPage
+ */
+const verifyPageData = (
+  actualPage: UserMedia,
+  expectedUserUuid: string,
+  expectedMedia: MediaObject[],
+  itemsPerPage: number,
+  hasNextPage: boolean): void => {
+  expect(actualPage.userUuid).toEqual(expectedUserUuid)
+  expect(actualPage.mediaConnection.pageInfo.hasNextPage).toStrictEqual(hasNextPage)
+
+  const pageEdges = actualPage.mediaConnection.edges
+  expect(pageEdges).toHaveLength(itemsPerPage)
+
+  /**
+   * We only need to spot check key fields.
+   */
+  pageEdges.forEach((edge, index) => {
+    expect(edge.node._id).toEqual(expectedMedia[index]._id)
+  })
+}

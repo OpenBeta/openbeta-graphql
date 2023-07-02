@@ -3,7 +3,7 @@ import muid, { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
 import { logger } from '../logger.js'
 import { getMediaObjectModel } from '../db/index.js'
-import { TagsLeaderboardType, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject } from '../db/MediaObjectTypes.js'
+import { TagsLeaderboardType, UserMediaQueryInput, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject, UserMedia } from '../db/MediaObjectTypes.js'
 
 const HARD_MAX_FILES = 1000
 const HARD_MAX_USERS = 100
@@ -19,6 +19,19 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       entityTags: { $exists: true, $type: 4, $ne: [] }
     }
   }]
+
+  /**
+   * Find one media object by id.  Throw an exception if not found.
+   * @param _id
+   */
+  async getOneMediaObjectById (_id: mongoose.Types.ObjectId): Promise<MediaObject> {
+    const rs = await this.mediaObjectModel.find({ _id }).orFail(new Error('Media not found')).lean()
+    if (rs != null && rs.length === 1) {
+      return rs[0]
+    }
+    logger.error(`This shouldn't happend. Found multiple media objects for id: ${_id.toString()}`)
+    throw new Error('Media not found for id')
+  }
 
   /**
    * Get all media & tags grouped by users
@@ -52,7 +65,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
         /**
          * Sort by most recently uploaded media first
          */
-        $sort: { createdAt: -1 }
+        $sort: { createdAt: -1, _id: -1 }
       },
       {
         $group: {
@@ -89,6 +102,83 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       return []
     }
     return rs[0].mediaWithTags
+  }
+
+  /**
+   * Get user media by page.
+   *
+   * See
+   * - https://engage.so/blog/a-deep-dive-into-offset-and-cursor-based-pagination-in-mongodb/#what-is-cursor-based-pagination
+   * - https://www.mixmax.com/engineering/api-paging-built-the-right-way
+   * - https://graphql.org/learn/pagination/
+   * @param input
+   * @returns
+   */
+  async getOneUserMediaPagination (input: UserMediaQueryInput): Promise<UserMedia> {
+    const { userUuid, first = 6, after } = input
+    let nextCreatedDate: number
+    let nextId: mongoose.Types.ObjectId
+    let filters: any
+    if (after != null) {
+      const d = after.split('_')
+      nextCreatedDate = Number.parseInt(d[0])
+      nextId = new mongoose.Types.ObjectId(d[1])
+      filters = {
+        $match: {
+          $and: [
+            { userUuid },
+            {
+              $or: [{
+                createdAt: { $lt: new Date(nextCreatedDate) }
+              },
+              {
+                // If the created date is an exact match, we need a tiebreaker,
+                // so we use the _id field from the cursor.
+                createdAt: new Date(nextCreatedDate),
+                _id: { $lt: nextId }
+              }
+              ]
+            }
+          ]
+        }
+      }
+    } else {
+      filters = { $match: { userUuid } }
+    }
+
+    const rs = await this.mediaObjectModel.aggregate<MediaObject>([
+      filters,
+      {
+        $sort: { createdAt: -1, _id: -1 }
+      },
+      {
+        $limit: first + 1 // fetch 1 extra to see if there's a next page
+      }
+    ])
+
+    let hasNextPage = false
+    if (rs.length > first) {
+      // ok there's a next page. remove the extra item.
+      rs.pop()
+      hasNextPage = true
+    }
+
+    return {
+      userUuid: userUuid.toUUID().toString(),
+      mediaConnection: {
+        edges: rs.map(node => (
+          {
+            node,
+            cursor: `${node.createdAt.getTime()}_${node._id.toString()}`
+          }
+        )),
+        pageInfo: {
+          hasNextPage,
+          endCursor: null
+        }
+
+      }
+    }
   }
 
   /**

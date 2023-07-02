@@ -1,8 +1,8 @@
 import muuid from 'uuid-mongodb'
 import { GraphQLError } from 'graphql'
 
-import { DataSourcesType, ContextWithAuth, Context } from '../../types'
-import { GetUsernameReturn, UserPublicProfile, UserPublicPage } from '../../db/UserTypes'
+import { DataSourcesType, ContextWithAuth, Context } from '../../types.js'
+import { GetUsernameReturn, UserPublicProfile, UserPublicPage } from '../../db/UserTypes.js'
 
 const UserQueries = {
 
@@ -24,7 +24,7 @@ const UserQueries = {
   },
 
   getUserPublicPage: async (_: any, { input }, { dataSources }: Context): Promise<UserPublicPage | null> => {
-    const { users, media }: DataSourcesType = dataSources
+    const { users, media: mediaDS }: DataSourcesType = dataSources
     const profile = await users.getUserPublicProfile(input.username)
     if (profile == null) {
       throw new GraphQLError('User profile not found.', {
@@ -33,10 +33,10 @@ const UserQueries = {
         }
       })
     }
-    const mediaList = await media.getOneUserMedia(profile._id.toUUID().toString(), 500)
+    const media = await mediaDS.getOneUserMediaPagination({ userUuid: profile._id })
     return {
       profile,
-      mediaList
+      media
     }
   }
 }
