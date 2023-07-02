@@ -90,11 +90,12 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     sport: GradeScales.UIAA,
     bouldering: GradeScales.FONT,
     tr: GradeScales.UIAA,
+    deepwatersolo: GradeScales.FRENCH,
     alpine: GradeScales.UIAA,
     mixed: GradeScales.UIAA, // TODO: change to MI scale, once added
     aid: GradeScales.UIAA,
     snow: GradeScales.UIAA, // TODO: remove `snow` since it duplicates `ice`
-    ice: GradeScales.UIAA // TODO: change to WI scale, once added
+    ice: GradeScales.WI
   }
 }
 
