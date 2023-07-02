@@ -84,6 +84,18 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     aid: GradeScales.AID,
     snow: GradeScales.FRENCH, // SA does not have a whole lot of snow
     ice: GradeScales.WI
+  },
+  [GradeContexts.UIAA]: {
+    trad: GradeScales.UIAA,
+    sport: GradeScales.UIAA,
+    bouldering: GradeScales.FONT,
+    tr: GradeScales.UIAA,
+    deepwatersolo: GradeScales.FRENCH,
+    alpine: GradeScales.UIAA,
+    mixed: GradeScales.UIAA, // TODO: change to MI scale, once added
+    aid: GradeScales.UIAA,
+    snow: GradeScales.UIAA, // TODO: remove `snow` since it duplicates `ice`
+    ice: GradeScales.WI // TODO: change to WI scale, once added
   }
 }
 
