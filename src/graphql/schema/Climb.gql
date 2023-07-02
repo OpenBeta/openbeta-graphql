@@ -156,7 +156,11 @@ type GradeType {
   font: String
   """
   UIAA grading system, typically used in Central Europe (e.g. Germany, Austria, Switzerland).
+<<<<<<< HEAD
   Uses Arabic numerals, e.g. "7-", "7", "7+". (Roman numerals, like "VII-", are not supported).
+=======
+  Uses Roman numerals, e.g. "7-", "7", "7+". (Arabic numerals, like "VII-", are not supported).
+>>>>>>> add-UIAA-gradetype
   https://en.wikipedia.org/wiki/Grade_(climbing)#UIAA
   """
   uiaa: String
