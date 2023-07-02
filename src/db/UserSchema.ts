@@ -67,6 +67,7 @@ export const UserSchema = new Schema<User>({
  */
 UserSchema.index({ createdAt: -1 })
 UserSchema.index({ 'usernameInfo.canonicalName': 1 }, { sparse: true, unique: true })
+UserSchema.index({ 'usernameInfo.username': 1 }, { sparse: true, unique: true })
 
 export const getUserModel = (): mongoose.Model<User> => {
   return mongoose.model('users', UserSchema)
