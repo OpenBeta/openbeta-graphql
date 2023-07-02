@@ -42,42 +42,46 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     sport: GradeScales.EWBANK,
     bouldering: GradeScales.VSCALE,
     tr: GradeScales.EWBANK,
+    deepwatersolo: GradeScales.EWBANK,
     alpine: GradeScales.YDS,
     mixed: GradeScales.YDS,
-    aid: GradeScales.YDS,
+    aid: GradeScales.AID,
     snow: GradeScales.YDS, // is this the same as alpine?
-    ice: GradeScales.YDS // is this the same as alpine?
+    ice: GradeScales.WI
   },
   [GradeContexts.US]: {
     trad: GradeScales.YDS,
     sport: GradeScales.YDS,
     bouldering: GradeScales.VSCALE,
     tr: GradeScales.YDS,
+    deepwatersolo: GradeScales.YDS,
     alpine: GradeScales.YDS,
     mixed: GradeScales.YDS,
-    aid: GradeScales.YDS,
+    aid: GradeScales.AID,
     snow: GradeScales.YDS, // is this the same as alpine?
-    ice: GradeScales.YDS // is this the same as alpine?
+    ice: GradeScales.WI
   },
   [GradeContexts.FR]: {
     trad: GradeScales.FRENCH,
     sport: GradeScales.FRENCH,
     bouldering: GradeScales.FONT,
     tr: GradeScales.FRENCH,
+    deepwatersolo: GradeScales.FRENCH,
     alpine: GradeScales.FRENCH,
     mixed: GradeScales.FRENCH,
-    aid: GradeScales.FRENCH,
+    aid: GradeScales.AID,
     snow: GradeScales.FRENCH, // is this the same as alpine?
-    ice: GradeScales.FRENCH // is this the same as alpine?
+    ice: GradeScales.WI
   },
   [GradeContexts.SA]: {
     trad: GradeScales.FRENCH,
     sport: GradeScales.FRENCH,
     bouldering: GradeScales.FONT,
     tr: GradeScales.FRENCH,
+    deepwatersolo: GradeScales.FRENCH,
     alpine: GradeScales.FRENCH,
     mixed: GradeScales.FRENCH,
-    aid: GradeScales.FRENCH,
+    aid: GradeScales.AID,
     snow: GradeScales.FRENCH, // SA does not have a whole lot of snow
     ice: GradeScales.FRENCH // SA does not have a whole lot of ice
   },
@@ -90,7 +94,7 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     mixed: GradeScales.UIAA, // TODO: change to MI scale, once added
     aid: GradeScales.UIAA,
     snow: GradeScales.UIAA, // TODO: remove `snow` since it duplicates `ice`
-    ice: GradeScales.UIAA // TODO: change to WI scale, once added
+    ice: GradeScales.WI
   }
 }
 
@@ -216,7 +220,7 @@ export const getCountriesDefaultGradeContext = (): { [x: string]: GradeContexts 
   return countries
 }
 
-export const validDisciplines = ['trad', 'sport', 'bouldering', 'alpine', 'snow', 'ice', 'mixed', 'aid', 'tr']
+export const validDisciplines = ['trad', 'sport', 'bouldering', 'deepwatersolo', 'alpine', 'snow', 'ice', 'mixed', 'aid', 'tr']
 
 /**
  * Perform runtime validation of climb discipline object
@@ -245,6 +249,7 @@ export const defaultDisciplines = (): DisciplineType => ({
   trad: false,
   sport: false,
   bouldering: false,
+  deepwatersolo: false,
   alpine: false,
   snow: false,
   ice: false,

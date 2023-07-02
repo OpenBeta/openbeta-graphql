@@ -40,9 +40,27 @@ describe('Climb CRUD', () => {
       protection: '5 quickdraws'
     },
     {
+      name: 'Deep water 1',
+      disciplines: {
+        deepwatersolo: true
+      }
+    },
+    {
       name: 'Cool trad one',
       disciplines: {
         trad: true
+      }
+    },
+    {
+      name: 'Icy ice one',
+      disciplines: {
+        ice: true
+      }
+    },
+    {
+      name: 'Cool aid one',
+      disciplines: {
+        aid: true
       }
     }
   ]
@@ -53,6 +71,15 @@ describe('Climb CRUD', () => {
       sport: true
     },
     description: 'A local testpiece'
+  }
+
+  const newAidRoute: ClimbChangeInputType = {
+    name: 'Gnarly Aid',
+    disciplines: {
+      aid: true
+    },
+    description: 'certain death',
+    grade: 'A0'
   }
 
   const newBoulderProblem1: ClimbChangeInputType = {
@@ -71,6 +98,14 @@ describe('Climb CRUD', () => {
       bouldering: true
     },
     grade: '5c'
+  }
+
+  const newIceRoute: ClimbChangeInputType = {
+    name: 'Cool Ice line',
+    disciplines: {
+      ice: true
+    },
+    grade: 'WI8+'
   }
 
   beforeAll(async () => {
@@ -247,14 +282,20 @@ describe('Climb CRUD', () => {
       const newClimbingArea = await areas.addArea(testUser, 'Climbing area 1', null, 'aus')
       if (newClimbingArea == null) fail('Expect new area to be created')
 
+      const newclimbs = [
+        { ...newSportClimb1, grade: '17' }, // good sport grade
+        { ...newSportClimb2, grade: '29/30', disciplines: { trad: true } }, // good trad and slash grade
+        { ...newSportClimb2, grade: '5.9' }, // bad AU context grade
+        { ...newIceRoute, grade: 'WI4+' }, // good WI AU context grade
+        { ...newAidRoute, grade: 'A0' } // good aid grade
+      ]
+
       const newIDs = await climbs.addOrUpdateClimbs(
         testUser,
         newClimbingArea.metadata.area_id,
-        [{ ...newSportClimb1, grade: '17' }, // good sport grade
-          { ...newSportClimb2, grade: '29/30', disciplines: { trad: true } }, // good trad and slash grade
-          { ...newSportClimb2, grade: '5.9' }]) // bad AU context grade
-
-      expect(newIDs).toHaveLength(3)
+        newclimbs
+      )
+      expect(newIDs).toHaveLength(newclimbs.length)
 
       const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
       expect(climb1?.grades).toEqual({ ewbank: '17' })
@@ -267,6 +308,19 @@ describe('Climb CRUD', () => {
 
       const climb3 = await climbs.findOneClimbByMUUID(muid.from(newIDs[2]))
       expect(climb3?.grades).toEqual(undefined)
+
+      const climb4 = await climbs.findOneClimbByMUUID(muid.from(newIDs[3]))
+      expect(climb4?.grades).toEqual({ wi: 'WI4+' })
+      expect(climb4?.type.sport).toBe(false)
+      expect(climb4?.type.trad).toBe(false)
+      expect(climb4?.type.bouldering).toBe(false)
+      expect(climb4?.type.ice).toBe(true)
+
+      const climb5 = await climbs.findOneClimbByMUUID(muid.from(newIDs[4]))
+      expect(climb5?.grades).toEqual({ aid: 'A0' })
+      expect(climb5?.type.sport).toBe(false)
+      expect(climb5?.type.trad).toBe(false)
+      expect(climb5?.type.aid).toBe(true)
     }
 
     {
