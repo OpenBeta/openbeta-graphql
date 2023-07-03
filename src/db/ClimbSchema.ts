@@ -85,6 +85,7 @@ export const ClimbSchema = new Schema<ClimbType>({
     enum: Object.values(SafetyType),
     required: true
   },
+  boltsCount: { type: Schema.Types.Number, required: false },
   metadata: MetadataSchema,
   content: ContentSchema,
   _deleting: { type: Date },
