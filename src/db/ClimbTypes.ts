@@ -89,6 +89,7 @@ export interface IGradeType {
   ewbank?: string
   french?: string
   font?: string
+  uiaa?: string
 }
 
 /**
@@ -150,7 +151,7 @@ export interface ClimbChangeInputType {
   id?: string
   name?: string
   disciplines?: DisciplineType
-  grade?: string
+  grade?: string // actual grade value (e.g. "7a", "5+")
   leftRightIndex?: number
   description?: string
   location?: string
