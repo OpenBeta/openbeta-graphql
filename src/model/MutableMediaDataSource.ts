@@ -106,15 +106,27 @@ export default class MutableMediaDataSource extends MediaDataSource {
   }
 
   /**
-   * Add a new media object.
+   * Add one or more media objects.
    */
-  async addMedia (input: MediaObjectGQLInput): Promise<MediaObject | null> {
-    const doc = {
-      ...input,
-      userUuid: muuid.from(input.userUuid)
-    }
-    const rs = await this.mediaObjectModel.insertMany([doc], { lean: true })
-    return rs != null && rs.length === 1 ? rs[0] : null
+  async addMediaObjects (input: MediaObjectGQLInput[]): Promise<MediaObject[]> {
+    const docs = input.map(entry => ({
+      ...entry,
+      userUuid: muuid.from(entry.userUuid)
+    }))
+
+    const rs = await this.mediaObjectModel.insertMany(docs, { lean: true })
+    // @ts-expect-error
+    return rs != null ? rs : []
+  }
+
+  /**
+   * Delete one media object.
+   */
+  async deleteMediaObject (mediaId: mongoose.Types.ObjectId): Promise<boolean> {
+    const rs = (await this.mediaObjectModel.deleteMany({ _id: mediaId })
+      .orFail(new UserInputError(`Media Id not found ${mediaId.toString()}`)))
+
+    return rs.deletedCount === 1
   }
 
   static instance: MutableMediaDataSource

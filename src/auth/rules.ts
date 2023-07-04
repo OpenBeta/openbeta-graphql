@@ -1,6 +1,7 @@
 import { rule, inputRule } from 'graphql-shield'
 
 import MediaDataSource from '../model/MutableMediaDataSource.js'
+import { MediaObjectGQLInput } from '../db/MediaObjectTypes.js'
 
 export const isEditor = rule()(async (parent, args, ctx, info) => {
   return _hasUserUuid(ctx) && ctx.user.roles.includes('editor')
@@ -11,10 +12,17 @@ export const isUserAdmin = rule()(async (parent, args, ctx, info) => {
 })
 
 /**
- * True when JWT payload 'uui' is the same as input.userUuid
+ * True when JWT payload 'uuid' is the same as `input.userUuid`.
+ *
+ * If input is an array, check every element of input.
  */
 export const isOwner = rule()(async (parent, args, ctx, info) => {
-  return _hasUserUuid(ctx) && ctx.user.uuid.toUUID().toString() === args.input.userUuid
+  if (!_hasUserUuid(ctx)) return false
+  if (Array.isArray(args.input)) {
+    return (args.input as MediaObjectGQLInput[]).every(
+      ({ userUuid }) => ctx.user.uuid.toUUID().toString() === userUuid)
+  }
+  return ctx.user.uuid.toUUID().toString() === args.input.userUuid
 })
 
 /**

@@ -1,5 +1,17 @@
 type Mutation {
   """
+  Add media objects
+  """
+  addMediaObjects(input: [NewMediaObjectInput]): [MediaWithTags]
+
+  """
+  Add media objects
+  """
+  deleteMediaObject
+  (input: MediaDeleteInput!): Boolean!
+
+
+  """
   Add an entity tag to a media
   """
   addEntityTag(input: MediaEntityTagInput): EntityTag!
@@ -154,6 +166,22 @@ type MediaWithTags implements IMediaMetadata {
   entityTags: [EntityTag]
 }
 
+input NewMediaObjectInput {
+  userUuid: ID!
+  width: Int!
+  height: Int!
+  format: String!
+  size: Int!
+  entityTags: [EmbeddedEntityInput]
+}
+
+input EmbeddedEntityInput {
+  "What this tag is pointing to (a climb/area)"
+  entityId: ID!
+  "0: climb, 1: area"
+  entityType: Int!
+}
+
 "Input parameters for querying a single media object"
 input MediaInput {
   id: ID!
@@ -173,6 +201,11 @@ input MediaEntityTagInput {
 input EntityTagDeleteInput {
   mediaId: ID!
   tagId: ID!
+}
+
+"Input parameters for deleting a media"
+input MediaDeleteInput {
+  mediaId: ID!
 }
 
 "Input parameters for user media queries."

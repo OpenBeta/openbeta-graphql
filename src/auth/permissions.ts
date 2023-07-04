@@ -15,7 +15,9 @@ const permissions = shield({
     deleteClimbs: isEditor,
     updateUserProfile: and(isOwner, isValidEmail),
     addEntityTag: or(isMediaOwner, isUserAdmin),
-    removeEntityTag: or(isMediaOwner, isUserAdmin)
+    removeEntityTag: or(isMediaOwner, isUserAdmin),
+    addMediaObjects: or(isOwner),
+    deleteMediaObject: or(isMediaOwner, isUserAdmin)
   }
 },
 {
