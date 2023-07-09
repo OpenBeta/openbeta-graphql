@@ -164,11 +164,22 @@ describe('MediaDataSource', () => {
     await expect(media.addEntityTag(areaTag2)).rejects.toThrowError(/tag already exists/i)
   })
 
+  it('should not add media with the same url', async () => {
+    const mediaObj = {
+      ...TEST_MEDIA,
+      mediaUrl: 'photoAAA.jpg'
+    }
+    await media.addMediaObjects([mediaObj])
+
+    const rs2 = await expect(media.addMediaObjects([mediaObj])).rejects.toThrowError(/duplicate key error collection/i)
+
+    expect(rs2).toBeUndefined()
+  })
+
   it('should delete media', async () => {
     const rs = await media.addMediaObjects([{
       ...TEST_MEDIA,
-      mediaUrl: 'u/a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5/photo100.jpg',
-      entityTags: [{ entityType: 0, entityId: muuid.v4().toUUID().toString() }]
+      mediaUrl: 'u/a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5/photo100.jpg'
     }])
 
     expect(rs).toHaveLength(1)
@@ -177,6 +188,17 @@ describe('MediaDataSource', () => {
     expect(rs2).toBe(true)
 
     await expect(media.deleteMediaObject(rs[0]._id)).rejects.toThrowError(/not found/i)
+  })
+
+  it('should not delete media with non-empty tags', async () => {
+    const rs = await media.addMediaObjects([{
+      ...TEST_MEDIA,
+      mediaUrl: 'photo101.jpg',
+      entityTags: [{ entityType: 0, entityId: muuid.v4().toUUID().toString() }]
+    }
+    ])
+
+    await expect(media.deleteMediaObject(rs[0]._id)).rejects.toThrowError(/Cannot delete media object with non-empty tags./i)
   })
 
   it('should return paginated media results', async () => {

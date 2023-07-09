@@ -123,10 +123,15 @@ export default class MutableMediaDataSource extends MediaDataSource {
    * Delete one media object.
    */
   async deleteMediaObject (mediaId: mongoose.Types.ObjectId): Promise<boolean> {
-    const rs = (await this.mediaObjectModel.deleteMany({ _id: mediaId })
-      .orFail(new UserInputError(`Media Id not found ${mediaId.toString()}`)))
+    const filter = { _id: mediaId }
+    const rs = await this.mediaObjectModel.find(filter).orFail(new UserInputError(`Media Id not found ${mediaId.toString()}`))
 
-    return rs.deletedCount === 1
+    if (rs[0].entityTags.length > 0) {
+      throw new UserInputError('Cannot delete media object with non-empty tags. Delete tags first.')
+    }
+
+    const rs2 = await this.mediaObjectModel.deleteMany(filter)
+    return rs2.deletedCount === 1
   }
 
   static instance: MutableMediaDataSource

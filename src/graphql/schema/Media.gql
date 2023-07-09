@@ -1,14 +1,13 @@
 type Mutation {
   """
-  Add media objects
+  Add one or more media objects
   """
   addMediaObjects(input: [NewMediaObjectInput]): [MediaWithTags]
 
   """
-  Add media objects
+  Add sone media object
   """
-  deleteMediaObject
-  (input: MediaDeleteInput!): Boolean!
+  deleteMediaObject(input: MediaDeleteInput!): Boolean!
 
 
   """
@@ -172,6 +171,7 @@ input NewMediaObjectInput {
   height: Int!
   format: String!
   size: Int!
+  mediaUrl: String!
   entityTags: [EmbeddedEntityInput]
 }
 
