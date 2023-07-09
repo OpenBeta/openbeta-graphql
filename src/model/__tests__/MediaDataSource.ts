@@ -59,8 +59,8 @@ describe('MediaDataSource', () => {
     if (rs == null) fail('Fail to pre-seed test climbs')
     climbIdForTagging = muuid.from(rs[0])
 
-    // @ts-expect-error
-    testMediaObject = await media.addMedia(TEST_MEDIA)
+    const rs2 = await media.addMediaObjects([TEST_MEDIA])
+    testMediaObject = rs2[0]
     if (testMediaObject == null) {
       fail('Fail to create test media')
     }
@@ -164,6 +164,43 @@ describe('MediaDataSource', () => {
     await expect(media.addEntityTag(areaTag2)).rejects.toThrowError(/tag already exists/i)
   })
 
+  it('should not add media with the same url', async () => {
+    const mediaObj = {
+      ...TEST_MEDIA,
+      mediaUrl: 'photoAAA.jpg'
+    }
+    await media.addMediaObjects([mediaObj])
+
+    const rs2 = await expect(media.addMediaObjects([mediaObj])).rejects.toThrowError(/duplicate key error collection/i)
+
+    expect(rs2).toBeUndefined()
+  })
+
+  it('should delete media', async () => {
+    const rs = await media.addMediaObjects([{
+      ...TEST_MEDIA,
+      mediaUrl: 'u/a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5/photo100.jpg'
+    }])
+
+    expect(rs).toHaveLength(1)
+
+    const rs2 = await media.deleteMediaObject(rs[0]._id)
+    expect(rs2).toBe(true)
+
+    await expect(media.deleteMediaObject(rs[0]._id)).rejects.toThrowError(/not found/i)
+  })
+
+  it('should not delete media with non-empty tags', async () => {
+    const rs = await media.addMediaObjects([{
+      ...TEST_MEDIA,
+      mediaUrl: 'photo101.jpg',
+      entityTags: [{ entityType: 0, entityId: muuid.v4().toUUID().toString() }]
+    }
+    ])
+
+    await expect(media.deleteMediaObject(rs[0]._id)).rejects.toThrowError(/Cannot delete media object with non-empty tags./i)
+  })
+
   it('should return paginated media results', async () => {
     const ITEMS_PER_PAGE = 3
     const MEDIA_TEMPLATE: MediaObjectGQLInput = {
@@ -175,17 +212,20 @@ describe('MediaDataSource', () => {
      * Let's insert 7 media objects.
      * With 3 items per page we should expect 3 pages.
      */
-    let expectedMedia: MediaObject[] = []
+    const newMediaListInput: MediaObjectGQLInput[] = []
     for (let i = 0; i < 7; i = i + 1) {
-      MEDIA_TEMPLATE.mediaUrl = `/photo${i}.jpg`
-      const rs = await media.addMedia(MEDIA_TEMPLATE)
-      if (rs == null) {
-        fail('Seeding test media fail')
-      }
-      // Since the paginaton query returns most recent first
-      // we want to append new items to the front of the array
-      expectedMedia = [rs].concat(expectedMedia)
+      newMediaListInput.push({ ...MEDIA_TEMPLATE, mediaUrl: `/photo${i}.jpg` })
     }
+
+    const expectedMedia = await media.addMediaObjects(newMediaListInput)
+
+    if (expectedMedia == null) {
+      fail('Seeding test media fail')
+    }
+
+    // reverse because getOneUserMediaPagination() returns most recent first
+    expectedMedia.reverse()
+
     const input: UserMediaQueryInput = {
       userUuid: muuid.from(MEDIA_TEMPLATE.userUuid),
       first: ITEMS_PER_PAGE

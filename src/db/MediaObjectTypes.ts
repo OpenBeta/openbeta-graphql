@@ -84,6 +84,7 @@ export interface EntityTagDeleteInput {
  */
 export type MediaObjectGQLInput = Pick<MediaObject, 'mediaUrl' | 'width' | 'height' | 'format' | 'size'> & {
   userUuid: string
+  entityTags?: Array<Omit<AddEntityTagGQLInput, 'mediaId'>>
 }
 
 /**
@@ -117,4 +118,8 @@ export interface UserMedia {
 interface MediaEdge {
   node: MediaObject
   cursor: string
+}
+
+export interface DeleteMediaGQLInput {
+  mediaId: string
 }
