@@ -28,7 +28,7 @@ export type ClimbGQLQueryType = ClimbType & {
  */
 export type ClimbType = IClimbProps & {
   metadata: IClimbMetadata
-  content: IClimbContent
+  content?: IClimbContent
 }
 
 export interface IClimbProps {
