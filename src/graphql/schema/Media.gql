@@ -1,29 +1,29 @@
 type Mutation {
   """
-  Add one or more media objects
+  Add one or more media objects. Each media object may contain one tag.
   """
   addMediaObjects(input: [NewMediaObjectInput]): [MediaWithTags]
 
   """
-  Add sone media object
+  Delete one media object.
   """
   deleteMediaObject(input: MediaDeleteInput!): Boolean!
 
 
   """
-  Add an entity tag to a media
+  Add an entity tag to a media.
   """
   addEntityTag(input: MediaEntityTagInput): EntityTag!
 
   """
-  Remove an entity tag from a media
+  Remove an entity tag from a media.
   """
   removeEntityTag(input: EntityTagDeleteInput!): Boolean!
 }
 
 type Query {
   """
-  Get single media object
+  Get single media object.
   """
   media(input: MediaInput): MediaWithTags
 
@@ -46,7 +46,7 @@ type Query {
   getUserMediaPagination(input: UserMediaInput): UserMedia
 
   """
-  Get a list of users and their tagged photo count
+  Get a list of users and their tagged photo count.
   """
   getTagsLeaderboard(limit: Int): TagsLeaderboard
 }
@@ -172,7 +172,7 @@ input NewMediaObjectInput {
   format: String!
   size: Int!
   mediaUrl: String!
-  entityTags: [EmbeddedEntityInput]
+  entityTag: EmbeddedEntityInput
 }
 
 input EmbeddedEntityInput {
