@@ -194,7 +194,7 @@ describe('MediaDataSource', () => {
     const rs = await media.addMediaObjects([{
       ...TEST_MEDIA,
       mediaUrl: 'photo101.jpg',
-      entityTags: [{ entityType: 0, entityId: muuid.v4().toUUID().toString() }]
+      entityTag: { entityType: 0, entityId: climbIdForTagging.toUUID().toString() }
     }
     ])
 
