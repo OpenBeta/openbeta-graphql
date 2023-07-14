@@ -63,9 +63,17 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       ...toIncludeMediaWithTagsOrNotfilters,
       {
         /**
-         * Sort by most recently uploaded media first
+         * Sort by most recently tags media
          */
-        $sort: { createdAt: -1, _id: -1 }
+        $sort: { updatedAt: -1, _id: -1 }
+      },
+      {
+        /**
+         * Limit the most recent list.  While unlikely, it may be
+         * possible that most recent tags belong to one user.
+         * We want this number to be large (to pick up more users).
+         */
+        $limit: 100
       },
       {
         $group: {
@@ -74,6 +82,9 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
           },
           mediaWithTags: { $push: '$$ROOT' }
         }
+      },
+      {
+        $sort: { 'mediaWithTags.0.updatedAt': -1 }
       },
       {
         $limit: safeMaxUsers
