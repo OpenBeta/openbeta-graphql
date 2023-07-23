@@ -109,6 +109,16 @@ describe('Areas', () => {
     expect(countryInDb.children[0]).toEqual(area?._id)
   })
 
+  it('should set crag/boulder attribute when adding new areas', async () => {
+    let parent = await areas.addArea(testUser, 'Boulder A', null, 'can', undefined, false, true)
+    expect(parent.metadata.isBoulder).toBe(true)
+    expect(parent.metadata.leaf).toBe(true)
+
+    parent = await areas.addArea(testUser, 'Sport A', null, 'can', undefined, true, undefined)
+    expect(parent.metadata.isBoulder).toBe(false)
+    expect(parent.metadata.leaf).toBe(true)
+  })
+
   it('should update multiple fields', async () => {
     await areas.addCountry('au')
     const a1 = await areas.addArea(testUser, 'One', null, 'au')

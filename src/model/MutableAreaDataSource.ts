@@ -107,7 +107,13 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param parentUuid
    * @param countryCode
    */
-  async addArea (user: MUUID, areaName: string, parentUuid: MUUID | null, countryCode?: string, experimentalAuthor?: ExperimentalAuthorType): Promise<AreaType> {
+  async addArea (user: MUUID,
+    areaName: string,
+    parentUuid: MUUID | null,
+    countryCode?: string,
+    experimentalAuthor?: ExperimentalAuthorType,
+    isLeaf?: boolean,
+    isBoulder?: boolean): Promise<AreaType> {
     if (parentUuid == null && countryCode == null) {
       throw new Error('Adding area failed. Must provide parent Id or country code')
     }
@@ -127,14 +133,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addArea(session, user, areaName, uuid, experimentalAuthor)
+        ret = await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder)
         return ret
       })
     // @ts-expect-error
     return ret
   }
 
-  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType): Promise<any> {
+  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType, isLeaf?: boolean, isBoulder?: boolean): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
     const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError('Expecting 1 parent, found none.'))
 
@@ -170,6 +176,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parentPathTokens = parent.pathTokens
     const parentGradeContext = parent.gradeContext
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens, parentGradeContext)
+    if (isLeaf != null) {
+      newArea.metadata.leaf = isLeaf
+    }
+    if (isBoulder != null) {
+      if (isBoulder) {
+        // a boulder is also a leaf area
+        newArea.metadata.leaf = true
+        newArea.metadata.isBoulder = true
+      } else {
+        newArea.metadata.isBoulder = false
+      }
+    }
     newArea.metadata.lnglat = parent.metadata.lnglat
     newArea.createdBy = experimentaAuthorId ?? user
     newArea._change = produce(newChangeMeta, draft => {
