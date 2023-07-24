@@ -39,6 +39,8 @@ input AreaInput {
   parentUuid: ID
   countryCode: String
   isDestination: Boolean
+  isLeaf: Boolean
+  isBoulder: Boolean
   experimentalAuthor: ExperimentalAuthorType
 }
 
