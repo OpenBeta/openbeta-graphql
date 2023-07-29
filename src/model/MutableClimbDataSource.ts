@@ -125,7 +125,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ? createGradeObject(grade, typeSafeDisciplines, cragGradeScales)
         : null
 
-      const { description, location, protection, name, fa, length } = userInput[i]
+      const { description, location, protection, name, fa, length, boltsCount } = userInput[i]
 
       // Make sure we don't update content = {}
       // See https://www.mongodb.com/community/forums/t/mongoservererror-invalid-set-caused-by-an-empty-object-is-not-a-valid-value/148344/2
@@ -151,6 +151,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         gradeContext: parent.gradeContext,
         ...fa != null && { fa },
         ...length != null && length > 0 && { length },
+        ...boltsCount != null && boltsCount > 0 && { boltsCount },
         ...Object.keys(content).length > 0 && { content },
         metadata: {
           areaRef: parent.metadata.area_id,

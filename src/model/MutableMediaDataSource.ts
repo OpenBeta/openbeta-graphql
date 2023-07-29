@@ -3,17 +3,13 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
 import MediaDataSource from './MediaDataSource.js'
-import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput, AddTagEntityInput } from '../db/MediaObjectTypes.js'
+import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput, AddTagEntityInput, NewMediaObjectDoc } from '../db/MediaObjectTypes.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
 
 export default class MutableMediaDataSource extends MediaDataSource {
   areaDS = MutableAreaDataSource.getInstance()
 
-  /**
-   * Add a new entity tag (a climb or area) to a media object.
-   * @returns new EntityTag . 'null' if the entity already exists.
-   */
-  async addEntityTag ({ mediaId, entityUuid, entityType }: AddTagEntityInput): Promise<EntityTag> {
+  async getEntityDoc ({ entityUuid, entityType }: Omit<AddTagEntityInput, 'mediaId'>): Promise<EntityTag> {
     let newEntityTagDoc: EntityTag
     switch (entityType) {
       case 0: {
@@ -61,6 +57,16 @@ export default class MutableMediaDataSource extends MediaDataSource {
 
       default: throw new UserInputError(`Entity type ${entityType} not supported.`)
     }
+    return newEntityTagDoc
+  }
+
+  /**
+   * Add a new entity tag (a climb or area) to a media object.
+   * @returns new EntityTag . 'null' if the entity already exists.
+   */
+  async addEntityTag ({ mediaId, entityUuid, entityType }: AddTagEntityInput): Promise<EntityTag> {
+    // Find the entity we want to tag
+    const newEntityTagDoc = await this.getEntityDoc({ entityUuid, entityType })
 
     // We treat 'entityTags' like a Set - can't tag the same climb/area id twice.
     // See https://stackoverflow.com/questions/33576223/using-mongoose-mongodb-addtoset-functionality-on-array-of-objects
@@ -106,15 +112,47 @@ export default class MutableMediaDataSource extends MediaDataSource {
   }
 
   /**
-   * Add a new media object.
+   * Add one or more media objects.  The embedded entityTag may have one tag.
    */
-  async addMedia (input: MediaObjectGQLInput): Promise<MediaObject | null> {
-    const doc = {
-      ...input,
-      userUuid: muuid.from(input.userUuid)
+  async addMediaObjects (input: MediaObjectGQLInput[]): Promise<MediaObject[]> {
+    const docs: NewMediaObjectDoc[] = await Promise.all(input.map(async entry => {
+      const { userUuid: userUuidStr, mediaUrl, width, height, format, size, entityTag } = entry
+      let newTag: EntityTag | undefined
+      if (entityTag != null) {
+        newTag = await this.getEntityDoc({
+          entityType: entityTag.entityType,
+          entityUuid: muuid.from(entityTag.entityId)
+        })
+      }
+
+      return ({
+        mediaUrl,
+        width,
+        height,
+        format,
+        size,
+        userUuid: muuid.from(userUuidStr),
+        ...newTag != null && { entityTags: [newTag] }
+      })
+    }))
+
+    const rs = await this.mediaObjectModel.insertMany(docs, { lean: true })
+    return rs != null ? rs : []
+  }
+
+  /**
+   * Delete one media object.
+   */
+  async deleteMediaObject (mediaId: mongoose.Types.ObjectId): Promise<boolean> {
+    const filter = { _id: mediaId }
+    const rs = await this.mediaObjectModel.find(filter).orFail(new UserInputError(`Media Id not found ${mediaId.toString()}`))
+
+    if ((rs[0].entityTags?.length ?? 0) > 0) {
+      throw new UserInputError('Cannot delete media object with non-empty tags. Delete tags first.')
     }
-    const rs = await this.mediaObjectModel.insertMany([doc], { lean: true })
-    return rs != null && rs.length === 1 ? rs[0] : null
+
+    const rs2 = await this.mediaObjectModel.deleteMany(filter)
+    return rs2.deletedCount === 1
   }
 
   static instance: MutableMediaDataSource

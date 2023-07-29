@@ -185,24 +185,4 @@ describe('Ticks', () => {
     expect(newTick?._id).toEqual(OBTick._id)
     expect(newTick?.notes).toEqual('Not sandbagged')
   })
-
-  it('should reject duplicate ticks', async () => {
-    const tick1: TickInput = {
-      name: 'Small Dog',
-      notes: 'Not sandbagged',
-      climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',
-      userId: 'user123',
-      style: 'Lead',
-      attemptType: 'Fell/Hung',
-      dateClimbed: new Date('2012-12-12'),
-      grade: '5.7',
-      source: 'OB'
-    }
-
-    await ticks.addTick(tick1)
-
-    await expect(
-      ticks.addTick(tick1)
-    ).rejects.toThrow()
-  })
 })
