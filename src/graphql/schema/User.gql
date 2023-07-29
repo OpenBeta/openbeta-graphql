@@ -52,7 +52,7 @@ type UsernameDetail {
 
 type UserPublicPage {
   profile: UserPublicProfile
-  mediaList: [MediaWithTags]
+  media: UserMedia
 }
 
 type UserPublicProfile {

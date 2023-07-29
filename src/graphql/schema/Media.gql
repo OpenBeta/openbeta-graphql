@@ -12,6 +12,11 @@ type Mutation {
 
 type Query {
   """
+  Get single media object
+  """
+  media(input: MediaInput): MediaWithTags
+
+  """
   Get recent media with tags group by users.
   """
   getMediaForFeed(input: MediaForFeedInput): [MediaByUsers]
@@ -22,9 +27,53 @@ type Query {
   getUserMedia(input: UserMediaInput): [MediaWithTags]
 
   """
+  Get media cursor with pagination support.  We only support forward cursor.
+  See 
+  - https://graphql.org/learn/pagination/
+  - https://relay.dev/graphql/connections.htm
+  """
+  getUserMediaPagination(input: UserMediaInput): UserMedia
+
+  """
   Get a list of users and their tagged photo count
   """
   getTagsLeaderboard(limit: Int): TagsLeaderboard
+}
+
+"""
+User media cursor with pagination support.
+See https://graphql.org/learn/pagination/
+"""
+type UserMedia {
+  userUuid: ID!
+  mediaConnection: MediaConnection!
+}
+
+"""
+Media connection.
+See https://graphql.org/learn/pagination/
+"""
+type MediaConnection {
+  edges: [MediaEdge!]!
+  pageInfo: PageInfo!
+}
+
+"""
+Media edge.
+See https://graphql.org/learn/pagination/
+"""
+type MediaEdge {
+  "Media object"
+  node: MediaWithTags
+  "Current node cursor.  The frontend can pass this value to the `after` input parameter to fetch the next page."
+  cursor: ID!
+}
+
+type PageInfo {
+  "True if there are more data after the last cursor."
+  hasNextPage: Boolean!
+  "Not yet supported."
+  endCursor: String
 }
 
 type TagsByUser {
@@ -92,6 +141,7 @@ type EntityTag {
   lat: Float!
 }
 
+"Represent a media object"
 type MediaWithTags implements IMediaMetadata {
   id: ID!
   username: String
@@ -104,7 +154,12 @@ type MediaWithTags implements IMediaMetadata {
   entityTags: [EntityTag]
 }
 
-"Input param for creating a new tag"
+"Input parameters for querying a single media object"
+input MediaInput {
+  id: ID!
+}
+
+"Input parameters for creating a new tag"
 input MediaEntityTagInput {
   "Target media id"
   mediaId: ID!
@@ -114,16 +169,22 @@ input MediaEntityTagInput {
   entityType: Int!
 }
 
-"Input param for deleteing a tag"
+"Input parameters for deleting a tag"
 input EntityTagDeleteInput {
   mediaId: ID!
   tagId: ID!
 }
 
-"Input param for user media query"
+"Input parameters for user media queries."
 input UserMediaInput {
+  "User UUID.  Ex: a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5"
   userUuid: ID!
+  "Max number of objects return.  Ignore when using with pagination query."
   maxFiles: Int
+  "Number of objects per page (Default = 6)."
+  first: Int
+  "Returning page data after this cursor (exclusive).  Return the first page if omitted."
+  after: ID
 }
 
 input MediaForFeedInput {
