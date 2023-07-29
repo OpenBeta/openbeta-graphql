@@ -26,7 +26,7 @@ export function mongoClimbToTypeSense (doc: ClimbExtType): ClimbTypeSenseItem {
   return {
     climbUUID: doc._id.toUUID().toString(),
     climbName: doc.name,
-    climbDesc: doc.content.description ?? '',
+    climbDesc: doc.content?.description ?? '',
     fa: doc.fa ?? '',
     areaNames: doc.pathTokens,
     disciplines: disciplinesToArray(doc.type),

@@ -13,7 +13,7 @@ export interface MediaObject {
   format: ImageFormatType
   createdAt: Date
   size: number
-  entityTags: EntityTag[]
+  entityTags?: EntityTag[]
 }
 
 export interface EntityTag {
@@ -52,6 +52,11 @@ export interface TagsLeaderboardType {
   allTime: AllTimeTagStats
 }
 
+/**
+ * For creating a new Media object doc
+ */
+export type NewMediaObjectDoc = Omit<MediaObject, '_id' | 'createdAt'>
+
 export interface UserMediaGQLQueryInput {
   userUuid: string
   maxFiles?: number
@@ -84,6 +89,7 @@ export interface EntityTagDeleteInput {
  */
 export type MediaObjectGQLInput = Pick<MediaObject, 'mediaUrl' | 'width' | 'height' | 'format' | 'size'> & {
   userUuid: string
+  entityTag?: Omit<AddEntityTagGQLInput, 'mediaId'>
 }
 
 /**
@@ -117,4 +123,8 @@ export interface UserMedia {
 interface MediaEdge {
   node: MediaObject
   cursor: string
+}
+
+export interface DeleteMediaGQLInput {
+  mediaId: string
 }

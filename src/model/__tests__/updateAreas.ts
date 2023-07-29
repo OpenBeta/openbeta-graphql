@@ -109,6 +109,16 @@ describe('Areas', () => {
     expect(countryInDb.children[0]).toEqual(area?._id)
   })
 
+  it('should set crag/boulder attribute when adding new areas', async () => {
+    let parent = await areas.addArea(testUser, 'Boulder A', null, 'can', undefined, false, true)
+    expect(parent.metadata.isBoulder).toBe(true)
+    expect(parent.metadata.leaf).toBe(true)
+
+    parent = await areas.addArea(testUser, 'Sport A', null, 'can', undefined, true, undefined)
+    expect(parent.metadata.isBoulder).toBe(false)
+    expect(parent.metadata.leaf).toBe(true)
+  })
+
   it('should update multiple fields', async () => {
     await areas.addCountry('au')
     const a1 = await areas.addArea(testUser, 'One', null, 'au')
@@ -298,5 +308,109 @@ describe('Areas', () => {
     // But we can have duplicate indices < 0 to indicate unsorted
     await areas.updateSortingOrder(testUser,
       [{ ...change3, leftRightIndex: -1 }, { ...change4, leftRightIndex: -1 }])
+  })
+
+  it('should update self and childrens pathTokens', async () => {
+    await areas.addCountry('JP')
+    const a1 = await areas.addArea(testUser, 'Parent', null, 'JP')
+    const b1 = await areas.addArea(testUser, 'B1', a1.metadata.area_id)
+    const b2 = await areas.addArea(testUser, 'B2', a1.metadata.area_id)
+    const c1 = await areas.addArea(testUser, 'C1', b1.metadata.area_id)
+    const c2 = await areas.addArea(testUser, 'C2', b1.metadata.area_id)
+    const c3 = await areas.addArea(testUser, 'C3', b2.metadata.area_id)
+    const e1 = await areas.addArea(testUser, 'E1', c3.metadata.area_id)
+
+    let a1Actual = await areas.findOneAreaByUUID(a1.metadata.area_id)
+    expect(a1Actual).toEqual(
+      expect.objectContaining({
+        area_name: 'Parent',
+        pathTokens: ['Japan', 'Parent']
+      }))
+
+    let b1Actual = await areas.findOneAreaByUUID(b1.metadata.area_id)
+    expect(b1Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Parent', 'B1']
+      }))
+
+    let b2Actual = await areas.findOneAreaByUUID(b2.metadata.area_id)
+    expect(b2Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Parent', 'B2']
+      }))
+
+    let c1Actual = await areas.findOneAreaByUUID(c1.metadata.area_id)
+    expect(c1Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Parent', 'B1', 'C1']
+      }))
+
+    let c2Actual = await areas.findOneAreaByUUID(c2.metadata.area_id)
+    expect(c2Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Parent', 'B1', 'C2']
+      }))
+
+    let c3Actual = await areas.findOneAreaByUUID(c3.metadata.area_id)
+    expect(c3Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Parent', 'B2', 'C3']
+      }))
+
+    let e1Actual = await areas.findOneAreaByUUID(e1.metadata.area_id)
+    expect(e1Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Parent', 'B2', 'C3', 'E1']
+      }))
+
+    // Update
+    const doc1: AreaEditableFieldsType = {
+      areaName: 'Test Name'
+    }
+    await areas.updateArea(testUser, a1?.metadata.area_id, doc1)
+
+    // Verify
+    a1Actual = await areas.findOneAreaByUUID(a1.metadata.area_id)
+    expect(a1Actual).toEqual(
+      expect.objectContaining({
+        area_name: 'Test Name',
+        pathTokens: ['Japan', 'Test Name']
+      }))
+
+    b1Actual = await areas.findOneAreaByUUID(b1.metadata.area_id)
+    expect(b1Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Test Name', 'B1']
+      }))
+
+    b2Actual = await areas.findOneAreaByUUID(b2.metadata.area_id)
+    expect(b2Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Test Name', 'B2']
+      }))
+
+    c1Actual = await areas.findOneAreaByUUID(c1.metadata.area_id)
+    expect(c1Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Test Name', 'B1', 'C1']
+      }))
+
+    c2Actual = await areas.findOneAreaByUUID(c2.metadata.area_id)
+    expect(c2Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Test Name', 'B1', 'C2']
+      }))
+
+    c3Actual = await areas.findOneAreaByUUID(c3.metadata.area_id)
+    expect(c3Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Test Name', 'B2', 'C3']
+      }))
+
+    e1Actual = await areas.findOneAreaByUUID(e1.metadata.area_id)
+    expect(e1Actual).toEqual(
+      expect.objectContaining({
+        pathTokens: ['Japan', 'Test Name', 'B2', 'C3', 'E1']
+      }))
   })
 })

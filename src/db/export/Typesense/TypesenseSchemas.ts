@@ -67,7 +67,8 @@ export const climbSchema: CollectionCreateSchema = {
       type: 'geopoint' as const,
       index: true
     }
-  ]
+  ],
+  token_separators: ['(', ')', '-', '.']
   // TBD: need to have better tie-breakers (star/popularity ratings)
   // default_sorting_field: 'climb_name'
 }
@@ -132,5 +133,6 @@ export const areaSchema: CollectionCreateSchema = {
       type: 'geopoint' as const,
       index: true
     }
-  ]
+  ],
+  token_separators: ['(', ')', '-', '.']
 }

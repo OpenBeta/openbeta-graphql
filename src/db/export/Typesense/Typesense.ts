@@ -8,8 +8,8 @@ import { areaSchema, AreaTypeSenseItem, climbSchema, ClimbTypeSenseItem } from '
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js'
 import { AreaType } from '../../AreaTypes.js'
 import { mongoAreaToTypeSense, mongoClimbToTypeSense } from './transformers.js'
-import { processMongoCollection } from '../common'
-import { getAllAreas, getAllClimbs } from '../queries'
+import { processMongoCollection } from '../common/index.js'
+import { getAllAreas, getAllClimbs } from '../queries/index.js'
 
 /**
  * For a given collection that might exist in typesense, drop it (if it exists)

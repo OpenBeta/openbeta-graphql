@@ -19,7 +19,8 @@ export const newSportClimb1: ClimbChangeInputType = {
   },
   description: 'A good warm up problem',
   location: 'Start from the left arete',
-  protection: '2 bolts'
+  protection: '2 bolts',
+  boltsCount: 2
 }
 
 describe('Climb CRUD', () => {
@@ -300,6 +301,7 @@ describe('Climb CRUD', () => {
       const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
       expect(climb1?.grades).toEqual({ ewbank: '17' })
       expect(climb1?.type.sport).toBe(true)
+      expect(newSportClimb1?.boltsCount).toEqual(2)
 
       const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
       expect(climb2?.grades).toEqual({ ewbank: '29/30' })
@@ -437,7 +439,7 @@ describe('Climb CRUD', () => {
     expect(actual1?.updatedBy?.toUUID().toString()).toEqual(otherUser.toUUID().toString())
   })
 
-  it('can update climb length & fa', async () => {
+  it('can update climb length, boltsCount & fa', async () => {
     const newDestination = await areas.addArea(testUser, 'Sport area Z100', null, 'fr')
 
     if (newDestination == null) fail('Expect new area to be created')
@@ -451,7 +453,8 @@ describe('Climb CRUD', () => {
     const change: ClimbChangeInputType = {
       id: newIDs[0],
       fa: 'First name Last name, 2023',
-      length: 20
+      length: 20,
+      boltsCount: 5
     }
 
     await climbs.addOrUpdateClimbs(testUser,
@@ -462,10 +465,12 @@ describe('Climb CRUD', () => {
 
     expect(actual?.fa).not.toBeNull()
     expect(actual?.length).not.toBeNull()
+    expect(actual?.boltsCount).not.toBeNull()
 
     expect(actual).toMatchObject({
       fa: change.fa,
-      length: change.length
+      length: change.length,
+      boltsCount: change.boltsCount
     })
   })
 })

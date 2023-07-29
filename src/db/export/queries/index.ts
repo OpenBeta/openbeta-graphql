@@ -1,2 +1,2 @@
-export { getAllAreas } from './get-all-areas'
-export { getAllClimbs } from './get-all-climbs'
+export { getAllAreas } from './get-all-areas.js'
+export { getAllClimbs } from './get-all-climbs.js'

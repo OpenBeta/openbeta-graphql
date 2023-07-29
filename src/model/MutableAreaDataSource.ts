@@ -22,6 +22,8 @@ import { createInstance as createExperimentalUserDataSource } from '../model/Exp
 
 isoCountries.registerLocale(enJson)
 
+type AreaDocumnent = mongoose.Document<unknown, any, AreaType> & AreaType
+
 export default class MutableAreaDataSource extends AreaDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
 
@@ -105,7 +107,13 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param parentUuid
    * @param countryCode
    */
-  async addArea (user: MUUID, areaName: string, parentUuid: MUUID | null, countryCode?: string, experimentalAuthor?: ExperimentalAuthorType): Promise<AreaType> {
+  async addArea (user: MUUID,
+    areaName: string,
+    parentUuid: MUUID | null,
+    countryCode?: string,
+    experimentalAuthor?: ExperimentalAuthorType,
+    isLeaf?: boolean,
+    isBoulder?: boolean): Promise<AreaType> {
     if (parentUuid == null && countryCode == null) {
       throw new Error('Adding area failed. Must provide parent Id or country code')
     }
@@ -125,14 +133,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        ret = await this._addArea(session, user, areaName, uuid, experimentalAuthor)
+        ret = await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder)
         return ret
       })
     // @ts-expect-error
     return ret
   }
 
-  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType): Promise<any> {
+  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType, isLeaf?: boolean, isBoulder?: boolean): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
     const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError('Expecting 1 parent, found none.'))
 
@@ -168,6 +176,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const parentPathTokens = parent.pathTokens
     const parentGradeContext = parent.gradeContext
     const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens, parentGradeContext)
+    if (isLeaf != null) {
+      newArea.metadata.leaf = isLeaf
+    }
+    if (isBoulder != null) {
+      if (isBoulder) {
+        // a boulder is also a leaf area
+        newArea.metadata.leaf = true
+        newArea.metadata.isBoulder = true
+      } else {
+        newArea.metadata.isBoulder = false
+      }
+    }
     newArea.metadata.lnglat = parent.metadata.lnglat
     newArea.createdBy = experimentaAuthorId ?? user
     newArea._change = produce(newChangeMeta, draft => {
@@ -293,6 +313,25 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
       const { areaName, description, shortCode, isDestination, isLeaf, isBoulder, lat, lng, experimentalAuthor } = document
 
+      // See https://github.com/OpenBeta/openbeta-graphql/issues/244
+      let experimentaAuthorId: MUUID | null = null
+      if (experimentalAuthor != null) {
+        experimentaAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
+      }
+
+      const opType = OperationType.updateArea
+      const change = await changelogDataSource.create(session, user, opType)
+
+      const _change: ChangeRecordMetadataType = {
+        user: experimentaAuthorId ?? user,
+        historyId: change._id,
+        prevHistoryId: area._change?.historyId._id,
+        operation: opType,
+        seq: 0
+      }
+      area.set({ _change })
+      area.updatedBy = experimentaAuthorId ?? user
+
       if (area.pathTokens.length === 1) {
         if (areaName != null || shortCode != null) throw new Error('Area update error.  Reason: Updating country name or short code is not allowed.')
       }
@@ -301,7 +340,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
         throw new Error('Area update error.  Reason: Updating leaf or boulder status of an area with subareas is not allowed.')
       }
 
-      if (areaName != null) area.set({ area_name: sanitizeStrict(areaName) })
+      if (areaName != null) {
+        const sanitizedName = sanitizeStrict(areaName)
+        area.set({ area_name: sanitizedName })
+
+        // change our pathTokens
+        await this.updatePathTokens(session, _change, area, sanitizedName)
+      }
+
       if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
       if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
       if (isLeaf != null) area.set({ 'metadata.leaf': isLeaf })
@@ -323,24 +369,6 @@ export default class MutableAreaDataSource extends AreaDataSource {
         })
       }
 
-      // See https://github.com/OpenBeta/openbeta-graphql/issues/244
-      let experimentaAuthorId: MUUID | null = null
-      if (experimentalAuthor != null) {
-        experimentaAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
-      }
-
-      const opType = OperationType.updateArea
-      const change = await changelogDataSource.create(session, user, opType)
-
-      const _change: ChangeRecordMetadataType = {
-        user: experimentaAuthorId ?? user,
-        historyId: change._id,
-        prevHistoryId: area._change?.historyId._id,
-        operation: opType,
-        seq: 0
-      }
-      area.set({ _change })
-      area.updatedBy = experimentaAuthorId ?? user
       const cursor = await area.save()
       return cursor.toObject()
     }
@@ -356,6 +384,36 @@ export default class MutableAreaDataSource extends AreaDataSource {
         return ret
       })
     return ret
+  }
+
+  /**
+   * Update path tokens
+   * @param session Mongoose session
+   * @param changeRecord Changeset metadata
+   * @param area area to update
+   * @param newAreaName new area name
+   * @param depth tree depth
+   */
+  async updatePathTokens (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, changeIndex: number = -1): Promise<void> {
+    if (area.pathTokens.length > 1) {
+      if (changeIndex === -1) { changeIndex = area.pathTokens.length - 1 }
+
+      const newPath = [...area.pathTokens]
+      newPath[changeIndex] = newAreaName
+      area.set({ pathTokens: newPath })
+      area.set({ _change: changeRecord })
+      await area.save({ session })
+
+      // hydrate children_ids array with actual area documents
+      await area.populate('children')
+
+      await Promise.all(area.children.map(async childArea => {
+        // TS complains about ObjectId type
+        // Fix this when we upgrade Mongoose library
+        // @ts-expect-error
+        await this.updatePathTokens(session, changeRecord, childArea, newAreaName, changeIndex)
+      }))
+    }
   }
 
   /**
