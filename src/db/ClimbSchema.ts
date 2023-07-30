@@ -59,6 +59,21 @@ const MetadataSchema = new Schema<IClimbMetadata>({
   }
 }, { _id: false })
 
+const PitchSchema = new mongoose.Schema({
+  _id: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    default: () => muuid.v4()
+  },
+  parent: { type: String, required: true },
+  number: { type: Number, required: true },
+  grades: { type: mongoose.Schema.Types.Mixed, required: true },
+  type: { type: mongoose.Schema.Types.Mixed, required: true },
+  length: { type: Number, required: true },
+  boltsCount: { type: Number },
+  description: { type: String }
+})
+
 const GradeTypeSchema = new Schema<GradeScalesTypes>({
   vscale: Schema.Types.String,
   yds: { type: Schema.Types.String, required: false },
@@ -86,6 +101,7 @@ export const ClimbSchema = new Schema<ClimbType>({
     required: true
   },
   boltsCount: { type: Schema.Types.Number, required: false },
+  pitches: [PitchSchema],
   metadata: MetadataSchema,
   content: ContentSchema,
   _deleting: { type: Date },
@@ -108,6 +124,18 @@ ClimbSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
 ClimbSchema.pre('validate', function (next) {
   if (this.safety as string === '') { this.safety = SafetyType.UNSPECIFIED }
   if (this.yds === '') { this.yds = 'UNKNOWN' }
+  next()
+})
+
+// If there are individual pitches defined, assign the parent's climb uuid to each pitch
+ClimbSchema.pre('save', function (next) {
+  if (this.isNew && (this.pitches != null)) {
+    this.pitches.forEach(pitch => {
+      if (pitch.parent_id == null) {
+        pitch.parent_id = this._id
+      }
+    })
+  }
   next()
 })
 

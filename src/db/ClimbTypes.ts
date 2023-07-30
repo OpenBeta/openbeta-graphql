@@ -31,17 +31,30 @@ export type ClimbType = IClimbProps & {
   content?: IClimbContent
 }
 
+/* Models a single pitch of a multi-pitch route */
+export interface IPitch {
+  _id?: MUUID
+  parent_id?: MUUID
+  number: number
+  grades?: Partial<Record<GradeScalesTypes, string>>
+  type: DisciplineType
+  length?: number
+  boltsCount?: number
+  description?: string
+}
+
 export interface IClimbProps {
   _id: MUUID
   name: string
   /** First ascent, if known. Who was the first person to climb this route? */
   fa?: string
   yds?: string
-
-  /** Total length in metersif known.  We will support individual pitch lenth in the future. */
+  /** Total length in meters, if known */
   length?: number
   /** Total number of bolts (fixed anchors) */
   boltsCount?: number
+  /* Array of Pitch objects representing the individual pitches of the climb */
+  pitches?: IPitch[]
   /**
    * Grades appear within as an I18n-safe format.
    * We achieve this via a larger data encapsulation, and perform interpretation and comparison
@@ -160,6 +173,7 @@ export interface ClimbChangeInputType {
   location?: string
   protection?: string
   boltsCount?: number
+  pitches?: IPitch[] | undefined
   fa?: string
   length?: number
   experimentalAuthor?: {
@@ -168,7 +182,7 @@ export interface ClimbChangeInputType {
   }
 }
 
-type UpdatableClimbFieldsType = Pick<ClimbType, 'fa' | 'name' | 'type' | 'gradeContext' | 'grades' | 'content' | 'length' | 'boltsCount'>
+type UpdatableClimbFieldsType = Pick<ClimbType, 'fa' | 'name' | 'type' | 'gradeContext' | 'grades' | 'content' | 'length' | 'boltsCount' | 'pitches'>
 /**
  * Minimum required fields when adding a new climb or boulder problem
  */

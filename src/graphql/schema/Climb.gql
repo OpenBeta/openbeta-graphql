@@ -22,6 +22,9 @@ type Climb {
   "Number of bolts/permanent anchors, if known (-1 otherwise)"
   boltsCount: Int!
 
+  "List of Pitch objects representing individual pitches of a multi-pitch climb"
+  pitches: [Pitch]!
+
   "The grade(s) assigned to this climb. See GradeType documentation"
   grades: GradeType
 
@@ -190,4 +193,15 @@ enum SafetyEnum {
   R
   "No protection and overall the route is extremely dangerous."
   X
+}
+
+type Pitch {
+  uuid: ID!
+  parent: ID!
+  number: Int!
+  grades: GradeType!
+  type: ClimbType!
+  length: Int!
+  boltsCount: Int
+  description: String
 }

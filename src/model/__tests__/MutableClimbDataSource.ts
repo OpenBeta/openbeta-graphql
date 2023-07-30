@@ -109,6 +109,36 @@ describe('Climb CRUD', () => {
     grade: 'WI8+'
   }
 
+  // Define a sport climb with two individual pitches
+  const newClimbWithPitches: ClimbChangeInputType = {
+    name: 'Short sport climb in Central Europe (gradeType UIAA) with two pitches',
+    disciplines: {
+      sport: true
+    },
+    grade: '7', // max grade of its child pitches
+    description: 'A challenging climb with two pitches',
+    location: '5m left of the big tree',
+    protection: '5 quickdraws',
+    pitches: [
+      {
+        number: 1,
+        grades: { uiaa: '7' },
+        type: { sport: true },
+        length: 30,
+        boltsCount: 5,
+        description: 'First pitch description'
+      },
+      {
+        number: 2,
+        grades: { uiaa: '6+' },
+        type: { sport: true },
+        length: 40,
+        boltsCount: 6,
+        description: 'Second pitch description'
+      }
+    ]
+  }
+
   beforeAll(async () => {
     await connectDB()
     stream = await streamListener()
@@ -472,5 +502,167 @@ describe('Climb CRUD', () => {
       length: change.length,
       boltsCount: change.boltsCount
     })
+  })
+
+  it('can add multi-pitch climbs', async () => {
+    await areas.addCountry('aut')
+
+    const newDestination = await areas.addArea(testUser, 'Some Location with Multi-Pitch Climbs', null, 'aut')
+    if (newDestination == null) fail('Expect new area to be created')
+
+    const routesArea = await areas.addArea(testUser, 'Sport & Trad Multi-Pitches', newDestination.metadata.area_id)
+
+    // create new climb with individual pitches
+    const newIDs = await climbs.addOrUpdateClimbs(
+      testUser,
+      routesArea.metadata.area_id,
+      [newClimbWithPitches]
+    )
+
+    expect(newIDs).toHaveLength(1)
+
+    const climb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+
+    // Validate new climb
+    expect(climb).toMatchObject({
+      name: newClimbWithPitches.name,
+      type: sanitizeDisciplines(newClimbWithPitches.disciplines),
+      content: {
+        description: newClimbWithPitches.description,
+        location: newClimbWithPitches.location,
+        protection: newClimbWithPitches.protection
+      },
+      pitches: newClimbWithPitches.pitches
+    })
+  })
+
+  //   it('can update a single pitch of a multi-pitch climb', async () => {
+  //     // Setup
+  //     await areas.addCountry('che');
+
+  //     const newDestination = await areas.addArea(testUser, 'Some Location with Multi-Pitch Climbs to be Updated', null, 'usa');
+  //     if (newDestination == null) fail('Expect new area to be created');
+
+  //     const routesArea = await areas.addArea(testUser, 'Sport & Trad Multi-Pitches to be Updated', newDestination.metadata.area_id);
+
+  //     // Create a new climb with individual pitches
+  //     const newIDs = await climbs.addOrUpdateClimbs(
+  //       testUser,
+  //       routesArea.metadata.area_id,
+  //       [newClimbWithPitches]
+  //     );
+
+  //     // Check the result of addOrUpdateClimbs
+  //     expect(newIDs).toHaveLength(1);
+
+  //     // Retrieve the added climb
+  //     let climb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
+  //     expect(climb).toBeTruthy();
+
+  //     // If climb is null, fail the test
+  //     if (!climb) {
+  //       fail('Climb not found');
+  //     } else if (!climb.pitches) {
+  //       fail('Pitches not found');
+  //     } else {
+  //     // Check that the climb has the expected number of pitches
+  //     if (newClimbWithPitches.pitches) {
+  //       expect(climb.pitches.length).toBe(newClimbWithPitches.pitches.length);
+  //     } else {
+  //       fail('newClimbWithPitches.pitches is undefined');
+  //     }
+
+  //     // Update the first pitch of the climb
+  //     const updatedPitch = {
+  //       number: 1,
+  //       grades: { ewbank: '19' },  // Change the grade
+  //       type: { alpine: true },
+  //       length: 35,
+  //       boltsCount: 2,
+  //       description: 'New first pitch description'  // Change the description
+  //     };
+
+  //     // Make a copy of the climb's pitches and replace the first pitch
+  //     const updatedPitches = [...climb.pitches];
+  //     updatedPitches[0] = updatedPitch;
+
+  //     // Update the climb with the updated pitches
+  //     const updatedClimb: ClimbChangeInputType = {
+  //       ...climb,
+  //       pitches: updatedPitches
+  //     };
+
+  //     await climbs.addOrUpdateClimbs(testUser, routesArea.metadata.area_id, [updatedClimb]);
+
+  //     // Retrieve the updated climb
+  //     climb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
+  //     expect(climb).toBeTruthy();
+
+  //     // If climb or pitches is null or undefined, fail the test
+  //     if (!climb) {
+  //       fail('Updated climb not found');
+  //     } else if (!climb.pitches) {
+  //       fail('Updated pitches not found');
+  //     } else {
+  //       // Check that the first pitch has been updated
+  //       expect(climb.pitches[0]).toMatchObject(updatedPitch);
+  //     }
+  // }});
+
+  it('can update multi-pitch problems', async () => {
+    const newDestination = await areas.addArea(testUser, 'Some Multi-Pitch Area to be Updated', null, 'deu')
+
+    if (newDestination == null) fail('Expect new area to be created')
+
+    const newIDs = await climbs.addOrUpdateClimbs(
+      testUser,
+      newDestination.metadata.area_id,
+      [newClimbWithPitches]
+    )
+
+    const actual0 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+
+    expect(actual0).toMatchObject({
+      name: newClimbWithPitches.name,
+      type: sanitizeDisciplines(newClimbWithPitches.disciplines),
+      pitches: newClimbWithPitches.pitches
+    })
+
+    expect(actual0?.createdBy?.toUUID().toString()).toEqual(testUser.toString())
+    expect(actual0?.updatedBy).toBeUndefined()
+
+    const updatedPitch = {
+      number: 1,
+      grades: { ewbank: '19' },
+      type: { sport: false, alpine: true },
+      length: 20,
+      boltsCount: 6,
+      description: 'Updated first pitch description'
+    }
+
+    if ((actual0?.pitches) == null) {
+      fail('No pitches found on climb')
+    }
+
+    const updatedPitches = [...actual0.pitches]
+    updatedPitches[0] = updatedPitch
+
+    const changes: ClimbChangeInputType = {
+      id: newIDs[0],
+      pitches: updatedPitches
+    }
+
+    await climbs.addOrUpdateClimbs(testUser, newDestination.metadata.area_id, [changes])
+
+    const actual1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+
+    expect(actual1).toMatchObject({
+      name: newClimbWithPitches.name,
+      type: sanitizeDisciplines(newClimbWithPitches.disciplines),
+      pitches: updatedPitches
+    })
+
+    expect(actual1?.createdBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())
+    expect(actual1?.updatedBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())
   })
 })
