@@ -6,9 +6,10 @@ import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
 import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation, SupportedCollectionTypes, DocumentKind } from '../ChangeLogType.js'
 import { checkVar } from '../index.js'
-import { updateAreaIndex } from '../export/Typesense/Client.js'
+import { updateAreaIndex, updateClimbIndex } from '../export/Typesense/Client.js'
 import { AreaType } from '../AreaTypes.js'
 import { exhaustiveCheck } from '../../utils/helpers.js'
+import { ClimbType } from '../ClimbTypes.js'
 
 /**
  * Start a new stream listener to track changes
@@ -89,6 +90,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         kind: DocumentKind.climbs
       }
       void changelogDataSource.record(newDocument)
+      void updateClimbIndex(fullDocument as ClimbType, dbOp)
       break
     }
     case DocumentKind.areas: {
