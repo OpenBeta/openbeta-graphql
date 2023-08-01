@@ -22,6 +22,10 @@ export function mongoAreaToTypeSense (doc: AreaType): AreaTypeSenseItem {
   }
 }
 
+/**
+ * Convert a Climb object to a Typesense object
+ * @param doc Climb type
+ */
 export function mongoClimbToTypeSense (doc: ClimbExtType): ClimbTypeSenseItem {
   return {
     climbUUID: doc._id.toUUID().toString(),

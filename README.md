@@ -70,6 +70,7 @@ query Example1 {
 - [Docker](https://docs.docker.com/get-docker)
 - [Node.js](https://nodejs.org) (v16.14.0 or later)
 - [yarn](https://yarnpkg.com/getting-started/install)
+- `mongorestore` command-line utility (you have to install the entire [MongoDB Database Tools](https://www.mongodb.com/docs/database-tools/installation/installation/)).
 
 
 0. Add '127.0.0.1 mongodb' entry to your `/etc/hosts` file (or C:\Windows\System32\drivers\etc\hosts on Windows)

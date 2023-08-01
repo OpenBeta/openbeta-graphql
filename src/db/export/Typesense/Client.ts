@@ -1,11 +1,13 @@
 import Typesense, { Client } from 'typesense'
 
-import { areaSchema } from './TypesenseSchemas.js'
-import { mongoAreaToTypeSense } from './transformers.js'
+import { areaSchema, climbSchema } from './TypesenseSchemas.js'
+import { mongoAreaToTypeSense, mongoClimbToTypeSense } from './transformers.js'
 import { logger } from '../../../logger.js'
 import { AreaType } from '../../AreaTypes.js'
 import { DBOperation } from '../../ChangeLogType.js'
 import Config from '../../../Config.js'
+import { ClimbExtType, ClimbType } from '../../ClimbTypes.js'
+import MutableAreaDataSource from '../../../model/MutableAreaDataSource.js'
 
 /**
  * Return a Typesense client.
@@ -50,6 +52,41 @@ export const updateAreaIndex = async (area: AreaType | null, op: DBOperation): P
         break
     }
   } catch (e) {
-    logger.error('Can\'t update Typesense areanindex: ' + area.area_name)
+    logger.error({ exception: e.toString() }, 'Can\'t update Typesense Area index: ' + area.area_name)
+  }
+}
+
+/**
+ * Update/remove a record in Climb index
+ * @param area
+ * @param op
+ */
+export const updateClimbIndex = async (climb: ClimbType | null, op: DBOperation): Promise<void> => {
+  if (climb == null) return
+  try {
+    if (Config.DEPLOYMENT_ENV !== 'production') {
+      return
+    }
+
+    // Look up additional attrs required by Climb index in Typesense.
+    const { pathTokens, ancestors } = await MutableAreaDataSource.getInstance().findOneAreaByUUID(climb.metadata.areaRef)
+
+    const climbExt: ClimbExtType = {
+      ...climb,
+      pathTokens,
+      ancestors
+    }
+
+    switch (op) {
+      case 'insert':
+      case 'update':
+        await typesense()?.collections(climbSchema.name).documents().upsert(mongoClimbToTypeSense(climbExt))
+        break
+      case 'delete':
+        await typesense()?.collections(climbSchema.name).documents().delete(climb._id.toUUID().toString())
+        break
+    }
+  } catch (e) {
+    logger.error({ exception: e.toString() }, 'Can\'t update Typesense Climb index: ' + climb.name)
   }
 }
