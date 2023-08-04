@@ -65,13 +65,20 @@ const PitchSchema = new mongoose.Schema({
     value: { type: 'Buffer' },
     default: () => muuid.v4()
   },
-  parent: { type: String, required: true },
+  uuid: {
+    type: 'string',
+    default: function () { return this._id.toString(); }
+  },  
+  parent_id: { type: String, required: true },
   number: { type: Number, required: true },
   grades: { type: mongoose.Schema.Types.Mixed, required: true },
   type: { type: mongoose.Schema.Types.Mixed, required: true },
   length: { type: Number, required: true },
   boltsCount: { type: Number },
   description: { type: String }
+}, {
+  _id: true,
+  timestamps: true
 })
 
 const GradeTypeSchema = new Schema<GradeScalesTypes>({

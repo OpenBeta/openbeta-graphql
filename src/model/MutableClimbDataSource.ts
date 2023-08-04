@@ -2,7 +2,7 @@ import muid, { MUUID } from 'uuid-mongodb'
 import { UserInputError } from 'apollo-server'
 import { ClientSession } from 'mongoose'
 
-import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType } from '../db/ClimbTypes.js'
+import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, IPitch } from '../db/ClimbTypes.js'
 import ClimbDataSource from './ClimbDataSource.js'
 import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
 import { sanitizeDisciplines, gradeContextToGradeScales, createGradeObject } from '../GradeUtils.js'
@@ -125,7 +125,18 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ? createGradeObject(grade, typeSafeDisciplines, cragGradeScales)
         : null
 
-      const { description, location, protection, name, fa, length, boltsCount, pitches } = userInput[i]
+      const pitches = userInput[i].pitches
+    
+      const newPitchesWithIDs = pitches != null
+      ? pitches.map(pitch => ({
+          ...pitch,
+          _id: muid.from(pitch.id ?? muid.v4()),
+          parent_id: muid.from(pitch.parent_id ?? newClimbIds[i])
+        }))
+      : null;    
+    
+    
+      const { description, location, protection, name, fa, length, boltsCount } = userInput[i]
 
       // Make sure we don't update content = {}
       // See https://www.mongodb.com/community/forums/t/mongoservererror-invalid-set-caused-by-an-empty-object-is-not-a-valid-value/148344/2
@@ -152,7 +163,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ...fa != null && { fa },
         ...length != null && length > 0 && { length },
         ...boltsCount != null && boltsCount >= 0 && { boltsCount }, // Include 'boltsCount' if it's defined and its value is 0 (no bolts) or greater
-        ...((pitches != null) && pitches.length > 0) && { pitches }, // Include 'pitches' property if it's defined and its length is greater than 0
+        ...newPitchesWithIDs != null && { pitches: newPitchesWithIDs },       
         ...Object.keys(content).length > 0 && { content },
         metadata: {
           areaRef: parent.metadata.area_id,

@@ -196,8 +196,9 @@ enum SafetyEnum {
 }
 
 type Pitch {
+  id: ID!
   uuid: ID!
-  parent: ID!
+  parent_id: ID!
   number: Int!
   grades: GradeType!
   type: ClimbType!

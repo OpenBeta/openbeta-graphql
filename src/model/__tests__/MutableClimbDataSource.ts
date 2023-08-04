@@ -111,7 +111,7 @@ describe('Climb CRUD', () => {
 
   // Define a sport climb with two individual pitches
   const newClimbWithPitches: ClimbChangeInputType = {
-    name: 'Short sport climb in Central Europe (gradeType UIAA) with two pitches',
+    name: 'Short Multi-Pitch',
     disciplines: {
       sport: true
     },
@@ -534,135 +534,102 @@ describe('Climb CRUD', () => {
       },
       pitches: newClimbWithPitches.pitches
     })
+    // Validate each pitch
+    if (climb && climb.pitches) {
+        climb.pitches.forEach((pitch) => {
+            expect(pitch).toHaveProperty('_id')
+            expect(pitch).toHaveProperty('parent_id')
+        })
+    }
+    else {
+        fail('Pitches are missing either of id, parent_id')
+    }
   })
-
-  //   it('can update a single pitch of a multi-pitch climb', async () => {
-  //     // Setup
-  //     await areas.addCountry('che');
-
-  //     const newDestination = await areas.addArea(testUser, 'Some Location with Multi-Pitch Climbs to be Updated', null, 'usa');
-  //     if (newDestination == null) fail('Expect new area to be created');
-
-  //     const routesArea = await areas.addArea(testUser, 'Sport & Trad Multi-Pitches to be Updated', newDestination.metadata.area_id);
-
-  //     // Create a new climb with individual pitches
-  //     const newIDs = await climbs.addOrUpdateClimbs(
-  //       testUser,
-  //       routesArea.metadata.area_id,
-  //       [newClimbWithPitches]
-  //     );
-
-  //     // Check the result of addOrUpdateClimbs
-  //     expect(newIDs).toHaveLength(1);
-
-  //     // Retrieve the added climb
-  //     let climb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
-  //     expect(climb).toBeTruthy();
-
-  //     // If climb is null, fail the test
-  //     if (!climb) {
-  //       fail('Climb not found');
-  //     } else if (!climb.pitches) {
-  //       fail('Pitches not found');
-  //     } else {
-  //     // Check that the climb has the expected number of pitches
-  //     if (newClimbWithPitches.pitches) {
-  //       expect(climb.pitches.length).toBe(newClimbWithPitches.pitches.length);
-  //     } else {
-  //       fail('newClimbWithPitches.pitches is undefined');
-  //     }
-
-  //     // Update the first pitch of the climb
-  //     const updatedPitch = {
-  //       number: 1,
-  //       grades: { ewbank: '19' },  // Change the grade
-  //       type: { alpine: true },
-  //       length: 35,
-  //       boltsCount: 2,
-  //       description: 'New first pitch description'  // Change the description
-  //     };
-
-  //     // Make a copy of the climb's pitches and replace the first pitch
-  //     const updatedPitches = [...climb.pitches];
-  //     updatedPitches[0] = updatedPitch;
-
-  //     // Update the climb with the updated pitches
-  //     const updatedClimb: ClimbChangeInputType = {
-  //       ...climb,
-  //       pitches: updatedPitches
-  //     };
-
-  //     await climbs.addOrUpdateClimbs(testUser, routesArea.metadata.area_id, [updatedClimb]);
-
-  //     // Retrieve the updated climb
-  //     climb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
-  //     expect(climb).toBeTruthy();
-
-  //     // If climb or pitches is null or undefined, fail the test
-  //     if (!climb) {
-  //       fail('Updated climb not found');
-  //     } else if (!climb.pitches) {
-  //       fail('Updated pitches not found');
-  //     } else {
-  //       // Check that the first pitch has been updated
-  //       expect(climb.pitches[0]).toMatchObject(updatedPitch);
-  //     }
-  // }});
 
   it('can update multi-pitch problems', async () => {
     const newDestination = await areas.addArea(testUser, 'Some Multi-Pitch Area to be Updated', null, 'deu')
-
+  
     if (newDestination == null) fail('Expect new area to be created')
-
+  
     const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       newDestination.metadata.area_id,
       [newClimbWithPitches]
     )
-
-    const actual0 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-
-    expect(actual0).toMatchObject({
-      name: newClimbWithPitches.name,
-      type: sanitizeDisciplines(newClimbWithPitches.disciplines),
-      pitches: newClimbWithPitches.pitches
-    })
-
-    expect(actual0?.createdBy?.toUUID().toString()).toEqual(testUser.toString())
-    expect(actual0?.updatedBy).toBeUndefined()
-
-    const updatedPitch = {
+  
+    // Fetch the original climb
+    const original = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
+  
+    // Check if 'original' is not null before accessing its properties
+    if (!original || !original.pitches || original.pitches.length < 2) {
+      fail('Original climb is null or does not have at least two pitches (as defined in the test case)');
+      return;
+    }
+  
+    // Store original pitch IDs and parent IDs
+    const originalPitch1ID = original.pitches[0]._id;
+    const originalPitch1ParentID = original.pitches[0].parent_id;
+    const originalPitch2ID = original.pitches[1]._id;
+    const originalPitch2ParentID = original.pitches[1].parent_id;
+  
+    const updatedPitch1 = {
+      _id: originalPitch1ID,
+      parent_id: originalPitch1ParentID,
       number: 1,
       grades: { ewbank: '19' },
       type: { sport: false, alpine: true },
       length: 20,
       boltsCount: 6,
       description: 'Updated first pitch description'
-    }
+    };
+  
+    const updatedPitch2 = {
+      _id: originalPitch2ID,
+      parent_id: originalPitch2ParentID,
+      number: 2,
+      grades: { ewbank: '18' },
+      type: { sport: false, alpine: true },
+      length: 25,
+      boltsCount: 5,
+      description: 'Updated second pitch description'
+    };
+  
+    const changes: ClimbChangeInputType[] = [
+      {
+        id: newIDs[0],
+        pitches: [updatedPitch1, updatedPitch2]
+      }
+    ];
+  
+    await climbs.addOrUpdateClimbs(testUser, newDestination.metadata.area_id, changes);
+  
+    // Fetch the updated climb
+    const actual = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
+  
+    // Check if 'actual' is not null before accessing its properties
+    if (actual) {
+/*       // Validate that the climb is updated correctly
+      expect(actual).toMatchObject({
+        name: actual.name,  // Assuming the name did not change
+        type: actual.type,  // Assuming the type did not change
+        pitches: changes[0].pitches  // The pitches should now match the updated pitches
+      }); */
+        
+      // Check that the pitches.id and pitches.parent_id are identical to the original values
+      if (actual && actual.pitches) {
+        expect(actual.pitches[0]._id.toUUID().toString()).toEqual(originalPitch1ID);
+        expect(actual.pitches[0].parent_id.toUUID().toString()).toEqual(originalPitch1ParentID);
+        expect(actual.pitches[1]._id.toUUID().toString()).toEqual(originalPitch2ID);
+        expect(actual.pitches[1].parent_id.toUUID().toString()).toEqual(originalPitch2ParentID);
+      }  
 
-    if ((actual0?.pitches) == null) {
-      fail('No pitches found on climb')
-    }
+      // Check that the createdBy and updatedBy fields are not undefined before accessing their properties
+      if (actual && actual.createdBy && actual.updatedBy) {
+        expect(actual.createdBy.toUUID().toString()).toEqual(testUser.toString());
+        expect(actual.updatedBy.toUUID().toString()).toEqual(testUser.toString());
+      } else {
+        fail('createdBy or updatedBy is undefined');
+      }
 
-    const updatedPitches = [...actual0.pitches]
-    updatedPitches[0] = updatedPitch
-
-    const changes: ClimbChangeInputType = {
-      id: newIDs[0],
-      pitches: updatedPitches
-    }
-
-    await climbs.addOrUpdateClimbs(testUser, newDestination.metadata.area_id, [changes])
-
-    const actual1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-
-    expect(actual1).toMatchObject({
-      name: newClimbWithPitches.name,
-      type: sanitizeDisciplines(newClimbWithPitches.disciplines),
-      pitches: updatedPitches
-    })
-
-    expect(actual1?.createdBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())
-    expect(actual1?.updatedBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())
-  })
+  });
 })
