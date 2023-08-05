@@ -616,7 +616,7 @@ describe('Climb CRUD', () => {
       }); */
         
       // Check that the pitches.id and pitches.parent_id are identical to the original values
-      if (actual && actual.pitches) {
+      if (actual.pitches) {
         expect(actual.pitches[0]._id.toUUID().toString()).toEqual(originalPitch1ID);
         expect(actual.pitches[0].parent_id.toUUID().toString()).toEqual(originalPitch1ParentID);
         expect(actual.pitches[1]._id.toUUID().toString()).toEqual(originalPitch2ID);
@@ -624,12 +624,12 @@ describe('Climb CRUD', () => {
       }  
 
       // Check that the createdBy and updatedBy fields are not undefined before accessing their properties
-      if (actual && actual.createdBy && actual.updatedBy) {
+      if (actual.createdBy && actual.updatedBy) {
         expect(actual.createdBy.toUUID().toString()).toEqual(testUser.toString());
         expect(actual.updatedBy.toUUID().toString()).toEqual(testUser.toString());
       } else {
         fail('createdBy or updatedBy is undefined');
       }
-
-  });
+    }
+  })
 })

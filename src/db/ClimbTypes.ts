@@ -38,7 +38,7 @@ export interface IPitch {
   parent_id: MUUID
   number: number
   grades?: Partial<Record<GradeScalesTypes, string>>
-  type: DisciplineType
+  type?: DisciplineType
   length?: number
   boltsCount?: number
   description?: string
@@ -55,7 +55,7 @@ export interface IClimbProps {
   /** Total number of bolts (fixed anchors) */
   boltsCount?: number
   /* Array of Pitch objects representing the individual pitches of the climb */
-  pitches?: IPitch[]
+  pitches?: IPitch[] | undefined
   /**
    * Grades appear within as an I18n-safe format.
    * We achieve this via a larger data encapsulation, and perform interpretation and comparison
@@ -165,8 +165,8 @@ export interface IClimbContent {
 export type ClimbGradeContextType = Record<keyof DisciplineType, GradeScalesTypes>
 
 export interface IPitchInput {
-  id?: string | MUUID;
-  parent_id?: string | MUUID;
+  id?: string;
+  parent_id?: string;
   number?: number;
   grades?: Partial<Record<GradeScalesTypes, string>>
   type?: DisciplineType;
@@ -185,7 +185,7 @@ export interface ClimbChangeInputType {
   location?: string
   protection?: string
   boltsCount?: number
-  pitches?: IPitchInput[]
+  pitches?: IPitchInput[] | undefined
   fa?: string
   length?: number
   experimentalAuthor?: {
@@ -203,7 +203,7 @@ type UpdatableClimbFieldsType = {
   content: ClimbType['content'],
   length: ClimbType['length'],
   boltsCount: ClimbType['boltsCount'],
-  pitches?: IPitchInput[],
+  pitches: IPitchInput[],
 }
 /**
  * Minimum required fields when adding a new climb or boulder problem

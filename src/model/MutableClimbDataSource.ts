@@ -107,7 +107,15 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     for (let i = 0; i < userInput.length; i++) {
       // when adding new climbs we require name and disciplines
       if (!idList[i].existed && userInput[i].name == null) {
-        throw new UserInputError(`Can't add new climbs without name.  (Index[index=${i}])`)
+        throw new UserInputError(`Can't add new climbs without name. (Index[index=${i}])`)
+      }
+      
+      if (userInput[i].pitches != null) {
+        userInput[i].pitches?.forEach((pitch, index) => {
+          if (pitch.id == null || pitch.parent_id == null || pitch.number == null) {
+            throw new UserInputError(`Can't add pitch without required properties (_id, parent_id, number). (Index[index=${index}])`);
+          }
+        });
       }
 
       // See https://github.com/OpenBeta/openbeta-graphql/issues/244
@@ -134,7 +142,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
           parent_id: muid.from(pitch.parent_id ?? newClimbIds[i])
         }))
       : null;    
-    
+
     
       const { description, location, protection, name, fa, length, boltsCount } = userInput[i]
 
