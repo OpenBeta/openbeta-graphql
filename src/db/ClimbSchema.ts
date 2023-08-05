@@ -71,15 +71,16 @@ const PitchSchema = new mongoose.Schema({
   },  
   parent_id: { type: String, required: true },
   number: { type: Number, required: true },
-  grades: { type: mongoose.Schema.Types.Mixed, required: true },
-  type: { type: mongoose.Schema.Types.Mixed, required: true },
-  length: { type: Number, required: true },
+  grades: { type: mongoose.Schema.Types.Mixed },
+  type: { type: mongoose.Schema.Types.Mixed },
+  length: { type: Number },
   boltsCount: { type: Number },
   description: { type: String }
 }, {
   _id: true,
   timestamps: true
 })
+
 
 const GradeTypeSchema = new Schema<GradeScalesTypes>({
   vscale: Schema.Types.String,
@@ -108,7 +109,7 @@ export const ClimbSchema = new Schema<ClimbType>({
     required: true
   },
   boltsCount: { type: Schema.Types.Number, required: false },
-  pitches: [PitchSchema],
+  pitches: { type: [PitchSchema], default: undefined, required: false },
   metadata: MetadataSchema,
   content: ContentSchema,
   _deleting: { type: Date },
@@ -135,7 +136,7 @@ ClimbSchema.pre('validate', function (next) {
 })
 
 // If there are individual pitches defined, assign the parent's climb uuid to each pitch
-ClimbSchema.pre('save', function (next) {
+/* ClimbSchema.pre('save', function (next) {
   if (this.isNew && (this.pitches != null)) {
     this.pitches.forEach(pitch => {
       if (pitch.parent_id == null) {
@@ -144,7 +145,7 @@ ClimbSchema.pre('save', function (next) {
     })
   }
   next()
-})
+}) */
 
 export const getClimbModel = (name: string = 'climbs'): mongoose.Model<ClimbType> => {
   return mongoose.model(name, ClimbSchema)

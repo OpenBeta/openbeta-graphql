@@ -20,10 +20,10 @@ type Climb {
   length: Int!
 
   "Number of bolts/permanent anchors, if known (-1 otherwise)"
-  boltsCount: Int!
+  boltsCount: Int
 
   "List of Pitch objects representing individual pitches of a multi-pitch climb"
-  pitches: [Pitch]!
+  pitches: [Pitch]
 
   "The grade(s) assigned to this climb. See GradeType documentation"
   grades: GradeType
@@ -200,9 +200,9 @@ type Pitch {
   uuid: ID!
   parent_id: ID!
   number: Int!
-  grades: GradeType!
-  type: ClimbType!
-  length: Int!
+  grades: GradeType
+  type: ClimbType
+  length: Int
   boltsCount: Int
   description: String
 }

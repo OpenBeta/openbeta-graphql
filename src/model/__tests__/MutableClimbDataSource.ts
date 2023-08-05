@@ -567,13 +567,13 @@ describe('Climb CRUD', () => {
     }
   
     // Store original pitch IDs and parent IDs
-    const originalPitch1ID = original.pitches[0]._id;
-    const originalPitch1ParentID = original.pitches[0].parent_id;
-    const originalPitch2ID = original.pitches[1]._id;
-    const originalPitch2ParentID = original.pitches[1].parent_id;
+    const originalPitch1ID = original.pitches[0]._id.toUUID().toString()
+    const originalPitch2ID = original.pitches[1]._id.toUUID().toString()
+    const originalPitch1ParentID = original.pitches[0].parent_id
+    const originalPitch2ParentID = original.pitches[1].parent_id
   
     const updatedPitch1 = {
-      _id: originalPitch1ID,
+      id: originalPitch1ID,
       parent_id: originalPitch1ParentID,
       number: 1,
       grades: { ewbank: '19' },
@@ -584,7 +584,7 @@ describe('Climb CRUD', () => {
     };
   
     const updatedPitch2 = {
-      _id: originalPitch2ID,
+      id: originalPitch2ID,
       parent_id: originalPitch2ParentID,
       number: 2,
       grades: { ewbank: '18' },
@@ -601,35 +601,38 @@ describe('Climb CRUD', () => {
       }
     ];
   
+    // update climb
     await climbs.addOrUpdateClimbs(testUser, newDestination.metadata.area_id, changes);
   
     // Fetch the updated climb
-    const actual = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
+    const updatedClimb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
   
-    // Check if 'actual' is not null before accessing its properties
-    if (actual) {
-/*       // Validate that the climb is updated correctly
-      expect(actual).toMatchObject({
-        name: actual.name,  // Assuming the name did not change
-        type: actual.type,  // Assuming the type did not change
-        pitches: changes[0].pitches  // The pitches should now match the updated pitches
-      }); */
-        
+    if (updatedClimb) {
+       
       // Check that the pitches.id and pitches.parent_id are identical to the original values
-      if (actual && actual.pitches) {
-        expect(actual.pitches[0]._id.toUUID().toString()).toEqual(originalPitch1ID);
-        expect(actual.pitches[0].parent_id.toUUID().toString()).toEqual(originalPitch1ParentID);
-        expect(actual.pitches[1]._id.toUUID().toString()).toEqual(originalPitch2ID);
-        expect(actual.pitches[1].parent_id.toUUID().toString()).toEqual(originalPitch2ParentID);
+      if (updatedClimb.pitches) {
+        const assertPitch = (pitch, expectedPitch, originalID, originalParentID) => {
+          expect(pitch._id.toUUID().toString()).toEqual(originalID);
+          expect(pitch.parent_id).toEqual(originalParentID);
+          expect(pitch.number).toEqual(expectedPitch.number);
+          expect(pitch.grades).toEqual(expectedPitch.grades);
+          expect(pitch.type).toEqual(expectedPitch.type);
+          expect(pitch.length).toEqual(expectedPitch.length);
+          expect(pitch.boltsCount).toEqual(expectedPitch.boltsCount);
+          expect(pitch.description).toEqual(expectedPitch.description);
+        }
+    
+        assertPitch(updatedClimb.pitches[0], updatedPitch1, originalPitch1ID, originalPitch1ParentID);
+        assertPitch(updatedClimb.pitches[1], updatedPitch2, originalPitch2ID, originalPitch2ParentID);
       }  
 
       // Check that the createdBy and updatedBy fields are not undefined before accessing their properties
-      if (actual && actual.createdBy && actual.updatedBy) {
-        expect(actual.createdBy.toUUID().toString()).toEqual(testUser.toString());
-        expect(actual.updatedBy.toUUID().toString()).toEqual(testUser.toString());
+      if (updatedClimb.createdBy && updatedClimb.updatedBy) {
+        expect(updatedClimb.createdBy.toUUID().toString()).toEqual(testUser.toString());
+        expect(updatedClimb.updatedBy.toUUID().toString()).toEqual(testUser.toString());
       } else {
         fail('createdBy or updatedBy is undefined');
       }
-
-  });
+    }
+  })
 })
