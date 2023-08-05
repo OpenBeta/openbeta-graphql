@@ -567,10 +567,10 @@ describe('Climb CRUD', () => {
     }
   
     // Store original pitch IDs and parent IDs
-    const originalPitch1ID = original.pitches[0]._id;
-    const originalPitch1ParentID = original.pitches[0].parent_id;
-    const originalPitch2ID = original.pitches[1]._id;
-    const originalPitch2ParentID = original.pitches[1].parent_id;
+    const originalPitch1ID = original.pitches[0]._id.toUUID().toString();
+    const originalPitch1ParentID = original.pitches[0].parent_id.toUUID().toString();
+    const originalPitch2ID = original.pitches[1]._id.toUUID().toString();
+    const originalPitch2ParentID = original.pitches[1].parent_id.toUUID().toString();
   
     const updatedPitch1 = {
       _id: originalPitch1ID,
