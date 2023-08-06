@@ -112,8 +112,8 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       
       if (userInput[i].pitches != null) {
         userInput[i].pitches?.forEach((pitch, index) => {
-          if (pitch.id == null || pitch.parent_id == null || pitch.number == null) {
-            throw new UserInputError(`Can't add pitch without required properties (_id, parent_id, number). (Index[index=${index}])`);
+          if (pitch.parent_id == null || pitch.number == null) {
+            throw new UserInputError(`Can't add pitch without required properties (parent_id: ${parent.id}, number: ${pitch.number}). (Index[index=${index}])`);
           }
         });
       }
