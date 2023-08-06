@@ -567,10 +567,10 @@ describe('Climb CRUD', () => {
     }
   
     // Store original pitch IDs and parent IDs
-    const originalPitch1ID = original.pitches[0]._id.toUUID().toString();
-    const originalPitch1ParentID = original.pitches[0].parent_id.toUUID().toString();
-    const originalPitch2ID = original.pitches[1]._id.toUUID().toString();
-    const originalPitch2ParentID = original.pitches[1].parent_id.toUUID().toString();
+    const originalPitch1ID = original.pitches[0]._id.toUUID().toString()
+    const originalPitch1ParentID = original.pitches[0].parent_id
+    const originalPitch2ID = original.pitches[1]._id.toUUID().toString()
+    const originalPitch2ParentID = original.pitches[1].parent_id
   
     const updatedPitch1 = {
       _id: originalPitch1ID,
@@ -608,19 +608,19 @@ describe('Climb CRUD', () => {
   
     // Check if 'actual' is not null before accessing its properties
     if (actual) {
-/*       // Validate that the climb is updated correctly
+      // Validate that the climb is updated correctly
       expect(actual).toMatchObject({
         name: actual.name,  // Assuming the name did not change
         type: actual.type,  // Assuming the type did not change
         pitches: changes[0].pitches  // The pitches should now match the updated pitches
-      }); */
+      });
         
       // Check that the pitches.id and pitches.parent_id are identical to the original values
       if (actual.pitches) {
         expect(actual.pitches[0]._id.toUUID().toString()).toEqual(originalPitch1ID);
-        expect(actual.pitches[0].parent_id.toUUID().toString()).toEqual(originalPitch1ParentID);
+        expect(actual.pitches[0].parent_id).toEqual(originalPitch1ParentID);
         expect(actual.pitches[1]._id.toUUID().toString()).toEqual(originalPitch2ID);
-        expect(actual.pitches[1].parent_id.toUUID().toString()).toEqual(originalPitch2ParentID);
+        expect(actual.pitches[1].parent_id).toEqual(originalPitch2ParentID);
       }  
 
       // Check that the createdBy and updatedBy fields are not undefined before accessing their properties

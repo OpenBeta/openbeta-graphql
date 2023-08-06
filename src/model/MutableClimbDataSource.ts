@@ -136,14 +136,14 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       const pitches = userInput[i].pitches
     
       const newPitchesWithIDs = pitches != null
-      ? pitches.map(pitch => ({
+      ? pitches.map((pitch): IPitch => ({
           ...pitch,
           _id: muid.from(pitch.id ?? muid.v4()),
-          parent_id: muid.from(pitch.parent_id ?? newClimbIds[i])
+          parent_id: muid.from(pitch.parent_id ?? newClimbIds[i]).toString(),
+          number: pitch.number ?? 0 // revert to 0 if number cannot be retrieved
         }))
-      : null;    
+      : null;
 
-    
       const { description, location, protection, name, fa, length, boltsCount } = userInput[i]
 
       // Make sure we don't update content = {}

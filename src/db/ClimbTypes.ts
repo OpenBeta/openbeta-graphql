@@ -27,7 +27,7 @@ export type ClimbGQLQueryType = ClimbType & {
  * Clinbs have a number of fields that may be expected to appear within their documents.
  */
 export type ClimbType = IClimbProps & {
-  pitches?: IPitch
+  pitches?: IPitch[]
   metadata: IClimbMetadata
   content?: IClimbContent
 }
@@ -35,7 +35,7 @@ export type ClimbType = IClimbProps & {
 /* Models a single pitch of a multi-pitch route */
 export interface IPitch {
   _id: MUUID
-  parent_id: MUUID
+  parent_id: string
   number: number
   grades?: Partial<Record<GradeScalesTypes, string>>
   type?: DisciplineType
@@ -175,6 +175,8 @@ export interface IPitchInput {
   description?: string;
 }
 
+
+
 export interface ClimbChangeInputType {
   id?: string
   name?: string
@@ -194,6 +196,9 @@ export interface ClimbChangeInputType {
   }
 }
 
+// Includes all properties of IPitchInput except for id and parent_id
+export type UpdatablePitchInput = Omit<IPitchInput, 'id' | 'parent_id'>;
+
 type UpdatableClimbFieldsType = {
   fa: ClimbType['fa'],
   name: ClimbType['name'],
@@ -203,7 +208,7 @@ type UpdatableClimbFieldsType = {
   content: ClimbType['content'],
   length: ClimbType['length'],
   boltsCount: ClimbType['boltsCount'],
-  pitches: IPitchInput[],
+  pitches: UpdatablePitchInput[],
 }
 /**
  * Minimum required fields when adding a new climb or boulder problem
