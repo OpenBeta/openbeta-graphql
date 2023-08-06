@@ -197,7 +197,7 @@ export interface ClimbChangeInputType {
 }
 
 // Includes all properties of IPitchInput except for id and parent_id
-export type UpdatablePitchInput = Omit<IPitchInput, 'id' | 'parent_id'>;
+// export type UpdatablePitchInput = Omit<IPitchInput, 'id' | 'parent_id'>; // TODO: nah?
 
 type UpdatableClimbFieldsType = {
   fa: ClimbType['fa'],
@@ -208,7 +208,7 @@ type UpdatableClimbFieldsType = {
   content: ClimbType['content'],
   length: ClimbType['length'],
   boltsCount: ClimbType['boltsCount'],
-  pitches: UpdatablePitchInput[],
+  pitches: IPitchInput[],
 }
 /**
  * Minimum required fields when adding a new climb or boulder problem

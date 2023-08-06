@@ -109,14 +109,6 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       if (!idList[i].existed && userInput[i].name == null) {
         throw new UserInputError(`Can't add new climbs without name. (Index[index=${i}])`)
       }
-      
-      if (userInput[i].pitches != null) {
-        userInput[i].pitches?.forEach((pitch, index) => {
-          if (pitch.parent_id == null || pitch.number == null) {
-            throw new UserInputError(`Can't add pitch without required properties (parent_id: ${parent.id}, number: ${pitch.number}). (Index[index=${index}])`);
-          }
-        });
-      }
 
       // See https://github.com/OpenBeta/openbeta-graphql/issues/244
       const author = userInput[i].experimentalAuthor
@@ -133,16 +125,19 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ? createGradeObject(grade, typeSafeDisciplines, cragGradeScales)
         : null
 
-      const pitches = userInput[i].pitches
+      const pitches = userInput[i].pitches      
     
       const newPitchesWithIDs = pitches != null
-      ? pitches.map((pitch): IPitch => ({
-          ...pitch,
-          _id: muid.from(pitch.id ?? muid.v4()),
-          parent_id: muid.from(pitch.parent_id ?? newClimbIds[i]).toString(),
-          number: pitch.number ?? 0 // revert to 0 if number cannot be retrieved
-        }))
+      ? pitches.map((pitch): IPitch => {
+          return {
+            ...pitch,
+            _id: muid.from(pitch.id ?? muid.v4()), // generate MUUID if not present
+            parent_id: muid.from(pitch.parent_id ?? newClimbIds[i]).toString(),
+            number: pitch.number ?? 0 // revert to 0 if number cannot be retrieved TODO: ugly
+          };
+        })
       : null;
+    
 
       const { description, location, protection, name, fa, length, boltsCount } = userInput[i]
 
