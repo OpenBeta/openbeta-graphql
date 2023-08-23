@@ -67,9 +67,9 @@ const PitchSchema = new mongoose.Schema({
   },
   uuid: {
     type: 'string',
-    default: function () { return this._id.toString(); }
-  },  
-  parent_id: { type: String, required: true },
+    default: function () { return this._id.toString() }
+  },
+  parentId: { type: String, required: true },
   number: { type: Number, required: true },
   grades: { type: mongoose.Schema.Types.Mixed },
   type: { type: mongoose.Schema.Types.Mixed },
@@ -80,7 +80,6 @@ const PitchSchema = new mongoose.Schema({
   _id: true,
   timestamps: true
 })
-
 
 const GradeTypeSchema = new Schema<GradeScalesTypes>({
   vscale: Schema.Types.String,

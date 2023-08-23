@@ -35,7 +35,7 @@ export type ClimbType = IClimbProps & {
 /* Models a single pitch of a multi-pitch route */
 export interface IPitch {
   _id: MUUID
-  parent_id: string
+  parentId: string
   number: number
   grades?: Partial<Record<GradeScalesTypes, string>>
   type?: DisciplineType
@@ -165,17 +165,15 @@ export interface IClimbContent {
 export type ClimbGradeContextType = Record<keyof DisciplineType, GradeScalesTypes>
 
 export interface PitchChangeInputType {
-  id?: string;
-  parent_id?: string;
-  number?: number;
+  id?: string
+  parentId?: string
+  number?: number
   grades?: Partial<Record<GradeScalesTypes, string>>
-  type?: DisciplineType;
-  length?: number;
-  boltsCount?: number;
-  description?: string;
+  type?: DisciplineType
+  length?: number
+  boltsCount?: number
+  description?: string
 }
-
-
 
 export interface ClimbChangeInputType {
   id?: string
@@ -196,16 +194,16 @@ export interface ClimbChangeInputType {
   }
 }
 
-type UpdatableClimbFieldsType = {
-  fa: ClimbType['fa'],
-  name: ClimbType['name'],
-  type: ClimbType['type'],
-  gradeContext: ClimbType['gradeContext'],
-  grades: ClimbType['grades'],
-  content: ClimbType['content'],
-  length: ClimbType['length'],
-  boltsCount: ClimbType['boltsCount'],
-  pitches: PitchChangeInputType[],
+interface UpdatableClimbFieldsType {
+  fa: ClimbType['fa']
+  name: ClimbType['name']
+  type: ClimbType['type']
+  gradeContext: ClimbType['gradeContext']
+  grades: ClimbType['grades']
+  content: ClimbType['content']
+  length: ClimbType['length']
+  boltsCount: ClimbType['boltsCount']
+  pitches: PitchChangeInputType[]
 }
 /**
  * Minimum required fields when adding a new climb or boulder problem

@@ -126,22 +126,22 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         : null
 
       const pitches = userInput[i].pitches
-     
+
       const newPitchesWithIDs = pitches != null
-      ? pitches.map((pitch): IPitch => {
+        ? pitches.map((pitch): IPitch => {
           if (pitch.number === undefined) {
-            throw new UserInputError('Each pitch in a multi-pitch climb must have a number representing its sequence in the climb. Please ensure that every pitch is numbered.');
+            throw new UserInputError('Each pitch in a multi-pitch climb must have a number representing its sequence in the climb. Please ensure that every pitch is numbered.')
           }
-    
+
           return {
             ...pitch,
             _id: muid.from(pitch.id ?? muid.v4()), // generate MUUID if not present
-            parent_id: muid.from(pitch.parent_id ?? newClimbIds[i]).toString(),
+            parentId: muid.from(pitch.parentId ?? newClimbIds[i]).toString(),
             number: pitch.number
-          };
+          }
         })
-      : null;
-    
+        : null
+
       const { description, location, protection, name, fa, length, boltsCount } = userInput[i]
 
       // Make sure we don't update content = {}
@@ -169,7 +169,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ...fa != null && { fa },
         ...length != null && length > 0 && { length },
         ...boltsCount != null && boltsCount >= 0 && { boltsCount }, // Include 'boltsCount' if it's defined and its value is 0 (no bolts) or greater
-        ...newPitchesWithIDs != null && { pitches: newPitchesWithIDs },       
+        ...newPitchesWithIDs != null && { pitches: newPitchesWithIDs },
         ...Object.keys(content).length > 0 && { content },
         metadata: {
           areaRef: parent.metadata.area_id,
