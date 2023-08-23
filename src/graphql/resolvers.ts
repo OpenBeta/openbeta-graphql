@@ -153,7 +153,6 @@ const resolvers = {
 
     boltsCount: (node: ClimbGQLQueryType) => node.boltsCount ?? -1,
 
-    //pitches: (node: ClimbGQLQueryType) => node.pitches ?? null,
     pitches: (node: ClimbGQLQueryType) => node.pitches != null 
       ? node.pitches.map(pitch =>  {
         const { parent_id, ...otherPitchProps } = pitch;

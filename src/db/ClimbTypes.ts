@@ -141,8 +141,8 @@ export interface IClimbMetadata {
   /** mountainProject ID (if this climb was sourced from mountainproject) */
   mp_id?: string
   /**
-   * If this climb was sourced from mountianproject, we expect a parent ID
-   * for its crag to also be Available
+   * If this climb was sourced from mountainproject, we expect a parent ID
+   * for its crag to also be available
    */
   mp_crag_id?: string
   /** the parent Area in which this climb appears */
@@ -164,7 +164,7 @@ export interface IClimbContent {
 
 export type ClimbGradeContextType = Record<keyof DisciplineType, GradeScalesTypes>
 
-export interface IPitchInput {
+export interface PitchChangeInputType {
   id?: string;
   parent_id?: string;
   number?: number;
@@ -187,7 +187,7 @@ export interface ClimbChangeInputType {
   location?: string
   protection?: string
   boltsCount?: number
-  pitches?: IPitchInput[] | undefined
+  pitches?: PitchChangeInputType[] | undefined
   fa?: string
   length?: number
   experimentalAuthor?: {
@@ -195,9 +195,6 @@ export interface ClimbChangeInputType {
     url: string
   }
 }
-
-// Includes all properties of IPitchInput except for id and parent_id
-// export type UpdatablePitchInput = Omit<IPitchInput, 'id' | 'parent_id'>; // TODO: nah?
 
 type UpdatableClimbFieldsType = {
   fa: ClimbType['fa'],
@@ -208,7 +205,7 @@ type UpdatableClimbFieldsType = {
   content: ClimbType['content'],
   length: ClimbType['length'],
   boltsCount: ClimbType['boltsCount'],
-  pitches: IPitchInput[],
+  pitches: PitchChangeInputType[],
 }
 /**
  * Minimum required fields when adding a new climb or boulder problem

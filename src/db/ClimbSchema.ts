@@ -135,18 +135,6 @@ ClimbSchema.pre('validate', function (next) {
   next()
 })
 
-// If there are individual pitches defined, assign the parent's climb uuid to each pitch
-/* ClimbSchema.pre('save', function (next) {
-  if (this.isNew && (this.pitches != null)) {
-    this.pitches.forEach(pitch => {
-      if (pitch.parent_id == null) {
-        pitch.parent_id = this._id
-      }
-    })
-  }
-  next()
-}) */
-
 export const getClimbModel = (name: string = 'climbs'): mongoose.Model<ClimbType> => {
   return mongoose.model(name, ClimbSchema)
 }

@@ -572,6 +572,7 @@ describe('Climb CRUD', () => {
     const originalPitch1ParentID = original.pitches[0].parent_id
     const originalPitch2ParentID = original.pitches[1].parent_id
   
+    // Define updated pitch info
     const updatedPitch1 = {
       id: originalPitch1ID,
       parent_id: originalPitch1ParentID,
@@ -607,8 +608,7 @@ describe('Climb CRUD', () => {
     // Fetch the updated climb
     const updatedClimb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]));
   
-    if (updatedClimb) {
-       
+    if (updatedClimb) {        
       // Check that the pitches.id and pitches.parent_id are identical to the original values
       if (updatedClimb.pitches) {
         const assertPitch = (pitch, expectedPitch, originalID, originalParentID) => {
