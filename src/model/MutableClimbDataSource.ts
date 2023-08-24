@@ -2,7 +2,7 @@ import muid, { MUUID } from 'uuid-mongodb'
 import { UserInputError } from 'apollo-server'
 import { ClientSession } from 'mongoose'
 
-import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, IPitch } from '../db/ClimbTypes.js'
+import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType } from '../db/ClimbTypes.js'
 import ClimbDataSource from './ClimbDataSource.js'
 import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
 import { sanitizeDisciplines, gradeContextToGradeScales, createGradeObject } from '../GradeUtils.js'
@@ -107,7 +107,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     for (let i = 0; i < userInput.length; i++) {
       // when adding new climbs we require name and disciplines
       if (!idList[i].existed && userInput[i].name == null) {
-        throw new UserInputError(`Can't add new climbs without name. (Index[index=${i}])`)
+        throw new UserInputError(`Can't add new climbs without name.  (Index[index=${i}])`)
       }
 
       // See https://github.com/OpenBeta/openbeta-graphql/issues/244
@@ -123,23 +123,6 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
       const newGradeObj = grade != null && typeSafeDisciplines != null // only update grades when both grade str and disciplines obj exist
         ? createGradeObject(grade, typeSafeDisciplines, cragGradeScales)
-        : null
-
-      const pitches = userInput[i].pitches
-
-      const newPitchesWithIDs = pitches != null
-        ? pitches.map((pitch): IPitch => {
-          if (pitch.number === undefined) {
-            throw new UserInputError('Each pitch in a multi-pitch climb must have a number representing its sequence in the climb. Please ensure that every pitch is numbered.')
-          }
-
-          return {
-            ...pitch,
-            _id: muid.from(pitch.id ?? muid.v4()), // generate MUUID if not present
-            parentId: muid.from(pitch.parentId ?? newClimbIds[i]).toString(),
-            number: pitch.number
-          }
-        })
         : null
 
       const { description, location, protection, name, fa, length, boltsCount } = userInput[i]
@@ -168,8 +151,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         gradeContext: parent.gradeContext,
         ...fa != null && { fa },
         ...length != null && length > 0 && { length },
-        ...boltsCount != null && boltsCount >= 0 && { boltsCount }, // Include 'boltsCount' if it's defined and its value is 0 (no bolts) or greater
-        ...newPitchesWithIDs != null && { pitches: newPitchesWithIDs },
+        ...boltsCount != null && boltsCount > 0 && { boltsCount },
         ...Object.keys(content).length > 0 && { content },
         metadata: {
           areaRef: parent.metadata.area_id,

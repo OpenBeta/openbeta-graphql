@@ -108,10 +108,9 @@ build
 tmp
 .env.local
 
-# Intellij and VSCode
+# Intellij
 .idea/
 *.iml
-.vscode/settings.json
 
 /export/
 /openbeta-export/

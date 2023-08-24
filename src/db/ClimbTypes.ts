@@ -27,21 +27,8 @@ export type ClimbGQLQueryType = ClimbType & {
  * Clinbs have a number of fields that may be expected to appear within their documents.
  */
 export type ClimbType = IClimbProps & {
-  pitches?: IPitch[]
   metadata: IClimbMetadata
   content?: IClimbContent
-}
-
-/* Models a single pitch of a multi-pitch route */
-export interface IPitch {
-  _id: MUUID
-  parentId: string
-  number: number
-  grades?: Partial<Record<GradeScalesTypes, string>>
-  type?: DisciplineType
-  length?: number
-  boltsCount?: number
-  description?: string
 }
 
 export interface IClimbProps {
@@ -50,12 +37,11 @@ export interface IClimbProps {
   /** First ascent, if known. Who was the first person to climb this route? */
   fa?: string
   yds?: string
-  /** Total length in meters, if known */
+
+  /** Total length in metersif known.  We will support individual pitch lenth in the future. */
   length?: number
   /** Total number of bolts (fixed anchors) */
   boltsCount?: number
-  /* Array of Pitch objects representing the individual pitches of the climb */
-  pitches?: IPitch[] | undefined
   /**
    * Grades appear within as an I18n-safe format.
    * We achieve this via a larger data encapsulation, and perform interpretation and comparison
@@ -141,8 +127,8 @@ export interface IClimbMetadata {
   /** mountainProject ID (if this climb was sourced from mountainproject) */
   mp_id?: string
   /**
-   * If this climb was sourced from mountainproject, we expect a parent ID
-   * for its crag to also be available
+   * If this climb was sourced from mountianproject, we expect a parent ID
+   * for its crag to also be Available
    */
   mp_crag_id?: string
   /** the parent Area in which this climb appears */
@@ -164,17 +150,6 @@ export interface IClimbContent {
 
 export type ClimbGradeContextType = Record<keyof DisciplineType, GradeScalesTypes>
 
-export interface PitchChangeInputType {
-  id?: string
-  parentId?: string
-  number?: number
-  grades?: Partial<Record<GradeScalesTypes, string>>
-  type?: DisciplineType
-  length?: number
-  boltsCount?: number
-  description?: string
-}
-
 export interface ClimbChangeInputType {
   id?: string
   name?: string
@@ -185,7 +160,6 @@ export interface ClimbChangeInputType {
   location?: string
   protection?: string
   boltsCount?: number
-  pitches?: PitchChangeInputType[] | undefined
   fa?: string
   length?: number
   experimentalAuthor?: {
@@ -194,17 +168,7 @@ export interface ClimbChangeInputType {
   }
 }
 
-interface UpdatableClimbFieldsType {
-  fa: ClimbType['fa']
-  name: ClimbType['name']
-  type: ClimbType['type']
-  gradeContext: ClimbType['gradeContext']
-  grades: ClimbType['grades']
-  content: ClimbType['content']
-  length: ClimbType['length']
-  boltsCount: ClimbType['boltsCount']
-  pitches: PitchChangeInputType[]
-}
+type UpdatableClimbFieldsType = Pick<ClimbType, 'fa' | 'name' | 'type' | 'gradeContext' | 'grades' | 'content' | 'length' | 'boltsCount'>
 /**
  * Minimum required fields when adding a new climb or boulder problem
  */

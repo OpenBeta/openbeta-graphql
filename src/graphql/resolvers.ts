@@ -153,18 +153,6 @@ const resolvers = {
 
     boltsCount: (node: ClimbGQLQueryType) => node.boltsCount ?? -1,
 
-    pitches: (node: ClimbGQLQueryType) => node.pitches != null
-      ? node.pitches.map(pitch => {
-        const { parentId, ...otherPitchProps } = pitch
-        return {
-          id: pitch._id?.toUUID().toString(),
-          uuid: pitch._id?.toUUID().toString(),
-          parentId: node._id?.toUUID().toString(),
-          ...otherPitchProps
-        }
-      })
-      : null,
-
     grades: (node: ClimbGQLQueryType) => node.grades ?? null,
 
     metadata: (node: ClimbGQLQueryType) => {
