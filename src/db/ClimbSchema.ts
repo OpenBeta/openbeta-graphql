@@ -68,6 +68,28 @@ const GradeTypeSchema = new Schema<GradeScalesTypes>({
   UIAA: { type: Schema.Types.String, required: false }
 }, { _id: false })
 
+const PitchSchema = new mongoose.Schema({
+  _id: {
+    type: 'object',
+    value: { type: 'Buffer' },
+    default: () => muuid.v4()
+  },
+  parentId: {
+    type: Schema.Types.Mixed,
+    ref: 'climbs',
+    required: true
+  },
+  pitchNumber: { type: Number, required: true },
+  grades: { type: GradeTypeSchema },
+  type: { type: mongoose.Schema.Types.Mixed },
+  length: { type: Number },
+  boltsCount: { type: Number },
+  description: { type: String }
+}, {
+  _id: false,
+  timestamps: true
+})
+
 export const ClimbSchema = new Schema<ClimbType>({
   _id: {
     type: 'object',
@@ -86,6 +108,7 @@ export const ClimbSchema = new Schema<ClimbType>({
     required: true
   },
   boltsCount: { type: Schema.Types.Number, required: false },
+  pitches: { type: [PitchSchema], default: undefined, required: false },
   metadata: MetadataSchema,
   content: ContentSchema,
   _deleting: { type: Date },
