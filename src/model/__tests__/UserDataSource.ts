@@ -71,7 +71,7 @@ describe('UserDataSource', () => {
 
     await users.createOrUpdateUserProfile(updater, input)
 
-    const u2 = await users.getUserPublicProfile(username)
+    let u2 = await users.getUserPublicProfile(username)
 
     // check selected fields
     expect(u2).toMatchObject({
@@ -83,6 +83,20 @@ describe('UserDataSource', () => {
     })
 
     expect(u2?._id.toUUID().toString()).toEqual(input.userUuid)
+
+    // should allow website as an empty string to clear existing value
+    await users.createOrUpdateUserProfile(updater, { userUuid: input.userUuid, website: '' })
+
+    u2 = await users.getUserPublicProfile(username)
+
+    // verify
+    expect(u2).toMatchObject({
+      username: input.username,
+      displayName: input.displayName,
+      bio: input.bio,
+      website: '',
+      email: input.email
+    })
   })
 
   it('should require an email when creating new profile', async () => {
