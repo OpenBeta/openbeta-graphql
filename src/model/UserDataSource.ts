@@ -57,7 +57,7 @@ export default class UserDataSource extends MongoDataSource<User> {
   }
 
   /**
-   * Update user profile.  Create a new user object if not defined.
+   * Update user profile.  Create a new user object if not defined.  Optional fields (displayName, bio, website, avatar) can take blank ("") and null.  Blank to clear the field; null to skip the update.
    * @param updater UUID of the account doing the update
    * @param input profile params
    * @returns true if successful
@@ -101,7 +101,7 @@ export default class UserDataSource extends MongoDataSource<User> {
       throw new Error('Nothing to update. Must provide at least one field.')
     }
 
-    if (website != null && !isValidUrl(website)) {
+    if (website !== '' && website != null && !isValidUrl(website)) {
       throw new Error('Invalid website address.')
     }
 
@@ -266,7 +266,11 @@ const isValidUsername = (username?: string): boolean => {
   )
 }
 
+/**
+ * Validate non-empty and non-null url
+ */
 const isValidUrl = (url: string): boolean => {
+  if (url == null) return false
   try {
     const newUrl = new URL(url)
     return newUrl.protocol === 'http:' || newUrl.protocol === 'https:'
