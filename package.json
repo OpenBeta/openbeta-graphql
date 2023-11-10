@@ -27,7 +27,7 @@
     "@babel/runtime": "^7.17.2",
     "@google-cloud/storage": "^6.9.5",
     "@graphql-tools/schema": "^8.3.1",
-    "@openbeta/sandbag": "^0.0.48",
+    "@openbeta/sandbag": "^0.0.51",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
     "@turf/bbox-polygon": "^6.5.0",

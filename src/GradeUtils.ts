@@ -15,6 +15,7 @@ export enum GradeContexts {
   ALSK = 'ALSK',
   /** Australia */
   AU = 'AU',
+  /** Brazil */
   BRZ = 'BRZ',
   FIN = 'FIN',
   FR = 'FR',
@@ -96,6 +97,22 @@ export const gradeContextToGradeScales: Partial<Record<GradeContexts, ClimbGrade
     aid: GradeScales.UIAA,
     snow: GradeScales.UIAA, // TODO: remove `snow` since it duplicates `ice`
     ice: GradeScales.WI
+  },
+  [GradeContexts.BRZ]: {
+    trad: GradeScales.BRAZILIAN_CRUX,
+    sport: GradeScales.BRAZILIAN_CRUX,
+    bouldering: GradeScales.VSCALE,
+    tr: GradeScales.BRAZILIAN_CRUX,
+    deepwatersolo: GradeScales.BRAZILIAN_CRUX,
+    alpine: GradeScales.BRAZILIAN_CRUX,
+    mixed: GradeScales.BRAZILIAN_CRUX,
+    aid: GradeScales.AID,
+    // definitely no ice in brazil, however once this guy
+    // top roped a fragile frozen waterfall with ice picks
+    // and crampons:
+    ice: GradeScales.WI,
+    // whenever it snows in brazil, you see it in the news
+    snow: GradeScales.WI
   }
 }
 
