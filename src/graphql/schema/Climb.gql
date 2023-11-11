@@ -154,6 +154,7 @@ type GradeType {
   """
   ewbank: String
   french: String
+  brazilianCrux: String
   """
   Fontainebleau grading system, the most widely used grading system in Europe.
   Mostly used for bouldering.

@@ -175,4 +175,36 @@ describe('Test grade utilities', () => {
     actual = createGradeObject('5.9', sanitizeDisciplines({ bouldering: true }), context)
     expect(actual).toBeUndefined()
   })
+
+  it('creates grade object correctly in BRZ context', () => {
+    const context = gradeContextToGradeScales.BRZ
+    if (context == null) { fail('Bad grade context.  Should not happen.') }
+    let actual = createGradeObject('V', sanitizeDisciplines({ sport: true }), context)
+    expect(actual).toEqual({
+      brazilian_crux: 'V'
+    })
+    actual = createGradeObject('A2', sanitizeDisciplines({ aid: true }), context)
+    expect(actual).toEqual({
+      aid: 'A2'
+    })
+    actual = createGradeObject('C1', sanitizeDisciplines({ aid: true }), context)
+    expect(actual).toEqual({
+      aid: 'C1'
+    })
+    actual = createGradeObject('V5', sanitizeDisciplines({ bouldering: true }), context)
+    expect(actual).toEqual({
+      vscale: 'V5'
+    })
+    actual = createGradeObject('WI6', sanitizeDisciplines({ ice: true }), context)
+    expect(actual).toEqual({
+      wi: 'WI6'
+    })
+    actual = createGradeObject('VIIb', sanitizeDisciplines({ deepwatersolo: true }), context)
+    expect(actual).toEqual({
+      brazilian_crux: 'VIIb'
+    })
+    // Invalid input
+    actual = createGradeObject('5.9', sanitizeDisciplines({ bouldering: true }), context)
+    expect(actual).toBeUndefined()
+  })
 })
