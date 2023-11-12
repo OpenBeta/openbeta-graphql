@@ -1,12 +1,12 @@
 import mongoose from 'mongoose'
 import { jest } from '@jest/globals'
 import muuid from 'uuid-mongodb'
-import { connectDB, getChangeLogModel, getAreaModel } from '../../db/index.js'
-import ChangeLogDataSource from '../ChangeLogDataSource.js'
-import { OpType } from '../../db/ChangeLogType.js'
-import { OperationType } from '../../db/AreaTypes.js'
+import { connectDB, getChangeLogModel, getAreaModel } from '../../db/index'
+import ChangeLogDataSource from '../ChangeLogDataSource'
+import { OpType } from '../../db/ChangeLogType'
+import { OperationType } from '../../db/AreaTypes'
 
-import { logger } from '../../logger.js'
+import { logger } from '../../logger'
 
 jest.setTimeout(10000)
 

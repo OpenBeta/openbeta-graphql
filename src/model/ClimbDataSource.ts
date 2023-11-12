@@ -1,8 +1,8 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
-import { getAreaModel } from '../db/AreaSchema.js'
-import { getClimbModel } from '../db/ClimbSchema.js'
-import { ClimbType } from '../db/ClimbTypes.js'
+import { getAreaModel } from '../db/AreaSchema'
+import { getClimbModel } from '../db/ClimbSchema'
+import { ClimbType } from '../db/ClimbTypes'
 
 // TODO move climb helper functions from AreaDataSource here
 export default class ClimbDataSource extends MongoDataSource<ClimbType> {

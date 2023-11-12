@@ -2,7 +2,7 @@ import assert from 'node:assert'
 import mongoose from 'mongoose'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
-import { getCountriesDefaultGradeContext, GradeContexts } from '../../../GradeUtils.js'
+import { getCountriesDefaultGradeContext, GradeContexts } from '../../../GradeUtils'
 
 /**
  * A tree-like data structure for storing area hierarchy during raw json files progressing.

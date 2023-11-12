@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
-import { TagsLeaderboardType, MediaObject, MediaByUsers, UserMediaGQLQueryInput, MediaForFeedInput } from '../../db/MediaObjectTypes.js'
-import { Context } from '../../types.js'
+import { TagsLeaderboardType, MediaObject, MediaByUsers, UserMediaGQLQueryInput, MediaForFeedInput } from '../../db/MediaObjectTypes'
+import { Context } from '../../types'
 
 const MediaQueries = {
 

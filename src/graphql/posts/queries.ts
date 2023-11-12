@@ -1,4 +1,4 @@
-import { getPostModel } from '../../db/PostSchema.js'
+import { getPostModel } from '../../db/PostSchema'
 import { GetPostsInputType } from '../../db/PostTypes'
 
 const PostQueries = {

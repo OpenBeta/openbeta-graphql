@@ -1,4 +1,4 @@
-import TickMutations from './TickMutations.js'
-import TickQueries from './TickQueries.js'
+import TickMutations from './TickMutations'
+import TickQueries from './TickQueries'
 
 export { TickMutations, TickQueries }

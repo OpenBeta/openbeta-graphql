@@ -1,5 +1,5 @@
-import { OrganizationType } from '../../db/OrganizationTypes.js'
-import { ContextWithAuth } from '../../types.js'
+import { OrganizationType } from '../../db/OrganizationTypes'
+import { ContextWithAuth } from '../../types'
 
 const OrganizationMutations = {
 

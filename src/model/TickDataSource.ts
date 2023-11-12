@@ -3,7 +3,7 @@ import type { DeleteResult } from 'mongodb'
 import mongoose from 'mongoose'
 
 import { TickEditFilterType, TickInput, TickType, TickUserSelectors } from '../db/TickTypes'
-import { getTickModel, getUserModel } from '../db/index.js'
+import { getTickModel, getUserModel } from '../db/index'
 import type { User } from '../db/UserTypes'
 
 export default class TickDataSource extends MongoDataSource<TickType> {

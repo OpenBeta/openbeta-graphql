@@ -1,7 +1,7 @@
 import { promises } from 'fs'
-import { Processor } from '../common/processor.js'
+import { Processor } from '../common/processor'
 import path, { dirname } from 'path'
-import { logger } from '../../../logger.js'
+import { logger } from '../../../logger'
 
 export type Writer = (data: string, path: string) => Promise<void>
 export type PathResolver<T> = (data: T) => string

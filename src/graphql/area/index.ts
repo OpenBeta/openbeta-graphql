@@ -1,4 +1,4 @@
-import AreaQueries from './AreaQueries.js'
-import AreaMutations from './AreaMutations.js'
+import AreaQueries from './AreaQueries'
+import AreaMutations from './AreaMutations'
 
 export { AreaQueries, AreaMutations }

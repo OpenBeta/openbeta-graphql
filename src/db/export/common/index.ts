@@ -1,4 +1,4 @@
 export {
   MongoCollectionProcessorOptions,
   processMongoCollection
-} from './processor.js'
+} from './processor'

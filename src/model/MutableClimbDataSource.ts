@@ -2,14 +2,14 @@ import muid, { MUUID } from 'uuid-mongodb'
 import { UserInputError } from 'apollo-server'
 import { ClientSession } from 'mongoose'
 
-import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, IPitch } from '../db/ClimbTypes.js'
-import ClimbDataSource from './ClimbDataSource.js'
-import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
-import { sanitizeDisciplines, gradeContextToGradeScales, createGradeObject } from '../GradeUtils.js'
-import { getClimbModel } from '../db/ClimbSchema.js'
-import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
-import { changelogDataSource } from './ChangeLogDataSource.js'
-import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
+import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, IPitch } from '../db/ClimbTypes'
+import ClimbDataSource from './ClimbDataSource'
+import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource'
+import { sanitizeDisciplines, gradeContextToGradeScales, createGradeObject } from '../GradeUtils'
+import { getClimbModel } from '../db/ClimbSchema'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType'
+import { changelogDataSource } from './ChangeLogDataSource'
+import { sanitize, sanitizeStrict } from '../utils/sanitize'
 
 export default class MutableClimbDataSource extends ClimbDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()

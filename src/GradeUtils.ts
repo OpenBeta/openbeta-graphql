@@ -1,6 +1,6 @@
 import { getScale, GradeScales, GradeScalesTypes } from '@openbeta/sandbag'
 import isoCountries from 'i18n-iso-countries'
-import { DisciplineType, ClimbGradeContextType } from './db/ClimbTypes.js'
+import { DisciplineType, ClimbGradeContextType } from './db/ClimbTypes'
 
 /**
  * Grade systems have minor variations between countries. gradeContext is a

@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
 import { produce } from 'immer'
-import TickDataSource from '../TickDataSource.js'
-import { connectDB, getTickModel, getUserModel } from '../../db/index.js'
-import { TickInput } from '../../db/TickTypes.js'
+import TickDataSource from '../TickDataSource'
+import { connectDB, getTickModel, getUserModel } from '../../db/index'
+import { TickInput } from '../../db/TickTypes'
 import muuid from 'uuid-mongodb'
-import UserDataSource from '../UserDataSource.js'
-import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
+import UserDataSource from '../UserDataSource'
+import { UpdateProfileGQLInput } from '../../db/UserTypes'
 
 const userId = muuid.v4()
 

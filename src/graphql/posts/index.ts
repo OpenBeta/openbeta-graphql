@@ -1,5 +1,5 @@
-import PostQueries from './queries.js'
-import PostMutations from './mutations.js'
-import PostResolvers from './PostResolvers.js'
+import PostQueries from './queries'
+import PostMutations from './mutations'
+import PostResolvers from './PostResolvers'
 
 export { PostQueries, PostMutations, PostResolvers }

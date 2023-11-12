@@ -4,8 +4,8 @@ import {
   GetHistoryInputFilterType,
   GetAreaHistoryInputFilterType,
   GetOrganizationHistoryInputFilterType
-} from '../../db/ChangeLogType.js'
-import { Context } from '../../types.js'
+} from '../../db/ChangeLogType'
+import { Context } from '../../types'
 
 const HistoryQueries = {
   getChangeHistory: async (_, { filter }, { dataSources }: Context): Promise<any> => {

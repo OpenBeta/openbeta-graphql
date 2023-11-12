@@ -2,15 +2,15 @@ import mongoose from 'mongoose'
 import muid from 'uuid-mongodb'
 import { ChangeStream } from 'mongodb'
 
-import MutableClimbDataSource from '../MutableClimbDataSource.js'
-import MutableAreaDataSource from '../MutableAreaDataSource.js'
+import MutableClimbDataSource from '../MutableClimbDataSource'
+import MutableAreaDataSource from '../MutableAreaDataSource'
 
-import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
-import { logger } from '../../logger.js'
-import { ClimbType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
-import { sanitizeDisciplines } from '../../GradeUtils.js'
-import streamListener from '../../db/edit/streamListener.js'
-import { changelogDataSource } from '../ChangeLogDataSource.js'
+import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index'
+import { logger } from '../../logger'
+import { ClimbType, ClimbChangeInputType } from '../../db/ClimbTypes'
+import { sanitizeDisciplines } from '../../GradeUtils'
+import streamListener from '../../db/edit/streamListener'
+import { changelogDataSource } from '../ChangeLogDataSource'
 
 export const newSportClimb1: ClimbChangeInputType = {
   name: 'Cool route 1',

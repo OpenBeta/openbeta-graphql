@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken'
 import { jest } from '@jest/globals'
 import request from 'supertest'
-import inMemoryDB from './inMemoryDB.js'
-import type { InMemoryDB } from './inMemoryDB.js'
-import { createServer } from '../server.js'
+import inMemoryDB from './inMemoryDB'
+import type { InMemoryDB } from './inMemoryDB'
+import { createServer } from '../server'
 import { ApolloServer } from 'apollo-server'
 
 const PORT = 4000

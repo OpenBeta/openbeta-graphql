@@ -3,12 +3,12 @@ import { ChangeStream } from 'mongodb'
 import { jest } from '@jest/globals'
 import muuid from 'uuid-mongodb'
 
-import MutableAreaDataSource from '../MutableAreaDataSource.js'
-import { connectDB, createIndexes, getAreaModel } from '../../db/index.js'
-import streamListener from '../../db/edit/streamListener.js'
-import { logger } from '../../logger.js'
-import { changelogDataSource } from '../ChangeLogDataSource.js'
-import { OperationType } from '../../db/AreaTypes.js'
+import MutableAreaDataSource from '../MutableAreaDataSource'
+import { connectDB, createIndexes, getAreaModel } from '../../db/index'
+import streamListener from '../../db/edit/streamListener'
+import { logger } from '../../logger'
+import { changelogDataSource } from '../ChangeLogDataSource'
+import { OperationType } from '../../db/AreaTypes'
 
 jest.setTimeout(120000)
 

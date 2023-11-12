@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import mongooseLeanVirtuals from 'mongoose-lean-virtuals'
 import muuid from 'uuid-mongodb'
 
-import { TagType, RefModelType } from './TagTypes.js'
+import { TagType, RefModelType } from './TagTypes'
 
 const { Schema } = mongoose
 

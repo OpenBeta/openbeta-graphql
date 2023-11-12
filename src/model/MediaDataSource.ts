@@ -1,9 +1,9 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
-import { logger } from '../logger.js'
-import { getMediaObjectModel } from '../db/index.js'
-import { TagsLeaderboardType, UserMediaQueryInput, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject, UserMedia } from '../db/MediaObjectTypes.js'
+import { logger } from '../logger'
+import { getMediaObjectModel } from '../db/index'
+import { TagsLeaderboardType, UserMediaQueryInput, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject, UserMedia } from '../db/MediaObjectTypes'
 
 const HARD_MAX_FILES = 1000
 const HARD_MAX_USERS = 100

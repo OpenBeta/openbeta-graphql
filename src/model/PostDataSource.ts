@@ -1,6 +1,6 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { PostType } from '../db/PostTypes'
-import { getPostModel } from '../db/index.js'
+import { getPostModel } from '../db/index'
 
 /**
  * Not being used at the moment

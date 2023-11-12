@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { ExperimentalUserType, User, UsernameInfo } from './UserTypes.js'
+import { ExperimentalUserType, User, UsernameInfo } from './UserTypes'
 
 const { Schema } = mongoose
 

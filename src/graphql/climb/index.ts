@@ -1,3 +1,3 @@
-import ClimbMutations from './ClimbMutations.js'
+import ClimbMutations from './ClimbMutations'
 
 export { ClimbMutations }

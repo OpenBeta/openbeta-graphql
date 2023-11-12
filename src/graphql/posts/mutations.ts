@@ -1,5 +1,5 @@
 import { AddPostInputType, RemovePostInputType } from '../../db/PostTypes'
-import { getPostModel } from '../../db/PostSchema.js'
+import { getPostModel } from '../../db/PostSchema'
 import { Context } from '../../types'
 import muid from 'uuid-mongodb'
 import { XMediaType } from '../../db/XMediaTypes'
