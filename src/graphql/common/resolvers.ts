@@ -1,5 +1,5 @@
-import dateScalar from './DateScalar'
-import MuuidScalar from './MuuidScalar'
+import dateScalar from './DateScalar.js'
+import MuuidScalar from './MuuidScalar.js'
 
 const resolvers = {
   Date: dateScalar,

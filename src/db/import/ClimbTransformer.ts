@@ -2,8 +2,8 @@ import { geometry, Point } from '@turf/helpers'
 import muuid from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 
-import { ClimbType } from '../ClimbTypes'
-import { defaultDisciplines, sanitizeDisciplines } from '../../GradeUtils'
+import { ClimbType } from '../ClimbTypes.js'
+import { defaultDisciplines, sanitizeDisciplines } from '../../GradeUtils.js'
 
 const transformClimbRecord = (row: any): ClimbType => {
   /* eslint-disable-next-line */

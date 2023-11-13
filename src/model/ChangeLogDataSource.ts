@@ -2,11 +2,11 @@ import mongoose, { ClientSession } from 'mongoose'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
 
-import { getChangeLogModel } from '../db/index'
+import { getChangeLogModel } from '../db/index.js'
 import { ChangeLogType, OpType, BaseChangeRecordType, AreaChangeLogType, ClimbChangeLogType, OrganizationChangeLogType } from '../db/ChangeLogType'
-import { logger } from '../logger'
-import { areaHistoryDataSource } from './AreaHistoryDatasource'
-import { organizationHistoryDataSource } from './OrganizationHistoryDatasource'
+import { logger } from '../logger.js'
+import { areaHistoryDataSource } from './AreaHistoryDatasource.js'
+import { organizationHistoryDataSource } from './OrganizationHistoryDatasource.js'
 
 export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> {
   changeLogModel = getChangeLogModel()

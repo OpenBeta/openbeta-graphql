@@ -2,14 +2,14 @@ import mongoose from 'mongoose'
 import { ChangeStream, ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
 import dot from 'dot-object'
 
-import { changelogDataSource } from '../../model/ChangeLogDataSource'
-import { logger } from '../../logger'
-import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation, SupportedCollectionTypes, DocumentKind } from '../ChangeLogType'
-import { checkVar } from '../index'
-import { updateAreaIndex, updateClimbIndex } from '../export/Typesense/Client'
-import { AreaType } from '../AreaTypes'
-import { exhaustiveCheck } from '../../utils/helpers'
-import { ClimbType } from '../ClimbTypes'
+import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
+import { logger } from '../../logger.js'
+import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation, SupportedCollectionTypes, DocumentKind } from '../ChangeLogType.js'
+import { checkVar } from '../index.js'
+import { updateAreaIndex, updateClimbIndex } from '../export/Typesense/Client.js'
+import { AreaType } from '../AreaTypes.js'
+import { exhaustiveCheck } from '../../utils/helpers.js'
+import { ClimbType } from '../ClimbTypes.js'
 
 /**
  * Start a new stream listener to track changes

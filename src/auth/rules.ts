@@ -1,7 +1,7 @@
 import { rule, inputRule } from 'graphql-shield'
 
-import MediaDataSource from '../model/MutableMediaDataSource'
-import { MediaObjectGQLInput } from '../db/MediaObjectTypes'
+import MediaDataSource from '../model/MutableMediaDataSource.js'
+import { MediaObjectGQLInput } from '../db/MediaObjectTypes.js'
 
 export const isEditor = rule()(async (parent, args, ctx, info) => {
   return _hasUserUuid(ctx) && ctx.user.roles.includes('editor')

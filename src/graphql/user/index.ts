@@ -1,5 +1,5 @@
-import UserQueries from './UserQueries'
-import UserMutations from './UserMutations'
-import UserResolvers from './UserResolvers'
+import UserQueries from './UserQueries.js'
+import UserMutations from './UserMutations.js'
+import UserResolvers from './UserResolvers.js'
 
 export { UserQueries, UserMutations, UserResolvers }

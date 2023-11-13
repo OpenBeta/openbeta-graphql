@@ -1,3 +1,3 @@
-import HistoryQueries from './HistoryQueries'
-import HistoryFieldResolvers from './HistoryFieldResolvers'
+import HistoryQueries from './HistoryQueries.js'
+import HistoryFieldResolvers from './HistoryFieldResolvers.js'
 export { HistoryQueries, HistoryFieldResolvers }

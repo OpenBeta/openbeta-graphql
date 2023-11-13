@@ -1,4 +1,4 @@
-import TagQueries from './queries'
-import TagResolvers from './TagResolvers'
+import TagQueries from './queries.js'
+import TagResolvers from './TagResolvers.js'
 
 export { TagQueries, TagResolvers }

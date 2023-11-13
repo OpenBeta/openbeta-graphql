@@ -1,3 +1,3 @@
-import permissions from './permissions'
-import { createContext } from './middleware'
+import permissions from './permissions.js'
+import { createContext } from './middleware.js'
 export { permissions, createContext }

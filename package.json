@@ -66,7 +66,7 @@
   "scripts": {
     "lint": "yarn ts-standard",
     "fix": "yarn ts-standard --fix",
-    "test": "jest --runInBand",
+    "test": "yarn build && cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --runInBand",
     "build": "tsc -p tsconfig.json",
     "build-release": "tsc  -p tsconfig.release.json",
     "clean": "tsc -b --clean && rm -rf build/*",

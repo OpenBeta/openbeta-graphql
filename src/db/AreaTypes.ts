@@ -2,11 +2,11 @@ import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
 import { BBox, Point } from '@turf/helpers'
-import { ClimbType } from './ClimbTypes'
-import { ChangeRecordMetadataType } from './ChangeLogType'
-import { GradeContexts } from '../GradeUtils'
-import { ExperimentalAuthorType } from './UserTypes'
-import { AuthorMetadata } from '../types'
+import { ClimbType } from './ClimbTypes.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
+import { GradeContexts } from '../GradeUtils.js'
+import { ExperimentalAuthorType } from './UserTypes.js'
+import { AuthorMetadata } from '../types.js'
 
 /**
  * Areas are a grouping mechanism in the OpenBeta data model that allow

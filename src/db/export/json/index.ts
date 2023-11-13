@@ -1,8 +1,8 @@
-import { connectDB, gracefulExit } from '../../index'
-import { logger } from '../../../logger'
-import { processMongoCollection, Processor } from '../common/processor'
+import { connectDB, gracefulExit } from '../../index.js'
+import { logger } from '../../../logger.js'
+import { processMongoCollection, Processor } from '../common/processor.js'
 import { getAllAreas } from '../queries/get-all-areas.js'
-import { AreaType } from '../../AreaTypes'
+import { AreaType } from '../../AreaTypes.js'
 
 import { asyncFileProcessor } from './async-file.processor.js'
 import { fileURLToPath } from 'url'

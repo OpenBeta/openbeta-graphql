@@ -3,8 +3,8 @@ import { Point } from '@turf/helpers'
 import { GradeScalesTypes } from '@openbeta/sandbag'
 
 import { ChangeRecordMetadataType } from './ChangeLogType'
-import { GradeContexts } from '../GradeUtils'
-import { AreaType } from './AreaTypes'
+import { GradeContexts } from '../GradeUtils.js'
+import { AreaType } from './AreaTypes.js'
 
 // For search climb by id queries
 // Additional fields allow client to build breadcrumbs

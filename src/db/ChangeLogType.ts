@@ -1,9 +1,9 @@
 import mongose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
-import { OperationType as AreaOpType, AreaType } from './AreaTypes'
-import { ClimbEditOperationType, ClimbType } from './ClimbTypes'
-import { OperationType as OrganizationOpType, OrganizationType } from './OrganizationTypes'
+import { OperationType as AreaOpType, AreaType } from './AreaTypes.js'
+import { ClimbEditOperationType, ClimbType } from './ClimbTypes.js'
+import { OperationType as OrganizationOpType, OrganizationType } from './OrganizationTypes.js'
 
 export type DBOperation = 'insert' | 'update' | 'delete'
 export enum DocumentKind {

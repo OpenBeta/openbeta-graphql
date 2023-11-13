@@ -1,7 +1,7 @@
-import { AreaType } from '../../AreaTypes'
-import { getAreaModel } from '../../AreaSchema'
-import { DEFAULT_CHUNK_SIZE } from './defaults'
-import { getClimbModel } from '../../ClimbSchema'
+import { AreaType } from '../../AreaTypes.js'
+import { getAreaModel } from '../../AreaSchema.js'
+import { DEFAULT_CHUNK_SIZE } from './defaults.js'
+import { getClimbModel } from '../../ClimbSchema.js'
 
 export async function * getAllAreas (chunkSize: number = DEFAULT_CHUNK_SIZE): AsyncGenerator<AreaType[], void, unknown> {
   let pageNum = 0

@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { OrganizationType, OrgType, IOrganizationContent, OperationType } from './OrganizationTypes'
-import { ChangeRecordMetadataType } from './ChangeLogType'
+import { OrganizationType, OrgType, IOrganizationContent, OperationType } from './OrganizationTypes.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
 
 const { Schema, connection } = mongoose
 

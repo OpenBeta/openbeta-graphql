@@ -1,7 +1,7 @@
 import muid from 'uuid-mongodb'
-import { AuthUserType } from '../types'
-import { verifyJWT } from './util'
-import { logger } from '../logger'
+import { AuthUserType } from '../types.js'
+import { verifyJWT } from './util.js'
+import { logger } from '../logger.js'
 
 /**
  * Create a middleware context for Apollo server

@@ -1,5 +1,5 @@
-import { DataSourcesType, ContextWithAuth } from '../../types'
-import { UpdateProfileGQLInput } from '../../db/UserTypes'
+import { DataSourcesType, ContextWithAuth } from '../../types.js'
+import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
 
 const UserMutations = {
   updateUserProfile: async (_: any, { input }, { dataSources, user: authenticatedUser }: ContextWithAuth) => {

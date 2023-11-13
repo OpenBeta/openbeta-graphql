@@ -5,10 +5,10 @@ import fs from 'fs'
 import { ManagementClient as Auth0MgmtClient } from 'auth0'
 import type { User as Auth0User } from 'auth0'
 
-import { connectDB, gracefulExit, getUserModel } from '../../../index'
-import { logger } from '../../../../logger'
-import { User, UpdateProfileGQLInput } from '../../../UserTypes'
-import { canonicalizeUsername } from '../../../../utils/helpers'
+import { connectDB, gracefulExit, getUserModel } from '../../../index.js'
+import { logger } from '../../../../logger.js'
+import { User, UpdateProfileGQLInput } from '../../../UserTypes.js'
+import { canonicalizeUsername } from '../../../../utils/helpers.js'
 
 const LOCAL_MEDIA_DIR_UID = process.env.LOCAL_MEDIA_DIR_UID
 

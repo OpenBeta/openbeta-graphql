@@ -1,15 +1,15 @@
 import { Client } from 'typesense'
 
-import typesenseClient from './Client'
-import { connectDB, gracefulExit } from '../../index'
-import { ClimbExtType } from '../../ClimbTypes'
-import { logger } from '../../../logger'
-import { areaSchema, AreaTypeSenseItem, climbSchema, ClimbTypeSenseItem } from './TypesenseSchemas'
+import typesenseClient from './Client.js'
+import { connectDB, gracefulExit } from '../../index.js'
+import { ClimbExtType } from '../../ClimbTypes.js'
+import { logger } from '../../../logger.js'
+import { areaSchema, AreaTypeSenseItem, climbSchema, ClimbTypeSenseItem } from './TypesenseSchemas.js'
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections.js'
-import { AreaType } from '../../AreaTypes'
-import { mongoAreaToTypeSense, mongoClimbToTypeSense } from './transformers'
-import { processMongoCollection } from '../common/index'
-import { getAllAreas, getAllClimbs } from '../queries/index'
+import { AreaType } from '../../AreaTypes.js'
+import { mongoAreaToTypeSense, mongoClimbToTypeSense } from './transformers.js'
+import { processMongoCollection } from '../common/index.js'
+import { getAllAreas, getAllClimbs } from '../queries/index.js'
 
 /**
  * For a given collection that might exist in typesense, drop it (if it exists)

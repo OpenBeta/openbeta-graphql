@@ -1,7 +1,7 @@
 import jwksClient from 'jwks-rsa'
 import jwt from 'jsonwebtoken'
 
-import { checkVar } from '../db/index'
+import { checkVar } from '../db/index.js'
 
 const auth0Domain = checkVar('AUTH0_DOMAIN')
 const auth0Kid = checkVar('AUTH0_KID')

@@ -1,4 +1,4 @@
-import { GetUsernameReturn, UserPublicProfile } from '../../db/UserTypes'
+import { GetUsernameReturn, UserPublicProfile } from '../../db/UserTypes.js'
 
 const UserResolvers: object = {
 

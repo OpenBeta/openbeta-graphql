@@ -1,6 +1,6 @@
-import { logger } from './logger'
-import { connectDB, defaultPostConnect } from './db/index'
-import { createServer } from './server'
+import { logger } from './logger.js'
+import { connectDB, defaultPostConnect } from './db/index.js'
+import { createServer } from './server.js'
 
 const port = 4000
 const server = await createServer()

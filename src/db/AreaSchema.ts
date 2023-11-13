@@ -1,10 +1,10 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType, OperationType } from './AreaTypes'
-import { PointSchema } from './ClimbSchema'
-import { ChangeRecordMetadataType } from './ChangeLogType'
-import { GradeContexts } from '../GradeUtils'
+import { AreaType, IAreaContent, IAreaMetadata, AggregateType, CountByGroupType, CountByDisciplineType, CountByGradeBandType, DisciplineStatsType, OperationType } from './AreaTypes.js'
+import { PointSchema } from './ClimbSchema.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
+import { GradeContexts } from '../GradeUtils.js'
 
 const { Schema, connection } = mongoose
 

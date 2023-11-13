@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import mongooseLeanVirtuals from 'mongoose-lean-virtuals'
 import muuid from 'uuid-mongodb'
 
-import { XMediaType } from './XMediaTypes'
+import { XMediaType } from './XMediaTypes.js'
 
 const { Schema } = mongoose
 

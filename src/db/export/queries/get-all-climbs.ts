@@ -1,6 +1,6 @@
-import { ClimbExtType } from '../../ClimbTypes'
-import { getClimbModel } from '../../ClimbSchema'
-import { DEFAULT_CHUNK_SIZE } from './defaults'
+import { ClimbExtType } from '../../ClimbTypes.js'
+import { getClimbModel } from '../../ClimbSchema.js'
+import { DEFAULT_CHUNK_SIZE } from './defaults.js'
 
 /**
  * SQL equivalent:

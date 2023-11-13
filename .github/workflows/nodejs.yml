@@ -4,29 +4,25 @@ on:
   push:
     branches:
     - develop
-    - test
   pull_request:
 
 jobs:
   build:
     runs-on: 'ubuntu-latest'
 
-
     steps:
-      - name: 'Checkout Project'
-        uses: 'actions/checkout@v4'
-
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: '16.15'
-          cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install --immutable
+      - name: 'Checkout Project'
+        uses: 'actions/checkout@v3'
+        with:
+          fetch-depth: 1
 
-      - name: Lint code
-        run: yarn lint
+      - name: Install Dependencies and lint code
+        run: yarn install && yarn lint
 
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.8.0
@@ -48,8 +44,8 @@ jobs:
         run: |
           docker container restart mongodb
 
-      - name: Run tests
-        run: yarn test --ci
+      - name: Build and run tests
+        run: yarn test
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
 
-      - name: Build files/check types
-        run: yarn build-release  --noEmit
