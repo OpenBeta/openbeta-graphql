@@ -3,10 +3,10 @@ import { feature, geometry, featureCollection, Feature, BBox, Point } from '@tur
 import centroid from '@turf/centroid'
 import pLimit from 'p-limit'
 
-import { getAreaModel } from '../../AreaSchema.js'
-import { AreaType, AggregateType } from '../../AreaTypes.js'
+import { getAreaModel } from '../../AreaSchema'
+import { AreaType, AggregateType } from '../../AreaTypes'
 import { bboxFromList, areaDensity } from '../../../geo-utils.js'
-import { mergeAggregates } from '../Aggregate.js'
+import { mergeAggregates } from '../Aggregate'
 
 const limiter = pLimit(1000)
 

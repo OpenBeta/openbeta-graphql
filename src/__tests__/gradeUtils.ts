@@ -1,5 +1,13 @@
-import { DisciplineType } from '../db/ClimbTypes.js'
-import { sanitizeDisciplines, createGradeObject, gradeContextToGradeScales } from '../GradeUtils.js'
+import { DisciplineType } from '../db/ClimbTypes'
+import { sanitizeDisciplines, createGradeObject, gradeContextToGradeScales } from '../GradeUtils'
+
+beforeAll(() => {
+  console.warn = jest.fn()
+})
+
+afterAll(() => {
+  jest.mocked(console.warn).mockReset()
+})
 
 describe('Test grade utilities', () => {
   it('sanitizes bad discipline object', () => {

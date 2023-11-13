@@ -2,10 +2,10 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { geometry } from '@turf/helpers'
 
-import MutableAreaDataSource from '../MutableAreaDataSource.js'
-import MutableClimbDataSource from '../MutableClimbDataSource.js'
-import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
-import { AreaEditableFieldsType, UpdateSortingOrderType } from '../../db/AreaTypes.js'
+import MutableAreaDataSource from '../MutableAreaDataSource'
+import MutableClimbDataSource from '../MutableClimbDataSource'
+import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index'
+import { AreaEditableFieldsType, UpdateSortingOrderType } from '../../db/AreaTypes'
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource

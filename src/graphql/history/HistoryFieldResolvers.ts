@@ -1,6 +1,6 @@
-import { ChangeLogType, BaseChangeRecordType, SupportedCollectionTypes, DocumentKind } from '../../db/ChangeLogType.js'
-import { AuthorMetadata, DataSourcesType } from '../../types.js'
-import { exhaustiveCheck } from '../../utils/helpers.js'
+import { ChangeLogType, BaseChangeRecordType, SupportedCollectionTypes, DocumentKind } from '../../db/ChangeLogType'
+import { AuthorMetadata, DataSourcesType } from '../../types'
+import { exhaustiveCheck } from '../../utils/helpers'
 
 /**
  * History schama field resolvers

@@ -3,8 +3,8 @@ import mongoose, { ClientSession } from 'mongoose'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 
-import { getExperimentalUserModel } from '../db/index.js'
-import { ExperimentalUserType } from '../db/UserTypes.js'
+import { getExperimentalUserModel } from '../db/index'
+import { ExperimentalUserType } from '../db/UserTypes'
 
 export default class MediaDataSource extends MongoDataSource<ExperimentalUserType> {
   experimentUserModel = getExperimentalUserModel()

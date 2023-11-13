@@ -1,5 +1,5 @@
 import muid, { MUUID } from 'uuid-mongodb'
-import { ContextWithAuth } from '../../types.js'
+import { ContextWithAuth } from '../../types'
 
 const ClimbMutations = {
   updateClimbs: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<string[]> => {

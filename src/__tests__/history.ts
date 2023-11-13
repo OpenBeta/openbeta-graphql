@@ -1,13 +1,13 @@
 import { ApolloServer } from 'apollo-server'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
-import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
-import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
-import MutableClimbDataSource from '../model/MutableClimbDataSource.js'
-import { AreaType } from '../db/AreaTypes.js'
-import { OrgType, OrganizationType } from '../db/OrganizationTypes.js'
-import { muuidToString } from '../utils/helpers.js'
-import { queryAPI, setUpServer } from '../utils/testUtils.js'
+import MutableAreaDataSource from '../model/MutableAreaDataSource'
+import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource'
+import MutableClimbDataSource from '../model/MutableClimbDataSource'
+import { AreaType } from '../db/AreaTypes'
+import { OrgType, OrganizationType } from '../db/OrganizationTypes'
+import { muuidToString } from '../utils/helpers'
+import { queryAPI, setUpServer } from '../utils/testUtils'
 
 jest.setTimeout(60000)
 

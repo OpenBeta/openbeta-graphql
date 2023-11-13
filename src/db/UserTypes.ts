@@ -1,5 +1,5 @@
 import { MUUID } from 'uuid-mongodb'
-import { UserMedia } from './MediaObjectTypes.js'
+import { UserMedia } from './MediaObjectTypes'
 export interface ExperimentalUserType {
   _id: MUUID
   displayName: string

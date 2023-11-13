@@ -3,11 +3,11 @@ import { glob } from 'glob'
 import { validate as uuidValidate } from 'uuid'
 import muuid from 'uuid-mongodb'
 
-import { connectDB, gracefulExit } from '../../../index.js'
-import { logger } from '../../../../logger.js'
-import { MediaObject } from '../../../MediaObjectTypes.js'
-import { getMediaObjectModel } from '../../../MediaObjectSchema.js'
-import { getFileInfo } from './SirvClient.js'
+import { connectDB, gracefulExit } from '../../../index'
+import { logger } from '../../../../logger'
+import { MediaObject } from '../../../MediaObjectTypes'
+import { getMediaObjectModel } from '../../../MediaObjectSchema'
+import { getFileInfo } from './SirvClient'
 
 const LOCAL_MEDIA_DIR = process.env.LOCAL_MEDIA_DIR
 

@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 import mongooseLeanVirtuals from 'mongoose-lean-virtuals'
 import muuid from 'uuid-mongodb'
-import { PostType } from './PostTypes.js'
-import { XMediaSchema } from './XMediaSchema.js'
+import { PostType } from './PostTypes'
+import { XMediaSchema } from './XMediaSchema'
 
 const { Schema } = mongoose
 

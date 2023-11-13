@@ -1,13 +1,13 @@
 import Typesense, { Client } from 'typesense'
 
-import { areaSchema, climbSchema } from './TypesenseSchemas.js'
-import { mongoAreaToTypeSense, mongoClimbToTypeSense } from './transformers.js'
-import { logger } from '../../../logger.js'
-import { AreaType } from '../../AreaTypes.js'
-import { DBOperation } from '../../ChangeLogType.js'
-import Config from '../../../Config.js'
-import { ClimbExtType, ClimbType } from '../../ClimbTypes.js'
-import MutableAreaDataSource from '../../../model/MutableAreaDataSource.js'
+import { areaSchema, climbSchema } from './TypesenseSchemas'
+import { mongoAreaToTypeSense, mongoClimbToTypeSense } from './transformers'
+import { logger } from '../../../logger'
+import { AreaType } from '../../AreaTypes'
+import { DBOperation } from '../../ChangeLogType'
+import Config from '../../../Config'
+import { ClimbExtType, ClimbType } from '../../ClimbTypes'
+import MutableAreaDataSource from '../../../model/MutableAreaDataSource'
 
 /**
  * Return a Typesense client.

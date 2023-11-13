@@ -1,5 +1,5 @@
-import { getTagModel } from '../../db/TagSchema.js'
-import { GetTagsInputType } from '../../db/TagTypes.js'
+import { getTagModel } from '../../db/TagSchema'
+import { GetTagsInputType } from '../../db/TagTypes'
 
 const TagQueries = {
   // Given a list of TagIds, return a list of Tag documents.

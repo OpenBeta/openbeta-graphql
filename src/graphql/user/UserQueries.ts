@@ -1,8 +1,8 @@
 import muuid from 'uuid-mongodb'
 import { GraphQLError } from 'graphql'
 
-import { DataSourcesType, ContextWithAuth, Context } from '../../types.js'
-import { GetUsernameReturn, UserPublicProfile, UserPublicPage } from '../../db/UserTypes.js'
+import { DataSourcesType, ContextWithAuth, Context } from '../../types'
+import { GetUsernameReturn, UserPublicProfile, UserPublicPage } from '../../db/UserTypes'
 
 const UserQueries = {
 

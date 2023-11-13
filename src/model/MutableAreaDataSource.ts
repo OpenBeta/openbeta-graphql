@@ -5,20 +5,20 @@ import mongoose, { ClientSession } from 'mongoose'
 import { produce } from 'immer'
 import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
-import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+import enJson from 'i18n-iso-countries/langs/en.json'
 
-import { AreaType, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
-import AreaDataSource from './AreaDataSource.js'
-import { createRootNode } from '../db/import/usa/AreaTree.js'
-import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
-import { changelogDataSource } from './ChangeLogDataSource.js'
-import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
-import CountriesLngLat from '../data/countries-with-lnglat.json' assert { type: 'json' }
-import { logger } from '../logger.js'
-import { GradeContexts } from '../GradeUtils.js'
-import { sanitizeStrict } from '../utils/sanitize.js'
-import { ExperimentalAuthorType } from '../db/UserTypes.js'
-import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
+import { AreaType, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes'
+import AreaDataSource from './AreaDataSource'
+import { createRootNode } from '../db/import/usa/AreaTree'
+import { makeDBArea } from '../db/import/usa/AreaTransformer'
+import { changelogDataSource } from './ChangeLogDataSource'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType'
+import CountriesLngLat from '../data/countries-with-lnglat.json'
+import { logger } from '../logger'
+import { GradeContexts } from '../GradeUtils'
+import { sanitizeStrict } from '../utils/sanitize'
+import { ExperimentalAuthorType } from '../db/UserTypes'
+import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource'
 
 isoCountries.registerLocale(enJson)
 

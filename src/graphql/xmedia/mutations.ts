@@ -1,5 +1,5 @@
 import { XMediaType, RemoveXMediaInputType } from '../../db/XMediaTypes'
-import { getXMediaModel } from '../../db/XMediaSchema.js'
+import { getXMediaModel } from '../../db/XMediaSchema'
 import { Context } from '../../types'
 
 const XMediaMutations = {

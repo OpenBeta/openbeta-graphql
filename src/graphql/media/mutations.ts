@@ -1,7 +1,7 @@
 import muid from 'uuid-mongodb'
 import mongoose from 'mongoose'
-import { Context } from '../../types.js'
-import { EntityTag, EntityTagDeleteGQLInput, AddEntityTagGQLInput, MediaObject, MediaObjectGQLInput, DeleteMediaGQLInput } from '../../db/MediaObjectTypes.js'
+import { Context } from '../../types'
+import { EntityTag, EntityTagDeleteGQLInput, AddEntityTagGQLInput, MediaObject, MediaObjectGQLInput, DeleteMediaGQLInput } from '../../db/MediaObjectTypes'
 
 const MediaMutations = {
   addMediaObjects: async (_: any, args, { dataSources }: Context): Promise<MediaObject[]> => {

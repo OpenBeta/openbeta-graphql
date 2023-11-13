@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
-import { ClimbSchema } from './ClimbSchema.js'
-import { AreaSchema } from './AreaSchema.js'
-import ClimbHistoryType, { AreaHistoryType } from './ClimbHistoryType.js'
-import ChangeEventType from './ChangeEventType.js'
+import { ClimbSchema } from './ClimbSchema'
+import { AreaSchema } from './AreaSchema'
+import ClimbHistoryType, { AreaHistoryType } from './ClimbHistoryType'
+import ChangeEventType from './ChangeEventType'
 import { ClimbType } from './ClimbTypes'
 import { AreaType } from './AreaTypes'
 

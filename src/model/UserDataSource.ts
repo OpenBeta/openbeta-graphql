@@ -3,16 +3,16 @@ import muid, { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
 import differenceInDays from 'date-fns/differenceInDays/index.js'
 
-import { getUserModel } from '../db/index.js'
+import { getUserModel } from '../db/index'
 import {
   User,
   UpdateProfileGQLInput,
   UsernameInfo,
   GetUsernameReturn,
   UserPublicProfile
-} from '../db/UserTypes.js'
-import { trimToNull } from '../utils/sanitize.js'
-import { canonicalizeUsername } from '../utils/helpers.js'
+} from '../db/UserTypes'
+import { trimToNull } from '../utils/sanitize'
+import { canonicalizeUsername } from '../utils/helpers'
 
 const USERNAME_UPDATE_WAITING_IN_DAYS = 14
 

@@ -1,4 +1,4 @@
-import OrganizationMutations from './OrganizationMutations.js'
-import OrganizationQueries from './OrganizationQueries.js'
+import OrganizationMutations from './OrganizationMutations'
+import OrganizationQueries from './OrganizationQueries'
 
 export { OrganizationMutations, OrganizationQueries }

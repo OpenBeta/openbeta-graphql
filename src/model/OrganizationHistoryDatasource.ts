@@ -1,7 +1,7 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
-import { OrganizationChangeLogType } from '../db/ChangeLogType.js'
-import { getChangeLogModel } from '../db/index.js'
+import { OrganizationChangeLogType } from '../db/ChangeLogType'
+import { getChangeLogModel } from '../db/index'
 
 export class OrganizationHistoryDataSource extends MongoDataSource<OrganizationChangeLogType> {
   changelogModel = getChangeLogModel()

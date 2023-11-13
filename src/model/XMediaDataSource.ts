@@ -1,6 +1,6 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { XMediaType } from '../db/XMediaTypes'
-import { getXMediaModel } from '../db/index.js'
+import { getXMediaModel } from '../db/index'
 
 /**
  * Not being used at the moment

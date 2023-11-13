@@ -2,13 +2,13 @@ import mongoose, { ClientSession } from 'mongoose'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { produce } from 'immer'
 
-import { OrganizationType, OperationType, OrgType, OrganizationEditableFieldsType } from '../db/OrganizationTypes.js'
-import OrganizationDataSource from './OrganizationDataSource.js'
-import { changelogDataSource } from './ChangeLogDataSource.js'
-import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
-import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
-import { muuidToString } from '../utils/helpers.js'
-import { getAreaModel } from '../db/AreaSchema.js'
+import { OrganizationType, OperationType, OrgType, OrganizationEditableFieldsType } from '../db/OrganizationTypes'
+import OrganizationDataSource from './OrganizationDataSource'
+import { changelogDataSource } from './ChangeLogDataSource'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType'
+import { sanitize, sanitizeStrict } from '../utils/sanitize'
+import { muuidToString } from '../utils/helpers'
+import { getAreaModel } from '../db/AreaSchema'
 
 export default class MutableOrganizationDataSource extends OrganizationDataSource {
   /**

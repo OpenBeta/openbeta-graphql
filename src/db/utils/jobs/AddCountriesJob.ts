@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
-import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+import enJson from 'i18n-iso-countries/langs/en.json'
 
-import { connectDB, gracefulExit } from '../../index.js'
-import MutableAreaDataSource from '../../../model/MutableAreaDataSource.js'
-import { logger } from '../../../logger.js'
+import { connectDB, gracefulExit } from '../../index'
+import MutableAreaDataSource from '../../../model/MutableAreaDataSource'
+import { logger } from '../../../logger'
 
 const onConnected = async (): Promise<void> => {
   logger.info('Adding all countries (except USA)')

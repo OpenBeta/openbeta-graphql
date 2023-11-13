@@ -1,7 +1,7 @@
-import { connectDB, gracefulExit } from '../../index.js'
-import { visitAllAreas } from './TreeUpdater.js'
-import { visitAllCrags } from './CragUpdater.js'
-import { logger } from '../../../logger.js'
+import { connectDB, gracefulExit } from '../../index'
+import { visitAllAreas } from './TreeUpdater'
+import { visitAllCrags } from './CragUpdater'
+import { logger } from '../../../logger'
 
 const onConnected = async (): Promise<void> => {
   logger.info('Initializing database')
