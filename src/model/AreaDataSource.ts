@@ -3,12 +3,12 @@ import { Filter } from 'mongodb'
 import muuid from 'uuid-mongodb'
 import bboxPolygon from '@turf/bbox-polygon'
 
-import { getAreaModel, getMediaObjectModel } from '../db/index'
+import { getAreaModel, getMediaObjectModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
 import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
-import { getClimbModel } from '../db/ClimbSchema'
-import { ClimbGQLQueryType } from '../db/ClimbTypes'
-import { logger } from '../logger'
+import { getClimbModel } from '../db/ClimbSchema.js'
+import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
+import { logger } from '../logger.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()

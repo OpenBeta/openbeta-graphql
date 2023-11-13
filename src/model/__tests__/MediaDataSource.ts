@@ -4,10 +4,10 @@ import MutableMediaDataSource from '../MutableMediaDataSource'
 import AreaDataSource from '../MutableAreaDataSource'
 import ClimbDataSource from '../MutableClimbDataSource'
 
-import { connectDB, createIndexes } from '../../db/index'
-import { AreaType } from '../../db/AreaTypes'
-import { EntityTag, MediaObject, MediaObjectGQLInput, AddTagEntityInput, UserMediaQueryInput, UserMedia } from '../../db/MediaObjectTypes'
-import { newSportClimb1 } from './MutableClimbDataSource'
+import { connectDB, createIndexes } from '../../db/index.js'
+import { AreaType } from '../../db/AreaTypes.js'
+import { EntityTag, MediaObject, MediaObjectGQLInput, AddTagEntityInput, UserMediaQueryInput, UserMedia } from '../../db/MediaObjectTypes.js'
+import { newSportClimb1 } from './MutableClimbDataSource.js'
 
 const TEST_MEDIA: MediaObjectGQLInput = {
   userUuid: 'a2eb6353-65d1-445f-912c-53c6301404bd',

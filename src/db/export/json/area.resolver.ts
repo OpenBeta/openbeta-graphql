@@ -1,4 +1,4 @@
-import { AreaType } from '../../AreaTypes'
+import { AreaType } from '../../AreaTypes.js'
 import path from 'path'
 
 export function resolveAreaFileName (area: Partial<AreaType>): string {

@@ -1,4 +1,4 @@
-import { extractMpId } from '../AreaTransformer'
+import { extractMpId } from '../AreaTransformer.js'
 
 test('Verify area url parser', () => {
   expect(extractMpId('/area/117795688/foo-bar')).toEqual('117795688')

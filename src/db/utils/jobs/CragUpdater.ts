@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
-import { getAreaModel } from '../../AreaSchema'
-import { getClimbModel } from '../../ClimbSchema'
-import { AreaType } from '../../AreaTypes'
-import { ClimbType } from '../../ClimbTypes'
-import { aggregateCragStats } from '../Aggregate'
+import { getAreaModel } from '../../AreaSchema.js'
+import { getClimbModel } from '../../ClimbSchema.js'
+import { AreaType } from '../../AreaTypes.js'
+import { ClimbType } from '../../ClimbTypes.js'
+import { aggregateCragStats } from '../Aggregate.js'
 import { bboxFrom } from '../../../geo-utils.js'
 
 type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType

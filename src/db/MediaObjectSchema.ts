@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
-import { MediaObject, EntityTag } from './MediaObjectTypes'
-import { PointSchema } from './ClimbSchema'
+import { MediaObject, EntityTag } from './MediaObjectTypes.js'
+import { PointSchema } from './ClimbSchema.js'
 
 const { Schema } = mongoose
 

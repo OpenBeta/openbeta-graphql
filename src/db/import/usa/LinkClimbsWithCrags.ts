@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
-import { AreaType } from '../../AreaTypes'
-import { ClimbType } from '../../ClimbTypes'
+import { AreaType } from '../../AreaTypes.js'
+import { ClimbType } from '../../ClimbTypes.js'
 
 /**
  * Add climb IDs to Area.climbs[] aka link climbs to their corresponding crags.

@@ -2,9 +2,9 @@ import { UserInputError } from 'apollo-server'
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import MediaDataSource from './MediaDataSource'
-import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput, AddTagEntityInput, NewMediaObjectDoc } from '../db/MediaObjectTypes'
-import MutableAreaDataSource from './MutableAreaDataSource'
+import MediaDataSource from './MediaDataSource.js'
+import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput, AddTagEntityInput, NewMediaObjectDoc } from '../db/MediaObjectTypes.js'
+import MutableAreaDataSource from './MutableAreaDataSource.js'
 
 export default class MutableMediaDataSource extends MediaDataSource {
   areaDS = MutableAreaDataSource.getInstance()

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
-import { ChangeLogType, SupportedCollectionTypes } from './ChangeLogType'
-import { OperationType } from './AreaTypes'
+import { ChangeLogType, SupportedCollectionTypes } from './ChangeLogType.js'
+import { OperationType } from './AreaTypes.js'
 
 const { Schema, connection } = mongoose
 

@@ -1,16 +1,16 @@
 import { BBox } from '@turf/helpers'
 import { MUUID } from 'uuid-mongodb'
 
-import { AreaType } from './db/AreaTypes'
-import type MutableAreaDataSource from './model/MutableAreaDataSource'
-import type TickDataSource from './model/TickDataSource'
-import type HistoryDataSouce from './model/ChangeLogDataSource'
-import type MutableMediaDataSource from './model/MutableMediaDataSource'
-import MutableClimbDataSource from './model/MutableClimbDataSource'
-import XMediaDataSource from './model/XMediaDataSource'
-import PostDataSource from './model/PostDataSource'
-import MutableOrganizationDataSource from './model/MutableOrganizationDataSource'
-import type UserDataSource from './model/UserDataSource'
+import { AreaType } from './db/AreaTypes.js'
+import type MutableAreaDataSource from './model/MutableAreaDataSource.js'
+import type TickDataSource from './model/TickDataSource.js'
+import type HistoryDataSouce from './model/ChangeLogDataSource.js'
+import type MutableMediaDataSource from './model/MutableMediaDataSource.js'
+import MutableClimbDataSource from './model/MutableClimbDataSource.js'
+import XMediaDataSource from './model/XMediaDataSource.js'
+import PostDataSource from './model/PostDataSource.js'
+import MutableOrganizationDataSource from './model/MutableOrganizationDataSource.js'
+import type UserDataSource from './model/UserDataSource.js'
 
 export enum SortDirection {
   ASC = 1,

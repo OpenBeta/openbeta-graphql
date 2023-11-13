@@ -1,5 +1,5 @@
-import { getXMediaModel } from '../../db/XMediaSchema'
-import { GetXMediaInputType } from '../../db/XMediaTypes'
+import { getXMediaModel } from '../../db/XMediaSchema.js'
+import { GetXMediaInputType } from '../../db/XMediaTypes.js'
 
 const XMediaQueries = {
   // Given a list of xMediaIds, return a list of xMedia documents.

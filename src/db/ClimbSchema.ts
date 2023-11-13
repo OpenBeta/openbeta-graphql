@@ -3,9 +3,9 @@ import muuid from 'uuid-mongodb'
 import { Point } from '@turf/helpers'
 import { GradeScalesTypes } from '@openbeta/sandbag'
 
-import { ClimbType, IClimbMetadata, IClimbContent, SafetyType, ClimbEditOperationType } from './ClimbTypes'
-import { GradeContexts } from '../GradeUtils'
-import { ChangeRecordMetadataType } from './ChangeLogType'
+import { ClimbType, IClimbMetadata, IClimbContent, SafetyType, ClimbEditOperationType } from './ClimbTypes.js'
+import { GradeContexts } from '../GradeUtils.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
 
 const { Schema } = mongoose
 

@@ -2,9 +2,9 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 
-import { connectDB, getUserModel } from '../../db/index'
-import UserDataSource from '../UserDataSource'
-import { UpdateProfileGQLInput } from '../../db/UserTypes'
+import { connectDB, getUserModel } from '../../db/index.js'
+import UserDataSource from '../UserDataSource.js'
+import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
 
 describe('UserDataSource', () => {
   let users: UserDataSource

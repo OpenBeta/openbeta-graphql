@@ -1,8 +1,8 @@
 import muuid from 'uuid-mongodb'
 
-import { AreaType } from '../../db/AreaTypes'
-import { ContextWithAuth } from '../../types'
-import type MutableAreaDataSource from '../../model/MutableAreaDataSource'
+import { AreaType } from '../../db/AreaTypes.js'
+import { ContextWithAuth } from '../../types.js'
+import type MutableAreaDataSource from '../../model/MutableAreaDataSource.js'
 
 const AreaMutations = {
 

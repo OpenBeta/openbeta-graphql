@@ -1,12 +1,12 @@
 import { ApolloServer } from 'apollo-server'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
-import { queryAPI, setUpServer } from '../utils/testUtils'
-import { muuidToString } from '../utils/helpers'
-import { TickInput } from '../db/TickTypes'
-import TickDataSource from '../model/TickDataSource'
-import UserDataSource from '../model/UserDataSource'
-import { UpdateProfileGQLInput } from '../db/UserTypes'
+import { queryAPI, setUpServer } from '../utils/testUtils.js'
+import { muuidToString } from '../utils/helpers.js'
+import { TickInput } from '../db/TickTypes.js'
+import TickDataSource from '../model/TickDataSource.js'
+import UserDataSource from '../model/UserDataSource.js'
+import { UpdateProfileGQLInput } from '../db/UserTypes.js'
 
 jest.setTimeout(60000)
 

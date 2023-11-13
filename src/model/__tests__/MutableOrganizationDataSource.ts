@@ -1,12 +1,12 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
-import MutableOrganizationDataSource from '../MutableOrganizationDataSource'
-import MutableAreaDataSource from '../MutableAreaDataSource'
-import { connectDB, createIndexes, getAreaModel, getOrganizationModel } from '../../db/index'
-import { OrganizationEditableFieldsType, OrgType } from '../../db/OrganizationTypes'
-import { AreaType } from '../../db/AreaTypes'
-import { muuidToString } from '../../utils/helpers'
+import MutableOrganizationDataSource from '../MutableOrganizationDataSource.js'
+import MutableAreaDataSource from '../MutableAreaDataSource.js'
+import { connectDB, createIndexes, getAreaModel, getOrganizationModel } from '../../db/index.js'
+import { OrganizationEditableFieldsType, OrgType } from '../../db/OrganizationTypes.js'
+import { AreaType } from '../../db/AreaTypes.js'
+import { muuidToString } from '../../utils/helpers.js'
 
 describe('Organization', () => {
   let organizations: MutableOrganizationDataSource

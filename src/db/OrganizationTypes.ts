@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
-import { ChangeRecordMetadataType } from './ChangeLogType'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
 
 /**
  * Organizations are OpenBeta accounts that are owned by organizations

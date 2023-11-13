@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
 import { geometry, Point } from '@turf/helpers'
 import isoCountries from 'i18n-iso-countries'
-import enJson from 'i18n-iso-countries/langs/en.json'
+import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
-import { getAreaModel } from '../../AreaSchema'
+import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes'
-import { Tree, AreaNode, createRootNode } from './AreaTree'
+import { Tree, AreaNode, createRootNode } from './AreaTree.js'
 import { MUUID } from 'uuid-mongodb'
 
 isoCountries.registerLocale(enJson)

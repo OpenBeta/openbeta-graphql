@@ -1,7 +1,7 @@
-import { AreaTypeSenseItem, ClimbTypeSenseItem } from './TypesenseSchemas'
-import { AreaType } from '../../AreaTypes'
-import { disciplinesToArray, geoToLatLng } from './Utils'
-import { ClimbExtType, SafetyType } from '../../ClimbTypes'
+import { AreaTypeSenseItem, ClimbTypeSenseItem } from './TypesenseSchemas.js'
+import { AreaType } from '../../AreaTypes.js'
+import { disciplinesToArray, geoToLatLng } from './Utils.js'
+import { ClimbExtType, SafetyType } from '../../ClimbTypes.js'
 
 /**
  * Convert an Area object to a Typesense object

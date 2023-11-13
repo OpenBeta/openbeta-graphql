@@ -3,10 +3,10 @@ import { Filter } from 'mongodb'
 import type { FindCursor, WithId } from 'mongodb'
 import muuid from 'uuid-mongodb'
 
-import { getOrganizationModel } from '../db/index'
+import { getOrganizationModel } from '../db/index.js'
 import { AssociatedAreaIdsFilterParams, DisplayNameFilterParams, ExcludedAreaIdsFilterParams, OrganizationGQLFilter } from '../types'
-import { OrganizationType } from '../db/OrganizationTypes'
-import { muuidToString } from '../utils/helpers'
+import { OrganizationType } from '../db/OrganizationTypes.js'
+import { muuidToString } from '../utils/helpers.js'
 
 export default class OrganizationDataSource extends MongoDataSource<OrganizationType> {
   organizationModel = getOrganizationModel()

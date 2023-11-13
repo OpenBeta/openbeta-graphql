@@ -1,8 +1,8 @@
 import mongoose, { ConnectOptions } from 'mongoose'
 import { ChangeStream, MongoClient } from 'mongodb'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
-import { defaultPostConnect, checkVar } from '../db/index'
-import { logger } from '../logger'
+import { defaultPostConnect, checkVar } from '../db/index.js'
+import { logger } from '../logger.js'
 
 /**
  * In-memory Mongo replset used for testing.

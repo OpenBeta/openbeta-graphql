@@ -1,11 +1,11 @@
 import fs from 'node:fs'
 import pLimit from 'p-limit'
 
-import { connectDB, gracefulExit, createIndexes } from '../../index'
-import { createRoot } from './AreaTransformer'
+import { connectDB, gracefulExit, createIndexes } from '../../index.js'
+import { createRoot } from './AreaTransformer.js'
 import US_STATES from './us-states.js'
-import { seedState, dropCollection, JobStats } from './SeedState'
-import { logger } from '../../../logger'
+import { seedState, dropCollection, JobStats } from './SeedState.js'
+import { logger } from '../../../logger.js'
 
 const contentDir: string = process.env.CONTENT_BASEDIR ?? ''
 
