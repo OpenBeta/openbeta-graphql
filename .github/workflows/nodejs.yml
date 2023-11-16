@@ -4,7 +4,7 @@ on:
   push:
     branches:
     - develop
-    - test
+    - staging
 
   pull_request:
 
@@ -12,12 +12,38 @@ on:
     types: [published]
 
 jobs:
-  release:
+  # modify the reployment repository, argocd will take care afterwards
+  deploy-repo:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref_name == 'staging'
+    needs: docker
+    steps:
+      - name: 'Checkout Project'
+        uses: 'actions/checkout@v4'
+        with:
+          fetch-depth: 1
+          repository: 'api-server-deployment'
+          token: ${{ secrets.GH_DEPLOYMENT_REPO_TOKEN }}
+      - uses: imranismail/setup-kustomize@v2
+      - run: |
+          kustomize edit set image app:${GITHUB_SHA}
+      - name: Check if there are changes
+        id: changes
+        uses: UnicornGlobal/has-changes-action@v1.0.11
+      - name: Push if tag has changes
+        if: steps.changes.outputs.changed == 1
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "Update deployment. Code=${GITHUB_SHA}"
+          git push
+
+
+  # build docker image and push to registry
+  docker:
     runs-on: ubuntu-latest
 
     needs: test
-    if: startsWith(github.ref, 'refs/tags/v')
-
     steps:
       - name: 'Checkout Project'
         uses: 'actions/checkout@v3'
@@ -33,6 +59,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            vnguyen/openbeta-graph-api
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=pr
+            type=sha
+
       - name: Build docker image
         uses: docker/build-push-action@v2
         with:
@@ -40,11 +79,11 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: vnguyen/openbeta-graph-api:latest
+          tags: ${{ steps.meta.outputs.tags }}
 
+  # setup basic machine to run all kinds of tests: lint, unit, integration, types
   test:
     runs-on: 'ubuntu-latest'
-
     steps:
       - name: 'Checkout Project'
         uses: 'actions/checkout@v3'
