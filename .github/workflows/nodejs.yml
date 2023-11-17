@@ -4,31 +4,132 @@ on:
   push:
     branches:
     - develop
+
   pull_request:
 
+  release:
+    types: [published]
+
 jobs:
-  build:
-    runs-on: 'ubuntu-latest'
-
+  # deploy to staging by commiting to api-server-deployment repo
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'develop'
+    needs: docker
     steps:
-      - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+      - name: 'Checkout Project'
+        uses: 'actions/checkout@v4'
         with:
-          node-version: '16.15'
+          fetch-depth: 1
+          repository: 'api-server-deployment'
+          token: ${{ secrets.GH_DEPLOYMENT_REPO_TOKEN }}
+      - uses: imranismail/setup-kustomize@v2
+      - run: |
+          kustomize edit set image vnguyen/openbeta-graph-api:sha-${GITHUB_SHA}
+      - name: Check if there are changes
+        id: changes
+        uses: UnicornGlobal/has-changes-action@v1.0.11
+      - name: Push if tag has changes
+        if: steps.changes.outputs.changed == 1
+        run: |
+          cd api-server-deployment/stage
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "Update deployment. Code=${GITHUB_SHA}"
+          git push
 
+  # deploy to prod by commiting to api-server-deployment repo
+  deploy-prod:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: docker
+    steps:
+      - name: 'Checkout Project'
+        uses: 'actions/checkout@v4'
+        with:
+          fetch-depth: 1
+          repository: 'api-server-deployment'
+          token: ${{ secrets.GH_DEPLOYMENT_REPO_TOKEN }}
+      - uses: imranismail/setup-kustomize@v2
+      - run: |
+          kustomize edit set image vnguyen/openbeta-graph-api:${GITHUB_REF}
+      - name: Check if there are changes
+        id: changes
+        uses: UnicornGlobal/has-changes-action@v1.0.11
+      - name: Push if tag has changes
+        if: steps.changes.outputs.changed == 1
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "Update deployment. Code=${GITHUB_REF}"
+          git push
+
+  # build docker image and push to registry
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
       - name: 'Checkout Project'
         uses: 'actions/checkout@v3'
         with:
           fetch-depth: 1
 
-      - name: Install Dependencies and lint code
-        run: yarn install && yarn lint
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            vnguyen/openbeta-graph-api
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{raw}}
+            type=ref,event=pr
+            type=sha,format=long
+
+      - name: Build docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  # setup basic machine to run all kinds of tests: lint, unit, integration, types
+  test:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Checkout Project'
+        uses: 'actions/checkout@v3'
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.15'
+          cache: 'yarn'
 
       - name: Start MongoDB
         uses: supercharge/mongodb-github-action@1.8.0
         with:
           mongodb-version: 5
           mongodb-replica-set: rs0
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Lint code
+        run: yarn lint
 
       - name: Wait for the database to start
         run: wget -qO- https://raw.githubusercontent.com/eficode/wait-for/$WAIT_FOR_VERSION/wait-for | sh -s -- localhost:27017 -- echo "Database is up"
@@ -44,8 +145,8 @@ jobs:
         run: |
           docker container restart mongodb
 
-      - name: Build and run tests
-        run: yarn test
-        env:
-          NODE_OPTIONS: --experimental-vm-modules
+      - name: Run tests
+        run: yarn test --ci
 
+      - name: Build sources
+        run: yarn build-release --noEmit
