@@ -38,7 +38,7 @@ export interface IPitch {
   parentId: MUUID
   pitchNumber: number
   grades?: Partial<Record<GradeScalesTypes, string>>
-  type?: DisciplineType
+  disciplines?: DisciplineType
   length?: number
   boltsCount?: number
   description?: string
@@ -169,8 +169,8 @@ export interface PitchChangeInputType {
   id?: string
   parentId?: string
   pitchNumber?: number
+  disciplines?: DisciplineType
   grades?: Partial<Record<GradeScalesTypes, string>>
-  type?: DisciplineType
   length?: number
   boltsCount?: number
   description?: string
@@ -180,7 +180,7 @@ export interface ClimbChangeInputType {
   id?: string
   name?: string
   disciplines?: DisciplineType
-  grade?: string // actual grade value (e.g. "7a", "5+")
+  grade?: string // single, atomic grade value (e.g. "7a", "5+")
   leftRightIndex?: number
   description?: string
   location?: string

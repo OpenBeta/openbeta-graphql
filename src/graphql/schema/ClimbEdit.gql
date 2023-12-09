@@ -42,32 +42,67 @@ input SingleClimbChangeInput {
   fa: String
   "Length in meters"
   length: Int
+  "Number of fixed anchors"
+  boltsCount: Int
+  "List of Pitch objects representing individual pitches of a multi-pitch climb"
+  pitches: [PitchInput]
   experimentalAuthor: ExperimentalAuthorType
 }
 
+input GradeTypeInput {
+  vscale: String
+  yds: String
+  ewbank: String
+  french: String
+  brazilianCrux: String
+  font: String
+  uiaa: String
+}
+
+input PitchInput {
+  id: ID!
+  parentId: ID!
+  pitchNumber: Int!
+  grades: GradeTypeInput
+  disciplines: DisciplineType
+}
+
 input DisciplineType {
-  "https://en.wikipedia.org/wiki/Traditional_climbing"
   trad: Boolean
-  "https://en.wikipedia.org/wiki/Sport_climbing"
   sport: Boolean
-  "https://en.wikipedia.org/wiki/Bouldering"
   bouldering: Boolean
-  "https://en.wikipedia.org/wiki/Deep-water_soloing"
   deepwatersolo: Boolean
-  "https://en.wikipedia.org/wiki/Alpine_climbing"
   alpine: Boolean
-  "https://en.wikipedia.org/wiki/Ice_climbing"
   snow: Boolean
-  "https://en.wikipedia.org/wiki/Ice_climbing"
   ice: Boolean
   mixed: Boolean
-  "https://en.wikipedia.org/wiki/Aid_climbing"
   aid: Boolean
-  "https://en.wikipedia.org/wiki/Top_rope_climbing"
   tr: Boolean
+}
+
+
+input GradeType {
+  vscale: String
+  yds: String
+  ewbank: String
+  french: String
+  brazilianCrux: String
+  font: String
+  uiaa: String
 }
 
 input ExperimentalAuthorType {
   displayName: String!
   url: String!
+}
+
+input Pitch {
+  id: ID!
+  parentId: ID!
+  pitchNumber: Int!
+  grades: GradeType
+  type: DisciplineType
+  length: Int
+  boltsCount: Int
+  description: String
 }

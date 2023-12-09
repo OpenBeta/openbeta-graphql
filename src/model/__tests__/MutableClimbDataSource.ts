@@ -123,7 +123,7 @@ describe('Climb CRUD', () => {
       {
         pitchNumber: 1,
         grades: { uiaa: '7' },
-        type: { sport: true },
+        disciplines: { sport: true },
         length: 30,
         boltsCount: 5,
         description: 'First pitch description'
@@ -131,7 +131,7 @@ describe('Climb CRUD', () => {
       {
         pitchNumber: 2,
         grades: { uiaa: '6+' },
-        type: { sport: true },
+        disciplines: { sport: true },
         length: 40,
         boltsCount: 6,
         description: 'Second pitch description'
@@ -653,7 +653,7 @@ describe('Climb CRUD', () => {
       parentId: originalPitch1ParentID,
       pitchNumber: 1,
       grades: { ewbank: '19' },
-      type: { sport: false, alpine: true },
+      disciplines: { sport: false, alpine: true },
       length: 20,
       boltsCount: 6,
       description: 'Updated first pitch description'
@@ -664,7 +664,7 @@ describe('Climb CRUD', () => {
       parentId: originalPitch2ParentID,
       pitchNumber: 2,
       grades: { ewbank: '18' },
-      type: { sport: false, alpine: true },
+      disciplines: { sport: false, alpine: true },
       length: 25,
       boltsCount: 5,
       description: 'Updated second pitch description'

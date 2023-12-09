@@ -25,3 +25,4 @@ const ClimbMutations = {
 }
 
 export default ClimbMutations
+
