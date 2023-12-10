@@ -23,14 +23,15 @@ jobs:
           fetch-depth: 1
           repository: 'openbeta/api-server-deployment'
           token: ${{ secrets.GH_DEPLOYMENT_REPO_TOKEN }}
+          ref: main
       - uses: imranismail/setup-kustomize@v2
       - run: |
           kustomize edit set image vnguyen/openbeta-graph-api:sha-${GITHUB_SHA}
-      - name: Check if there are changes
-        id: changes
-        uses: UnicornGlobal/has-changes-action@v1.0.11
+      - name: Check if there is any change
+        id: get_changes
+        run: echo "changed=$(git status --porcelain | wc -l)" >> $GITHUB_OUTPUT
       - name: Push if tag has changes
-        if: steps.changes.outputs.changed == 1
+        if: steps.get_changes.outputs.changed != 0
         run: |
           cd api-server-deployment/stage
           git config user.name github-actions
@@ -50,14 +51,15 @@ jobs:
           fetch-depth: 1
           repository: 'openbeta/api-server-deployment'
           token: ${{ secrets.GH_DEPLOYMENT_REPO_TOKEN }}
+          ref: main
       - uses: imranismail/setup-kustomize@v2
       - run: |
           kustomize edit set image vnguyen/openbeta-graph-api:${GITHUB_REF}
-      - name: Check if there are changes
-        id: changes
-        uses: UnicornGlobal/has-changes-action@v1.0.11
+      - name: Check if there is any change
+        id: get_changes
+        run: echo "changed=$(git status --porcelain | wc -l)" >> $GITHUB_OUTPUT
       - name: Push if tag has changes
-        if: steps.changes.outputs.changed == 1
+        if: steps.get_changes.outputs.changed != 0
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
@@ -67,7 +69,6 @@ jobs:
   # build docker image and push to registry
   docker:
     runs-on: ubuntu-22.04
-    if: github.event_name != 'pull_request'
     needs: test
     steps:
       - name: 'Checkout Project'
@@ -93,7 +94,6 @@ jobs:
           tags: |
             type=ref,event=branch
             type=semver,pattern={{raw}}
-            type=ref,event=pr
             type=sha,format=long
 
       - name: Build docker image
@@ -102,7 +102,7 @@ jobs:
           context: ./
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
 
   # setup basic machine to run all kinds of tests: lint, unit, integration, types
