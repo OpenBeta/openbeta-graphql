@@ -14,7 +14,7 @@ jobs:
   # deploy to staging by commiting to api-server-deployment repo
   deploy-staging:
     runs-on: ubuntu-22.04
-    # if: github.ref_name == 'develop' # Temporarily disable this
+    # if: github.ref_name == 'develop'
     needs: docker
     steps:
       - name: 'Checkout Project'
@@ -67,6 +67,7 @@ jobs:
   # build docker image and push to registry
   docker:
     runs-on: ubuntu-22.04
+    if: github.event_name != 'pull_request'
     needs: test
     steps:
       - name: 'Checkout Project'
