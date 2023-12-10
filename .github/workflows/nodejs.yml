@@ -27,11 +27,11 @@ jobs:
       - uses: imranismail/setup-kustomize@v2
       - run: |
           kustomize edit set image vnguyen/openbeta-graph-api:sha-${GITHUB_SHA}
-      - name: Check if there are changes
-        id: changes
-        uses: UnicornGlobal/has-changes-action@v1.0.11
+      - name: Check if there is any change
+        id: get_changes
+        run: echo "changed=$(git status --porcelain | wc -l)" >> $GITHUB_OUTPUT
       - name: Push if tag has changes
-        if: steps.changes.outputs.changed == 1
+        if: steps.get_changes.outputs.changed != 0
         run: |
           cd api-server-deployment/stage
           git config user.name github-actions
@@ -55,11 +55,11 @@ jobs:
       - uses: imranismail/setup-kustomize@v2
       - run: |
           kustomize edit set image vnguyen/openbeta-graph-api:${GITHUB_REF}
-      - name: Check if there are changes
-        id: changes
-        uses: UnicornGlobal/has-changes-action@v1.0.11
+      - name: Check if there is any change
+        id: get_changes
+        run: echo "changed=$(git status --porcelain | wc -l)" >> $GITHUB_OUTPUT
       - name: Push if tag has changes
-        if: steps.changes.outputs.changed == 1
+        if: steps.get_changes.outputs.changed != 0
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
