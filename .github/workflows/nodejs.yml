@@ -55,7 +55,7 @@ jobs:
       - uses: imranismail/setup-kustomize@v2
       - run: |
           cd prod
-          kustomize edit set image vnguyen/openbeta-graph-api:${GITHUB_REF}
+          kustomize edit set image vnguyen/openbeta-graph-api:${GITHUB_REF_NAME}
       - name: Check if there is any change
         id: get_changes
         run: echo "changed=$(git status --porcelain | wc -l)" >> $GITHUB_OUTPUT
@@ -64,7 +64,7 @@ jobs:
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit -am "Update deployment. Code=${GITHUB_REF}"
+          git commit -am "Update deployment. Code=${GITHUB_REF_NAME}"
           git push
 
   # build docker image and push to registry
