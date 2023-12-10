@@ -80,29 +80,7 @@ input DisciplineType {
   tr: Boolean
 }
 
-
-input GradeType {
-  vscale: String
-  yds: String
-  ewbank: String
-  french: String
-  brazilianCrux: String
-  font: String
-  uiaa: String
-}
-
 input ExperimentalAuthorType {
   displayName: String!
   url: String!
-}
-
-input Pitch {
-  id: ID!
-  parentId: ID!
-  pitchNumber: Int!
-  grades: GradeType
-  type: DisciplineType
-  length: Int
-  boltsCount: Int
-  description: String
 }
