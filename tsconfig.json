@@ -10,7 +10,6 @@
     "module": "ESNext",
     "esModuleInterop": true,
     "moduleResolution": "Node",
-    "rootDir": "./src",
     "outDir": "build",
     "sourceMap": true,
     "strictNullChecks": true,
