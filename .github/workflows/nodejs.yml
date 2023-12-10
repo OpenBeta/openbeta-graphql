@@ -23,6 +23,7 @@ jobs:
           fetch-depth: 1
           repository: 'openbeta/api-server-deployment'
           token: ${{ secrets.GH_DEPLOYMENT_REPO_TOKEN }}
+          ref: main
       - uses: imranismail/setup-kustomize@v2
       - run: |
           kustomize edit set image vnguyen/openbeta-graph-api:sha-${GITHUB_SHA}
@@ -50,6 +51,7 @@ jobs:
           fetch-depth: 1
           repository: 'openbeta/api-server-deployment'
           token: ${{ secrets.GH_DEPLOYMENT_REPO_TOKEN }}
+          ref: main
       - uses: imranismail/setup-kustomize@v2
       - run: |
           kustomize edit set image vnguyen/openbeta-graph-api:${GITHUB_REF}
