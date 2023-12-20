@@ -1,7 +1,18 @@
 module.exports = {
-  preset: 'ts-jest',
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  },
+  extensionsToTreatAsEsm: ['.ts'],
+  transform: {
+    '^.+\\.(mt|t|cj|j)s$': [
+      'ts-jest',
+      {
+        useESM: true
+      }
+    ]
+  },
   testEnvironment: 'node',
   testMatch: [
-    '<rootDir>/build/**/__tests__/*.js'
+    '<rootDir>/**/__tests__/*.ts'
   ]
 }
