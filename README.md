@@ -124,6 +124,18 @@ These links explain the structure and key abstractions of our codebase. It's a g
 
 - GraphQL online playground: https://graphiql-online.com/
 
+- Bypassing auth when developing locally
+
+  Start up your local server with `yarn serve-dev` (instead of `yarn serve`)
+  ```bash
+  # Run this in open-tacos project
+  yarn serve-dev
+  ```
+
+  This allows the current user to run any `Query` or `Mutation` (irrespective of the current user’s UUID)
+  
+  (How it works: `auth/middleware.ts` and `auth/permissions.ts` are conditionally swapped out on server initialization (`server.ts`), based on whether the env var `LOCAL_DEV_BYPASS_AUTH` is set)
+
 - Full stack development
 
   Connect your [frontend](https://github.com/OpenBeta/open-tacos) dev env to this local server
