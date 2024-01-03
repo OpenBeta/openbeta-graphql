@@ -118,8 +118,9 @@ export const AreaSchema = new Schema<AreaType>({
 }, { timestamps: true })
 
 AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
-AreaSchema.index({ 'metadata.leftRightIndex': 1 }, {
-  unique: true,
+AreaSchema.index({
+  'metadata.leftRightIndex': 1
+}, {
   partialFilterExpression: {
     'metadata.leftRightIndex': {
       $gt: -1
