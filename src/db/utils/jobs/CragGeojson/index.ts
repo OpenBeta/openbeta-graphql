@@ -34,7 +34,7 @@ async function exportLeafCrags (): Promise<void> {
     })
     features.push(pointFeature)
   }
-  stream.write(JSON.stringify(featureCollection(features)))
+  stream.write(JSON.stringify(featureCollection(features)) + os.EOL)
   stream.close()
 }
 

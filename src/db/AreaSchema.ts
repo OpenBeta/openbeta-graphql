@@ -18,6 +18,8 @@ const polygonSchema = new mongoose.Schema({
     type: [[[Number]]], // Array of arrays of arrays of numbers
     required: true
   }
+}, {
+  _id: false
 })
 
 const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
