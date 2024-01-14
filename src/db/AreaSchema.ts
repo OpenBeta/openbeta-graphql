@@ -8,6 +8,18 @@ import { GradeContexts } from '../GradeUtils.js'
 
 const { Schema, connection } = mongoose
 
+const polygonSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['Polygon'],
+    required: true
+  },
+  coordinates: {
+    type: [[[Number]]], // Array of arrays of arrays of numbers
+    required: true
+  }
+})
+
 const ChangeRecordMetadata = new Schema<ChangeRecordMetadataType>({
   user: {
     type: 'object',
@@ -32,6 +44,7 @@ const MetadataSchema = new Schema<IAreaMetadata>({
     type: PointSchema,
     index: '2dsphere'
   },
+  polygon: polygonSchema,
   bbox: [{ type: Number, required: true }],
   leftRightIndex: { type: Number, required: false },
   ext_id: { type: String, required: false, index: true },
@@ -121,11 +134,16 @@ AreaSchema.index({ _deleting: 1 }, { expireAfterSeconds: 0 })
 AreaSchema.index({
   'metadata.leftRightIndex': 1
 }, {
+  name: 'leftRightIndex',
   partialFilterExpression: {
     'metadata.leftRightIndex': {
       $gt: -1
     }
   }
+})
+
+AreaSchema.index({
+  children: 1
 })
 
 export const createAreaModel = (name: string = 'areas'): mongoose.Model<AreaType> => {

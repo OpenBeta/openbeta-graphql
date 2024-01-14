@@ -7,6 +7,19 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Crag Geojson",
+            "program": "${workspaceFolder}/src/db/export/CragGeojson/index.ts",
+            "preLaunchTask": "tsc: build - tsconfig.json",
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Typesense push",
             "program": "${workspaceFolder}/src/db/export/Typesense/Typesense.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
@@ -48,14 +61,21 @@
             "type": "node",
             "request": "launch",
             "name": "Launch API Server (serve-dev)",
-            "skipFiles": ["<node_internals>/**"],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "program": "${workspaceFolder}/src/main.ts",
             "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": ["${workspaceFolder}/build/**/*.js"],
+            "outFiles": [
+                "${workspaceFolder}/build/**/*.js"
+            ],
             "runtimeExecutable": "yarn",
-            "runtimeArgs": ["run", "serve-dev"],
+            "runtimeArgs": [
+                "run",
+                "serve-dev"
+            ],
             "console": "integratedTerminal"
-          },
+        },
         {
             "name": "Debug Jest Tests",
             "type": "node",

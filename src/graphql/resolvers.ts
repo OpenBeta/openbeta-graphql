@@ -254,7 +254,8 @@ const resolvers = {
         areaId,
         lng,
         lat,
-        mp_id: metadata.ext_id ?? ''
+        mp_id: metadata.ext_id ?? '',
+        polygon: metadata?.polygon?.coordinates[0] ?? null
       })
     },
 

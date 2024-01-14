@@ -31,8 +31,9 @@
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
     "@turf/bbox-polygon": "^6.5.0",
-    "@turf/centroid": "^6.5.0",
     "@turf/circle": "^6.5.0",
+    "@turf/convex": "^6.5.0",
+    "@turf/helpers": "^6.5.0",
     "@types/uuid": "^8.3.3",
     "apollo-datasource-mongodb": "^0.5.4",
     "apollo-server": "^3.9.0",
@@ -83,7 +84,8 @@
     "export:json:full": "yarn build && node build/db/export/json/index.js",
     "export-prod": "./export.sh",
     "prepare": "husky install",
-    "import-users": "tsc ; node build/db/utils/jobs/migration/CreateUsersCollection.js"
+    "import-users": "tsc ; node build/db/utils/jobs/migration/CreateUsersCollection.js",
+    "export-crags": "tsc ; node build/db/export/CragGeojson/index.js"
   },
   "standard": {
     "plugins": [

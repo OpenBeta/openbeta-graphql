@@ -55,7 +55,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
 
     await mongoose.connect(
       `${scheme}://${user}:${pass}@${server}/${dbName}?authSource=${authDb}&tls=${tlsFlag}&replicaSet=${rsName}`,
-      { autoIndex: false }
+      { autoIndex: true }
     )
   } catch (e) {
     logger.error("Can't connect to db")
