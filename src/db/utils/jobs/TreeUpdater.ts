@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
-import { feature, geometry, featureCollection, Feature, BBox, Point } from '@turf/helpers'
-import centroid from '@turf/centroid'
+import { featureCollection, BBox, Point, Polygon } from '@turf/helpers'
+import bbox2Polygon from '@turf/bbox-polygon'
+import convexHull from '@turf/convex'
 import pLimit from 'p-limit'
 
 import { getAreaModel } from '../../AreaSchema.js'
@@ -61,6 +62,7 @@ interface ResultType {
   bbox: BBox
   lnglat: Point
   aggregate: AggregateType
+  polygon?: Polygon
 }
 
 async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
@@ -109,26 +111,14 @@ const leafReducer = (node: AreaType): ResultType => {
 }
 
 /**
- * Calculate a center from multiple areas
- * @param array of areas
- * @returns new center (Point)
+ * Calculate convex hull polyon contain all child areas
  */
-const calculateNewCenterFromNodes = (nodes: ResultType[]): Point => {
-  // Convert area array to Geojson Feature array
-  const arrayOfFeatures = nodes.reduce<Feature[]>((acc, curr) => {
-    if (curr.lnglat.coordinates[0] !== 0 && curr.lnglat.coordinates[1] !== 0) {
-      // non-default coordinates  --> geojson feature
-      acc.push(feature(curr.lnglat))
-    }
-    return acc
-  }, [])
+const calculatePolygonFromChildren = (nodes: ResultType[]): Polygon | undefined => {
+  const childAsPolygons = nodes.map(node => bbox2Polygon(node.bbox))
+  const fc = featureCollection(childAsPolygons)
+  const polygonFeature = convexHull(fc)
 
-  if (arrayOfFeatures.length > 0) {
-    // - convert array of features to a feature collection
-    // - calculate centroid
-    return centroid(featureCollection(arrayOfFeatures)).geometry
-  }
-  return geometry('Point', [0, 0]) as Point
+  return polygonFeature?.geometry
 }
 
 /**
@@ -145,6 +135,7 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
       type: 'Point',
       coordinates: [0, 0]
     },
+    polygon: undefined,
     density: 0,
     aggregate: {
       byGrade: [],
@@ -167,21 +158,21 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
       bbox,
       lnglat, // we'll calculate a new center point later
       density: -1,
+      polygon: undefined,
       aggregate: mergeAggregates(acc.aggregate, aggregate)
     }
   }, initial)
 
-  z.lnglat = calculateNewCenterFromNodes(result)
+  z.polygon = calculatePolygonFromChildren(result)
   z.density = areaDensity(z.bbox, z.totalClimbs)
 
-  const { totalClimbs, bbox, density, aggregate, lnglat } = z
-  if (parent.metadata.lnglat.coordinates[0] === 0 && parent.metadata.lnglat.coordinates[1] === 0) {
-    parent.metadata.lnglat = lnglat
-  }
+  const { totalClimbs, bbox, density, aggregate } = z
+
   parent.totalClimbs = totalClimbs
   parent.metadata.bbox = bbox
   parent.density = density
   parent.aggregate = aggregate
+  parent.metadata.polygon = z.polygon
   await parent.save()
   return z
 }

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
-import { BBox, Point } from '@turf/helpers'
+import { BBox, Point, Polygon } from '@turf/helpers'
 import { ClimbType } from './ClimbTypes.js'
 import { ChangeRecordMetadataType } from './ChangeLogType.js'
 import { GradeContexts } from '../GradeUtils.js'
@@ -118,8 +118,7 @@ export interface IAreaMetadata {
    */
   isBoulder?: boolean
   /**
-   * Areas may be very large, and this point may represent the centroid of the area's bounds
-   * or a spec point chosen by users.
+   * Location of a wall or a boulder aka leaf node.  Use `bbox` or `polygon` non-leaf areas.
    * */
   lnglat: Point
   /**
@@ -143,6 +142,11 @@ export interface IAreaMetadata {
    * GQL layer use these values for querying and identification of areas.
    */
   area_id: MUUID
+
+  /**
+   * A polygon (created by convex hull) containing all child areas.
+   */
+  polygon?: Polygon
 }
 export interface IAreaContent {
   /** longform to mediumform description of this area.

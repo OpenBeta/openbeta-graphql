@@ -101,6 +101,9 @@ type AreaMetadata {
   mp_id: String!
   area_id: ID!
   areaId: ID!
+
+  "Array of the polygon vertices (convex hull) containing child areas."
+  polygon: [[Float]]
 }
 
 """
