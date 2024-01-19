@@ -56,6 +56,7 @@
     "node-fetch": "2",
     "p-limit": "^4.0.0",
     "pino": "^8.2.0",
+    "pino-logflare": "^0.4.2",
     "sanitize-html": "^2.7.2",
     "sharp": "^0.32.0",
     "typesense": "^1.2.1",
