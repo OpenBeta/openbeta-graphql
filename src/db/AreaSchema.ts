@@ -44,10 +44,11 @@ const MetadataSchema = new Schema<IAreaMetadata>({
   isBoulder: { type: Boolean, default: false },
   lnglat: {
     type: PointSchema,
-    index: '2dsphere'
+    index: '2dsphere',
+    required: false
   },
   polygon: polygonSchema,
-  bbox: [{ type: Number, required: true }],
+  bbox: [{ type: Number, required: false }],
   leftRightIndex: { type: Number, required: false },
   ext_id: { type: String, required: false, index: true },
   area_id: {

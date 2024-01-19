@@ -137,7 +137,7 @@ export interface DisciplineType {
   tr?: boolean
 }
 export interface IClimbMetadata {
-  lnglat: Point
+  lnglat?: Point
   left_right_index?: number
   /** mountainProject ID (if this climb was sourced from mountainproject) */
   mp_id?: string

@@ -10,7 +10,8 @@ import { BBoxType } from './types'
  * @param point
  * @returns
  */
-export const bboxFrom = (point: Point): BBoxType => {
+export const bboxFrom = (point: Point | undefined): BBoxType | undefined => {
+  if (point == null) return undefined
   const options = { steps: 8 }
   const r = 0.05 // unit=km. Hopefully this is a large enough area (but not too large) for a crag
   const cir = circle(point, r, options)
@@ -33,7 +34,8 @@ export const bboxFromList = (bboxList: BBoxType[]): any => {
  * @param totalClimbs
  * @returns total climbs per km sq
  */
-export const areaDensity = (bbox: BBoxType, totalClimbs: number): number => {
+export const areaDensity = (bbox: BBoxType | undefined, totalClimbs: number): number => {
+  if (bbox == null) return 0
   const areaInKm = area(bboxPolygon(bbox)) / 1000000
   const minArea = areaInKm < 5 ? 5 : areaInKm
   return totalClimbs / minArea

@@ -1,12 +1,13 @@
 import mongoose from 'mongoose'
-import { featureCollection, BBox, Point, Polygon } from '@turf/helpers'
+import { featureCollection, BBox, Point, Polygon, Feature } from '@turf/helpers'
 import bbox2Polygon from '@turf/bbox-polygon'
+import bboxFromGeojson from '@turf/bbox'
 import convexHull from '@turf/convex'
 import pLimit from 'p-limit'
 
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType, AggregateType } from '../../AreaTypes.js'
-import { bboxFromList, areaDensity } from '../../../geo-utils.js'
+import { areaDensity } from '../../../geo-utils.js'
 import { mergeAggregates } from '../Aggregate.js'
 
 const limiter = pLimit(1000)
@@ -59,14 +60,14 @@ export const visitAllAreas = async (): Promise<void> => {
 interface ResultType {
   density: number
   totalClimbs: number
-  bbox: BBox
-  lnglat: Point
+  bbox?: BBox
+  lnglat?: Point
   aggregate: AggregateType
   polygon?: Polygon
 }
 
 async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
-  if (node.metadata.leaf) {
+  if (node.metadata.leaf || node.children.length === 0) {
     return leafReducer((node.toObject() as AreaType))
   }
 
@@ -95,6 +96,7 @@ const leafReducer = (node: AreaType): ResultType => {
     totalClimbs: node.totalClimbs,
     bbox: node.metadata.bbox,
     lnglat: node.metadata.lnglat,
+    polygon: node.metadata.polygon,
     density: node.density,
     aggregate: node.aggregate ?? {
       byGrade: [],
@@ -113,12 +115,16 @@ const leafReducer = (node: AreaType): ResultType => {
 /**
  * Calculate convex hull polyon contain all child areas
  */
-const calculatePolygonFromChildren = (nodes: ResultType[]): Polygon | undefined => {
-  const childAsPolygons = nodes.map(node => bbox2Polygon(node.bbox))
+const calculatePolygonFromChildren = (nodes: ResultType[]): Feature<Polygon> | null => {
+  const childAsPolygons = nodes.reduce<Array<Feature<Polygon>>>((acc, curr) => {
+    if (curr.bbox != null) {
+      acc.push(bbox2Polygon(curr.bbox))
+    }
+    return acc
+  }, [])
   const fc = featureCollection(childAsPolygons)
   const polygonFeature = convexHull(fc)
-
-  return polygonFeature?.geometry
+  return polygonFeature
 }
 
 /**
@@ -130,11 +136,8 @@ const calculatePolygonFromChildren = (nodes: ResultType[]): Polygon | undefined 
 const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promise<ResultType> => {
   const initial: ResultType = {
     totalClimbs: 0,
-    bbox: [-180, -90, 180, 90],
-    lnglat: {
-      type: 'Point',
-      coordinates: [0, 0]
-    },
+    bbox: undefined,
+    lnglat: undefined,
     polygon: undefined,
     density: 0,
     aggregate: {
@@ -149,30 +152,40 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
       }
     }
   }
+  let nodeSummary: ResultType = initial
+  if (result.length === 0) {
+    const { totalClimbs, aggregate, density } = initial
+    parent.totalClimbs = totalClimbs
+    parent.density = density
+    parent.aggregate = aggregate
+    await parent.save()
+    return initial
+  } else {
+    nodeSummary = result.reduce((acc, curr) => {
+      const { totalClimbs, aggregate, lnglat, bbox } = curr
+      return {
+        totalClimbs: acc.totalClimbs + totalClimbs,
+        bbox,
+        lnglat,
+        density: -1,
+        polygon: undefined,
+        aggregate: mergeAggregates(acc.aggregate, aggregate)
+      }
+    }, initial)
 
-  const z = result.reduce((acc, curr, index) => {
-    const { totalClimbs, bbox: _bbox, aggregate, lnglat } = curr
-    const bbox = index === 0 ? _bbox : bboxFromList([_bbox, acc.bbox])
-    return {
-      totalClimbs: acc.totalClimbs + totalClimbs,
-      bbox,
-      lnglat, // we'll calculate a new center point later
-      density: -1,
-      polygon: undefined,
-      aggregate: mergeAggregates(acc.aggregate, aggregate)
-    }
-  }, initial)
+    const polygon = calculatePolygonFromChildren(result)
+    nodeSummary.polygon = polygon?.geometry
+    nodeSummary.bbox = bboxFromGeojson(polygon)
+    nodeSummary.density = areaDensity(nodeSummary.bbox, nodeSummary.totalClimbs)
 
-  z.polygon = calculatePolygonFromChildren(result)
-  z.density = areaDensity(z.bbox, z.totalClimbs)
+    const { totalClimbs, bbox, density, aggregate } = nodeSummary
 
-  const { totalClimbs, bbox, density, aggregate } = z
-
-  parent.totalClimbs = totalClimbs
-  parent.metadata.bbox = bbox
-  parent.density = density
-  parent.aggregate = aggregate
-  parent.metadata.polygon = z.polygon
-  await parent.save()
-  return z
+    parent.totalClimbs = totalClimbs
+    parent.metadata.bbox = bbox
+    parent.density = density
+    parent.aggregate = aggregate
+    parent.metadata.polygon = nodeSummary.polygon
+    await parent.save()
+    return nodeSummary
+  }
 }

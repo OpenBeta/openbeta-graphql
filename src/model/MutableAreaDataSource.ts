@@ -1,4 +1,4 @@
-import { geometry, Point } from '@turf/helpers'
+import { geometry } from '@turf/helpers'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 import mongoose, { ClientSession } from 'mongoose'
@@ -499,8 +499,6 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
       isDestination: false,
       leaf: false,
       area_id: uuid,
-      lnglat: geometry('Point', [0, 0]) as Point,
-      bbox: [-180, -90, 180, 90],
       leftRightIndex: -1,
       ext_id: ''
     },

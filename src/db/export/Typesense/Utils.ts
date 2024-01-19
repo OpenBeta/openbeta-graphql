@@ -45,7 +45,10 @@ export const disciplinesToArray = (type: DisciplineType): any => {
  * @param geoPoint
  * @returns
  */
-export const geoToLatLng = (geoPoint: Point): [number, number] => {
+export const geoToLatLng = (geoPoint?: Point): [number, number] | undefined => {
+  if (geoPoint == null) {
+    return undefined
+  }
   const { coordinates } = geoPoint
   return [coordinates[1], coordinates[0]]
 }

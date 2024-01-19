@@ -17,7 +17,8 @@ const EntitySchema = new Schema<EntityTag>({
   ancestors: { type: Schema.Types.String, required: true, index: true },
   lnglat: {
     type: PointSchema,
-    index: '2dsphere'
+    index: '2dsphere',
+    required: false
   }
 }, { _id: true })
 
