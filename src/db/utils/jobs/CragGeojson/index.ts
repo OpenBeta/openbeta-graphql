@@ -35,6 +35,8 @@ async function exportLeafCrags (): Promise<void> {
         id: ancestorArray[ancestorArray.length - 2],
         name: pathTokens[doc.pathTokens.length - 2]
       }
+    }, {
+      id: metadata.area_id.toUUID().toString()
     })
     features.push(pointFeature)
   }
@@ -125,6 +127,8 @@ async function exportCragGroups (): Promise<void> {
       name: doc.name,
       children: doc.childAreaList.map(({ uuid, name, leftRightIndex }) => (
         { id: uuid.toUUID().toString(), name, lr: leftRightIndex }))
+    }, {
+      id: doc.uuid.toUUID().toString()
     })
     features.push(polygonFeature)
   }
