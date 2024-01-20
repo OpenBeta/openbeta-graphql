@@ -80,17 +80,23 @@ export const aggregateCragStats = (crag: AreaType): AggregateType => {
   const byGrade: Record<string, number> | {} = {}
   const disciplines: CountByDisciplineType = {}
 
+  const DEFAULT = {
+    byGrade: [],
+    byDiscipline: disciplines,
+    byGradeBand: {
+      ...INIT_GRADEBAND
+    }
+  }
+
+  if ((crag.climbs?.length ?? 0) === 0) {
+    return DEFAULT
+  }
+
   // Assumption: all climbs use the crag's grade context
   const cragGradeScales = gradeContextToGradeScales[crag.gradeContext]
   if (cragGradeScales == null) {
     logger.warn(`Area ${crag.area_name} (${crag.metadata.area_id.toUUID().toString()}) has  invalid grade context: '${crag.gradeContext}'`)
-    return {
-      byGrade: [],
-      byDiscipline: disciplines,
-      byGradeBand: {
-        ...INIT_GRADEBAND
-      }
-    }
+    return DEFAULT
   }
 
   const climbs = crag.climbs as ClimbType[]

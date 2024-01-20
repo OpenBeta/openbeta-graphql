@@ -88,11 +88,11 @@ type AreaMetadata {
   isBoulder: Boolean
 
   "centroid latitude of this areas bounding box"
-  lat: Float!
+  lat: Float
   "centroid longitude of this areas bounding box"
-  lng: Float!
+  lng: Float
   "NE and SW corners of the bounding box for this area"
-  bbox: [Float]!
+  bbox: [Float]
 
   "Left-to-right sorting index.  Undefined or -1 or unsorted area."
   leftRightIndex: Int

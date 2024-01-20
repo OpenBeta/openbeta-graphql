@@ -9,7 +9,7 @@ export interface ClimbTypeSenseItem {
   disciplines: string[]
   grade?: string // Todo: switch to grade context
   safety: string
-  cragLatLng: [number, number]
+  cragLatLng?: [number, number]
 }
 
 /**
@@ -78,7 +78,7 @@ export interface AreaTypeSenseItem {
   name: string
   pathTokens: string[]
   areaUUID: string
-  areaLatLng: [number, number]
+  areaLatLng?: [number, number]
   leaf: boolean
   isDestination: boolean
   totalClimbs: number

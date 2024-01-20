@@ -73,7 +73,7 @@ export interface IAreaProps extends AuthorMetadata {
    * computed aggregations on this document. See the AggregateType documentation for
    * more information.
   */
-  aggregate?: AggregateType
+  aggregate: AggregateType
   /**
    * User-composed content that makes up most of the user-readable data in the system.
    * See the IAreaContent documentation for more information.
@@ -120,12 +120,12 @@ export interface IAreaMetadata {
   /**
    * Location of a wall or a boulder aka leaf node.  Use `bbox` or `polygon` non-leaf areas.
    * */
-  lnglat: Point
+  lnglat?: Point
   /**
    * The smallest possible bounding box (northwest and southeast coordinates) that contains
    * all of this areas children (Both sub-areas and climbs).
    */
-  bbox: BBox
+  bbox?: BBox
 
   /**
    * Left-to-right sorting index.  Undefined or -1 for unsorted area,

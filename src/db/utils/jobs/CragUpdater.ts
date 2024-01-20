@@ -1,4 +1,6 @@
 import mongoose from 'mongoose'
+import bbox2Polygon from '@turf/bbox-polygon'
+
 import { getAreaModel } from '../../AreaSchema.js'
 import { getClimbModel } from '../../ClimbSchema.js'
 import { AreaType } from '../../AreaTypes.js'
@@ -17,7 +19,12 @@ export const visitAllCrags = async (): Promise<void> => {
 
   // Get all crags
   const iterator = areaModel
-    .find({ 'metadata.leaf': true }).batchSize(10)
+    .find({
+      $or: [
+        { 'metadata.leaf': true },
+        { children: { $exists: true, $size: 0 } }
+      ]
+    }).batchSize(10)
     .populate<{ climbs: ClimbType[] }>({ path: 'climbs', model: getClimbModel() })
     .allowDiskUse(true)
 
@@ -26,7 +33,9 @@ export const visitAllCrags = async (): Promise<void> => {
   for await (const crag of iterator) {
     const node: AreaMongoType = crag
     node.aggregate = aggregateCragStats(crag.toObject())
-    node.metadata.bbox = bboxFrom(node.metadata.lnglat)
+    const bbox = bboxFrom(node.metadata.lnglat)
+    node.metadata.bbox = bbox
+    node.metadata.polygon = bbox == null ? undefined : bbox2Polygon(bbox).geometry
     await node.save()
   }
 }

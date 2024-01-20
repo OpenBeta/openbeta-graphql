@@ -16,21 +16,26 @@ async function exportLeafCrags (): Promise<void> {
 
   const features: Array<Feature<Point, {
     name: string
-    id: string
   }>> = []
 
-  for await (const doc of model.find({ 'metadata.leaf': true }).lean()) {
-    const { metadata, area_name: areaName, pathTokens, ancestors } = doc
+  for await (const doc of model.find({ 'metadata.leaf': true, 'metadata.lnglat': { $ne: null } }).lean()) {
+    if (doc.metadata.lnglat == null) {
+      continue
+    }
+
+    const { metadata, area_name: areaName, pathTokens, ancestors, content } = doc
 
     const ancestorArray = ancestors.split(',')
     const pointFeature = point(doc.metadata.lnglat.coordinates, {
-      id: metadata.area_id.toUUID().toString(),
       name: areaName,
       type: 'crag',
+      content,
       parent: {
         id: ancestorArray[ancestorArray.length - 2],
         name: pathTokens[doc.pathTokens.length - 2]
       }
+    }, {
+      id: metadata.area_id.toUUID().toString()
     })
     features.push(pointFeature)
   }
@@ -112,16 +117,16 @@ async function exportCragGroups (): Promise<void> {
 
   const features: Array<Feature<Polygon, {
     name: string
-    id: string
   }>> = []
 
   for await (const doc of rs) {
     const polygonFeature = feature(doc.polygon, {
       type: 'crag-group',
       name: doc.name,
-      id: doc.uuid.toUUID().toString(),
       children: doc.childAreaList.map(({ uuid, name, leftRightIndex }) => (
         { id: uuid.toUUID().toString(), name, lr: leftRightIndex }))
+    }, {
+      id: doc.uuid.toUUID().toString()
     })
     features.push(polygonFeature)
   }

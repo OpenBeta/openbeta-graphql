@@ -23,7 +23,7 @@ export interface EntityTag {
   ancestors: string
   climbName?: string
   areaName: string
-  lnglat: Point
+  lnglat?: Point
 }
 
 export interface MediaByUsers {
