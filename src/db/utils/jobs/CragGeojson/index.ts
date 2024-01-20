@@ -27,6 +27,7 @@ async function exportLeafCrags (): Promise<void> {
 
     const ancestorArray = ancestors.split(',')
     const pointFeature = point(doc.metadata.lnglat.coordinates, {
+      id: metadata.area_id.toUUID().toString(),
       name: areaName,
       type: 'crag',
       content,
@@ -34,8 +35,6 @@ async function exportLeafCrags (): Promise<void> {
         id: ancestorArray[ancestorArray.length - 2],
         name: pathTokens[doc.pathTokens.length - 2]
       }
-    }, {
-      id: metadata.area_id.toUUID().toString()
     })
     features.push(pointFeature)
   }
@@ -122,11 +121,10 @@ async function exportCragGroups (): Promise<void> {
   for await (const doc of rs) {
     const polygonFeature = feature(doc.polygon, {
       type: 'crag-group',
+      id: doc.uuid.toUUID().toString(),
       name: doc.name,
       children: doc.childAreaList.map(({ uuid, name, leftRightIndex }) => (
         { id: uuid.toUUID().toString(), name, lr: leftRightIndex }))
-    }, {
-      id: doc.uuid.toUUID().toString()
     })
     features.push(polygonFeature)
   }
