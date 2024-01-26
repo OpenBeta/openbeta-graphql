@@ -5,10 +5,11 @@ import bboxFromGeojson from '@turf/bbox'
 import convexHull from '@turf/convex'
 import pLimit from 'p-limit'
 
-import { getAreaModel } from '../../AreaSchema.js'
-import { AreaType, AggregateType } from '../../AreaTypes.js'
-import { areaDensity } from '../../../geo-utils.js'
-import { mergeAggregates } from '../Aggregate.js'
+import { getAreaModel } from '../../../AreaSchema.js'
+import { AreaType, AggregateType } from '../../../AreaTypes.js'
+import { areaDensity } from '../../../../geo-utils.js'
+import { mergeAggregates } from '../../Aggregate.js'
+import { ChangeRecordMetadataType } from '../../../../db/ChangeLogType.js'
 
 const limiter = pLimit(1000)
 
@@ -31,7 +32,7 @@ type AreaMongoType = mongoose.Document<unknown, any, AreaType> & AreaType
  *  create a new bottom-up traversal, starting from the updated node/area and bubble the
  * update up to its parent.
  */
-export const visitAllAreas = async (): Promise<void> => {
+export const updateAllAreas = async (): Promise<void> => {
   const areaModel = getAreaModel('areas')
 
   // Step 1: Start with 2nd level of tree, eg 'state' or 'province' level and recursively update all nodes.
@@ -57,7 +58,7 @@ export const visitAllAreas = async (): Promise<void> => {
   }
 }
 
-interface ResultType {
+export interface StatsAccumulator {
   density: number
   totalClimbs: number
   bbox?: BBox
@@ -66,7 +67,7 @@ interface ResultType {
   polygon?: Polygon
 }
 
-async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
+async function postOrderVisit (node: AreaMongoType): Promise<StatsAccumulator> {
   if (node.metadata.leaf || node.children.length === 0) {
     return leafReducer((node.toObject() as AreaType))
   }
@@ -91,7 +92,7 @@ async function postOrderVisit (node: AreaMongoType): Promise<ResultType> {
  * @param node leaf area/crag
  * @returns aggregate type
  */
-const leafReducer = (node: AreaType): ResultType => {
+export const leafReducer = (node: AreaType): StatsAccumulator => {
   return {
     totalClimbs: node.totalClimbs,
     bbox: node.metadata.bbox,
@@ -115,7 +116,7 @@ const leafReducer = (node: AreaType): ResultType => {
 /**
  * Calculate convex hull polyon contain all child areas
  */
-const calculatePolygonFromChildren = (nodes: ResultType[]): Feature<Polygon> | null => {
+const calculatePolygonFromChildren = (nodes: StatsAccumulator[]): Feature<Polygon> | null => {
   const childAsPolygons = nodes.reduce<Array<Feature<Polygon>>>((acc, curr) => {
     if (curr.bbox != null) {
       acc.push(bbox2Polygon(curr.bbox))
@@ -127,14 +128,19 @@ const calculatePolygonFromChildren = (nodes: ResultType[]): Feature<Polygon> | n
   return polygonFeature
 }
 
+interface OPTIONS {
+  session: mongoose.ClientSession
+  changeRecord: ChangeRecordMetadataType
+}
+
 /**
  * Calculate stats from a list of nodes
  * @param result nodes
  * @param parent parent node to save stats to
  * @returns Calculated stats
  */
-const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promise<ResultType> => {
-  const initial: ResultType = {
+export const nodesReducer = async (result: StatsAccumulator[], parent: AreaMongoType, options?: OPTIONS): Promise<StatsAccumulator> => {
+  const initial: StatsAccumulator = {
     totalClimbs: 0,
     bbox: undefined,
     lnglat: undefined,
@@ -152,14 +158,12 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
       }
     }
   }
-  let nodeSummary: ResultType = initial
+  let nodeSummary: StatsAccumulator = initial
   if (result.length === 0) {
     const { totalClimbs, aggregate, density } = initial
     parent.totalClimbs = totalClimbs
     parent.density = density
     parent.aggregate = aggregate
-    await parent.save()
-    return initial
   } else {
     nodeSummary = result.reduce((acc, curr) => {
       const { totalClimbs, aggregate, lnglat, bbox } = curr
@@ -185,7 +189,15 @@ const nodesReducer = async (result: ResultType[], parent: AreaMongoType): Promis
     parent.density = density
     parent.aggregate = aggregate
     parent.metadata.polygon = nodeSummary.polygon
-    await parent.save()
-    return nodeSummary
   }
+
+  if (options != null) {
+    const { session, changeRecord } = options
+    parent._change = changeRecord
+    parent.updatedBy = changeRecord.user
+    await parent.save({ session })
+  } else {
+    await parent.save()
+  }
+  return nodeSummary
 }

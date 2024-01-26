@@ -1,4 +1,4 @@
-import { geometry } from '@turf/helpers'
+import { Point, geometry } from '@turf/helpers'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 import mongoose, { ClientSession } from 'mongoose'
@@ -6,6 +6,7 @@ import { produce } from 'immer'
 import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+import bbox2Polygon from '@turf/bbox-polygon'
 
 import { AreaType, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
@@ -19,6 +20,8 @@ import { GradeContexts } from '../GradeUtils.js'
 import { sanitizeStrict } from '../utils/sanitize.js'
 import { ExperimentalAuthorType } from '../db/UserTypes.js'
 import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
+import { StatsAccumulator, leafReducer, nodesReducer } from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
+import { bboxFrom } from '../geo-utils.js'
 
 isoCountries.registerLocale(enJson)
 
@@ -363,10 +366,20 @@ export default class MutableAreaDataSource extends AreaDataSource {
         area.set({ 'content.description': sanitized })
       }
 
-      if (lat != null && lng != null) { // we should already validate lat,lng before in GQL layer
+      const latLngHasChanged = lat != null && lng != null
+      if (latLngHasChanged) { // we should already validate lat,lng before in GQL layer
+        const point = geometry('Point', [lng, lat]) as Point
         area.set({
-          'metadata.lnglat': geometry('Point', [lng, lat])
+          'metadata.lnglat': point
         })
+        if (area.metadata.leaf || (area.metadata?.isBoulder ?? false)) {
+          const bbox = bboxFrom(point)
+          area.set({
+            'metadata.bbox': bbox,
+            'metadata.polygon': bbox == null ? undefined : bbox2Polygon(bbox).geometry
+          })
+          await this.updateStatsAndGeoDataForSinglePath(session, _change, area)
+        }
       }
 
       const cursor = await area.save()
@@ -469,6 +482,50 @@ export default class MutableAreaDataSource extends AreaDataSource {
       })
     // @ts-expect-error
     return ret
+  }
+
+  /**
+   * Update area stats and geo data for a given leaf node and its ancestors
+   * @param session
+   * @param changeRecord
+   * @param area
+   */
+  async updateStatsAndGeoDataForSinglePath (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent): Promise<void> {
+    const visitorFn = async (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, accumulator: StatsAccumulator): Promise<void> => {
+      if (area.pathTokens.length <= 1) {
+        return
+      }
+
+      const ancestors = area.ancestors.split(',')
+      const parentUuid = muuid.from(ancestors[ancestors.length - 2])
+      const parentArea =
+        await this.areaModel.findOne({ 'metadata.area_id': parentUuid })
+          .batchSize(10)
+          .populate<{ children: AreaDocumnent[] }>({ path: 'children', model: this.areaModel })
+          .allowDiskUse(true)
+          .session(session)
+          .orFail()
+
+      logger.info(`###Updating stats for ${parentArea.area_name}`)
+      logger.info(` ##prev Area ${area._id} ${area.area_name}`)
+
+      const acc: StatsAccumulator[] = []
+      for (const childArea of parentArea.children) {
+        logger.info(` - ${childArea._id} ${childArea.area_name}`)
+
+        if (childArea._id.equals(area._id)) {
+          acc.push(accumulator)
+        } else {
+          acc.push(leafReducer(childArea.toObject()))
+        }
+      }
+
+      const current = await nodesReducer(acc, parentArea as any as AreaDocumnent, { session, changeRecord })
+
+      await visitorFn(session, changeRecord, parentArea as any as AreaDocumnent, current)
+    }
+    const accumulator = leafReducer(area.toObject())
+    await visitorFn(session, changeRecord, area, accumulator)
   }
 
   static instance: MutableAreaDataSource
