@@ -1,5 +1,5 @@
 import { connectDB, gracefulExit } from '../../index.js'
-import { visitAllAreas } from './TreeUpdater.js'
+import { updateAllAreas } from './TreeUpdaters/updateAllAreas.js'
 import { visitAllCrags } from './CragUpdater.js'
 import { logger } from '../../../logger.js'
 
@@ -7,7 +7,7 @@ const onConnected = async (): Promise<void> => {
   logger.info('Initializing database')
   console.time('Calculating global stats')
   await visitAllCrags()
-  await visitAllAreas()
+  await updateAllAreas()
   console.timeEnd('Calculating global stats')
   await gracefulExit()
   return await Promise.resolve()

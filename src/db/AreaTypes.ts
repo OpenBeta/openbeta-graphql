@@ -8,6 +8,8 @@ import { GradeContexts } from '../GradeUtils.js'
 import { ExperimentalAuthorType } from './UserTypes.js'
 import { AuthorMetadata } from '../types.js'
 
+export type AreaDocumnent = mongoose.Document<unknown, any, AreaType> & AreaType
+
 /**
  * Areas are a grouping mechanism in the OpenBeta data model that allow
  * the organization of climbs into geospatial and hierarchical structures.

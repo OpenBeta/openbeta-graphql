@@ -35,7 +35,7 @@ export const bboxFromList = (bboxList: BBoxType[]): any => {
  * @returns total climbs per km sq
  */
 export const areaDensity = (bbox: BBoxType | undefined, totalClimbs: number): number => {
-  if (bbox == null) return 0
+  if (!Array.isArray(bbox) || bbox?.length !== 4) return 0
   const areaInKm = area(bboxPolygon(bbox)) / 1000000
   const minArea = areaInKm < 5 ? 5 : areaInKm
   return totalClimbs / minArea

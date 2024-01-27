@@ -119,9 +119,15 @@ describe('history API', () => {
 
       expect(climbChange.operation).toBe('updateClimb')
       expect(climbChange.editedBy).toBe(userUuid)
-      // Two changes: Insert the climb, update the parent area
-      // Ordering is non-deterministic.
-      expect(climbChange.changes.length).toBe(2)
+
+      /**
+       * Four changes (Ordering is non-deterministic)
+       * 1. Insert the climb
+       * 2. Update the parent area
+       * 3. Update aggregate object on crag
+       * 4. Update the parent area
+       */
+      expect(climbChange.changes.length).toBe(4)
       const insertChange = climbChange.changes.filter(c => c.dbOp === 'insert')[0]
       const updateChange = climbChange.changes.filter(c => c.dbOp === 'update')[0]
       expect(insertChange.fullDocument.uuid).toBe(climbIds[0])

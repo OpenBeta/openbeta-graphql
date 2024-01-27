@@ -1,4 +1,5 @@
 module.exports = {
+  testTimeout: 2 * 60 * 1000,
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },

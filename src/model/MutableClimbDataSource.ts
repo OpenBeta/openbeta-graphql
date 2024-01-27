@@ -2,7 +2,8 @@ import muid, { MUUID } from 'uuid-mongodb'
 import { UserInputError } from 'apollo-server'
 import { ClientSession } from 'mongoose'
 
-import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, IPitch } from '../db/ClimbTypes.js'
+import { AreaDocumnent } from '../db/AreaTypes.js'
+import { ClimbType, ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, IPitch } from '../db/ClimbTypes.js'
 import ClimbDataSource from './ClimbDataSource.js'
 import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
 import { sanitizeDisciplines, gradeContextToGradeScales, createGradeObject } from '../GradeUtils.js'
@@ -10,6 +11,9 @@ import { getClimbModel } from '../db/ClimbSchema.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
 import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
+import MutableAreaDataSource from './MutableAreaDataSource.js'
+import { aggregateCragStats } from '../db/utils/Aggregate.js'
+import { getAreaModel } from '../db/AreaSchema.js'
 
 export default class MutableClimbDataSource extends ClimbDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
@@ -219,7 +223,10 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       if (idList.length > 0) {
         parent.set({ climbs: parent.climbs.concat(idList) })
       }
+
       await parent.save()
+
+      await updateStats(parent, session, _change)
 
       if (idStrList.length === newClimbIds.length) {
         return idStrList
@@ -266,11 +273,22 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
+        const changeset = await changelogDataSource.create(session, userId, ClimbEditOperationType.deleteClimb)
+        const _change: ChangeRecordMetadataType = {
+          user: userId,
+          historyId: changeset._id,
+          operation: ClimbEditOperationType.deleteClimb,
+          seq: 0
+        }
         // Remove climb IDs from parent.climbs[]
         await this.areaModel.updateOne(
           { 'metadata.area_id': parentId },
           {
-            $pullAll: { climbs: idList }
+            $pullAll: { climbs: idList },
+            $set: {
+              _change,
+              updatedBy: userId
+            }
           },
           { session })
 
@@ -284,7 +302,8 @@ export default class MutableClimbDataSource extends ClimbDataSource {
           [{
             $set: {
               _deleting: new Date(),
-              updatedBy: userId
+              updatedBy: userId,
+              _change
             }
           }],
           {
@@ -292,6 +311,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
             session
           }).lean()
         ret = rs.modifiedCount
+        await updateStats(parentId, session, _change)
       })
     return ret
   }
@@ -306,4 +326,27 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     }
     return MutableClimbDataSource.instance
   }
+}
+
+/**
+ * Update stats for an area and its ancestors
+ * @param areaIdOrAreaCursor
+ * @param session
+ * @param changeRecord
+ */
+const updateStats = async (areaIdOrAreaCursor: MUUID | AreaDocumnent, session: ClientSession, changeRecord: ChangeRecordMetadataType): Promise<void> => {
+  let area: AreaDocumnent
+  if ((areaIdOrAreaCursor as AreaDocumnent).totalClimbs != null) {
+    area = areaIdOrAreaCursor as AreaDocumnent
+  } else {
+    area = await getAreaModel().findOne({ 'metadata.area_id': areaIdOrAreaCursor as MUUID }).session(session).orFail()
+  }
+
+  await area.populate<{ climbs: ClimbType[] }>({ path: 'climbs', model: getClimbModel() })
+  area.set({
+    totalClimbs: area.climbs.length,
+    aggregate: aggregateCragStats(area.toObject())
+  })
+  await area.save()
+  await MutableAreaDataSource.getInstance().updateLeafStatsAndGeoData(session, changeRecord, area)
 }

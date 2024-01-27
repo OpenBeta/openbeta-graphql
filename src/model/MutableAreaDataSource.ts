@@ -1,4 +1,4 @@
-import { geometry } from '@turf/helpers'
+import { Point, geometry } from '@turf/helpers'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 import mongoose, { ClientSession } from 'mongoose'
@@ -6,8 +6,9 @@ import { produce } from 'immer'
 import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
+import bbox2Polygon from '@turf/bbox-polygon'
 
-import { AreaType, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
+import { AreaType, AreaDocumnent, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
 import { createRootNode } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
@@ -19,10 +20,10 @@ import { GradeContexts } from '../GradeUtils.js'
 import { sanitizeStrict } from '../utils/sanitize.js'
 import { ExperimentalAuthorType } from '../db/UserTypes.js'
 import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
+import { StatsSummary, leafReducer, nodesReducer } from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
+import { bboxFrom } from '../geo-utils.js'
 
 isoCountries.registerLocale(enJson)
-
-type AreaDocumnent = mongoose.Document<unknown, any, AreaType> & AreaType
 
 export default class MutableAreaDataSource extends AreaDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
@@ -222,7 +223,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       deleting: { $ne: null }
     }
 
-    const area = await this.areaModel.findOne(filter).session(session).lean()
+    const area = await this.areaModel.findOne(filter).session(session).orFail()
 
     if (area == null) {
       throw new Error('Delete area error.  Reason: area not found.')
@@ -268,6 +269,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
       , {
         timestamps: false
       }).orFail().session(session)
+
+    await this.updateLeafStatsAndGeoData(session, _change, area, true)
 
     // In order to be able to record the deleted document in area_history, we mark (update) the
     // document for deletion (set ttl index = now).
@@ -363,10 +366,20 @@ export default class MutableAreaDataSource extends AreaDataSource {
         area.set({ 'content.description': sanitized })
       }
 
-      if (lat != null && lng != null) { // we should already validate lat,lng before in GQL layer
+      const latLngHasChanged = lat != null && lng != null
+      if (latLngHasChanged) { // we should already validate lat,lng before in GQL layer
+        const point = geometry('Point', [lng, lat]) as Point
         area.set({
-          'metadata.lnglat': geometry('Point', [lng, lat])
+          'metadata.lnglat': point
         })
+        if (area.metadata.leaf || (area.metadata?.isBoulder ?? false)) {
+          const bbox = bboxFrom(point)
+          area.set({
+            'metadata.bbox': bbox,
+            'metadata.polygon': bbox == null ? undefined : bbox2Polygon(bbox).geometry
+          })
+          await this.updateLeafStatsAndGeoData(session, _change, area)
+        }
       }
 
       const cursor = await area.save()
@@ -471,6 +484,63 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
+  /**
+   * Update area stats and geo data for a given leaf node and its ancestors.
+   * @param session
+   * @param changeRecord
+   * @param startingArea
+   * @param excludeStartingArea true to exlude the starting area from the update. Useful when deleting an area.
+   */
+  async updateLeafStatsAndGeoData (session: ClientSession, changeRecord: ChangeRecordMetadataType, startingArea: AreaDocumnent, excludeStartingArea: boolean = false): Promise<void> {
+    /**
+     * Update function.  For each node, recalculate stats and recursively update its acenstors until we reach the country node.
+     */
+    const updateFn = async (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, childSummary?: StatsSummary): Promise<void> => {
+      if (area.pathTokens.length <= 1) {
+        // we're at the root country node
+        return
+      }
+
+      const ancestors = area.ancestors.split(',')
+      const parentUuid = muuid.from(ancestors[ancestors.length - 2])
+      const parentArea =
+        await this.areaModel.findOne({ 'metadata.area_id': parentUuid })
+          .batchSize(10)
+          .populate<{ children: AreaDocumnent[] }>({ path: 'children', model: this.areaModel })
+          .allowDiskUse(true)
+          .session(session)
+          .orFail()
+
+      const acc: StatsSummary[] = []
+      /**
+       * Collect existing stats from all children. For affected node, use the stats from previous calculation.
+       */
+      for (const childArea of parentArea.children) {
+        if (childArea._id.equals(area._id)) {
+          if (childSummary != null) acc.push(childSummary)
+        } else {
+          acc.push(leafReducer(childArea.toObject()))
+        }
+      }
+
+      const current = await nodesReducer(acc, parentArea as any as AreaDocumnent, { session, changeRecord })
+      await updateFn(session, changeRecord, parentArea as any as AreaDocumnent, current)
+    }
+
+    /**
+     * Begin calculation
+     */
+    if (!startingArea.metadata.leaf && !(startingArea.metadata.isBoulder ?? false)) {
+      return
+    }
+    if (excludeStartingArea) {
+      await updateFn(session, changeRecord, startingArea)
+    } else {
+      const leafStats = leafReducer(startingArea.toObject())
+      await updateFn(session, changeRecord, startingArea, leafStats)
+    }
+  }
+
   static instance: MutableAreaDataSource
 
   static getInstance (): MutableAreaDataSource {
@@ -500,7 +570,9 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
       leaf: false,
       area_id: uuid,
       leftRightIndex: -1,
-      ext_id: ''
+      ext_id: '',
+      bbox: undefined,
+      polygon: undefined
     },
     ancestors,
     climbs: [],
