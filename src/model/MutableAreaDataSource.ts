@@ -8,7 +8,7 @@ import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 import bbox2Polygon from '@turf/bbox-polygon'
 
-import { AreaType, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
+import { AreaType, AreaDocumnent, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
 import AreaDataSource from './AreaDataSource.js'
 import { createRootNode } from '../db/import/usa/AreaTree.js'
 import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
@@ -20,12 +20,10 @@ import { GradeContexts } from '../GradeUtils.js'
 import { sanitizeStrict } from '../utils/sanitize.js'
 import { ExperimentalAuthorType } from '../db/UserTypes.js'
 import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
-import { StatsAccumulator, leafReducer, nodesReducer } from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
+import { StatsSummary, leafReducer, nodesReducer } from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
 import { bboxFrom } from '../geo-utils.js'
 
 isoCountries.registerLocale(enJson)
-
-type AreaDocumnent = mongoose.Document<unknown, any, AreaType> & AreaType
 
 export default class MutableAreaDataSource extends AreaDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
@@ -485,14 +483,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 
   /**
-   * Update area stats and geo data for a given leaf node and its ancestors
+   * Update area stats and geo data for a given leaf node and its ancestors.
    * @param session
    * @param changeRecord
    * @param area
    */
   async updateStatsAndGeoDataForSinglePath (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent): Promise<void> {
-    const visitorFn = async (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, accumulator: StatsAccumulator): Promise<void> => {
+    /**
+     * Update function.  For each node, recalculate stats and recursively update its acenstors until we reach the country node.
+     */
+    const updateFn = async (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, childSummary: StatsSummary): Promise<void> => {
       if (area.pathTokens.length <= 1) {
+        // we're at the root country node
         return
       }
 
@@ -506,26 +508,27 @@ export default class MutableAreaDataSource extends AreaDataSource {
           .session(session)
           .orFail()
 
-      logger.info(`###Updating stats for ${parentArea.area_name}`)
-      logger.info(` ##prev Area ${area._id} ${area.area_name}`)
-
-      const acc: StatsAccumulator[] = []
+      const acc: StatsSummary[] = []
+      /**
+       * Collect existing stats from all children. For affected node, use the stats from previous calculation.
+       */
       for (const childArea of parentArea.children) {
-        logger.info(` - ${childArea._id} ${childArea.area_name}`)
-
         if (childArea._id.equals(area._id)) {
-          acc.push(accumulator)
+          acc.push(childSummary)
         } else {
           acc.push(leafReducer(childArea.toObject()))
         }
       }
 
       const current = await nodesReducer(acc, parentArea as any as AreaDocumnent, { session, changeRecord })
-
-      await visitorFn(session, changeRecord, parentArea as any as AreaDocumnent, current)
+      await updateFn(session, changeRecord, parentArea as any as AreaDocumnent, current)
     }
-    const accumulator = leafReducer(area.toObject())
-    await visitorFn(session, changeRecord, area, accumulator)
+
+    /**
+     * Begin calculation
+     */
+    const leafStats = leafReducer(area.toObject())
+    await updateFn(session, changeRecord, area, leafStats)
   }
 
   static instance: MutableAreaDataSource

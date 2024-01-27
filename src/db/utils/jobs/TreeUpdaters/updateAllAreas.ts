@@ -58,7 +58,7 @@ export const updateAllAreas = async (): Promise<void> => {
   }
 }
 
-export interface StatsAccumulator {
+export interface StatsSummary {
   density: number
   totalClimbs: number
   bbox?: BBox
@@ -67,7 +67,7 @@ export interface StatsAccumulator {
   polygon?: Polygon
 }
 
-async function postOrderVisit (node: AreaMongoType): Promise<StatsAccumulator> {
+async function postOrderVisit (node: AreaMongoType): Promise<StatsSummary> {
   if (node.metadata.leaf || node.children.length === 0) {
     return leafReducer((node.toObject() as AreaType))
   }
@@ -92,7 +92,7 @@ async function postOrderVisit (node: AreaMongoType): Promise<StatsAccumulator> {
  * @param node leaf area/crag
  * @returns aggregate type
  */
-export const leafReducer = (node: AreaType): StatsAccumulator => {
+export const leafReducer = (node: AreaType): StatsSummary => {
   return {
     totalClimbs: node.totalClimbs,
     bbox: node.metadata.bbox,
@@ -116,7 +116,7 @@ export const leafReducer = (node: AreaType): StatsAccumulator => {
 /**
  * Calculate convex hull polyon contain all child areas
  */
-const calculatePolygonFromChildren = (nodes: StatsAccumulator[]): Feature<Polygon> | null => {
+const calculatePolygonFromChildren = (nodes: StatsSummary[]): Feature<Polygon> | null => {
   const childAsPolygons = nodes.reduce<Array<Feature<Polygon>>>((acc, curr) => {
     if (curr.bbox != null) {
       acc.push(bbox2Polygon(curr.bbox))
@@ -135,12 +135,12 @@ interface OPTIONS {
 
 /**
  * Calculate stats from a list of nodes
- * @param result nodes
+ * @param childResults nodes
  * @param parent parent node to save stats to
  * @returns Calculated stats
  */
-export const nodesReducer = async (result: StatsAccumulator[], parent: AreaMongoType, options?: OPTIONS): Promise<StatsAccumulator> => {
-  const initial: StatsAccumulator = {
+export const nodesReducer = async (childResults: StatsSummary[], parent: AreaMongoType, options?: OPTIONS): Promise<StatsSummary> => {
+  const initial: StatsSummary = {
     totalClimbs: 0,
     bbox: undefined,
     lnglat: undefined,
@@ -158,14 +158,14 @@ export const nodesReducer = async (result: StatsAccumulator[], parent: AreaMongo
       }
     }
   }
-  let nodeSummary: StatsAccumulator = initial
-  if (result.length === 0) {
+  let nodeSummary: StatsSummary = initial
+  if (childResults.length === 0) {
     const { totalClimbs, aggregate, density } = initial
     parent.totalClimbs = totalClimbs
     parent.density = density
     parent.aggregate = aggregate
   } else {
-    nodeSummary = result.reduce((acc, curr) => {
+    nodeSummary = childResults.reduce((acc, curr) => {
       const { totalClimbs, aggregate, lnglat, bbox } = curr
       return {
         totalClimbs: acc.totalClimbs + totalClimbs,
@@ -177,7 +177,7 @@ export const nodesReducer = async (result: StatsAccumulator[], parent: AreaMongo
       }
     }, initial)
 
-    const polygon = calculatePolygonFromChildren(result)
+    const polygon = calculatePolygonFromChildren(childResults)
     nodeSummary.polygon = polygon?.geometry
     nodeSummary.bbox = bboxFromGeojson(polygon)
     nodeSummary.density = areaDensity(nodeSummary.bbox, nodeSummary.totalClimbs)
