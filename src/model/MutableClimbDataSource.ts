@@ -348,5 +348,5 @@ const updateStats = async (areaIdOrAreaCursor: MUUID | AreaDocumnent, session: C
     aggregate: aggregateCragStats(area.toObject())
   })
   await area.save()
-  await MutableAreaDataSource.getInstance().updateStatsAndGeoDataForSinglePath(session, changeRecord, area)
+  await MutableAreaDataSource.getInstance().updateLeafStatsAndGeoData(session, changeRecord, area)
 }

@@ -223,7 +223,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       deleting: { $ne: null }
     }
 
-    const area = await this.areaModel.findOne(filter).session(session).lean()
+    const area = await this.areaModel.findOne(filter).session(session).orFail()
 
     if (area == null) {
       throw new Error('Delete area error.  Reason: area not found.')
@@ -269,6 +269,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
       , {
         timestamps: false
       }).orFail().session(session)
+
+    await this.updateLeafStatsAndGeoData(session, _change, area, true)
 
     // In order to be able to record the deleted document in area_history, we mark (update) the
     // document for deletion (set ttl index = now).
@@ -376,7 +378,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
             'metadata.bbox': bbox,
             'metadata.polygon': bbox == null ? undefined : bbox2Polygon(bbox).geometry
           })
-          await this.updateStatsAndGeoDataForSinglePath(session, _change, area)
+          await this.updateLeafStatsAndGeoData(session, _change, area)
         }
       }
 
@@ -486,13 +488,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * Update area stats and geo data for a given leaf node and its ancestors.
    * @param session
    * @param changeRecord
-   * @param area
+   * @param startingArea
+   * @param excludeStartingArea true to exlude the starting area from the update. Useful when deleting an area.
    */
-  async updateStatsAndGeoDataForSinglePath (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent): Promise<void> {
+  async updateLeafStatsAndGeoData (session: ClientSession, changeRecord: ChangeRecordMetadataType, startingArea: AreaDocumnent, excludeStartingArea: boolean = false): Promise<void> {
     /**
      * Update function.  For each node, recalculate stats and recursively update its acenstors until we reach the country node.
      */
-    const updateFn = async (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, childSummary: StatsSummary): Promise<void> => {
+    const updateFn = async (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, childSummary?: StatsSummary): Promise<void> => {
       if (area.pathTokens.length <= 1) {
         // we're at the root country node
         return
@@ -514,7 +517,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
        */
       for (const childArea of parentArea.children) {
         if (childArea._id.equals(area._id)) {
-          acc.push(childSummary)
+          if (childSummary != null) acc.push(childSummary)
         } else {
           acc.push(leafReducer(childArea.toObject()))
         }
@@ -527,8 +530,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
     /**
      * Begin calculation
      */
-    const leafStats = leafReducer(area.toObject())
-    await updateFn(session, changeRecord, area, leafStats)
+    if (!startingArea.metadata.leaf && !(startingArea.metadata.isBoulder ?? false)) {
+      return
+    }
+    if (excludeStartingArea) {
+      await updateFn(session, changeRecord, startingArea)
+    } else {
+      const leafStats = leafReducer(startingArea.toObject())
+      await updateFn(session, changeRecord, startingArea, leafStats)
+    }
   }
 
   static instance: MutableAreaDataSource
