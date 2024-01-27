@@ -118,7 +118,7 @@ export const leafReducer = (node: AreaType): StatsSummary => {
  */
 const calculatePolygonFromChildren = (nodes: StatsSummary[]): Feature<Polygon> | null => {
   const childAsPolygons = nodes.reduce<Array<Feature<Polygon>>>((acc, curr) => {
-    if (curr.bbox != null) {
+    if (Array.isArray(curr.bbox) && curr?.bbox.length === 4) {
       acc.push(bbox2Polygon(curr.bbox))
     }
     return acc
@@ -179,7 +179,7 @@ export const nodesReducer = async (childResults: StatsSummary[], parent: AreaMon
 
     const polygon = calculatePolygonFromChildren(childResults)
     nodeSummary.polygon = polygon?.geometry
-    nodeSummary.bbox = bboxFromGeojson(polygon)
+    nodeSummary.bbox = polygon == null ? undefined : bboxFromGeojson(polygon)
     nodeSummary.density = areaDensity(nodeSummary.bbox, nodeSummary.totalClimbs)
 
     const { totalClimbs, bbox, density, aggregate } = nodeSummary

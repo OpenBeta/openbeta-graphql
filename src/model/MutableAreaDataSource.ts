@@ -570,7 +570,9 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
       leaf: false,
       area_id: uuid,
       leftRightIndex: -1,
-      ext_id: ''
+      ext_id: '',
+      bbox: undefined,
+      polygon: undefined
     },
     ancestors,
     climbs: [],
