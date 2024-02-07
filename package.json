@@ -9,6 +9,7 @@
   "devDependencies": {
     "@types/auth0": "^3.3.2",
     "@types/jest": "^29.4.0",
+    "@types/mapbox__mapbox-sdk": "^0.14.0",
     "@types/node": "^18.13.0",
     "@types/supertest": "^2.0.12",
     "@types/underscore": "^1.11.4",
@@ -25,9 +26,11 @@
     "wait-for-expect": "^3.0.2"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.507.0",
     "@babel/runtime": "^7.17.2",
     "@google-cloud/storage": "^6.9.5",
     "@graphql-tools/schema": "^8.3.1",
+    "@mapbox/mapbox-sdk": "^0.15.3",
     "@openbeta/sandbag": "^0.0.51",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
@@ -88,7 +91,9 @@
     "export-prod": "./export.sh",
     "prepare": "husky install",
     "import-users": "tsc ; node build/db/utils/jobs/migration/CreateUsersCollection.js",
-    "export-crags": "tsc ; node build/db/utils/jobs/CragGeojson/index.js"
+    "maptiles:export-db": "tsc ; node build/db/utils/jobs/CragGeojson/index.js",
+    "maptiles:generate": "tsc ; node build/db/utils/jobs/CragGeojson/generate.js",
+    "maptiles:upload": "tsc ; node build/db/utils/jobs/CragGeojson/upload.js"
   },
   "standard": {
     "plugins": [

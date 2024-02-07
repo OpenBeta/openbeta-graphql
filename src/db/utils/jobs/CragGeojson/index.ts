@@ -1,10 +1,14 @@
-import { createWriteStream } from 'node:fs'
+import { WriteStream, createWriteStream } from 'node:fs'
 import { point, feature, featureCollection, Feature, Point, Polygon } from '@turf/helpers'
 import os from 'node:os'
 import { MUUID } from 'uuid-mongodb'
 
-import { connectDB, gracefulExit, getAreaModel } from '../../../index.js'
+import { connectDB, gracefulExit, getAreaModel, getClimbModel } from '../../../index.js'
 import { logger } from '../../../../logger.js'
+import { ClimbType } from '../../../ClimbTypes.js'
+import MutableMediaDataSource from '../../../../model/MutableMediaDataSource.js'
+
+export const WORKING_DIR = './maptiles'
 
 /**
  * Export leaf areas as Geojson.  Leaf areas are crags/boulders that have climbs.
@@ -12,36 +16,63 @@ import { logger } from '../../../../logger.js'
 async function exportLeafCrags (): Promise<void> {
   const model = getAreaModel()
 
-  const stream = createWriteStream('crags.geojson', { encoding: 'utf-8' })
-
-  const features: Array<Feature<Point, {
+  let features: Array<Feature<Point, {
     name: string
   }>> = []
 
-  for await (const doc of model.find({ 'metadata.leaf': true, 'metadata.lnglat': { $ne: null } }).lean()) {
+  let fileIndex = 0
+  let stream: WriteStream = createWriteStream(`crags.${fileIndex}.geojson`, { encoding: 'utf-8' })
+  const cursor = model.find({ 'metadata.leaf': true, 'metadata.lnglat': { $ne: null } })
+    .populate<{ climbs: ClimbType[] }>({ path: 'climbs', model: getClimbModel() })
+    .batchSize(10)
+    .allowDiskUse(true)
+    .lean()
+
+  for await (const doc of cursor) {
     if (doc.metadata.lnglat == null) {
       continue
     }
 
-    const { metadata, area_name: areaName, pathTokens, ancestors, content } = doc
+    const { metadata, area_name: areaName, pathTokens, ancestors, content, gradeContext, climbs } = doc
 
     const ancestorArray = ancestors.split(',')
     const pointFeature = point(doc.metadata.lnglat.coordinates, {
-      id: metadata.area_id.toUUID().toString(),
+      id: metadata.area_id,
       name: areaName,
       type: 'crag',
       content,
-      parent: {
-        id: ancestorArray[ancestorArray.length - 2],
-        name: pathTokens[doc.pathTokens.length - 2]
-      }
+      media: await MutableMediaDataSource.getInstance().findMediaByAreaId(metadata.area_id, ancestors),
+      climbs: climbs.map(({ _id, name, type, grades }: ClimbType) => ({
+        id: _id.toUUID().toString(),
+        name,
+        discipline: type,
+        grade: grades
+      })),
+      ancestors: ancestorArray,
+      pathTokens,
+      gradeContext
     }, {
       id: metadata.area_id.toUUID().toString()
     })
     features.push(pointFeature)
+
+    if (features.length === 5000) {
+      logger.info(`Writing file ${fileIndex}`)
+      stream.write(JSON.stringify(featureCollection(features)) + os.EOL)
+      stream.close()
+      features = []
+
+      fileIndex++
+      stream = createWriteStream(`${WORKING_DIR}/crags.${fileIndex}.geojson`, { encoding: 'utf-8' })
+    }
   }
-  stream.write(JSON.stringify(featureCollection(features)) + os.EOL)
+
+  if (features.length > 0) {
+    logger.info(`Writing file ${fileIndex}`)
+    stream.write(JSON.stringify(featureCollection(features)) + os.EOL)
+  }
   stream.close()
+  logger.info('Complete.')
 }
 
 /**
@@ -139,9 +170,9 @@ async function exportCragGroups (): Promise<void> {
 
 async function onDBConnected (): Promise<void> {
   logger.info('Start exporting crag data as Geojson')
-  await exportLeafCrags()
-  await exportCragGroups()
+  // await exportLeafCrags()
+  // await exportCragGroups()
   await gracefulExit()
 }
 
-void connectDB(onDBConnected)
+await connectDB(onDBConnected)
