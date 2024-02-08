@@ -26,7 +26,7 @@ export type ClimbJson = Partial<Omit<ClimbType, 'metadata' | 'pitches'>> & {
 
 export interface BulkImportOptions {
   user: MUUID
-  json: AreaJson[]
+  json: { areas?: AreaJson[] }
   session?: mongoose.ClientSession
   areas?: MutableAreaDataSource
   climbs?: MutableClimbDataSource
@@ -59,7 +59,9 @@ export async function bulkImportJson ({
   const session = _session ?? (await mongoose.startSession())
   try {
     await session.withTransaction(async () => {
+      logger.info('starting bulk import...', json)
       result = await _bulkImportJson({ user, json, areas, climbs, session })
+      logger.info('bulk import successful', result)
       return result
     })
   } catch (e) {
@@ -67,7 +69,6 @@ export async function bulkImportJson ({
     result.errors.push(e)
   } finally {
     await session.endSession()
-    logger.debug('bulk import complete')
   }
   return result
 }
@@ -120,7 +121,7 @@ async function _bulkImportJson ({
     return [...result]
   }
 
-  for (const node of json) {
+  for (const node of json?.areas ?? []) {
     // fails fast and throws errors up the chain
     addedAreas.push(...(await addArea(node)))
   }

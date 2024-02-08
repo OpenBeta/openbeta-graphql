@@ -8,9 +8,9 @@ import ChangeLogDataSource from './model/ChangeLogDataSource.js'
 import MutableMediaDataSource from './model/MutableMediaDataSource.js'
 import MutableClimbDataSource from './model/MutableClimbDataSource.js'
 import TickDataSource from './model/TickDataSource.js'
-import { createContext } from './auth/middleware.js'
+import { authMiddleware, createContext } from './auth/middleware.js'
 import permissions from './auth/permissions.js'
-import { localDevBypassAuthMiddleware } from './auth/local-dev/middleware.js'
+import { localDevBypassAuthContext, localDevBypassAuthMiddleware } from './auth/local-dev/middleware.js'
 import localDevBypassAuthPermissions from './auth/local-dev/permissions.js'
 import XMediaDataSource from './model/XMediaDataSource.js'
 import PostDataSource from './model/PostDataSource.js'
@@ -20,6 +20,8 @@ import type { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import UserDataSource from './model/UserDataSource.js'
 import express from 'express'
 import * as http from 'http'
+import bodyParser from 'body-parser'
+import { importJsonRequestHandler } from './db/import/json/request-handler.js'
 
 export async function startServer (port = 4000): Promise<ApolloServer> {
   const schema = applyMiddleware(
@@ -48,10 +50,16 @@ export async function startServer (port = 4000): Promise<ApolloServer> {
   const server = new ApolloServer({
     introspection: true,
     schema,
-    context: process.env.LOCAL_DEV_BYPASS_AUTH === 'true' ? localDevBypassAuthMiddleware : createContext,
+    context: process.env.LOCAL_DEV_BYPASS_AUTH === 'true' ? localDevBypassAuthContext : createContext,
     dataSources,
     cache: 'bounded'
   })
+  app.post('/import/json', [
+    process.env.LOCAL_DEV_BYPASS_AUTH === 'true' ? localDevBypassAuthMiddleware : authMiddleware,
+    bodyParser.json(),
+    importJsonRequestHandler
+  ])
+
   await server.start()
   server.applyMiddleware({ app, path: '/' })
 

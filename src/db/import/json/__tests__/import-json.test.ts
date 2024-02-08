@@ -28,7 +28,7 @@ describe('bulk import e2e', () => {
   const assertBulkImport = async (...json: AreaJson[]): Promise<TestResult> => {
     const result = await bulkImportJson({
       user: testUser,
-      json,
+      json: {areas: json},
       areas,
     });
 
