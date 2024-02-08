@@ -1,16 +1,16 @@
-import mongoose from 'mongoose'
 import muid from 'uuid-mongodb'
-import { ChangeStream } from 'mongodb'
+import {ChangeStream} from 'mongodb'
 
 import MutableClimbDataSource from '../MutableClimbDataSource.js'
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 
-import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
-import { logger } from '../../logger.js'
-import { ClimbType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
-import { sanitizeDisciplines } from '../../GradeUtils.js'
+import {createIndexes, getAreaModel, getClimbModel} from '../../db/index.js'
+import {logger} from '../../logger.js'
+import {ClimbChangeInputType, ClimbType} from '../../db/ClimbTypes.js'
+import {sanitizeDisciplines} from '../../GradeUtils.js'
 import streamListener from '../../db/edit/streamListener.js'
-import { changelogDataSource } from '../ChangeLogDataSource.js'
+import {changelogDataSource} from '../ChangeLogDataSource.js'
+import inMemoryDB from "../../utils/inMemoryDB.js";
 
 export const newSportClimb1: ClimbChangeInputType = {
   name: 'Cool route 1',
@@ -122,16 +122,16 @@ describe('Climb CRUD', () => {
     pitches: [
       {
         pitchNumber: 1,
-        grades: { uiaa: '7' },
-        disciplines: { sport: true },
+        grades: {uiaa: '7'},
+        disciplines: {sport: true},
         length: 30,
         boltsCount: 5,
         description: 'First pitch description'
       },
       {
         pitchNumber: 2,
-        grades: { uiaa: '6+' },
-        disciplines: { sport: true },
+        grades: {uiaa: '6+'},
+        disciplines: {sport: true},
         length: 40,
         boltsCount: 6,
         description: 'Second pitch description'
@@ -140,7 +140,7 @@ describe('Climb CRUD', () => {
   }
 
   beforeAll(async () => {
-    await connectDB()
+    await inMemoryDB.connect()
     stream = await streamListener()
 
     try {
@@ -161,7 +161,7 @@ describe('Climb CRUD', () => {
   afterAll(async () => {
     try {
       await stream.close()
-      await mongoose.disconnect()
+      await inMemoryDB.close()
     } catch (e) {
       console.log('closing mongoose', e)
     }
@@ -293,13 +293,13 @@ describe('Climb CRUD', () => {
     const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       newBoulderingArea.metadata.area_id,
-      [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
-        { ...newBoulderProblem2, grade: '5.9' }]) // invalid grade (YDS grade for a boulder problem)
+      [{...newBoulderProblem1, grade: 'V3'}, // good grade
+        {...newBoulderProblem2, grade: '5.9'}]) // invalid grade (YDS grade for a boulder problem)
 
     expect(newIDs).toHaveLength(2)
 
     const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-    expect(climb1?.grades).toEqual({ vscale: 'V3' })
+    expect(climb1?.grades).toEqual({vscale: 'V3'})
 
     const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
     expect(climb2?.grades).toEqual(undefined)
@@ -314,11 +314,11 @@ describe('Climb CRUD', () => {
       if (newClimbingArea == null) fail('Expect new area to be created')
 
       const newclimbs = [
-        { ...newSportClimb1, grade: '17' }, // good sport grade
-        { ...newSportClimb2, grade: '29/30', disciplines: { trad: true } }, // good trad and slash grade
-        { ...newSportClimb2, grade: '5.9' }, // bad AU context grade
-        { ...newIceRoute, grade: 'WI4+' }, // good WI AU context grade
-        { ...newAidRoute, grade: 'A0' } // good aid grade
+        {...newSportClimb1, grade: '17'}, // good sport grade
+        {...newSportClimb2, grade: '29/30', disciplines: {trad: true}}, // good trad and slash grade
+        {...newSportClimb2, grade: '5.9'}, // bad AU context grade
+        {...newIceRoute, grade: 'WI4+'}, // good WI AU context grade
+        {...newAidRoute, grade: 'A0'} // good aid grade
       ]
 
       const newIDs = await climbs.addOrUpdateClimbs(
@@ -329,12 +329,12 @@ describe('Climb CRUD', () => {
       expect(newIDs).toHaveLength(newclimbs.length)
 
       const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-      expect(climb1?.grades).toEqual({ ewbank: '17' })
+      expect(climb1?.grades).toEqual({ewbank: '17'})
       expect(climb1?.type.sport).toBe(true)
       expect(newSportClimb1?.boltsCount).toEqual(2)
 
       const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
-      expect(climb2?.grades).toEqual({ ewbank: '29/30' })
+      expect(climb2?.grades).toEqual({ewbank: '29/30'})
       expect(climb2?.type.sport).toBe(false)
       expect(climb2?.type.trad).toBe(true)
 
@@ -342,14 +342,14 @@ describe('Climb CRUD', () => {
       expect(climb3?.grades).toEqual(undefined)
 
       const climb4 = await climbs.findOneClimbByMUUID(muid.from(newIDs[3]))
-      expect(climb4?.grades).toEqual({ wi: 'WI4+' })
+      expect(climb4?.grades).toEqual({wi: 'WI4+'})
       expect(climb4?.type.sport).toBe(false)
       expect(climb4?.type.trad).toBe(false)
       expect(climb4?.type.bouldering).toBe(false)
       expect(climb4?.type.ice).toBe(true)
 
       const climb5 = await climbs.findOneClimbByMUUID(muid.from(newIDs[4]))
-      expect(climb5?.grades).toEqual({ aid: 'A0' })
+      expect(climb5?.grades).toEqual({aid: 'A0'})
       expect(climb5?.type.sport).toBe(false)
       expect(climb5?.type.trad).toBe(false)
       expect(climb5?.type.aid).toBe(true)
@@ -363,14 +363,14 @@ describe('Climb CRUD', () => {
       const newIDs = await climbs.addOrUpdateClimbs(
         testUser,
         newBoulderingArea.metadata.area_id,
-        [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
-          { ...newBoulderProblem2, grade: '23' }, // bad boulder grade
-          { ...newBoulderProblem2, grade: '7B' }]) // invalid grade (font grade for a AU context boulder problem)
+        [{...newBoulderProblem1, grade: 'V3'}, // good grade
+          {...newBoulderProblem2, grade: '23'}, // bad boulder grade
+          {...newBoulderProblem2, grade: '7B'}]) // invalid grade (font grade for a AU context boulder problem)
 
       expect(newIDs).toHaveLength(3)
 
       const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-      expect(climb1?.grades).toEqual({ vscale: 'V3' })
+      expect(climb1?.grades).toEqual({vscale: 'V3'})
 
       const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
       expect(climb2?.grades).toEqual(undefined)
@@ -389,11 +389,11 @@ describe('Climb CRUD', () => {
       if (newClimbingArea == null) fail('Expect new area to be created in Brazil')
 
       const newclimbs = [
-        { ...newSportClimb1, grade: 'VIsup' }, // good sport grade
-        { ...newSportClimb2, grade: 'VIsup/VIIa', disciplines: { trad: true } }, // good trad and slash grade
-        { ...newSportClimb2, grade: '5.9' }, // bad BRZ context grade
-        { ...newIceRoute, grade: 'WI4+' }, // good WI BRZ context grade
-        { ...newAidRoute, grade: 'A0' } // good aid grade
+        {...newSportClimb1, grade: 'VIsup'}, // good sport grade
+        {...newSportClimb2, grade: 'VIsup/VIIa', disciplines: {trad: true}}, // good trad and slash grade
+        {...newSportClimb2, grade: '5.9'}, // bad BRZ context grade
+        {...newIceRoute, grade: 'WI4+'}, // good WI BRZ context grade
+        {...newAidRoute, grade: 'A0'} // good aid grade
       ]
 
       const newIDs = await climbs.addOrUpdateClimbs(
@@ -404,12 +404,12 @@ describe('Climb CRUD', () => {
       expect(newIDs).toHaveLength(newclimbs.length)
 
       const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-      expect(climb1?.grades).toEqual({ brazilian_crux: 'VIsup' })
+      expect(climb1?.grades).toEqual({brazilian_crux: 'VIsup'})
       expect(climb1?.type.sport).toBe(true)
       expect(newSportClimb1?.boltsCount).toEqual(2)
 
       const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
-      expect(climb2?.grades).toEqual({ brazilian_crux: 'VIsup/VIIa' })
+      expect(climb2?.grades).toEqual({brazilian_crux: 'VIsup/VIIa'})
       expect(climb2?.type.sport).toBe(false)
       expect(climb2?.type.trad).toBe(true)
 
@@ -417,14 +417,14 @@ describe('Climb CRUD', () => {
       expect(climb3?.grades).toEqual(undefined)
 
       const climb4 = await climbs.findOneClimbByMUUID(muid.from(newIDs[3]))
-      expect(climb4?.grades).toEqual({ wi: 'WI4+' })
+      expect(climb4?.grades).toEqual({wi: 'WI4+'})
       expect(climb4?.type.sport).toBe(false)
       expect(climb4?.type.trad).toBe(false)
       expect(climb4?.type.bouldering).toBe(false)
       expect(climb4?.type.ice).toBe(true)
 
       const climb5 = await climbs.findOneClimbByMUUID(muid.from(newIDs[4]))
-      expect(climb5?.grades).toEqual({ aid: 'A0' })
+      expect(climb5?.grades).toEqual({aid: 'A0'})
       expect(climb5?.type.sport).toBe(false)
       expect(climb5?.type.trad).toBe(false)
       expect(climb5?.type.aid).toBe(true)
@@ -438,14 +438,14 @@ describe('Climb CRUD', () => {
       const newIDs = await climbs.addOrUpdateClimbs(
         testUser,
         newBoulderingArea.metadata.area_id,
-        [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
-          { ...newBoulderProblem2, grade: '23' }, // bad boulder grade
-          { ...newBoulderProblem2, grade: '7B' }]) // invalid grade (font grade for a BRZ context boulder problem)
+        [{...newBoulderProblem1, grade: 'V3'}, // good grade
+          {...newBoulderProblem2, grade: '23'}, // bad boulder grade
+          {...newBoulderProblem2, grade: '7B'}]) // invalid grade (font grade for a BRZ context boulder problem)
 
       expect(newIDs).toHaveLength(3)
 
       const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-      expect(climb1?.grades).toEqual({ vscale: 'V3' })
+      expect(climb1?.grades).toEqual({vscale: 'V3'})
 
       const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
       expect(climb2?.grades).toEqual(undefined)
@@ -465,21 +465,21 @@ describe('Climb CRUD', () => {
     const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       newClimbingArea.metadata.area_id,
-      [{ ...newSportClimb1, grade: '6+' }, // good UIAA grade
-        { ...newSportClimb2, grade: '7-' }, // good UIAA grade
-        { ...newSportClimb2, grade: '5' }, // good UIAA grade
-        { ...newSportClimb1, grade: 'V6' }]) // bad UIAA grade (V-scale used)
+      [{...newSportClimb1, grade: '6+'}, // good UIAA grade
+        {...newSportClimb2, grade: '7-'}, // good UIAA grade
+        {...newSportClimb2, grade: '5'}, // good UIAA grade
+        {...newSportClimb1, grade: 'V6'}]) // bad UIAA grade (V-scale used)
 
     expect(newIDs).toHaveLength(4)
 
     const climb1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-    expect(climb1?.grades).toEqual({ uiaa: '6+' })
+    expect(climb1?.grades).toEqual({uiaa: '6+'})
 
     const climb2 = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
-    expect(climb2?.grades).toEqual({ uiaa: '7-' })
+    expect(climb2?.grades).toEqual({uiaa: '7-'})
 
     const climb3 = await climbs.findOneClimbByMUUID(muid.from(newIDs[2]))
-    expect(climb3?.grades).toEqual({ uiaa: '5' })
+    expect(climb3?.grades).toEqual({uiaa: '5'})
 
     const climb4 = await climbs.findOneClimbByMUUID(muid.from(newIDs[3]))
     expect(climb4?.grades).toEqual(undefined)
@@ -510,7 +510,7 @@ describe('Climb CRUD', () => {
         id: newIDs[0],
         name: 'new name A100',
         grade: '6b',
-        disciplines: sanitizeDisciplines({ bouldering: true })
+        disciplines: sanitizeDisciplines({bouldering: true})
       },
       {
         id: newIDs[1],
@@ -652,8 +652,8 @@ describe('Climb CRUD', () => {
       id: originalPitch1ID,
       parentId: originalPitch1ParentID,
       pitchNumber: 1,
-      grades: { ewbank: '19' },
-      disciplines: { sport: false, alpine: true },
+      grades: {ewbank: '19'},
+      disciplines: {sport: false, alpine: true},
       length: 20,
       boltsCount: 6,
       description: 'Updated first pitch description'
@@ -663,8 +663,8 @@ describe('Climb CRUD', () => {
       id: originalPitch2ID,
       parentId: originalPitch2ParentID,
       pitchNumber: 2,
-      grades: { ewbank: '18' },
-      disciplines: { sport: false, alpine: true },
+      grades: {ewbank: '18'},
+      disciplines: {sport: false, alpine: true},
       length: 25,
       boltsCount: 5,
       description: 'Updated second pitch description'

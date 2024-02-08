@@ -1,18 +1,13 @@
-import { ChangeStream } from 'mongodb';
-import mongoose from 'mongoose';
+import {ChangeStream} from 'mongodb';
 import muuid from 'uuid-mongodb';
-import {
-  connectDB,
-  getAreaModel,
-  getClimbModel,
-} from '../../../../db/index.js';
-import { changelogDataSource } from '../../../../model/ChangeLogDataSource.js';
+import {changelogDataSource} from '../../../../model/ChangeLogDataSource.js';
 import MutableAreaDataSource from '../../../../model/MutableAreaDataSource.js';
 import MutableClimbDataSource from '../../../../model/MutableClimbDataSource.js';
-import { AreaType } from '../../../AreaTypes.js';
-import { ClimbType } from '../../../ClimbTypes.js';
+import {AreaType} from '../../../AreaTypes.js';
+import {ClimbType} from '../../../ClimbTypes.js';
 import streamListener from '../../../edit/streamListener.js';
-import { AreaJson, BulkImportResult, bulkImportJson } from '../import-json.js';
+import {AreaJson, bulkImportJson, BulkImportResult} from '../import-json.js';
+import inMemoryDB from "../../../../utils/inMemoryDB.js";
 
 type TestResult = BulkImportResult & {
   addedAreas: Partial<AreaType>[];
@@ -38,12 +33,12 @@ describe('bulk import e2e', () => {
     const isRejected = <T>(
       p: PromiseSettledResult<T>
     ): p is PromiseRejectedResult => p.status === 'rejected';
-    const comittedAreas = await Promise.allSettled(
+    const committedAreas = await Promise.allSettled(
       result.addedAreas.map((area) =>
         areas.findOneAreaByUUID(area.metadata.area_id)
       )
     );
-    const comittedClimbs = await Promise.allSettled(
+    const committedClimbs = await Promise.allSettled(
       result.climbIds.map((id) => climbs.findOneClimbByMUUID(muuid.from(id)))
     );
 
@@ -51,25 +46,25 @@ describe('bulk import e2e', () => {
       ...result,
       errors: [
         ...result.errors,
-        ...comittedAreas.filter(isRejected).map((p) => p.reason),
-        ...comittedClimbs.filter(isRejected).map((p) => p.reason),
+        ...committedAreas.filter(isRejected).map((p) => p.reason),
+        ...committedClimbs.filter(isRejected).map((p) => p.reason),
       ],
-      addedAreas: comittedAreas.filter(isFulfilled).map((p) => p.value),
-      addedClimbs: comittedClimbs
-        .filter(isFulfilled)
-        .map((p) => p.value as Partial<ClimbType>),
+      addedAreas: committedAreas.filter(isFulfilled).map((p) => p.value),
+      addedClimbs: committedClimbs
+      .filter(isFulfilled)
+      .map((p) => p.value as Partial<ClimbType>),
     };
   };
 
   beforeAll(async () => {
-    await connectDB();
+    await inMemoryDB.connect()
     stream = await streamListener();
   });
 
   afterAll(async () => {
     try {
       await stream.close();
-      await mongoose.disconnect();
+      await inMemoryDB.close()
     } catch (e) {
       console.log('error closing mongoose', e);
     }
@@ -84,12 +79,7 @@ describe('bulk import e2e', () => {
 
   afterEach(async () => {
     await changelogDataSource._testRemoveAll();
-    try {
-      await getAreaModel().collection.drop();
-    } catch {}
-    try {
-      await getClimbModel().collection.drop();
-    } catch {}
+    await inMemoryDB.clear()
   });
 
   describe('adding new areas and climbs', () => {
@@ -145,8 +135,8 @@ describe('bulk import e2e', () => {
       ).resolves.toMatchObject({
         errors: [],
         addedAreas: [
-          { area_name: 'Parent Area', gradeContext: 'US' },
-          { area_name: 'Child Area 2', gradeContext: 'US' },
+          {area_name: 'Parent Area', gradeContext: 'US'},
+          {area_name: 'Child Area 2', gradeContext: 'US'},
         ] as Partial<AreaType>[],
       });
     });
@@ -204,7 +194,7 @@ describe('bulk import e2e', () => {
             {
               name: 'Test Climb',
               grade: '5.10a',
-              disciplines: { sport: true },
+              disciplines: {sport: true},
             },
           ],
         })
@@ -251,7 +241,7 @@ describe('bulk import e2e', () => {
         })
       ).resolves.toMatchObject({
         errors: [],
-        addedAreas: [{ area_name: 'New Name' }],
+        addedAreas: [{area_name: 'New Name'}],
       });
     });
   });

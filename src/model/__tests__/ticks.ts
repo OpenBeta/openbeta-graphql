@@ -1,11 +1,11 @@
-import mongoose from 'mongoose'
-import { produce } from 'immer'
+import {produce} from 'immer'
 import TickDataSource from '../TickDataSource.js'
-import { connectDB, getTickModel, getUserModel } from '../../db/index.js'
-import { TickInput } from '../../db/TickTypes.js'
+import {getTickModel, getUserModel} from '../../db/index.js'
+import {TickInput} from '../../db/TickTypes.js'
 import muuid from 'uuid-mongodb'
 import UserDataSource from '../UserDataSource.js'
-import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
+import {UpdateProfileGQLInput} from '../../db/UserTypes.js'
+import inMemoryDB from "../../utils/inMemoryDB.js";
 
 const userId = muuid.v4()
 
@@ -51,7 +51,7 @@ describe('Ticks', () => {
 
   beforeAll(async () => {
     console.log('#BeforeAll Ticks')
-    await connectDB()
+    await inMemoryDB.connect()
 
     try {
       await getTickModel().collection.drop()
@@ -65,7 +65,7 @@ describe('Ticks', () => {
   })
 
   afterAll(async () => {
-    await mongoose.connection.close()
+    await inMemoryDB.close()
   })
 
   afterEach(async () => {
@@ -76,7 +76,7 @@ describe('Ticks', () => {
   // test adding tick
   it('should create a new tick for the associated climb', async () => {
     const tick = await ticks.addTick(toTest)
-    const newTick = await tickModel.findOne({ userId: toTest.userId })
+    const newTick = await tickModel.findOne({userId: toTest.userId})
     expect(newTick?._id).toEqual(tick._id)
   })
 
@@ -87,7 +87,7 @@ describe('Ticks', () => {
     if (tick == null) {
       fail('Tick should not be null')
     }
-    const newTick = await ticks.editTick({ _id: tick._id }, tickUpdate)
+    const newTick = await ticks.editTick({_id: tick._id}, tickUpdate)
 
     if (newTick == null) {
       fail('The new tick should not be null')
@@ -106,7 +106,7 @@ describe('Ticks', () => {
     }
     await ticks.deleteTick(tick._id)
 
-    const newTick = await tickModel.findOne({ _id: tick._id })
+    const newTick = await tickModel.findOne({_id: tick._id})
 
     expect(newTick).toBeNull()
   })
@@ -120,13 +120,13 @@ describe('Ticks', () => {
     }
     expect(newTicks?.length).toEqual(testImport.length)
 
-    const tick1 = await tickModel.findOne({ _id: newTicks[0]._id })
+    const tick1 = await tickModel.findOne({_id: newTicks[0]._id})
     expect(tick1?._id).toEqual(newTicks[0]._id)
 
-    const tick2 = await tickModel.findOne({ _id: newTicks[1]._id })
+    const tick2 = await tickModel.findOne({_id: newTicks[1]._id})
     expect(tick2?._id).toEqual(newTicks[1]._id)
 
-    const tick3 = await tickModel.findOne({ _id: newTicks[2]._id })
+    const tick3 = await tickModel.findOne({_id: newTicks[2]._id})
     expect(tick3?._id).toEqual(newTicks[2]._id)
   })
 
@@ -143,7 +143,7 @@ describe('Ticks', () => {
       fail('Should add a new tick')
     }
 
-    const newTicks = await ticks.ticksByUser({ userId })
+    const newTicks = await ticks.ticksByUser({userId})
 
     expect(newTicks.length).toEqual(1)
   })
@@ -168,7 +168,7 @@ describe('Ticks', () => {
     }
 
     await ticks.deleteAllTicks(userId.toUUID().toString())
-    const newTick = await tickModel.findOne({ userId })
+    const newTick = await tickModel.findOne({userId})
     expect(newTick).toBeNull()
   })
 
@@ -181,7 +181,7 @@ describe('Ticks', () => {
     }
 
     await ticks.deleteImportedTicks(userId.toUUID().toString())
-    const newTick = await tickModel.findOne({ _id: OBTick._id })
+    const newTick = await tickModel.findOne({_id: OBTick._id})
     expect(newTick?._id).toEqual(OBTick._id)
     expect(newTick?.notes).toEqual('Not sandbagged')
   })

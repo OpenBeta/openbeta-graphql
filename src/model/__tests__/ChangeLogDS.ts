@@ -1,20 +1,17 @@
-import mongoose from 'mongoose'
-import { jest } from '@jest/globals'
 import muuid from 'uuid-mongodb'
-import { connectDB, getChangeLogModel, getAreaModel } from '../../db/index.js'
+import {getAreaModel, getChangeLogModel} from '../../db/index.js'
 import ChangeLogDataSource from '../ChangeLogDataSource.js'
-import { OpType } from '../../db/ChangeLogType.js'
-import { OperationType } from '../../db/AreaTypes.js'
+import {OpType} from '../../db/ChangeLogType.js'
+import {OperationType} from '../../db/AreaTypes.js'
 
-import { logger } from '../../logger.js'
-
-jest.setTimeout(10000)
+import {logger} from '../../logger.js'
+import inMemoryDB from "../../utils/inMemoryDB.js";
 
 describe('Area history', () => {
   let changeLog: ChangeLogDataSource
 
   beforeAll(async () => {
-    await connectDB()
+    await inMemoryDB.connect()
 
     try {
       await getAreaModel().collection.drop()
@@ -23,14 +20,11 @@ describe('Area history', () => {
       logger.info('Expected exception')
     }
 
-    changeLog = new ChangeLogDataSource(
-      mongoose.connection.db.collection(
-        getChangeLogModel().modelName)
-    )
+    changeLog = ChangeLogDataSource.getInstance()
   })
 
   afterAll(async () => {
-    await mongoose.connection.close()
+    await inMemoryDB.close()
   })
 
   it('should create a change record', async () => {

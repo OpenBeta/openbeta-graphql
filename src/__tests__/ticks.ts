@@ -1,12 +1,14 @@
-import { ApolloServer } from 'apollo-server-express'
+import {ApolloServer} from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
-import { jest } from '@jest/globals'
-import { queryAPI, setUpServer } from '../utils/testUtils.js'
-import { muuidToString } from '../utils/helpers.js'
-import { TickInput } from '../db/TickTypes.js'
+import {jest} from '@jest/globals'
+import {queryAPI, setUpServer} from '../utils/testUtils.js'
+import {muuidToString} from '../utils/helpers.js'
+import {TickInput} from '../db/TickTypes.js'
 import TickDataSource from '../model/TickDataSource.js'
 import UserDataSource from '../model/UserDataSource.js'
-import { UpdateProfileGQLInput } from '../db/UserTypes.js'
+import {UpdateProfileGQLInput} from '../db/UserTypes.js'
+import {InMemoryDB} from "../utils/inMemoryDB.js";
+import express from "express";
 
 jest.setTimeout(110000)
 
@@ -14,7 +16,8 @@ describe('ticks API', () => {
   let server: ApolloServer
   let user: muuid.MUUID
   let userUuid: string
-  let inMemoryDB
+  let app: express.Application
+  let inMemoryDB: InMemoryDB
 
   // Mongoose models for mocking pre-existing state.
   let ticks: TickDataSource
@@ -22,7 +25,7 @@ describe('ticks API', () => {
   let tickOne: TickInput
 
   beforeAll(async () => {
-    ({ server, inMemoryDB } = await setUpServer())
+    ({server, inMemoryDB, app} = await setUpServer())
     user = muuid.v4()
     userUuid = muuidToString(user)
 
@@ -92,8 +95,9 @@ describe('ticks API', () => {
       await ticks.addTick(tickOne)
       const response = await queryAPI({
         query: userQuery,
-        variables: { userId: userUuid },
-        userUuid
+        variables: {userId: userUuid},
+        userUuid,
+        app
       })
       expect(response.statusCode).toBe(200)
       const res = response.body.data.userTicks
@@ -111,8 +115,9 @@ describe('ticks API', () => {
       await ticks.addTick(tickOne)
       const response = await queryAPI({
         query: userQuery,
-        variables: { username: 'cat.dog' },
-        userUuid
+        variables: {username: 'cat.dog'},
+        userUuid,
+        app
       })
       expect(response.statusCode).toBe(200)
       const res = response.body.data.userTicks
@@ -124,8 +129,9 @@ describe('ticks API', () => {
       await ticks.addTick(tickOne)
       const response = await queryAPI({
         query: userTickByClimbQuery,
-        variables: { userId: userUuid, climbId: tickOne.climbId },
-        userUuid
+        variables: {userId: userUuid, climbId: tickOne.climbId},
+        userUuid,
+        app
       })
       expect(response.statusCode).toBe(200)
       const res = response.body.data.userTicksByClimbId
@@ -170,9 +176,10 @@ describe('ticks API', () => {
     it('creates and updates a tick', async () => {
       const createResponse = await queryAPI({
         query: createQuery,
-        variables: { input: tickOne },
+        variables: {input: tickOne},
         userUuid,
-        roles: ['user_admin']
+        roles: ['user_admin'],
+        app
       })
 
       expect(createResponse.statusCode).toBe(200)
@@ -204,7 +211,8 @@ describe('ticks API', () => {
           }
         },
         userUuid,
-        roles: ['user_admin']
+        roles: ['user_admin'],
+        app
       })
 
       expect(updateResponse.statusCode).toBe(200)

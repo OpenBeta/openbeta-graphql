@@ -1,25 +1,46 @@
 import mongoose from 'mongoose'
-import { ChangeStream, ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
+import {ChangeStream, ChangeStreamDocument, ChangeStreamUpdateDocument} from 'mongodb'
 import dot from 'dot-object'
 
-import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
-import { logger } from '../../logger.js'
-import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation, SupportedCollectionTypes, DocumentKind } from '../ChangeLogType.js'
-import { checkVar } from '../index.js'
-import { updateAreaIndex, updateClimbIndex } from '../export/Typesense/Client.js'
-import { AreaType } from '../AreaTypes.js'
-import { exhaustiveCheck } from '../../utils/helpers.js'
-import { ClimbType } from '../ClimbTypes.js'
+import {changelogDataSource} from '../../model/ChangeLogDataSource.js'
+import {logger} from '../../logger.js'
+import {
+  BaseChangeRecordType,
+  DBOperation,
+  DocumentKind,
+  ResumeToken,
+  SupportedCollectionTypes,
+  UpdateDescription
+} from '../ChangeLogType.js'
+import {checkVar} from '../index.js'
+import {updateAreaIndex, updateClimbIndex} from '../export/Typesense/Client.js'
+import {AreaType} from '../AreaTypes.js'
+import {exhaustiveCheck} from '../../utils/helpers.js'
+import {ClimbType} from '../ClimbTypes.js'
 
 /**
  * Start a new stream listener to track changes
  */
-export default async function streamListener (): Promise<ChangeStream> {
+export default async function streamListener(): Promise<ChangeStream> {
+  return (await createChangeStream()).on('change', onChange)
+}
+
+/**
+ * The test stream listener awaits all change events
+ */
+export async function testStreamListener(callback?: (change: ChangeStreamDocument) => void): Promise<ChangeStream> {
+  return (await createChangeStream()).on('change', async (change: ChangeStreamDocument) => {
+    await onChange(change)
+    callback && callback(change)
+  })
+}
+
+async function createChangeStream(): Promise<ChangeStream> {
   const resumeId = await mostRecentResumeId()
-  logger.info({ resumeId }, 'Starting stream listener')
+  logger.info({resumeId}, 'Starting stream listener')
 
   const opts: any = {
-    fullDocument: 'updateLookup'
+    fullDocument: 'updateLookup',
   }
   if (resumeId != null) {
     opts.resumeId = resumeId
@@ -40,32 +61,40 @@ export default async function streamListener (): Promise<ChangeStream> {
     }
   }]
 
-  const changeStream = mongoose.connection.watch(pipeline, opts)
-  return changeStream.on('change', onChange)
+  return mongoose.connection.watch(pipeline, opts)
 }
 
-const onChange = (change: ChangeStreamDocument): void => {
-  const { operationType } = change
+const onChange = async (change: ChangeStreamDocument): Promise<void> => {
+  const {operationType} = change
 
   switch (operationType) {
     case 'replace':
     case 'update': {
       let dbOp: DBOperation = 'update'
       const source = DocumentKind[change.ns.coll]
-      const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
+      const {fullDocument, _id, updateDescription} = change as ChangeStreamUpdateDocument
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
       }
 
-      void recordChange({ _id: _id as ResumeToken, source, fullDocument: fullDocument as SupportedCollectionTypes, updateDescription, dbOp })
-      break
+      return recordChange({
+        _id: _id as ResumeToken,
+        source,
+        fullDocument: fullDocument as SupportedCollectionTypes,
+        updateDescription,
+        dbOp
+      })
     }
     case 'insert': {
       const dbOp = 'insert'
       const source = DocumentKind[change.ns.coll]
-      const { fullDocument, _id } = change
-      void recordChange({ _id: _id as ResumeToken, source, fullDocument: fullDocument as SupportedCollectionTypes, dbOp })
-      break
+      const {fullDocument, _id} = change
+      return recordChange({
+        _id: _id as ResumeToken,
+        source,
+        fullDocument: fullDocument as SupportedCollectionTypes,
+        dbOp
+      })
     }
   }
 }
@@ -78,7 +107,7 @@ interface ChangeRecordType {
   dbOp: DBOperation
 }
 
-const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
+const recordChange = async ({source, dbOp, fullDocument, updateDescription, _id}: ChangeRecordType): Promise<void> => {
   fullDocument.kind = source
   switch (source) {
     case DocumentKind.climbs: {
@@ -89,9 +118,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.climbs
       }
-      void changelogDataSource.record(newDocument)
-      void updateClimbIndex(fullDocument as ClimbType, dbOp)
-      break
+      return changelogDataSource.record(newDocument).then(() => updateClimbIndex(fullDocument as ClimbType, dbOp))
     }
     case DocumentKind.areas: {
       const newDocument: BaseChangeRecordType = {
@@ -101,9 +128,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.areas
       }
-      void changelogDataSource.record(newDocument)
-      void updateAreaIndex(fullDocument as AreaType, dbOp)
-      break
+      return changelogDataSource.record(newDocument).then(() => updateAreaIndex(fullDocument as AreaType, dbOp))
     }
     case DocumentKind.organizations: {
       const newDocument: BaseChangeRecordType = {
@@ -113,8 +138,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.organizations
       }
-      void changelogDataSource.record(newDocument)
-      break
+      return changelogDataSource.record(newDocument).then()
     }
     default:
       exhaustiveCheck(source)
@@ -174,7 +198,7 @@ const dotifyUpdateDescription = (updateDescription: UpdateDescriptionType): Upda
     }
   }
 
-  const { updatedFields, removedFields, truncatedArrays } = updateDescription
+  const {updatedFields, removedFields, truncatedArrays} = updateDescription
   cleanupObj(updatedFields)
   return {
     updatedFields: updatedFields != null ? Object.keys(dot.dot(updatedFields)) : [],

@@ -21,7 +21,8 @@
     "supertest": "^6.3.3",
     "ts-jest": "^29.0.5",
     "ts-standard": "^12.0.0",
-    "typescript": "4.9.5"
+    "typescript": "4.9.5",
+    "wait-for-expect": "^3.0.2"
   },
   "dependencies": {
     "@babel/runtime": "^7.17.2",

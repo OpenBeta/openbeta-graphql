@@ -1,11 +1,11 @@
-import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
-import { geometry } from '@turf/helpers'
+import {geometry} from '@turf/helpers'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import MutableClimbDataSource from '../MutableClimbDataSource.js'
-import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
-import { AreaEditableFieldsType, UpdateSortingOrderType } from '../../db/AreaTypes.js'
+import {createIndexes, getAreaModel, getClimbModel} from '../../db/index.js'
+import {AreaEditableFieldsType, UpdateSortingOrderType} from '../../db/AreaTypes.js'
+import inMemoryDB from "../../utils/inMemoryDB.js";
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource
@@ -13,7 +13,7 @@ describe('Areas', () => {
   const testUser = muuid.v4()
 
   beforeAll(async () => {
-    await connectDB()
+    await inMemoryDB.connect()
 
     try {
       await getAreaModel().collection.drop()
@@ -27,7 +27,7 @@ describe('Areas', () => {
   })
 
   afterAll(async () => {
-    await mongoose.connection.close()
+    await inMemoryDB.close()
   })
 
   it('should create a country by Alpha-3 country code', async () => {
@@ -71,17 +71,17 @@ describe('Areas', () => {
     // Verify paths and ancestors
     if (theBug != null) { // make TS happy
       expect(theBug.ancestors)
-        .toEqual(`${canada.metadata.area_id.toUUID().toString()},${theBug?.metadata.area_id.toUUID().toString()}`)
+      .toEqual(`${canada.metadata.area_id.toUUID().toString()},${theBug?.metadata.area_id.toUUID().toString()}`)
       expect(theBug.pathTokens)
-        .toEqual([canada.area_name, theBug.area_name])
+      .toEqual([canada.area_name, theBug.area_name])
     }
   })
 
   it('should allow adding child areas to empty leaf area', async () => {
     let parent = await areas.addArea(testUser, 'My house', null, 'can')
-    await areas.updateArea(testUser, parent.metadata.area_id, { isLeaf: true, isBoulder: true })
+    await areas.updateArea(testUser, parent.metadata.area_id, {isLeaf: true, isBoulder: true})
 
-    const newClimb = await climbs.addOrUpdateClimbs(testUser, parent.metadata.area_id, [{ name: 'Big Mac' }])
+    const newClimb = await climbs.addOrUpdateClimbs(testUser, parent.metadata.area_id, [{name: 'Big Mac'}])
 
     // Try to add a new area when there's already a climb
     await expect(areas.addArea(testUser, 'Kitchen', parent.metadata.area_id)).rejects.toThrow(/Adding new areas to a leaf or boulder area is not allowed/)
@@ -155,12 +155,12 @@ describe('Areas', () => {
   it('should not update country name and code', async () => {
     const country = await areas.addCountry('lao')
     if (country == null) fail()
-    await expect(areas.updateArea(testUser, country.metadata.area_id, { areaName: 'Foo' })).rejects.toThrowError()
+    await expect(areas.updateArea(testUser, country.metadata.area_id, {areaName: 'Foo'})).rejects.toThrowError()
 
     // eslint-disable-next-line
     await new Promise(res => setTimeout(res, 2000))
 
-    await expect(areas.updateArea(testUser, country.metadata.area_id, { shortCode: 'Foo' })).rejects.toThrowError()
+    await expect(areas.updateArea(testUser, country.metadata.area_id, {shortCode: 'Foo'})).rejects.toThrowError()
   })
 
   it('should delete a subarea', async () => {
@@ -231,23 +231,23 @@ describe('Areas', () => {
     const fr = await areas.addCountry('fra')
     await areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id)
     await expect(areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id))
-      .rejects.toThrowError('E11000 duplicate key error')
+    .rejects.toThrowError('E11000 duplicate key error')
   })
 
   it('should fail when adding without a parent country', async () => {
     await expect(areas.addArea(testUser, 'Peak District ', null, 'GB'))
-      .rejects.toThrowError()
+    .rejects.toThrowError()
   })
 
   it('should fail when adding with a non-existent parent id', async () => {
     const notInDb = muuid.from('abf6cb8b-8461-45c3-b46b-5997444be867')
     await expect(areas.addArea(testUser, 'Land\'s End ', notInDb))
-      .rejects.toThrowError()
+    .rejects.toThrowError()
   })
 
   it('should fail when adding with null parents', async () => {
     await expect(areas.addArea(testUser, 'Land\'s End ', null, '1q1'))
-      .rejects.toThrowError()
+    .rejects.toThrowError()
   })
 
   it('should update areas sorting order', async () => {

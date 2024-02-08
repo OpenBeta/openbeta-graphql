@@ -1,29 +1,29 @@
-import { ApolloServer } from 'apollo-server-express'
+import {ApolloServer} from 'apollo-server-express'
 import mongoose from 'mongoose'
-import { applyMiddleware } from 'graphql-middleware'
-import { graphqlSchema } from './graphql/resolvers.js'
+import {applyMiddleware} from 'graphql-middleware'
+import {graphqlSchema} from './graphql/resolvers.js'
 
 import MutableAreaDataSource from './model/MutableAreaDataSource.js'
 import ChangeLogDataSource from './model/ChangeLogDataSource.js'
 import MutableMediaDataSource from './model/MutableMediaDataSource.js'
 import MutableClimbDataSource from './model/MutableClimbDataSource.js'
 import TickDataSource from './model/TickDataSource.js'
-import { authMiddleware, createContext } from './auth/middleware.js'
+import {authMiddleware, createContext} from './auth/middleware.js'
 import permissions from './auth/permissions.js'
-import { localDevBypassAuthContext, localDevBypassAuthMiddleware } from './auth/local-dev/middleware.js'
+import {localDevBypassAuthContext, localDevBypassAuthMiddleware} from './auth/local-dev/middleware.js'
 import localDevBypassAuthPermissions from './auth/local-dev/permissions.js'
 import XMediaDataSource from './model/XMediaDataSource.js'
 import PostDataSource from './model/PostDataSource.js'
 import MutableOrgDS from './model/MutableOrganizationDataSource.js'
-import type { Context } from './types.js'
-import type { DataSources } from 'apollo-server-core/dist/graphqlOptions'
+import type {Context} from './types.js'
+import type {DataSources} from 'apollo-server-core/dist/graphqlOptions'
 import UserDataSource from './model/UserDataSource.js'
 import express from 'express'
 import * as http from 'http'
 import bodyParser from 'body-parser'
-import { importJsonRequestHandler } from './db/import/json/request-handler.js'
+import {importJsonRequestHandler} from './db/import/json/request-handler.js'
 
-export async function startServer (port = 4000): Promise<ApolloServer> {
+export async function createServer(): Promise<{ app: express.Application, server: ApolloServer }> {
   const schema = applyMiddleware(
     graphqlSchema,
     (process.env.LOCAL_DEV_BYPASS_AUTH === 'true' ? localDevBypassAuthPermissions : permissions).generate(graphqlSchema)
@@ -45,7 +45,6 @@ export async function startServer (port = 4000): Promise<ApolloServer> {
   })
 
   const app = express()
-  const httpServer = http.createServer(app)
 
   const server = new ApolloServer({
     introspection: true,
@@ -54,17 +53,31 @@ export async function startServer (port = 4000): Promise<ApolloServer> {
     dataSources,
     cache: 'bounded'
   })
-  app.post('/import/json', [
+  // server must be started before applying middleware
+  await server.start()
+
+  app.post('/import', [
     process.env.LOCAL_DEV_BYPASS_AUTH === 'true' ? localDevBypassAuthMiddleware : authMiddleware,
     bodyParser.json(),
     importJsonRequestHandler
   ])
+  server.applyMiddleware({app, path: '/'})
 
-  await server.start()
-  server.applyMiddleware({ app, path: '/' })
+  return {app, server}
+}
 
-  await new Promise<void>((resolve) => httpServer.listen({ port }, resolve))
-  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+export async function startServer({app, server, port = 4000}: {
+  app: express.Application,
+  server: ApolloServer,
+  port?: number
+}) {
+  const httpServer = http.createServer(app)
 
-  return server
+  httpServer.on('error', (e) => {
+    console.error('Error starting server', e)
+    throw e
+  })
+
+  await new Promise<void>((resolve) => httpServer.listen({port}, resolve))
+  console.log(`🚀 Server ready at http://localhost:${port}${server.graphqlPath}`)
 }
