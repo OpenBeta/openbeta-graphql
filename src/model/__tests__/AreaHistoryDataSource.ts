@@ -1,11 +1,11 @@
 import muuid from 'uuid-mongodb'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
-import {changelogDataSource} from '../ChangeLogDataSource.js'
-import {OperationType} from '../../db/AreaTypes.js'
-import inMemoryDB from "../../utils/inMemoryDB.js";
-import waitForExpect from "wait-for-expect";
-import jest from "jest-mock";
+import { changelogDataSource } from '../ChangeLogDataSource.js'
+import { OperationType } from '../../db/AreaTypes.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
+import waitForExpect from 'wait-for-expect'
+import jest from 'jest-mock'
 
 describe('Area history', () => {
   let areas: MutableAreaDataSource

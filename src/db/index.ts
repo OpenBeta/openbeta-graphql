@@ -1,18 +1,18 @@
 import mongoose from 'mongoose'
-import {ChangeStream} from 'mongodb'
-import {config} from 'dotenv'
-import {enableAllPlugins} from 'immer'
+import { ChangeStream } from 'mongodb'
+import { config } from 'dotenv'
+import { enableAllPlugins } from 'immer'
 
-import {getAreaModel} from './AreaSchema.js'
-import {getClimbModel} from './ClimbSchema.js'
-import {getMediaObjectModel} from './MediaObjectSchema.js'
-import {getOrganizationModel} from './OrganizationSchema.js'
-import {getTickModel} from './TickSchema.js'
-import {getXMediaModel} from './XMediaSchema.js'
-import {getPostModel} from './PostSchema.js'
-import {getChangeLogModel} from './ChangeLogSchema.js'
-import {getExperimentalUserModel, getUserModel} from './UserSchema.js'
-import {logger} from '../logger.js'
+import { getAreaModel } from './AreaSchema.js'
+import { getClimbModel } from './ClimbSchema.js'
+import { getMediaObjectModel } from './MediaObjectSchema.js'
+import { getOrganizationModel } from './OrganizationSchema.js'
+import { getTickModel } from './TickSchema.js'
+import { getXMediaModel } from './XMediaSchema.js'
+import { getPostModel } from './PostSchema.js'
+import { getChangeLogModel } from './ChangeLogSchema.js'
+import { getExperimentalUserModel, getUserModel } from './UserSchema.js'
+import { logger } from '../logger.js'
 import streamListener from './edit/streamListener.js'
 
 config()
@@ -55,7 +55,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
 
     await mongoose.connect(
       `${scheme}://${user}:${pass}@${server}/${dbName}?authSource=${authDb}&tls=${tlsFlag}&replicaSet=${rsName}`,
-      {autoIndex: true}
+      { autoIndex: true }
     )
   } catch (e) {
     logger.error("Can't connect to db")

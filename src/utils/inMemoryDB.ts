@@ -1,9 +1,9 @@
-import mongoose, {ConnectOptions} from 'mongoose'
-import {ChangeStream, ChangeStreamDocument, MongoClient} from 'mongodb'
-import {MongoMemoryReplSet} from 'mongodb-memory-server'
-import {checkVar, defaultPostConnect} from '../db/index.js'
-import {logger} from '../logger.js'
-import {testStreamListener} from "../db/edit/streamListener";
+import mongoose, { ConnectOptions } from 'mongoose'
+import { ChangeStream, ChangeStreamDocument, MongoClient } from 'mongodb'
+import { MongoMemoryReplSet } from 'mongodb-memory-server'
+import { checkVar, defaultPostConnect } from '../db/index.js'
+import { logger } from '../logger.js'
+import { testStreamListener } from '../db/edit/streamListener'
 
 /**
  * In-memory Mongo replset used for testing.
@@ -19,7 +19,7 @@ let stream: ChangeStream | undefined
 export const connect = async (onChange?: (change: ChangeStreamDocument) => void): Promise<void> => {
   mongod = await MongoMemoryReplSet.create({
     // Stream listener listens on DB denoted by 'MONGO_DBNAME' env var.
-    replSet: {count: 1, storageEngine: 'wiredTiger', dbName: checkVar('MONGO_DBNAME')}
+    replSet: { count: 1, storageEngine: 'wiredTiger', dbName: checkVar('MONGO_DBNAME') }
   })
   const uri = await mongod.getUri(checkVar('MONGO_DBNAME'))
   logger.info(`Connecting to in-memory database ${uri}`)
@@ -28,7 +28,7 @@ export const connect = async (onChange?: (change: ChangeStreamDocument) => void)
   }
 
   await mongoose.connect(uri, mongooseOpts)
-  stream = await defaultPostConnect(() => testStreamListener(onChange))
+  stream = await defaultPostConnect(async () => await testStreamListener(onChange))
 }
 
 /**
@@ -80,4 +80,4 @@ export interface InMemoryDB {
   insertDirectly: (collection: string, documents: any[]) => Promise<void>
 }
 
-export default {connect, close, clear, insertDirectly, stream}
+export default { connect, close, clear, insertDirectly, stream }

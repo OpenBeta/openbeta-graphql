@@ -1,14 +1,14 @@
 import bbox2Polygon from '@turf/bbox-polygon'
-import {geometry, Point} from '@turf/helpers'
-import {UserInputError} from 'apollo-server-express'
+import { geometry, Point } from '@turf/helpers'
+import { UserInputError } from 'apollo-server-express'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert {type: 'json'}
-import {produce} from 'immer'
-import mongoose, {ClientSession} from 'mongoose'
-import {NIL, v5 as uuidv5} from 'uuid'
-import muuid, {MUUID} from 'uuid-mongodb'
+import { produce } from 'immer'
+import mongoose, { ClientSession } from 'mongoose'
+import { NIL, v5 as uuidv5 } from 'uuid'
+import muuid, { MUUID } from 'uuid-mongodb'
 
-import {GradeContexts} from '../GradeUtils.js'
+import { GradeContexts } from '../GradeUtils.js'
 import CountriesLngLat from '../data/countries-with-lnglat.json' assert {type: 'json'}
 import {
   AreaDocumnent,
@@ -17,18 +17,18 @@ import {
   OperationType,
   UpdateSortingOrderType
 } from '../db/AreaTypes.js'
-import {ChangeRecordMetadataType} from '../db/ChangeLogType.js'
-import {ExperimentalAuthorType} from '../db/UserTypes.js'
-import {makeDBArea} from '../db/import/usa/AreaTransformer.js'
-import {createRootNode} from '../db/import/usa/AreaTree.js'
-import {leafReducer, nodesReducer, StatsSummary} from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
-import {bboxFrom} from '../geo-utils.js'
-import {logger} from '../logger.js'
-import {createInstance as createExperimentalUserDataSource} from '../model/ExperimentalUserDataSource.js'
-import {sanitizeStrict} from '../utils/sanitize.js'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
+import { ExperimentalAuthorType } from '../db/UserTypes.js'
+import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
+import { createRootNode } from '../db/import/usa/AreaTree.js'
+import { leafReducer, nodesReducer, StatsSummary } from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
+import { bboxFrom } from '../geo-utils.js'
+import { logger } from '../logger.js'
+import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
+import { sanitizeStrict } from '../utils/sanitize.js'
 import AreaDataSource from './AreaDataSource.js'
-import {changelogDataSource} from './ChangeLogDataSource.js'
-import {withTransaction} from "../utils/helpers";
+import { changelogDataSource } from './ChangeLogDataSource.js'
+import { withTransaction } from '../utils/helpers'
 
 isoCountries.registerLocale(enJson)
 
@@ -53,7 +53,7 @@ export interface UpdateAreaOptions {
 export default class MutableAreaDataSource extends AreaDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
 
-  async setDestinationFlag(user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
+  async setDestinationFlag (user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
     let ret: AreaType | null = null
 
@@ -67,10 +67,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _setDestinationFlag(session, user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType> {
+  async _setDestinationFlag (session, user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType> {
     const change = await changelogDataSource.create(session, uuid, OperationType.updateDestination)
 
-    const filter = {'metadata.area_id': uuid}
+    const filter = { 'metadata.area_id': uuid }
     const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'> }> = [{
       $set: {
         'metadata.isDestination': flag,
@@ -83,16 +83,16 @@ export default class MutableAreaDataSource extends AreaDataSource {
         }
       }
     }]
-    const opts = {new: true, session, timestamps: false} // return newly updated doc
+    const opts = { new: true, session, timestamps: false } // return newly updated doc
     return await this.areaModel
-    .updateOne(filter, update, opts).orFail().lean()
+      .updateOne(filter, update, opts).orFail().lean()
   }
 
   /**
    * Add a country
    * @param _countryCode alpha2 or 3 ISO code
    */
-  async addCountry(_countryCode: string): Promise<AreaType> {
+  async addCountry (_countryCode: string): Promise<AreaType> {
     const countryCode = _countryCode.toLocaleUpperCase('en-US')
     if (!isoCountries.isValid(countryCode)) {
       throw new Error('Invalid ISO code: ' + countryCode)
@@ -126,16 +126,16 @@ export default class MutableAreaDataSource extends AreaDataSource {
     throw new Error('Error inserting ' + countryCode)
   }
 
-  async addAreaWith({
-                      user,
-                      areaName,
-                      parentUuid = null,
-                      countryCode,
-                      experimentalAuthor,
-                      isLeaf,
-                      isBoulder,
-                      session
-                    }: AddAreaOptions): Promise<AreaType> {
+  async addAreaWith ({
+    user,
+    areaName,
+    parentUuid = null,
+    countryCode,
+    experimentalAuthor,
+    isLeaf,
+    isBoulder,
+    session
+  }: AddAreaOptions): Promise<AreaType> {
     return await this.addArea(user, areaName, parentUuid, countryCode, experimentalAuthor, isLeaf, isBoulder, session)
   }
 
@@ -146,14 +146,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param parentUuid
    * @param countryCode
    */
-  async addArea(user: MUUID,
-                areaName: string,
-                parentUuid: MUUID | null,
-                countryCode?: string,
-                experimentalAuthor?: ExperimentalAuthorType,
-                isLeaf?: boolean,
-                isBoulder?: boolean,
-                sessionCtx?: ClientSession): Promise<AreaType> {
+  async addArea (user: MUUID,
+    areaName: string,
+    parentUuid: MUUID | null,
+    countryCode?: string,
+    experimentalAuthor?: ExperimentalAuthorType,
+    isLeaf?: boolean,
+    isBoulder?: boolean,
+    sessionCtx?: ClientSession): Promise<AreaType> {
     if (parentUuid == null && countryCode == null) {
       throw new Error(`Adding area "${areaName}" failed. Must provide parent Id or country code`)
     }
@@ -169,14 +169,14 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const session = sessionCtx ?? await this.areaModel.startSession()
     if (session.inTransaction()) {
-      return this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder)
+      return await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder)
     } else {
-      return withTransaction(session, () => this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder))
+      return await withTransaction(session, async () => await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder))
     }
   }
 
-  async _addArea(session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType, isLeaf?: boolean, isBoulder?: boolean): Promise<any> {
-    const parentFilter = {'metadata.area_id': parentUuid}
+  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType, isLeaf?: boolean, isBoulder?: boolean): Promise<any> {
+    const parentFilter = { 'metadata.area_id': parentUuid }
     const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError(`[${areaName}]: Expecting country or area parent, found none with id ${parentUuid.toString()}`))
 
     if (parent.metadata.leaf || (parent.metadata?.isBoulder ?? false)) {
@@ -228,16 +228,16 @@ export default class MutableAreaDataSource extends AreaDataSource {
     newArea._change = produce(newChangeMeta, draft => {
       draft.seq = 1
     })
-    const rs1 = await this.areaModel.insertMany(newArea, {session})
+    const rs1 = await this.areaModel.insertMany(newArea, { session })
 
     // Make sure parent knows about this new area
     parent.children.push(newArea._id)
     parent.updatedBy = experimentaAuthorId ?? user
-    await parent.save({timestamps: false})
+    await parent.save({ timestamps: false })
     return rs1[0].toObject()
   }
 
-  async deleteArea(user: MUUID, uuid: MUUID): Promise<AreaType | null> {
+  async deleteArea (user: MUUID, uuid: MUUID): Promise<AreaType | null> {
     const session = await this.areaModel.startSession()
     let ret: AreaType | null = null
 
@@ -251,10 +251,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
-  async _deleteArea(session: ClientSession, user: MUUID, uuid: MUUID): Promise<any> {
+  async _deleteArea (session: ClientSession, user: MUUID, uuid: MUUID): Promise<any> {
     const filter = {
       'metadata.area_id': uuid,
-      deleting: {$ne: null}
+      deleting: { $ne: null }
     }
 
     const area = await this.areaModel.findOne(filter).session(session).orFail()
@@ -290,7 +290,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
             $filter: {
               input: '$children',
               as: 'child',
-              cond: {$ne: ['$$child', area._id]}
+              cond: { $ne: ['$$child', area._id] }
             }
           },
           updatedBy: user,
@@ -311,7 +311,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // See https://www.mongodb.com/community/forums/t/change-stream-fulldocument-on-delete/15963
     // Mongo TTL indexes: https://www.mongodb.com/docs/manual/core/index-ttl/
     return await this.areaModel.findOneAndUpdate(
-      {'metadata.area_id': uuid},
+      { 'metadata.area_id': uuid },
       [{
         $set: {
           updatedBy: user,
@@ -327,7 +327,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       }).session(session).lean()
   }
 
-  async updateAreaWith({user, areaUuid, document, session}: UpdateAreaOptions): Promise<AreaType | null> {
+  async updateAreaWith ({ user, areaUuid, document, session }: UpdateAreaOptions): Promise<AreaType | null> {
     return await this.updateArea(user, areaUuid, document, session)
   }
 
@@ -340,11 +340,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param document New fields
    * @returns Newly updated area
    */
-  async updateArea(user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType, sessionCtx?: ClientSession): Promise<AreaType | null> {
+  async updateArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType, sessionCtx?: ClientSession): Promise<AreaType | null> {
     const _updateArea = async (session: ClientSession, user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<any> => {
       const filter = {
         'metadata.area_id': areaUuid,
-        deleting: {$ne: null}
+        deleting: { $ne: null }
       }
       const area = await this.areaModel.findOne(filter).session(session)
 
@@ -380,7 +380,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
         operation: opType,
         seq: 0
       }
-      area.set({_change})
+      area.set({ _change })
       area.updatedBy = experimentaAuthorId ?? user
 
       if (area.pathTokens.length === 1) {
@@ -393,25 +393,25 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
       if (areaName != null) {
         const sanitizedName = sanitizeStrict(areaName)
-        area.set({area_name: sanitizedName})
+        area.set({ area_name: sanitizedName })
 
         // change our pathTokens
         await this.updatePathTokens(session, _change, area, sanitizedName)
       }
 
-      if (shortCode != null) area.set({shortCode: shortCode.toUpperCase()})
-      if (isDestination != null) area.set({'metadata.isDestination': isDestination})
-      if (isLeaf != null) area.set({'metadata.leaf': isLeaf})
+      if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
+      if (isDestination != null) area.set({ 'metadata.isDestination': isDestination })
+      if (isLeaf != null) area.set({ 'metadata.leaf': isLeaf })
       if (isBoulder != null) {
-        area.set({'metadata.isBoulder': isBoulder})
+        area.set({ 'metadata.isBoulder': isBoulder })
         if (isBoulder) {
           // boulfer == true implies leaf = true
-          area.set({'metadata.leaf': true})
+          area.set({ 'metadata.leaf': true })
         }
       }
       if (description != null) {
         const sanitized = sanitizeStrict(description)
-        area.set({'content.description': sanitized})
+        area.set({ 'content.description': sanitized })
       }
 
       const latLngHasChanged = lat != null && lng != null
@@ -436,9 +436,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const session = sessionCtx ?? await this.areaModel.startSession()
     if (session.inTransaction()) {
-      return _updateArea(session, user, areaUuid, document)
+      return await _updateArea(session, user, areaUuid, document)
     } else {
-      return withTransaction(session, () => _updateArea(session, user, areaUuid, document))
+      return await withTransaction(session, async () => await _updateArea(session, user, areaUuid, document))
     }
   }
 
@@ -450,7 +450,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param newAreaName new area name
    * @param depth tree depth
    */
-  async updatePathTokens(session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, changeIndex: number = -1): Promise<void> {
+  async updatePathTokens (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, changeIndex: number = -1): Promise<void> {
     if (area.pathTokens.length > 1) {
       if (changeIndex === -1) {
         changeIndex = area.pathTokens.length - 1
@@ -458,9 +458,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
       const newPath = [...area.pathTokens]
       newPath[changeIndex] = newAreaName
-      area.set({pathTokens: newPath})
-      area.set({_change: changeRecord})
-      await area.save({session})
+      area.set({ pathTokens: newPath })
+      area.set({ _change: changeRecord })
+      await area.save({ session })
 
       // hydrate children_ids array with actual area documents
       await area.populate('children')
@@ -480,16 +480,16 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param input area sorting input array
    * @returns
    */
-  async updateSortingOrder(user: MUUID, input: UpdateSortingOrderType[]): Promise<string[] | null> {
+  async updateSortingOrder (user: MUUID, input: UpdateSortingOrderType[]): Promise<string[] | null> {
     const doUpdate = async (session: ClientSession, user: MUUID, input: UpdateSortingOrderType[]): Promise<string[]> => {
       const opType = OperationType.orderAreas
       const change = await changelogDataSource.create(session, user, opType)
       const updates: any[] = []
 
-      input.forEach(({areaId, leftRightIndex}, index) => {
+      input.forEach(({ areaId, leftRightIndex }, index) => {
         updates.push({
           updateOne: {
-            filter: {'metadata.area_id': muuid.from(areaId)},
+            filter: { 'metadata.area_id': muuid.from(areaId) },
             update: {
               $set: {
                 'metadata.leftRightIndex': leftRightIndex,
@@ -506,7 +506,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
         })
       })
 
-      const rs = (await this.areaModel.bulkWrite(updates, {session})).toJSON()
+      const rs = (await this.areaModel.bulkWrite(updates, { session })).toJSON()
 
       if (rs.ok === 1 && rs.nMatched === rs.nModified) {
         return input.map(item => item.areaId)
@@ -536,7 +536,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param startingArea
    * @param excludeStartingArea true to exlude the starting area from the update. Useful when deleting an area.
    */
-  async updateLeafStatsAndGeoData(session: ClientSession, changeRecord: ChangeRecordMetadataType, startingArea: AreaDocumnent, excludeStartingArea: boolean = false): Promise<void> {
+  async updateLeafStatsAndGeoData (session: ClientSession, changeRecord: ChangeRecordMetadataType, startingArea: AreaDocumnent, excludeStartingArea: boolean = false): Promise<void> {
     /**
      * Update function.  For each node, recalculate stats and recursively update its acenstors until we reach the country node.
      */
@@ -549,12 +549,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
       const ancestors = area.ancestors.split(',')
       const parentUuid = muuid.from(ancestors[ancestors.length - 2])
       const parentArea =
-        await this.areaModel.findOne({'metadata.area_id': parentUuid})
-        .batchSize(10)
-        .populate<{ children: AreaDocumnent[] }>({path: 'children', model: this.areaModel})
-        .allowDiskUse(true)
-        .session(session)
-        .orFail()
+        await this.areaModel.findOne({ 'metadata.area_id': parentUuid })
+          .batchSize(10)
+          .populate<{ children: AreaDocumnent[] }>({ path: 'children', model: this.areaModel })
+          .allowDiskUse(true)
+          .session(session)
+          .orFail()
 
       const acc: StatsSummary[] = []
       /**
@@ -568,7 +568,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
         }
       }
 
-      const current = await nodesReducer(acc, parentArea as any as AreaDocumnent, {session, changeRecord})
+      const current = await nodesReducer(acc, parentArea as any as AreaDocumnent, { session, changeRecord })
       await updateFn(session, changeRecord, parentArea as any as AreaDocumnent, current)
     }
 
@@ -588,7 +588,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   static instance: MutableAreaDataSource
 
-  static getInstance(): MutableAreaDataSource {
+  static getInstance (): MutableAreaDataSource {
     if (MutableAreaDataSource.instance == null) {
       MutableAreaDataSource.instance = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
     }

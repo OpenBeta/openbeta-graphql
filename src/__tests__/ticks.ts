@@ -1,14 +1,14 @@
-import {ApolloServer} from 'apollo-server-express'
+import { ApolloServer } from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
-import {jest} from '@jest/globals'
-import {queryAPI, setUpServer} from '../utils/testUtils.js'
-import {muuidToString} from '../utils/helpers.js'
-import {TickInput} from '../db/TickTypes.js'
+import { jest } from '@jest/globals'
+import { queryAPI, setUpServer } from '../utils/testUtils.js'
+import { muuidToString } from '../utils/helpers.js'
+import { TickInput } from '../db/TickTypes.js'
 import TickDataSource from '../model/TickDataSource.js'
 import UserDataSource from '../model/UserDataSource.js'
-import {UpdateProfileGQLInput} from '../db/UserTypes.js'
-import {InMemoryDB} from "../utils/inMemoryDB.js";
-import express from "express";
+import { UpdateProfileGQLInput } from '../db/UserTypes.js'
+import { InMemoryDB } from '../utils/inMemoryDB.js'
+import express from 'express'
 
 jest.setTimeout(110000)
 
@@ -25,7 +25,7 @@ describe('ticks API', () => {
   let tickOne: TickInput
 
   beforeAll(async () => {
-    ({server, inMemoryDB, app} = await setUpServer())
+    ({ server, inMemoryDB, app } = await setUpServer())
     user = muuid.v4()
     userUuid = muuidToString(user)
 
@@ -95,7 +95,7 @@ describe('ticks API', () => {
       await ticks.addTick(tickOne)
       const response = await queryAPI({
         query: userQuery,
-        variables: {userId: userUuid},
+        variables: { userId: userUuid },
         userUuid,
         app
       })
@@ -115,7 +115,7 @@ describe('ticks API', () => {
       await ticks.addTick(tickOne)
       const response = await queryAPI({
         query: userQuery,
-        variables: {username: 'cat.dog'},
+        variables: { username: 'cat.dog' },
         userUuid,
         app
       })
@@ -129,7 +129,7 @@ describe('ticks API', () => {
       await ticks.addTick(tickOne)
       const response = await queryAPI({
         query: userTickByClimbQuery,
-        variables: {userId: userUuid, climbId: tickOne.climbId},
+        variables: { userId: userUuid, climbId: tickOne.climbId },
         userUuid,
         app
       })
@@ -176,7 +176,7 @@ describe('ticks API', () => {
     it('creates and updates a tick', async () => {
       const createResponse = await queryAPI({
         query: createQuery,
-        variables: {input: tickOne},
+        variables: { input: tickOne },
         userUuid,
         roles: ['user_admin'],
         app

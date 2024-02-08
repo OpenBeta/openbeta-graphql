@@ -1,31 +1,23 @@
 import muid from 'uuid-mongodb'
-import {AuthUserType} from '../types.js'
-import {verifyJWT} from './util.js'
-import {logger} from '../logger.js'
+import { AuthUserType } from '../types.js'
+import { verifyJWT } from './util.js'
+import { logger } from '../logger.js'
 
 /**
  * Create a middleware context for Apollo server
  */
-export const createContext = async ({req}): Promise<any> => {
-  const user: AuthUserType = {
-    roles: [],
-    uuid: undefined,
-    isBuilder: false
-  }
-
+export const createContext = async ({ req }): Promise<any> => {
   try {
-    await validateTokenAndExtractUser(req)
+    return await validateTokenAndExtractUser(req)
   } catch (e) {
     logger.error(`Can't validate token and extract user ${e.toString() as string}`)
     throw new Error('An unexpected error has occurred.  Please notify us at support@openbeta.io.')
   }
-
-  return {user}
 }
 
 export const authMiddleware = async (req, res, next): Promise<void> => {
   try {
-    const {user, token} = await validateTokenAndExtractUser(req)
+    const { user, token } = await validateTokenAndExtractUser(req)
     req.user = user
     req.userId = user.uuid
     req.token = token
@@ -36,8 +28,9 @@ export const authMiddleware = async (req, res, next): Promise<void> => {
   }
 }
 
-async function validateTokenAndExtractUser(req: Request): Promise<{ user: AuthUserType, token: string }> {
-  const {headers} = req
+async function validateTokenAndExtractUser (req: Request): Promise<{ user: AuthUserType, token: string }> {
+  const { headers } = req
+  // eslint-disable-next-line @typescript-eslint/dot-notation
   const authHeader = String(headers?.['authorization'] ?? '')
   if (!authHeader.startsWith('Bearer ')) {
     throw new Error('Unauthorized. Please provide a valid JWT token in the Authorization header.')

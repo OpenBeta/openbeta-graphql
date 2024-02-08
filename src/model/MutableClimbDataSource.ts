@@ -1,20 +1,20 @@
-import {UserInputError} from 'apollo-server-express'
-import {ClientSession} from 'mongoose'
-import muid, {MUUID} from 'uuid-mongodb'
+import { UserInputError } from 'apollo-server-express'
+import { ClientSession } from 'mongoose'
+import muid, { MUUID } from 'uuid-mongodb'
 
-import {createGradeObject, gradeContextToGradeScales, sanitizeDisciplines} from '../GradeUtils.js'
-import {getAreaModel} from '../db/AreaSchema.js'
-import {AreaDocumnent} from '../db/AreaTypes.js'
-import {ChangeRecordMetadataType} from '../db/ChangeLogType.js'
-import {getClimbModel} from '../db/ClimbSchema.js'
-import {ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, ClimbType, IPitch} from '../db/ClimbTypes.js'
-import {aggregateCragStats} from '../db/utils/Aggregate.js'
-import {sanitize, sanitizeStrict} from '../utils/sanitize.js'
-import {changelogDataSource} from './ChangeLogDataSource.js'
+import { createGradeObject, gradeContextToGradeScales, sanitizeDisciplines } from '../GradeUtils.js'
+import { getAreaModel } from '../db/AreaSchema.js'
+import { AreaDocumnent } from '../db/AreaTypes.js'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
+import { getClimbModel } from '../db/ClimbSchema.js'
+import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, ClimbType, IPitch } from '../db/ClimbTypes.js'
+import { aggregateCragStats } from '../db/utils/Aggregate.js'
+import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
+import { changelogDataSource } from './ChangeLogDataSource.js'
 import ClimbDataSource from './ClimbDataSource.js'
-import {createInstance as createExperimentalUserDataSource} from './ExperimentalUserDataSource.js'
+import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
-import {withTransaction} from "../utils/helpers";
+import { withTransaction } from '../utils/helpers'
 
 export interface AddOrUpdateClimbsOptions {
   userId: MUUID
@@ -26,7 +26,7 @@ export interface AddOrUpdateClimbsOptions {
 export default class MutableClimbDataSource extends ClimbDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
 
-  async _addOrUpdateClimbs(userId: MUUID, session: ClientSession, parentId: MUUID, userInput: ClimbChangeInputType[]): Promise<string[]> {
+  async _addOrUpdateClimbs (userId: MUUID, session: ClientSession, parentId: MUUID, userInput: ClimbChangeInputType[]): Promise<string[]> {
     const newClimbIds = new Array<MUUID>(userInput.length)
     for (let i = 0; i < newClimbIds.length; i++) {
       // make sure there's some input
@@ -42,7 +42,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       }
     }
 
-    const existingIds = await this.climbModel.find({_id: {$in: newClimbIds}}).select('_id')
+    const existingIds = await this.climbModel.find({ _id: { $in: newClimbIds } }).select('_id')
 
     interface IdMapType {
       id: MUUID
@@ -52,9 +52,9 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // A list of ID objects to track whether the ID exists in the DB
     const idList = newClimbIds.reduce<IdMapType[]>((acc, curr) => {
       if (existingIds.some(item => item._id.toUUID().toString() === curr.toUUID().toString())) {
-        acc.push({id: curr, existed: true})
+        acc.push({ id: curr, existed: true })
       } else {
-        acc.push({id: curr, existed: false})
+        acc.push({ id: curr, existed: false })
       }
       return acc
     }, [])
@@ -62,11 +62,11 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     const opType = ClimbEditOperationType.updateClimb
     const change = await changelogDataSource.create(session, userId, opType)
 
-    const parentFilter = {'metadata.area_id': parentId}
+    const parentFilter = { 'metadata.area_id': parentId }
 
     const parent = await this.areaModel
-    .findOne(parentFilter).session(session)
-    .orFail(new UserInputError(`Area with id: ${parentId.toUUID().toString()} not found`))
+      .findOne(parentFilter).session(session)
+      .orFail(new UserInputError(`Area with id: ${parentId.toUUID().toString()} not found`))
 
     const _change: ChangeRecordMetadataType = {
       user: userId,
@@ -75,7 +75,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       operation: ClimbEditOperationType.updateClimb,
       seq: 0
     }
-    parent.set({_change})
+    parent.set({ _change })
 
     // does the parent area have subareas?
     if (parent.children.length > 0) {
@@ -103,7 +103,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // It's ok to have empty disciplines obj in the input in case
     // we just want to update other fields.
     // However, if disciplines is non-empty, is there 1 non-boulder problem in the input?
-    const hasARouteClimb = userInput.some(({disciplines}) =>
+    const hasARouteClimb = userInput.some(({ disciplines }) =>
       disciplines != null && Object.keys(disciplines).length > 0 && !(disciplines?.bouldering ?? false))
 
     if (hasARouteClimb && (parent.metadata?.isBoulder ?? false)) {
@@ -142,7 +142,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
       const newPitchesWithIDs = pitches != null
         ? pitches.map((pitch): IPitch => {
-          const {id, ...partialPitch} = pitch // separate 'id' input and rest of the pitch properties to avoid duplicate id and _id
+          const { id, ...partialPitch } = pitch // separate 'id' input and rest of the pitch properties to avoid duplicate id and _id
           if (partialPitch.pitchNumber === undefined) {
             throw new UserInputError('Each pitch in a multi-pitch climb must have a pitchNumber representing its sequence in the climb. Please ensure that every pitch is numbered.')
           }
@@ -156,14 +156,14 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         })
         : null
 
-      const {description, location, protection, name, fa, length, boltsCount} = userInput[i]
+      const { description, location, protection, name, fa, length, boltsCount } = userInput[i]
 
       // Make sure we don't update content = {}
       // See https://www.mongodb.com/community/forums/t/mongoservererror-invalid-set-caused-by-an-empty-object-is-not-a-valid-value/148344/2
       const content = {
-        ...description != null && {description: sanitize(description)},
-        ...location != null && {location: sanitize(location)},
-        ...protection != null && {protection: sanitize(protection)}
+        ...description != null && { description: sanitize(description) },
+        ...location != null && { location: sanitize(location) },
+        ...protection != null && { protection: sanitize(protection) }
       }
 
       /**
@@ -176,22 +176,22 @@ export default class MutableClimbDataSource extends ClimbDataSource {
        */
       const doc: ClimbChangeDocType = {
         _id: newClimbIds[i],
-        ...name != null && {name: sanitizeStrict(name)},
-        ...newGradeObj != null && {grades: newGradeObj},
-        ...typeSafeDisciplines != null && {type: typeSafeDisciplines},
+        ...name != null && { name: sanitizeStrict(name) },
+        ...newGradeObj != null && { grades: newGradeObj },
+        ...typeSafeDisciplines != null && { type: typeSafeDisciplines },
         gradeContext: parent.gradeContext,
-        ...fa != null && {fa},
-        ...length != null && length > 0 && {length},
-        ...boltsCount != null && boltsCount >= 0 && {boltsCount}, // Include 'boltsCount' if it's defined and its value is 0 (no bolts) or greater
-        ...newPitchesWithIDs != null && {pitches: newPitchesWithIDs},
-        ...Object.keys(content).length > 0 && {content},
+        ...fa != null && { fa },
+        ...length != null && length > 0 && { length },
+        ...boltsCount != null && boltsCount >= 0 && { boltsCount }, // Include 'boltsCount' if it's defined and its value is 0 (no bolts) or greater
+        ...newPitchesWithIDs != null && { pitches: newPitchesWithIDs },
+        ...Object.keys(content).length > 0 && { content },
         metadata: {
           areaRef: parent.metadata.area_id,
           lnglat: parent.metadata.lnglat,
-          ...userInput[i]?.leftRightIndex != null && {left_right_index: userInput[i].leftRightIndex}
+          ...userInput[i]?.leftRightIndex != null && { left_right_index: userInput[i].leftRightIndex }
         },
-        ...!idList[i].existed && {createdBy: experimentalUserId ?? userId},
-        ...idList[i].existed && {updatedBy: userId},
+        ...!idList[i].existed && { createdBy: experimentalUserId ?? userId },
+        ...idList[i].existed && { updatedBy: userId },
         _change: {
           user: experimentalUserId ?? userId,
           historyId: change._id,
@@ -205,7 +205,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
     const bulk = newDocs.map(doc => ({
       updateOne: {
-        filter: {_id: doc._id},
+        filter: { _id: doc._id },
         update: [{
           $set: {
             ...doc,
@@ -219,18 +219,18 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       }
     }))
 
-    const rs = await (await this.climbModel.bulkWrite(bulk, {session})).toJSON()
+    const rs = await (await this.climbModel.bulkWrite(bulk, { session })).toJSON()
 
     if (rs.ok === 1) {
       const idList: MUUID[] = []
       const idStrList: string[] = []
-      rs.upserted.forEach(({_id}) => {
+      rs.upserted.forEach(({ _id }) => {
         idList.push(_id)
         idStrList.push(_id.toUUID().toString())
       })
 
       if (idList.length > 0) {
-        parent.set({climbs: parent.climbs.concat(idList)})
+        parent.set({ climbs: parent.climbs.concat(idList) })
       }
 
       await parent.save()
@@ -246,7 +246,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     }
   }
 
-  async addOrUpdateClimbsWith({userId, parentId, changes, session}: AddOrUpdateClimbsOptions): Promise<string[]> {
+  async addOrUpdateClimbsWith ({ userId, parentId, changes, session }: AddOrUpdateClimbsOptions): Promise<string[]> {
     return await this.addOrUpdateClimbs(userId, parentId, changes, session)
   }
 
@@ -256,12 +256,12 @@ export default class MutableClimbDataSource extends ClimbDataSource {
    * @param changes
    * @returns a list of updated (or newly added) climb IDs
    */
-  async addOrUpdateClimbs(userId: MUUID, parentId: MUUID, changes: ClimbChangeInputType[], sessionCtx?: ClientSession): Promise<string[]> {
+  async addOrUpdateClimbs (userId: MUUID, parentId: MUUID, changes: ClimbChangeInputType[], sessionCtx?: ClientSession): Promise<string[]> {
     const session = sessionCtx ?? await this.areaModel.startSession()
     if (session.inTransaction()) {
-      return this._addOrUpdateClimbs(userId, session, parentId, changes)
+      return await this._addOrUpdateClimbs(userId, session, parentId, changes)
     } else {
-      return await withTransaction(session, () => this._addOrUpdateClimbs(userId, session, parentId, changes)) ?? []
+      return await withTransaction(session, async () => await this._addOrUpdateClimbs(userId, session, parentId, changes)) ?? []
     }
   }
 
@@ -272,7 +272,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
    * @param idListStr Array of climb IDs
    * @returns number of climbs was deleted
    */
-  async deleteClimbs(userId: MUUID, parentId: MUUID, idList: MUUID[]): Promise<number> {
+  async deleteClimbs (userId: MUUID, parentId: MUUID, idList: MUUID[]): Promise<number> {
     const session = await this.areaModel.startSession()
     let ret = 0
 
@@ -289,20 +289,20 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         }
         // Remove climb IDs from parent.climbs[]
         await this.areaModel.updateOne(
-          {'metadata.area_id': parentId},
+          { 'metadata.area_id': parentId },
           {
-            $pullAll: {climbs: idList},
+            $pullAll: { climbs: idList },
             $set: {
               _change,
               updatedBy: userId
             }
           },
-          {session})
+          { session })
 
         // Mark climbs delete
         const filter = {
-          _id: {$in: idList},
-          _deleting: {$exists: false}
+          _id: { $in: idList },
+          _deleting: { $exists: false }
         }
         const rs = await this.climbModel.updateMany(
           filter,
@@ -325,7 +325,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
   static instance: MutableClimbDataSource
 
-  static getInstance(): MutableClimbDataSource {
+  static getInstance (): MutableClimbDataSource {
     if (MutableClimbDataSource.instance == null) {
       // Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
       // @ts-expect-error
@@ -346,10 +346,10 @@ const updateStats = async (areaIdOrAreaCursor: MUUID | AreaDocumnent, session: C
   if ((areaIdOrAreaCursor as AreaDocumnent).totalClimbs != null) {
     area = areaIdOrAreaCursor as AreaDocumnent
   } else {
-    area = await getAreaModel().findOne({'metadata.area_id': areaIdOrAreaCursor as MUUID}).session(session).orFail()
+    area = await getAreaModel().findOne({ 'metadata.area_id': areaIdOrAreaCursor as MUUID }).session(session).orFail()
   }
 
-  await area.populate<{ climbs: ClimbType[] }>({path: 'climbs', model: getClimbModel()})
+  await area.populate<{ climbs: ClimbType[] }>({ path: 'climbs', model: getClimbModel() })
   area.set({
     totalClimbs: area.climbs.length,
     aggregate: aggregateCragStats(area.toObject())

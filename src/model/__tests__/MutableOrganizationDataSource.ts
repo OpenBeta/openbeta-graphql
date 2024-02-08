@@ -2,11 +2,11 @@ import muuid from 'uuid-mongodb'
 
 import MutableOrganizationDataSource from '../MutableOrganizationDataSource.js'
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
-import {createIndexes, getAreaModel, getOrganizationModel} from '../../db/index.js'
-import {OrganizationEditableFieldsType, OrgType} from '../../db/OrganizationTypes.js'
-import {AreaType} from '../../db/AreaTypes.js'
-import {muuidToString} from '../../utils/helpers.js'
-import inMemoryDB from "../../utils/inMemoryDB.js";
+import { createIndexes, getAreaModel, getOrganizationModel } from '../../db/index.js'
+import { OrganizationEditableFieldsType, OrgType } from '../../db/OrganizationTypes.js'
+import { AreaType } from '../../db/AreaTypes.js'
+import { muuidToString } from '../../utils/helpers.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 describe('Organization', () => {
   let organizations: MutableOrganizationDataSource
@@ -62,7 +62,7 @@ describe('Organization', () => {
 
   it('should successfully create a document when passed valid input', async () => {
     const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, fullOrg)
-    const document = {...fullOrg}
+    const document = { ...fullOrg }
     expect(newOrg.displayName).toBe(document.displayName)
     expect(newOrg.content?.website).toBe(document.website)
     expect(newOrg.content?.email).toBe(document.email)
@@ -99,7 +99,7 @@ describe('Organization', () => {
       associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id]
     }
     await organizations.updateOrganization(testUser, newOrg.orgId, document)
-    const areaIdSearchCursor = await organizations.findOrganizationsByFilter({associatedAreaIds: {includes: [ca.metadata.area_id]}})
+    const areaIdSearchCursor = await organizations.findOrganizationsByFilter({ associatedAreaIds: { includes: [ca.metadata.area_id] } })
     const areaIdSearchRes = await areaIdSearchCursor.toArray()
     expect(areaIdSearchRes).toHaveLength(1)
     expect(areaIdSearchRes[0]._id).toEqual(newOrg._id)
@@ -108,7 +108,7 @@ describe('Organization', () => {
   describe('update', () => {
     it('should succeed on valid input', async () => {
       const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, emptyOrg)
-      const document = {...fullOrg}
+      const document = { ...fullOrg }
       const updatedOrg = await organizations.updateOrganization(testUser, newOrg.orgId, document)
 
       expect(updatedOrg).toBeDefined()
@@ -116,9 +116,9 @@ describe('Organization', () => {
         fail('should not reach here.')
       }
       expect(updatedOrg.associatedAreaIds.map(muuidToString).sort())
-      .toStrictEqual(document?.associatedAreaIds?.map(muuidToString).sort())
+        .toStrictEqual(document?.associatedAreaIds?.map(muuidToString).sort())
       expect(updatedOrg.excludedAreaIds.map(muuidToString).sort())
-      .toStrictEqual(document?.excludedAreaIds?.map(muuidToString).sort())
+        .toStrictEqual(document?.excludedAreaIds?.map(muuidToString).sort())
       expect(updatedOrg.displayName).toBe(document.displayName)
       expect(updatedOrg.content?.website).toBe(document.website)
       expect(updatedOrg.content?.email).toBe(document.email)
@@ -139,8 +139,8 @@ describe('Organization', () => {
         associatedAreaIds: [muuid.v4()]
       }
       await expect(organizations.updateOrganization(testUser, newOrg.orgId, document))
-      .rejects
-      .toThrow(/Organization update error. Reason: Associated areas not found: /)
+        .rejects
+        .toThrow(/Organization update error. Reason: Associated areas not found: /)
     })
   })
 })

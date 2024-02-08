@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
-import {jest} from '@jest/globals'
+import { jest } from '@jest/globals'
 
-import {getUserModel} from '../../db/index.js'
+import { getUserModel } from '../../db/index.js'
 import UserDataSource from '../UserDataSource.js'
-import {UpdateProfileGQLInput} from '../../db/UserTypes.js'
-import inMemoryDB from "../../utils/inMemoryDB.js";
+import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 describe('UserDataSource', () => {
   let users: UserDataSource
@@ -86,7 +86,7 @@ describe('UserDataSource', () => {
     expect(u2?._id.toUUID().toString()).toEqual(input.userUuid)
 
     // should allow website as an empty string to clear existing value
-    await users.createOrUpdateUserProfile(updater, {userUuid: input.userUuid, website: ''})
+    await users.createOrUpdateUserProfile(updater, { userUuid: input.userUuid, website: '' })
 
     u2 = await users.getUserPublicProfile(username)
 
@@ -144,8 +144,8 @@ describe('UserDataSource', () => {
     await users.createOrUpdateUserProfile(updater, input)
 
     jest
-    .spyOn(UserDataSource, 'calculateLastUpdatedInDays')
-    .mockImplementation(() => 14)
+      .spyOn(UserDataSource, 'calculateLastUpdatedInDays')
+      .mockImplementation(() => 14)
 
     const newInput: UpdateProfileGQLInput = {
       userUuid: input.userUuid,

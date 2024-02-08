@@ -1,15 +1,15 @@
-import {ApolloServer} from 'apollo-server-express'
+import { ApolloServer } from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
-import {jest} from '@jest/globals'
+import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
 import MutableClimbDataSource from '../model/MutableClimbDataSource.js'
-import {AreaType} from '../db/AreaTypes.js'
-import {OrganizationType, OrgType} from '../db/OrganizationTypes.js'
-import {muuidToString} from '../utils/helpers.js'
-import {queryAPI, setUpServer} from '../utils/testUtils.js'
-import {InMemoryDB} from "../utils/inMemoryDB.js";
-import express from "express";
+import { AreaType } from '../db/AreaTypes.js'
+import { OrganizationType, OrgType } from '../db/OrganizationTypes.js'
+import { muuidToString } from '../utils/helpers.js'
+import { queryAPI, setUpServer } from '../utils/testUtils.js'
+import { InMemoryDB } from '../utils/inMemoryDB.js'
+import express from 'express'
 
 jest.setTimeout(60000)
 
@@ -26,7 +26,7 @@ describe('history API', () => {
   let climbs: MutableClimbDataSource
 
   beforeAll(async () => {
-    ({server, inMemoryDB, app} = await setUpServer())
+    ({ server, inMemoryDB, app } = await setUpServer())
     // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
@@ -104,12 +104,12 @@ describe('history API', () => {
         email: 'admin@alphaopenbeta.com'
       }
       alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, alphaFields)
-      climbIds = await climbs.addOrUpdateClimbs(user, ca.metadata.area_id, [{name: 'Alpha Climb'}])
+      climbIds = await climbs.addOrUpdateClimbs(user, ca.metadata.area_id, [{ name: 'Alpha Climb' }])
 
       // Query for changes and ensure they are tracked.
       const resp = await queryAPI({
         query: QUERY_RECENT_CHANGE_HISTORY,
-        variables: {filter: {}},
+        variables: { filter: {} },
         userUuid,
         app
       })

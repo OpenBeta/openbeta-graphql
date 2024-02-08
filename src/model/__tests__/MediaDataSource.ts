@@ -1,11 +1,11 @@
 import mongoose from 'mongoose'
-import muuid, {MUUID} from 'uuid-mongodb'
+import muuid, { MUUID } from 'uuid-mongodb'
 import MutableMediaDataSource from '../MutableMediaDataSource.js'
 import AreaDataSource from '../MutableAreaDataSource.js'
 import ClimbDataSource from '../MutableClimbDataSource.js'
 
-import {createIndexes} from '../../db/index.js'
-import {AreaType} from '../../db/AreaTypes.js'
+import { createIndexes } from '../../db/index.js'
+import { AreaType } from '../../db/AreaTypes.js'
 import {
   AddTagEntityInput,
   EntityTag,
@@ -14,8 +14,8 @@ import {
   UserMedia,
   UserMediaQueryInput
 } from '../../db/MediaObjectTypes.js'
-import {newSportClimb1} from './MutableClimbDataSource.js'
-import inMemoryDB from "../../utils/inMemoryDB.js";
+import { newSportClimb1 } from './MutableClimbDataSource.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 const TEST_MEDIA: MediaObjectGQLInput = {
   userUuid: 'a2eb6353-65d1-445f-912c-53c6301404bd',
@@ -141,7 +141,7 @@ describe('MediaDataSource', () => {
     expect(mediaObjects[0].entityTags).toHaveLength(2)
 
     // remove tag
-    const res = await media.removeEntityTag({mediaId: climbTag.mediaId, tagId: tag._id})
+    const res = await media.removeEntityTag({ mediaId: climbTag.mediaId, tagId: tag._id })
     expect(res).toBe(true)
 
     // verify the number tags
@@ -202,7 +202,7 @@ describe('MediaDataSource', () => {
     const rs = await media.addMediaObjects([{
       ...TEST_MEDIA,
       mediaUrl: 'photo101.jpg',
-      entityTag: {entityType: 0, entityId: climbIdForTagging.toUUID().toString()}
+      entityTag: { entityType: 0, entityId: climbIdForTagging.toUUID().toString() }
     }
     ])
 
@@ -222,7 +222,7 @@ describe('MediaDataSource', () => {
      */
     const newMediaListInput: MediaObjectGQLInput[] = []
     for (let i = 0; i < 7; i = i + 1) {
-      newMediaListInput.push({...MEDIA_TEMPLATE, mediaUrl: `/photo${i}.jpg`})
+      newMediaListInput.push({ ...MEDIA_TEMPLATE, mediaUrl: `/photo${i}.jpg` })
     }
 
     const expectedMedia = await media.addMediaObjects(newMediaListInput)

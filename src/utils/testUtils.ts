@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken'
-import {jest} from '@jest/globals'
+import { jest } from '@jest/globals'
 import request from 'supertest'
-import type {InMemoryDB} from './inMemoryDB.js'
+import type { InMemoryDB } from './inMemoryDB.js'
 import inMemoryDB from './inMemoryDB.js'
-import {createServer} from '../server.js'
-import {ApolloServer} from 'apollo-server-express'
-import express from "express";
+import { createServer } from '../server.js'
+import { ApolloServer } from 'apollo-server-express'
+import express from 'express'
 
 const PORT = 4000
 
@@ -24,14 +24,14 @@ interface QueryAPIProps {
  * so we can pretend to have an role we want when calling the API.
  */
 export const queryAPI = async ({
-                                 query,
-                                 operationName,
-                                 variables,
-                                 userUuid,
-                                 roles = [],
-                                 app,
-                                 port = PORT
-                               }: QueryAPIProps): Promise<request.Response> => {
+  query,
+  operationName,
+  variables,
+  userUuid,
+  roles = [],
+  app,
+  port = PORT
+}: QueryAPIProps): Promise<request.Response> => {
   // Avoid needing to pass in actual signed tokens.
   const jwtSpy = jest.spyOn(jwt, 'verify')
   jwtSpy.mockImplementation(() => {
@@ -42,11 +42,11 @@ export const queryAPI = async ({
     }
   })
 
-  const queryObj = {query, operationName, variables}
-  return request(app ?? `http://localhost:${port}`)
-  .post('/')
-  .send(queryObj)
-  .set('Authorization', 'Bearer placeholder-jwt-see-SpyOn');
+  const queryObj = { query, operationName, variables }
+  return await request(app ?? `http://localhost:${port}`)
+    .post('/')
+    .send(queryObj)
+    .set('Authorization', 'Bearer placeholder-jwt-see-SpyOn')
 }
 
 export interface SetUpServerReturnType {
@@ -60,6 +60,6 @@ export interface SetUpServerReturnType {
 */
 export const setUpServer = async (): Promise<SetUpServerReturnType> => {
   await inMemoryDB.connect()
-  const {app, server} = await createServer()
-  return {app, server, inMemoryDB}
+  const { app, server } = await createServer()
+  return { app, server, inMemoryDB }
 }

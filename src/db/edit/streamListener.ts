@@ -1,9 +1,9 @@
 import mongoose from 'mongoose'
-import {ChangeStream, ChangeStreamDocument, ChangeStreamUpdateDocument} from 'mongodb'
+import { ChangeStream, ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
 import dot from 'dot-object'
 
-import {changelogDataSource} from '../../model/ChangeLogDataSource.js'
-import {logger} from '../../logger.js'
+import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
+import { logger } from '../../logger.js'
 import {
   BaseChangeRecordType,
   DBOperation,
@@ -12,35 +12,37 @@ import {
   SupportedCollectionTypes,
   UpdateDescription
 } from '../ChangeLogType.js'
-import {checkVar} from '../index.js'
-import {updateAreaIndex, updateClimbIndex} from '../export/Typesense/Client.js'
-import {AreaType} from '../AreaTypes.js'
-import {exhaustiveCheck} from '../../utils/helpers.js'
-import {ClimbType} from '../ClimbTypes.js'
+import { checkVar } from '../index.js'
+import { updateAreaIndex, updateClimbIndex } from '../export/Typesense/Client.js'
+import { AreaType } from '../AreaTypes.js'
+import { exhaustiveCheck } from '../../utils/helpers.js'
+import { ClimbType } from '../ClimbTypes.js'
 
 /**
  * Start a new stream listener to track changes
  */
-export default async function streamListener(): Promise<ChangeStream> {
+export default async function streamListener (): Promise<ChangeStream> {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   return (await createChangeStream()).on('change', onChange)
 }
 
 /**
  * The test stream listener awaits all change events
  */
-export async function testStreamListener(callback?: (change: ChangeStreamDocument) => void): Promise<ChangeStream> {
+export async function testStreamListener (callback?: (change: ChangeStreamDocument) => void): Promise<ChangeStream> {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   return (await createChangeStream()).on('change', async (change: ChangeStreamDocument) => {
     await onChange(change)
-    callback && callback(change)
+    if (callback !== undefined) callback(change)
   })
 }
 
-async function createChangeStream(): Promise<ChangeStream> {
+async function createChangeStream (): Promise<ChangeStream> {
   const resumeId = await mostRecentResumeId()
-  logger.info({resumeId}, 'Starting stream listener')
+  logger.info({ resumeId }, 'Starting stream listener')
 
   const opts: any = {
-    fullDocument: 'updateLookup',
+    fullDocument: 'updateLookup'
   }
   if (resumeId != null) {
     opts.resumeId = resumeId
@@ -65,19 +67,19 @@ async function createChangeStream(): Promise<ChangeStream> {
 }
 
 const onChange = async (change: ChangeStreamDocument): Promise<void> => {
-  const {operationType} = change
+  const { operationType } = change
 
   switch (operationType) {
     case 'replace':
     case 'update': {
       let dbOp: DBOperation = 'update'
       const source = DocumentKind[change.ns.coll]
-      const {fullDocument, _id, updateDescription} = change as ChangeStreamUpdateDocument
+      const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
       }
 
-      return recordChange({
+      return await recordChange({
         _id: _id as ResumeToken,
         source,
         fullDocument: fullDocument as SupportedCollectionTypes,
@@ -88,8 +90,8 @@ const onChange = async (change: ChangeStreamDocument): Promise<void> => {
     case 'insert': {
       const dbOp = 'insert'
       const source = DocumentKind[change.ns.coll]
-      const {fullDocument, _id} = change
-      return recordChange({
+      const { fullDocument, _id } = change
+      return await recordChange({
         _id: _id as ResumeToken,
         source,
         fullDocument: fullDocument as SupportedCollectionTypes,
@@ -107,7 +109,7 @@ interface ChangeRecordType {
   dbOp: DBOperation
 }
 
-const recordChange = async ({source, dbOp, fullDocument, updateDescription, _id}: ChangeRecordType): Promise<void> => {
+const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id }: ChangeRecordType): Promise<void> => {
   fullDocument.kind = source
   switch (source) {
     case DocumentKind.climbs: {
@@ -118,7 +120,7 @@ const recordChange = async ({source, dbOp, fullDocument, updateDescription, _id}
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.climbs
       }
-      return changelogDataSource.record(newDocument).then(() => updateClimbIndex(fullDocument as ClimbType, dbOp))
+      return await changelogDataSource.record(newDocument).then(async () => await updateClimbIndex(fullDocument as ClimbType, dbOp))
     }
     case DocumentKind.areas: {
       const newDocument: BaseChangeRecordType = {
@@ -128,7 +130,7 @@ const recordChange = async ({source, dbOp, fullDocument, updateDescription, _id}
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.areas
       }
-      return changelogDataSource.record(newDocument).then(() => updateAreaIndex(fullDocument as AreaType, dbOp))
+      return await changelogDataSource.record(newDocument).then(async () => await updateAreaIndex(fullDocument as AreaType, dbOp))
     }
     case DocumentKind.organizations: {
       const newDocument: BaseChangeRecordType = {
@@ -138,7 +140,7 @@ const recordChange = async ({source, dbOp, fullDocument, updateDescription, _id}
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.organizations
       }
-      return changelogDataSource.record(newDocument).then()
+      return await changelogDataSource.record(newDocument).then()
     }
     default:
       exhaustiveCheck(source)
@@ -198,7 +200,7 @@ const dotifyUpdateDescription = (updateDescription: UpdateDescriptionType): Upda
     }
   }
 
-  const {updatedFields, removedFields, truncatedArrays} = updateDescription
+  const { updatedFields, removedFields, truncatedArrays } = updateDescription
   cleanupObj(updatedFields)
   return {
     updatedFields: updatedFields != null ? Object.keys(dot.dot(updatedFields)) : [],

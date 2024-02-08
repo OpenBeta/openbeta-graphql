@@ -1,11 +1,11 @@
 import muuid from 'uuid-mongodb'
-import {getAreaModel, getChangeLogModel} from '../../db/index.js'
+import { getAreaModel, getChangeLogModel } from '../../db/index.js'
 import ChangeLogDataSource from '../ChangeLogDataSource.js'
-import {OpType} from '../../db/ChangeLogType.js'
-import {OperationType} from '../../db/AreaTypes.js'
+import { OpType } from '../../db/ChangeLogType.js'
+import { OperationType } from '../../db/AreaTypes.js'
 
-import {logger} from '../../logger.js'
-import inMemoryDB from "../../utils/inMemoryDB.js";
+import { logger } from '../../logger.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 describe('Area history', () => {
   let changeLog: ChangeLogDataSource

@@ -1,14 +1,14 @@
-import {ApolloServer} from 'apollo-server-express'
+import { ApolloServer } from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
-import {jest} from '@jest/globals'
+import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
-import {AreaType} from '../db/AreaTypes.js'
-import {OrganizationEditableFieldsType, OrganizationType, OrgType} from '../db/OrganizationTypes.js'
-import {queryAPI, setUpServer} from '../utils/testUtils.js'
-import {muuidToString} from '../utils/helpers.js'
-import {InMemoryDB} from "../utils/inMemoryDB.js";
-import express from "express";
+import { AreaType } from '../db/AreaTypes.js'
+import { OrganizationEditableFieldsType, OrganizationType, OrgType } from '../db/OrganizationTypes.js'
+import { queryAPI, setUpServer } from '../utils/testUtils.js'
+import { muuidToString } from '../utils/helpers.js'
+import { InMemoryDB } from '../utils/inMemoryDB.js'
+import express from 'express'
 
 jest.setTimeout(60000)
 
@@ -27,7 +27,7 @@ describe('areas API', () => {
   let wa: AreaType
 
   beforeAll(async () => {
-    ({server, inMemoryDB, app} = await setUpServer())
+    ({ server, inMemoryDB, app } = await setUpServer())
     // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
@@ -69,17 +69,17 @@ describe('areas API', () => {
         excludedAreaIds: [ca.metadata.area_id]
       }
       alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, alphaFields)
-      .then((res: OrganizationType | null) => {
-        if (res === null) throw new Error('Failure mocking organization.')
-        return res
-      })
+        .then((res: OrganizationType | null) => {
+          if (res === null) throw new Error('Failure mocking organization.')
+          return res
+        })
     })
 
     it('retrieves an area and lists associated organizations', async () => {
       const response = await queryAPI({
         query: areaQuery,
         operationName: 'area',
-        variables: {input: wa.metadata.area_id},
+        variables: { input: wa.metadata.area_id },
         userUuid,
         app
       })
@@ -95,7 +95,7 @@ describe('areas API', () => {
       const response = await queryAPI({
         query: areaQuery,
         operationName: 'area',
-        variables: {input: ca.metadata.area_id},
+        variables: { input: ca.metadata.area_id },
         userUuid,
         app
       })

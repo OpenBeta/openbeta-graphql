@@ -1,15 +1,15 @@
-import {ApolloServer} from 'apollo-server-express'
+import { ApolloServer } from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
-import {AreaType} from '../db/AreaTypes.js'
-import {OperationType, OrganizationEditableFieldsType, OrganizationType, OrgType} from '../db/OrganizationTypes.js'
-import {changelogDataSource} from '../model/ChangeLogDataSource.js'
-import {queryAPI, setUpServer} from '../utils/testUtils.js'
-import {muuidToString} from '../utils/helpers.js'
-import {validate as validateMuuid} from 'uuid'
-import {InMemoryDB} from "../utils/inMemoryDB.js";
-import express from "express";
+import { AreaType } from '../db/AreaTypes.js'
+import { OperationType, OrganizationEditableFieldsType, OrganizationType, OrgType } from '../db/OrganizationTypes.js'
+import { changelogDataSource } from '../model/ChangeLogDataSource.js'
+import { queryAPI, setUpServer } from '../utils/testUtils.js'
+import { muuidToString } from '../utils/helpers.js'
+import { validate as validateMuuid } from 'uuid'
+import { InMemoryDB } from '../utils/inMemoryDB.js'
+import express from 'express'
 
 describe('organizations API', () => {
   let server: ApolloServer
@@ -26,7 +26,7 @@ describe('organizations API', () => {
   let wa: AreaType
 
   beforeAll(async () => {
-    ({server, inMemoryDB, app} = await setUpServer())
+    ({ server, inMemoryDB, app } = await setUpServer())
     // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
@@ -85,7 +85,7 @@ describe('organizations API', () => {
       const createResponse = await queryAPI({
         query: createQuery,
         operationName: 'addOrganization',
-        variables: {input: {displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION'}},
+        variables: { input: { displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION' } },
         userUuid,
         roles: ['user_admin'],
         app
@@ -165,7 +165,7 @@ describe('organizations API', () => {
       const response = await queryAPI({
         query: createQuery,
         operationName: 'addOrganization',
-        variables: {input: {displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION'}},
+        variables: { input: { displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION' } },
         userUuid,
         roles: ['editor'],
         app
@@ -222,20 +222,20 @@ describe('organizations API', () => {
         hardwareReportLink: 'https://alphaopenbeta.com/reporthardware'
       }
       alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, alphaFields)
-      .then((res: OrganizationType | null) => {
-        if (res === null) throw new Error('Failure mocking organization.')
-        return res
-      })
+        .then((res: OrganizationType | null) => {
+          if (res === null) throw new Error('Failure mocking organization.')
+          return res
+        })
 
       deltaFields = {
         displayName: 'Delta OpenBeta Club',
         email: 'admin@deltaopenbeta.com'
       }
       deltaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, deltaFields)
-      .then((res: OrganizationType | null) => {
-        if (res === null) throw new Error('Failure mocking organization.')
-        return res
-      })
+        .then((res: OrganizationType | null) => {
+          if (res === null) throw new Error('Failure mocking organization.')
+          return res
+        })
 
       gammaFields = {
         displayName: 'Delta Gamma OpenBeta Club',
@@ -243,17 +243,17 @@ describe('organizations API', () => {
         excludedAreaIds: [wa.metadata.area_id]
       }
       gammaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, gammaFields)
-      .then((res: OrganizationType | null) => {
-        if (res === null) throw new Error('Failure mocking organization.')
-        return res
-      })
+        .then((res: OrganizationType | null) => {
+          if (res === null) throw new Error('Failure mocking organization.')
+          return res
+        })
     })
 
     it('retrieves an organization with an MUUID', async () => {
       const response = await queryAPI({
         query: organizationQuery,
         operationName: 'organization',
-        variables: {input: muuidToString(alphaOrg.orgId)},
+        variables: { input: muuidToString(alphaOrg.orgId) },
         userUuid,
         app
       })
@@ -272,7 +272,7 @@ describe('organizations API', () => {
       const response = await queryAPI({
         query: organizationsQuery,
         operationName: 'organizations',
-        variables: {filter: {displayName: {match: 'Delta OpenBeta Club', exactMatch: true}}},
+        variables: { filter: { displayName: { match: 'Delta OpenBeta Club', exactMatch: true } } },
         userUuid,
         app
       })
@@ -287,7 +287,7 @@ describe('organizations API', () => {
       const response = await queryAPI({
         query: organizationsQuery,
         operationName: 'organizations',
-        variables: {filter: {displayName: {match: 'delta', exactMatch: false}}},
+        variables: { filter: { displayName: { match: 'delta', exactMatch: false } } },
         userUuid,
         app
       })
@@ -316,7 +316,7 @@ describe('organizations API', () => {
       const response = await queryAPI({
         query: organizationsQuery,
         operationName: 'organizations',
-        variables: {filter: {associatedAreaIds: {includes: [muuidToString(ca.metadata.area_id)]}}},
+        variables: { filter: { associatedAreaIds: { includes: [muuidToString(ca.metadata.area_id)] } } },
         userUuid,
         app
       })
@@ -331,7 +331,7 @@ describe('organizations API', () => {
       const response = await queryAPI({
         query: organizationsQuery,
         operationName: 'organizations',
-        variables: {filter: {excludedAreaIds: {excludes: [muuidToString(wa.metadata.area_id)]}}},
+        variables: { filter: { excludedAreaIds: { excludes: [muuidToString(wa.metadata.area_id)] } } },
         userUuid,
         app
       })
