@@ -1,252 +1,258 @@
-import { GradeContexts } from '../../../../GradeUtils.js';
-import { AreaJson, createBulkOperation } from '../import-json.js';
+import { ChangeStream } from 'mongodb';
+import mongoose from 'mongoose';
+import muuid from 'uuid-mongodb';
+import {
+  connectDB,
+  getAreaModel,
+  getClimbModel,
+} from '../../../../db/index.js';
+import { changelogDataSource } from '../../../../model/ChangeLogDataSource.js';
+import MutableAreaDataSource from '../../../../model/MutableAreaDataSource.js';
+import MutableClimbDataSource from '../../../../model/MutableClimbDataSource.js';
+import { AreaType } from '../../../AreaTypes.js';
+import { ClimbType } from '../../../ClimbTypes.js';
+import streamListener from '../../../edit/streamListener.js';
+import { AreaJson, BulkImportResult, bulkImportJson } from '../import-json.js';
 
-describe('createBulkOperation', () => {
-  it('should insert single new area', () => {
-    const json: AreaJson = {
-      area_name: 'Test Area',
-      metadata: { lnglat: [1, 2] },
-      gradeContext: GradeContexts.US,
-    };
+type TestResult = BulkImportResult & {
+  addedAreas: Partial<AreaType>[];
+  addedClimbs: Partial<ClimbType>[];
+};
 
-    const { operations } = createBulkOperation(json);
-    expect(operations).toEqual([
-      {
-        updateOne: {
-          filter: { _id: expect.anything() },
-          update: {
-            $set: {
-              area_name: 'Test Area',
-              content: {},
-              climbs: [],
-              gradeContext: 'US',
-              metadata: {
-                leaf: false,
-                isBoulder: false,
-                lnglat: {
-                  type: 'Point',
-                  coordinates: [1, 2],
-                },
-              },
-            },
-          },
-          upsert: true,
-        },
-      },
-    ]);
-  });
+describe('bulk import e2e', () => {
+  let areas: MutableAreaDataSource;
+  let climbs: MutableClimbDataSource;
+  let stream: ChangeStream;
+  const testUser = muuid.v4();
 
-  it('should insert single new area with children', () => {
-    const json: AreaJson = {
-      area_name: 'Test Area',
-      metadata: { lnglat: [1, 2] },
-      gradeContext: GradeContexts.US,
-      children: [
-        {
-          area_name: 'Child Area',
-          metadata: { lnglat: [3, 4] },
-          gradeContext: GradeContexts.US,
-        },
+  const assertBulkImport = async (...json: AreaJson[]): Promise<TestResult> => {
+    const result = await bulkImportJson({
+      user: testUser,
+      json,
+      areas,
+    });
+
+    const isFulfilled = <T>(
+      p: PromiseSettledResult<T>
+    ): p is PromiseFulfilledResult<T> => p.status === 'fulfilled';
+    const isRejected = <T>(
+      p: PromiseSettledResult<T>
+    ): p is PromiseRejectedResult => p.status === 'rejected';
+    const comittedAreas = await Promise.allSettled(
+      result.addedAreas.map((area) =>
+        areas.findOneAreaByUUID(area.metadata.area_id)
+      )
+    );
+    const comittedClimbs = await Promise.allSettled(
+      result.climbIds.map((id) => climbs.findOneClimbByMUUID(muuid.from(id)))
+    );
+
+    return {
+      ...result,
+      errors: [
+        ...result.errors,
+        ...comittedAreas.filter(isRejected).map((p) => p.reason),
+        ...comittedClimbs.filter(isRejected).map((p) => p.reason),
       ],
+      addedAreas: comittedAreas.filter(isFulfilled).map((p) => p.value),
+      addedClimbs: comittedClimbs
+        .filter(isFulfilled)
+        .map((p) => p.value as Partial<ClimbType>),
     };
+  };
 
-    const { operations } = createBulkOperation(json);
-    expect(operations).toEqual([
-      {
-        updateOne: {
-          filter: { _id: expect.anything() },
-          update: {
-            $set: {
-              area_name: 'Child Area',
-              content: {},
-              climbs: [],
-              gradeContext: 'US',
-              metadata: {
-                leaf: false,
-                isBoulder: false,
-                lnglat: {
-                  type: 'Point',
-                  coordinates: [3, 4],
-                },
-              },
-            },
-          },
-          upsert: true,
-        },
-      },
-      {
-        updateOne: {
-          filter: { _id: expect.anything() },
-          update: {
-            $set: {
-              area_name: 'Test Area',
-              content: {},
-              climbs: [],
-              gradeContext: 'US',
-              metadata: {
-                leaf: false,
-                isBoulder: false,
-                lnglat: {
-                  type: 'Point',
-                  coordinates: [1, 2],
-                },
-              },
-            },
-          },
-          upsert: true,
-        },
-      },
-      {
-        updateOne: {
-          filter: { _id: expect.anything() },
-          update: {
-            $push: {
-              children: expect.anything(),
-            },
-          },
-        },
-      },
-    ]);
+  beforeAll(async () => {
+    await connectDB();
+    stream = await streamListener();
   });
 
-  it('should insert single new area with children and climbs', () => {
-    const json: AreaJson = {
-      area_name: 'Test Area',
-      metadata: { lnglat: [1, 2] },
-      gradeContext: GradeContexts.UIAA,
-      children: [
-        {
-          area_name: 'Child Area',
-          metadata: { lnglat: [3, 4] },
-          gradeContext: GradeContexts.UIAA,
-          climbs: [
+  afterAll(async () => {
+    try {
+      await stream.close();
+      await mongoose.disconnect();
+    } catch (e) {
+      console.log('error closing mongoose', e);
+    }
+  });
+
+  beforeEach(async () => {
+    areas = MutableAreaDataSource.getInstance();
+    climbs = MutableClimbDataSource.getInstance();
+
+    await areas.addCountry('us');
+  });
+
+  afterEach(async () => {
+    await changelogDataSource._testRemoveAll();
+    try {
+      await getAreaModel().collection.drop();
+    } catch {}
+    try {
+      await getClimbModel().collection.drop();
+    } catch {}
+  });
+
+  describe('adding new areas and climbs', () => {
+    it('should commit a new minimal area to the database', async () => {
+      await expect(
+        assertBulkImport({
+          areaName: 'Minimal Area',
+          countryCode: 'us',
+        })
+      ).resolves.toMatchObject({
+        errors: [],
+        addedAreas: [
+          {
+            area_name: 'Minimal Area',
+            gradeContext: 'US',
+            metadata: {
+              leaf: false,
+              isBoulder: false,
+            },
+          },
+        ],
+      });
+    });
+
+    it('should rollback when one of the areas fails to import', async () => {
+      await expect(
+        assertBulkImport(
+          {
+            areaName: 'Test Area',
+            countryCode: 'us',
+          },
+          {
+            areaName: 'Test Area 2',
+          }
+        )
+      ).resolves.toMatchObject({
+        errors: expect.arrayContaining([expect.any(Error)]),
+        addedAreas: [],
+      });
+    });
+
+    it('should import nested areas with children', async () => {
+      await expect(
+        assertBulkImport({
+          areaName: 'Parent Area',
+          countryCode: 'us',
+          children: [
             {
-              name: 'Test Climb',
-              grades: {
-                uiaa: '7+',
-              },
+              areaName: 'Child Area 2',
             },
           ],
-        },
-      ],
-    };
+        })
+      ).resolves.toMatchObject({
+        errors: [],
+        addedAreas: [
+          { area_name: 'Parent Area', gradeContext: 'US' },
+          { area_name: 'Child Area 2', gradeContext: 'US' },
+        ] as Partial<AreaType>[],
+      });
+    });
 
-    const { operations } = createBulkOperation(json);
-    expect(operations).toEqual([
-      {
-        updateOne: {
-          filter: { _id: expect.anything() },
-          update: {
-            $set: {
-              area_name: 'Child Area',
-              content: {},
-              gradeContext: 'UIAA',
-              metadata: {
-                leaf: true,
-                isBoulder: false,
-                lnglat: {
-                  type: 'Point',
-                  coordinates: [3, 4],
-                },
-              },
-              climbs: [
+    it('should import nested areas with children and grandchildren', async () => {
+      await expect(
+        assertBulkImport({
+          areaName: 'Test Area',
+          countryCode: 'us',
+          children: [
+            {
+              areaName: 'Test Area 2',
+              children: [
                 {
-                  _id: expect.anything(),
-                  name: 'Test Climb',
-                  content: {},
-                  metadata: {},
-                  type: { sport: true },
-                  grades: {
-                    uiaa: '7+',
-                  },
+                  areaName: 'Test Area 3',
                 },
               ],
             },
+          ],
+        })
+      ).resolves.toMatchObject({
+        errors: [],
+        addedAreas: [
+          {
+            area_name: 'Test Area',
+            pathTokens: ['United States of America', 'Test Area'],
           },
-          upsert: true,
-        },
-      },
-      {
-        updateOne: {
-          filter: { _id: expect.anything() },
-          update: {
-            $set: {
-              area_name: 'Test Area',
-              content: {},
-              gradeContext: 'UIAA',
-              climbs: [],
-              metadata: {
-                leaf: false,
-                isBoulder: false,
-                lnglat: {
-                  type: 'Point',
-                  coordinates: [1, 2],
-                },
-              },
-            },
+          {
+            area_name: 'Test Area 2',
+            pathTokens: [
+              'United States of America',
+              'Test Area',
+              'Test Area 2',
+            ],
           },
-          upsert: true,
-        },
-      },
-      {
-        updateOne: {
-          filter: { _id: expect.anything() },
-          update: {
-            $push: {
-              children: expect.anything(),
-            },
+          {
+            area_name: 'Test Area 3',
+            pathTokens: [
+              'United States of America',
+              'Test Area',
+              'Test Area 2',
+              'Test Area 3',
+            ],
           },
-        },
-      },
-    ]);
-  });
+        ] as Partial<AreaType>[],
+      });
+    });
 
-  it('should add the required missing default properties', () => {
-      const json: AreaJson = {
-        area_name: 'Test Area',
-        gradeContext: GradeContexts.UIAA,
-        climbs: [
+    it('should import leaf areas with climbs', async () => {
+      await expect(
+        assertBulkImport({
+          areaName: 'Test Area',
+          countryCode: 'us',
+          climbs: [
+            {
+              name: 'Test Climb',
+              grade: '5.10a',
+              disciplines: { sport: true },
+            },
+          ],
+        })
+      ).resolves.toMatchObject({
+        errors: [],
+        addedAreas: [
+          {
+            area_name: 'Test Area',
+            gradeContext: 'US',
+            metadata: {
+              leaf: true,
+              isBoulder: false,
+            },
+            climbs: [expect.anything()],
+          },
+        ],
+        addedClimbs: [
           {
             name: 'Test Climb',
             grades: {
-              uiaa: '7+',
+              yds: '5.10a',
             },
           },
-        ]
-      };
-
-      const { operations } = createBulkOperation(json);
-      expect(operations).toEqual([
-        {
-          updateOne: {
-            filter: { _id: expect.anything() },
-            update: {
-              $set: {
-                area_name: 'Test Area',
-                gradeContext: 'UIAA',
-                content: {},
-                metadata: {
-                  leaf: true,
-                  isBoulder: false,
-                  lnglat: undefined
-                },
-                climbs: [
-                  {
-                    _id: expect.anything(),
-                    name: 'Test Climb',
-                    grades: {
-                      uiaa: '7+',
-                    },
-                    type: { sport: true },
-                    metadata: {},
-                    content: {}
-                  },
-                ],
-              },
-            },
-            upsert: true,
-          },
-        },
-      ]);
+        ],
+      });
     });
+  });
+
+  describe('updating existing areas', () => {
+    let area: AreaType;
+    beforeEach(async () => {
+      const result = await assertBulkImport({
+        areaName: 'Existing Area',
+        countryCode: 'us',
+      });
+      area = result.addedAreas[0] as AreaType;
+    });
+
+    it('should update an existing area', async () => {
+      await expect(
+        assertBulkImport({
+          id: area.metadata.area_id,
+          areaName: 'New Name',
+        })
+      ).resolves.toMatchObject({
+        errors: [],
+        addedAreas: [{ area_name: 'New Name' }],
+      });
+    });
+  });
 });

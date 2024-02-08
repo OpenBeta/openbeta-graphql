@@ -1,29 +1,47 @@
+import bbox2Polygon from '@turf/bbox-polygon'
 import { Point, geometry } from '@turf/helpers'
-import muuid, { MUUID } from 'uuid-mongodb'
-import { v5 as uuidv5, NIL } from 'uuid'
-import mongoose, { ClientSession } from 'mongoose'
-import { produce } from 'immer'
 import { UserInputError } from 'apollo-server'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
-import bbox2Polygon from '@turf/bbox-polygon'
+import { produce } from 'immer'
+import mongoose, { ClientSession } from 'mongoose'
+import { NIL, v5 as uuidv5 } from 'uuid'
+import muuid, { MUUID } from 'uuid-mongodb'
 
-import { AreaType, AreaDocumnent, AreaEditableFieldsType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
-import AreaDataSource from './AreaDataSource.js'
-import { createRootNode } from '../db/import/usa/AreaTree.js'
-import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
-import { changelogDataSource } from './ChangeLogDataSource.js'
-import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
-import CountriesLngLat from '../data/countries-with-lnglat.json' assert { type: 'json' }
-import { logger } from '../logger.js'
 import { GradeContexts } from '../GradeUtils.js'
-import { sanitizeStrict } from '../utils/sanitize.js'
+import CountriesLngLat from '../data/countries-with-lnglat.json' assert { type: 'json' }
+import { AreaDocumnent, AreaEditableFieldsType, AreaType, OperationType, UpdateSortingOrderType } from '../db/AreaTypes.js'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import { ExperimentalAuthorType } from '../db/UserTypes.js'
-import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
+import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
+import { createRootNode } from '../db/import/usa/AreaTree.js'
 import { StatsSummary, leafReducer, nodesReducer } from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
 import { bboxFrom } from '../geo-utils.js'
+import { logger } from '../logger.js'
+import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
+import { sanitizeStrict } from '../utils/sanitize.js'
+import AreaDataSource from './AreaDataSource.js'
+import { changelogDataSource } from './ChangeLogDataSource.js'
 
 isoCountries.registerLocale(enJson)
+
+interface AddAreaOptions {
+  user: MUUID
+  areaName: string
+  parentUuid?: MUUID | null
+  countryCode?: string
+  experimentalAuthor?: ExperimentalAuthorType
+  isLeaf?: boolean
+  isBoulder?: boolean
+  session?: ClientSession
+}
+
+interface UpdateAreaOptions {
+  user: MUUID
+  areaUuid: MUUID
+  document: AreaEditableFieldsType
+  session?: ClientSession
+}
 
 export default class MutableAreaDataSource extends AreaDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
@@ -101,6 +119,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
     throw new Error('Error inserting ' + countryCode)
   }
 
+  async addAreaWith ({ user, areaName, parentUuid = null, countryCode, experimentalAuthor, isLeaf, isBoulder, session }: AddAreaOptions): Promise<AreaType> {
+    return await this.addArea(user, areaName, parentUuid, countryCode, experimentalAuthor, isLeaf, isBoulder, session)
+  }
+
   /**
    * Add a new area.  Either a parent id or country code is required.
    * @param user
@@ -114,9 +136,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
     countryCode?: string,
     experimentalAuthor?: ExperimentalAuthorType,
     isLeaf?: boolean,
-    isBoulder?: boolean): Promise<AreaType> {
+    isBoulder?: boolean,
+    sessionCtx?: ClientSession): Promise<AreaType> {
     if (parentUuid == null && countryCode == null) {
-      throw new Error('Adding area failed. Must provide parent Id or country code')
+      throw new Error(`Adding area "${areaName}" failed. Must provide parent Id or country code`)
     }
 
     let uuid: MUUID
@@ -124,30 +147,36 @@ export default class MutableAreaDataSource extends AreaDataSource {
       uuid = parentUuid
     } else if (countryCode != null) {
       uuid = countryCode2Uuid(countryCode)
+    } else {
+      throw new Error(`Adding area "${areaName}" failed. Unable to determine parent id or country code`)
     }
 
-    const session = await this.areaModel.startSession()
+    const session = sessionCtx ?? await this.areaModel.startSession()
 
     let ret: AreaType
 
-    // withTransaction() doesn't return the callback result
-    // see https://jira.mongodb.org/browse/NODE-2014
-    await session.withTransaction(
-      async (session) => {
-        ret = await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder)
-        return ret
-      })
+    if (session.inTransaction()) {
+      ret = await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder)
+    } else {
+      // withTransaction() doesn't return the callback result
+      // see https://jira.mongodb.org/browse/NODE-2014
+      await session.withTransaction(
+        async (session) => {
+          ret = await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder)
+          return ret
+        })
+    }
     // @ts-expect-error
     return ret
   }
 
   async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType, isLeaf?: boolean, isBoulder?: boolean): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
-    const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError('Expecting 1 parent, found none.'))
+    const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError(`[${areaName}]: Expecting country or area parent, found none with id ${parentUuid.toString()}`))
 
     if (parent.metadata.leaf || (parent.metadata?.isBoulder ?? false)) {
       if (parent.children.length > 0 || parent.climbs.length > 0) {
-        throw new UserInputError('Adding new areas to a leaf or boulder area is not allowed.')
+        throw new UserInputError(`[${areaName}]: Adding new areas to a leaf or boulder area is not allowed.`)
       }
       // No children.  It's ok to continue turning an empty crag/boulder into an area.
       parent.metadata.leaf = false
@@ -293,6 +322,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
       }).session(session).lean()
   }
 
+  async updateAreaWith ({ user, areaUuid, document, session }: UpdateAreaOptions): Promise<AreaType | null> {
+    return await this.updateArea(user, areaUuid, document, session)
+  }
+
   /**
    * Update one or more area fields.
    *
@@ -302,7 +335,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param document New fields
    * @returns Newly updated area
    */
-  async updateArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<AreaType | null> {
+  async updateArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType, sessionCtx?: ClientSession): Promise<AreaType | null> {
     const _updateArea = async (session: ClientSession, user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<any> => {
       const filter = {
         'metadata.area_id': areaUuid,
@@ -336,11 +369,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
       area.updatedBy = experimentaAuthorId ?? user
 
       if (area.pathTokens.length === 1) {
-        if (areaName != null || shortCode != null) throw new Error('Area update error.  Reason: Updating country name or short code is not allowed.')
+        if (areaName != null || shortCode != null) throw new Error(`[${area.area_name}]: Area update error. Reason: Updating country name or short code is not allowed.`)
       }
 
       if (area.children.length > 0 && (isLeaf != null || isBoulder != null)) {
-        throw new Error('Area update error.  Reason: Updating leaf or boulder status of an area with subareas is not allowed.')
+        throw new Error(`[${area.area_name}]: Area update error.  Reason: Updating leaf or boulder status of an area with subareas is not allowed.`)
       }
 
       if (areaName != null) {
@@ -386,16 +419,22 @@ export default class MutableAreaDataSource extends AreaDataSource {
       return cursor.toObject()
     }
 
-    const session = await this.areaModel.startSession()
+    const session = sessionCtx ?? await this.areaModel.startSession()
     let ret: AreaType | null = null
 
-    // withTransaction() doesn't return the callback result
-    // see https://jira.mongodb.org/browse/NODE-2014
-    await session.withTransaction(
-      async session => {
-        ret = await _updateArea(session, user, areaUuid, document)
-        return ret
-      })
+    if (session.inTransaction()) {
+      return await _updateArea(session, user, areaUuid, document)
+    } else {
+      // withTransaction() doesn't return the callback result
+      // see https://jira.mongodb.org/browse/NODE-2014
+      await session.withTransaction(
+        async session => {
+          ret = await _updateArea(session, user, areaUuid, document)
+          return ret
+        }
+      )
+    }
+
     return ret
   }
 
@@ -599,7 +638,7 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
 
 export const countryCode2Uuid = (code: string): MUUID => {
   if (!isoCountries.isValid(code)) {
-    throw new Error('Invalid country code.  Expect alpha2 or alpha3')
+    throw new Error(`Invalid country code: ${code}. Expect alpha2 or alpha3`)
   }
   const alpha3 = code.length === 2 ? isoCountries.toAlpha3(code) : code
   return muuid.from(uuidv5(alpha3.toUpperCase(), NIL))

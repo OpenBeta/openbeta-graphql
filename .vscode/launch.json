@@ -15,7 +15,7 @@
             ],
             "skipFiles": [
                 "<node_internals>/**"
-            ],
+            ]
         },
         {
             "type": "node",
@@ -28,7 +28,7 @@
             ],
             "skipFiles": [
                 "<node_internals>/**"
-            ],
+            ]
         },
         {
             "type": "node",
@@ -41,7 +41,7 @@
             ],
             "skipFiles": [
                 "<node_internals>/**"
-            ],
+            ]
         },
         {
             "type": "node",
@@ -55,7 +55,7 @@
             "outFiles": [
                 "${workspaceFolder}/build/**/*.js"
             ],
-            "console": "integratedTerminal",
+            "console": "integratedTerminal"
         },
         {
             "type": "node",
@@ -90,7 +90,26 @@
                 "history"
             ],
             "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen",
+            "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "name": "vscode-jest-tests.v2",
+            "request": "launch",
+            "env": {
+                "NODE_OPTIONS": "--experimental-vm-modules"
+            },
+            "args": [
+                "${workspaceRoot}/node_modules/.bin/jest",
+                "--runInBand",
+                "--watchAll=false",
+                "--testNamePattern",
+                "${jest.testNamePattern}",
+                "--runTestsByPath",
+                "${jest.testFile}"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         }
     ]
 }

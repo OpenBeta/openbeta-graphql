@@ -1,19 +1,26 @@
-import muid, { MUUID } from 'uuid-mongodb'
 import { UserInputError } from 'apollo-server'
 import { ClientSession } from 'mongoose'
+import muid, { MUUID } from 'uuid-mongodb'
 
+import { createGradeObject, gradeContextToGradeScales, sanitizeDisciplines } from '../GradeUtils.js'
+import { getAreaModel } from '../db/AreaSchema.js'
 import { AreaDocumnent } from '../db/AreaTypes.js'
-import { ClimbType, ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, IPitch } from '../db/ClimbTypes.js'
+import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
+import { getClimbModel } from '../db/ClimbSchema.js'
+import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, ClimbType, IPitch } from '../db/ClimbTypes.js'
+import { aggregateCragStats } from '../db/utils/Aggregate.js'
+import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
+import { changelogDataSource } from './ChangeLogDataSource.js'
 import ClimbDataSource from './ClimbDataSource.js'
 import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
-import { sanitizeDisciplines, gradeContextToGradeScales, createGradeObject } from '../GradeUtils.js'
-import { getClimbModel } from '../db/ClimbSchema.js'
-import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
-import { changelogDataSource } from './ChangeLogDataSource.js'
-import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
-import { aggregateCragStats } from '../db/utils/Aggregate.js'
-import { getAreaModel } from '../db/AreaSchema.js'
+
+interface AddOrUpdateClimbsOptions {
+  userId: MUUID
+  parentId: MUUID
+  changes: ClimbChangeInputType[]
+  session?: ClientSession
+}
 
 export default class MutableClimbDataSource extends ClimbDataSource {
   experimentalUserDataSource = createExperimentalUserDataSource()
@@ -237,23 +244,32 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     }
   }
 
+  async addOrUpdateClimbsWith ({ userId, parentId, changes, session }: AddOrUpdateClimbsOptions): Promise<string[]> {
+    return await this.addOrUpdateClimbs(userId, parentId, changes, session)
+  }
+
   /**
    * Update one or climbs (or boulder problems).  Add climb to the area if it doesn't exist.
    * @param parentId parent area id
    * @param changes
    * @returns a list of updated (or newly added) climb IDs
    */
-  async addOrUpdateClimbs (userId: MUUID, parentId: MUUID, changes: ClimbChangeInputType[]): Promise<string[]> {
-    const session = await this.areaModel.startSession()
+  async addOrUpdateClimbs (userId: MUUID, parentId: MUUID, changes: ClimbChangeInputType[], sessionCtx?: ClientSession): Promise<string[]> {
+    const session = sessionCtx ?? await this.areaModel.startSession()
     let ret: string[]
 
-    // withTransaction() doesn't return the callback result
-    // see https://jira.mongodb.org/browse/NODE-2014
-    await session.withTransaction(
-      async (session) => {
-        ret = await this._addOrUpdateClimbs(userId, session, parentId, changes)
-        return ret
-      })
+    if (session.inTransaction()) {
+      return await this._addOrUpdateClimbs(userId, session, parentId, changes)
+    } else {
+      // withTransaction() doesn't return the callback result
+      // see https://jira.mongodb.org/browse/NODE-2014
+      await session.withTransaction(
+        async (session) => {
+          ret = await this._addOrUpdateClimbs(userId, session, parentId, changes)
+          return ret
+        })
+    }
+
     // @ts-expect-error
     return ret
   }

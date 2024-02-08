@@ -1,140 +1,133 @@
-import { Point, geometry } from '@turf/helpers'
-import { AnyBulkWriteOperation, BulkWriteResult } from 'mongodb'
+import { Point } from '@turf/helpers'
 import mongoose from 'mongoose'
-import muuid from 'uuid-mongodb'
+import { MUUID } from 'uuid-mongodb'
 import { logger } from '../../../logger.js'
-import { getAreaModel } from '../../AreaSchema.js'
+import MutableAreaDataSource from '../../../model/MutableAreaDataSource.js'
+import MutableClimbDataSource from '../../../model/MutableClimbDataSource.js'
 import { AreaType } from '../../AreaTypes.js'
-import { ClimbType } from '../../ClimbTypes.js'
+import { ClimbChangeInputType, ClimbType } from '../../ClimbTypes.js'
 
 export type AreaJson = Partial<
 Omit<AreaType, 'metadata' | 'children' | 'climbs'>
 > & {
-  id?: string | mongoose.Types.ObjectId
+  id?: MUUID
+  areaName: string
+  countryCode?: string
   metadata?: Partial<Omit<AreaType['metadata'], 'lnglat'>> & {
     lnglat?: [number, number] | Point
   }
   children?: AreaJson[]
-  climbs?: ClimbJson[]
+  climbs?: ClimbChangeInputType[]
 }
 
 export type ClimbJson = Partial<Omit<ClimbType, 'metadata' | 'pitches'>> & {
   metadata?: Omit<ClimbType['metadata'], 'areaRef'>
 }
 
-export async function bulkImportJson (json: AreaJson): Promise<BulkWriteResult> {
-  const { operations } = createBulkOperation(json)
-
-  logger.info('Bulk importing the following data...')
-  logger.info(JSON.stringify(operations, null, 2))
-
-  const AreaModel = getAreaModel()
-  return await AreaModel.bulkWrite(operations)
+export interface BulkImportOptions {
+  user: MUUID
+  json: AreaJson[]
+  session?: mongoose.ClientSession
+  areas?: MutableAreaDataSource
+  climbs?: MutableClimbDataSource
 }
 
-export function createBulkOperation (node: AreaJson): {
-  id: mongoose.Types.ObjectId
-  operations: AnyBulkWriteOperation[]
-} {
-  const bulkOperations: AnyBulkWriteOperation[] = []
-  const { children = [], ...area } = node
-  const { id, operation } = createArea(area)
+export interface BulkImportResult {
+  addedAreas: AreaType[]
+  climbIds: string[]
+  errors: Error[]
+}
 
-  const childIds: mongoose.Types.ObjectId[] = []
-
-  for (const child of children) {
-    const { id: childId, operations } = createBulkOperation(child)
-    bulkOperations.push(...operations)
-    childIds.push(childId)
+/**
+ *
+ * @param json the json to import formatted in a valid database format
+ * @returns a list of ids of the areas that were imported
+ */
+export async function bulkImportJson ({
+  user,
+  json,
+  session: _session,
+  areas = MutableAreaDataSource.getInstance(),
+  climbs = MutableClimbDataSource.getInstance()
+}: BulkImportOptions): Promise<BulkImportResult> {
+  let result: BulkImportResult = {
+    addedAreas: [],
+    climbIds: [],
+    errors: []
   }
-
-  bulkOperations.push(operation)
-  if (childIds.length > 0) {
-    bulkOperations.push({
-      updateOne: {
-        filter: { _id: id },
-        update: {
-          // @ts-expect-error
-          $push: {
-            children: {
-              $each: childIds
-            }
-          }
-        }
-      }
+  logger.debug('starting bulk import session...')
+  const session = _session ?? (await mongoose.startSession())
+  try {
+    await session.withTransaction(async () => {
+      result = await _bulkImportJson({ user, json, areas, climbs, session })
+      return result
     })
+  } catch (e) {
+    logger.error('bulk import failed', e)
+    result.errors.push(e)
+  } finally {
+    await session.endSession()
+    logger.debug('bulk import complete')
   }
-
-  return { id, operations: bulkOperations }
+  return result
 }
 
-function createArea (
-  json: AreaJson,
-  parentId?: mongoose.Types.ObjectId | string
-): { id: mongoose.Types.ObjectId, operation: AnyBulkWriteOperation } {
-  const {
-    id: existingId,
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    area_name,
-    metadata,
-    gradeContext,
-    content = {},
-    climbs = [],
-    ...rest
-  } = json
+async function _bulkImportJson ({
+  user,
+  json,
+  session,
+  areas = MutableAreaDataSource.getInstance(),
+  climbs = MutableClimbDataSource.getInstance()
+}: BulkImportOptions): Promise<BulkImportResult> {
+  const addedAreas: AreaType[] = []
+  const climbIds: string[] = []
 
-  const id = new mongoose.Types.ObjectId(existingId)
-  const coords = metadata?.lnglat !== undefined && Array.isArray(metadata.lnglat)
-    ? geometry('Point', metadata.lnglat)
-    : metadata?.lnglat
-  const leaf = metadata?.leaf ?? climbs.length > 0
-
-  return {
-    id,
-    operation: {
-      updateOne: {
-        filter: { _id: id },
-        update: {
-          $set: {
-            area_name,
-            gradeContext,
-            metadata: {
-              ...metadata,
-              leaf,
-              isBoulder: false,
-              lnglat: coords
-            },
-            content,
-            climbs: climbs.map(createClimb),
-            ...rest
-          }
-        },
-        upsert: true
+  const addArea = async (
+    node: AreaJson,
+    parentUuid?: MUUID
+  ): Promise<AreaType[]> => {
+    const result: AreaType[] = []
+    let area: AreaType
+    if (node.id !== undefined && node.id !== null) {
+      area = (await areas.updateArea(user, node.id, node, session)) as AreaType
+    } else if (node.areaName !== undefined) {
+      area = await areas.addAreaWith({
+        user,
+        areaName: node.areaName,
+        countryCode: node.countryCode,
+        parentUuid,
+        session
+      })
+    } else {
+      throw new Error('areaName or id is required')
+    }
+    result.push(area)
+    if (node.children != null) {
+      for (const child of node.children) {
+        result.push(...(await addArea(child, area.metadata.area_id)))
       }
     }
+    if (node.climbs != null) {
+      climbIds.push(
+        ...(await climbs.addOrUpdateClimbsWith({
+          userId: user,
+          parentId: area.metadata.area_id,
+          changes: [...node.climbs],
+          session
+        }))
+      )
+    }
+    return [...result]
   }
-}
 
-function createClimb (climb: ClimbJson): ClimbJson {
-  const {
-    _id: existingId,
-    name = 'Unknown Climb',
-    type = { sport: true },
-    grades = {},
-    metadata = {},
-    content = {},
-    ...rest
-  } = climb
-
-  const id = existingId ?? muuid.v4()
+  for (const node of json) {
+    // fails fast and throws errors up the chain
+    addedAreas.push(...(await addArea(node)))
+  }
 
   return {
-    _id: id,
-    name,
-    type,
-    grades,
-    metadata,
-    content,
-    ...rest
+    addedAreas: [...addedAreas],
+    climbIds,
+    errors: []
   }
 }
