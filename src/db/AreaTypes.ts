@@ -2,11 +2,11 @@ import mongoose from 'mongoose'
 import { MUUID } from 'uuid-mongodb'
 
 import { BBox, Point, Polygon } from '@turf/helpers'
-import { ClimbType } from './ClimbTypes.js'
-import { ChangeRecordMetadataType } from './ChangeLogType.js'
 import { GradeContexts } from '../GradeUtils.js'
-import { ExperimentalAuthorType } from './UserTypes.js'
 import { AuthorMetadata } from '../types.js'
+import { ChangeRecordMetadataType } from './ChangeLogType.js'
+import { ClimbType } from './ClimbTypes.js'
+import { ExperimentalAuthorType } from './UserTypes.js'
 
 export type AreaDocumnent = mongoose.Document<unknown, any, AreaType> & AreaType
 
@@ -63,11 +63,15 @@ export interface IAreaProps extends AuthorMetadata {
    */
   children: mongoose.Types.ObjectId[]
   /**
-   * areaNames of this areas parents, traversing up the heirarchy to the root area.
+   * ancestors ids of this areas parents, traversing up the heirarchy to the root area.
    * This is encoded as a string, but is really an array delimited by comma.
+   * @see https://www.mongodb.com/docs/manual/tutorial/model-tree-structures-with-materialized-paths/
    */
   ancestors: string
-  /** UUIDs of this areas parents, traversing up the heirarchy to the root area. */
+  /**
+   * pathTokens names of this areas parents, traversing up the heirarchy to the root area
+   * with the current area being the last element.
+   */
   pathTokens: string[]
 
   gradeContext: GradeContexts
