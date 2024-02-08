@@ -1,4 +1,4 @@
-import { AreaJson, createBulkOperation } from '../import-json';
+import { AreaJson, createBulkOperation } from '../import-json.js';
 
 describe('createBulkOperation', () => {
   it('should insert single new area', () => {
@@ -166,4 +166,52 @@ describe('createBulkOperation', () => {
       },
     ]);
   });
+
+  it('should add the required missing default properties', () => {
+      const json: AreaJson = {
+        area_name: 'Test Area',
+        climbs: [
+          {
+            name: 'Test Climb',
+            grades: {
+              uiaa: '7+',
+            },
+          },
+        ]
+      };
+
+      const { operations } = createBulkOperation(json);
+      expect(operations).toEqual([
+        {
+          updateOne: {
+            filter: { _id: expect.anything() },
+            update: {
+              $set: {
+                area_name: 'Test Area',
+                gradeContext: 'US',
+                content: {},
+                metadata: {
+                  leaf: true,
+                  isBoulder: false,
+                  lnglat: undefined
+                },
+                climbs: [
+                  {
+                    _id: expect.anything(),
+                    name: 'Test Climb',
+                    grades: {
+                      uiaa: '7+',
+                    },
+                    type: { sport: true },
+                    metadata: {},
+                    content: {}
+                  },
+                ],
+              },
+            },
+            upsert: true,
+          },
+        },
+      ]);
+    });
 });

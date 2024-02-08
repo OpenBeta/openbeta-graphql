@@ -1,6 +1,8 @@
 import { Point, geometry } from '@turf/helpers'
 import { AnyBulkWriteOperation, BulkWriteResult } from 'mongodb'
 import mongoose from 'mongoose'
+import muuid from 'uuid-mongodb'
+import { GradeContexts } from '../../../GradeUtils.js'
 import { logger } from '../../../logger.js'
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes.js'
@@ -10,11 +12,15 @@ export type AreaJson = Partial<
 Omit<AreaType, 'metadata' | 'children' | 'climbs'>
 > & {
   id?: string | mongoose.Types.ObjectId
-  metadata: Partial<Omit<AreaType['metadata'], 'lnglat'>> & {
+  metadata?: Partial<Omit<AreaType['metadata'], 'lnglat'>> & {
     lnglat?: [number, number] | Point
   }
   children?: AreaJson[]
-  climbs?: Array<Partial<ClimbType>>
+  climbs?: ClimbJson[]
+}
+
+export type ClimbJson = Partial<Omit<ClimbType, 'metadata' | 'pitches'>> & {
+  metadata?: Omit<ClimbType['metadata'], 'areaRef'>
 }
 
 export async function bulkImportJson (json: AreaJson): Promise<BulkWriteResult> {
@@ -67,12 +73,24 @@ function createArea (
   json: AreaJson,
   parentId?: mongoose.Types.ObjectId | string
 ): { id: mongoose.Types.ObjectId, operation: AnyBulkWriteOperation } {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  const { id: existingId, area_name, metadata, ...contentAndClimbs } = json
+  const {
+    id: existingId,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    area_name,
+    metadata,
+    gradeContext: exisitingGradeContext,
+    content = {},
+    climbs = [],
+    ...rest
+  } = json
+
   const id = new mongoose.Types.ObjectId(existingId)
   const coords = metadata?.lnglat !== undefined && Array.isArray(metadata.lnglat)
     ? geometry('Point', metadata.lnglat)
     : metadata?.lnglat
+  const gradeContext: GradeContexts = exisitingGradeContext ??
+  climbs[0]?.grades?.[0] ?? GradeContexts.US
+  const leaf = metadata?.leaf ?? climbs.length > 0
 
   return {
     id,
@@ -82,15 +100,44 @@ function createArea (
         update: {
           $set: {
             area_name,
+            gradeContext,
             metadata: {
               ...metadata,
+              leaf,
+              isBoulder: false,
               lnglat: coords
             },
-            ...contentAndClimbs
+            content,
+            climbs: climbs.map(createClimb),
+            ...rest
           }
         },
         upsert: true
       }
     }
+  }
+}
+
+function createClimb (climb: ClimbJson): ClimbJson {
+  const {
+    _id: existingId,
+    name = 'Unknown Climb',
+    type = { sport: true },
+    grades = {},
+    metadata = {},
+    content = {},
+    ...rest
+  } = climb
+
+  const id = existingId ?? muuid.v4()
+
+  return {
+    _id: id,
+    name,
+    type,
+    grades,
+    metadata,
+    content,
+    ...rest
   }
 }
