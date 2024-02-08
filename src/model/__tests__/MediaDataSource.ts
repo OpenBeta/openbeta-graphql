@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 import muuid, { MUUID } from 'uuid-mongodb'
-import MutableMediaDataSource from '../MutableMediaDataSource'
-import AreaDataSource from '../MutableAreaDataSource'
-import ClimbDataSource from '../MutableClimbDataSource'
+import MutableMediaDataSource from '../MutableMediaDataSource.js'
+import AreaDataSource from '../MutableAreaDataSource.js'
+import ClimbDataSource from '../MutableClimbDataSource.js'
 
 import { connectDB, createIndexes } from '../../db/index.js'
 import { AreaType } from '../../db/AreaTypes.js'

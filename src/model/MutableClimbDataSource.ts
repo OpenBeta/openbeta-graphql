@@ -1,4 +1,4 @@
-import { UserInputError } from 'apollo-server'
+import { UserInputError } from 'apollo-server-express'
 import { ClientSession } from 'mongoose'
 import muid, { MUUID } from 'uuid-mongodb'
 
@@ -15,7 +15,7 @@ import ClimbDataSource from './ClimbDataSource.js'
 import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
 
-interface AddOrUpdateClimbsOptions {
+export interface AddOrUpdateClimbsOptions {
   userId: MUUID
   parentId: MUUID
   changes: ClimbChangeInputType[]

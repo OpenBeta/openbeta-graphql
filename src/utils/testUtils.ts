@@ -3,8 +3,8 @@ import { jest } from '@jest/globals'
 import request from 'supertest'
 import inMemoryDB from './inMemoryDB.js'
 import type { InMemoryDB } from './inMemoryDB.js'
-import { createServer } from '../server.js'
-import { ApolloServer } from 'apollo-server'
+import { startServer } from '../server.js'
+import { ApolloServer } from 'apollo-server-express'
 
 const PORT = 4000
 
@@ -41,7 +41,7 @@ export const queryAPI = async ({ query, operationName, variables, userUuid, role
   return response
 }
 
-interface SetUpServerReturnType {
+export interface SetUpServerReturnType {
   server: ApolloServer
   inMemoryDB: InMemoryDB
 }
@@ -49,8 +49,7 @@ interface SetUpServerReturnType {
  * Starts Apollo server and has Mongo inMemory replset connect to it.
 */
 export const setUpServer = async (port = PORT): Promise<SetUpServerReturnType> => {
-  const server = await createServer()
   await inMemoryDB.connect()
-  await server.listen({ port })
+  const server = await startServer(port)
   return { server, inMemoryDB }
 }

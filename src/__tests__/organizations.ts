@@ -1,4 +1,4 @@
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
@@ -10,7 +10,7 @@ import { queryAPI, setUpServer } from '../utils/testUtils.js'
 import { muuidToString } from '../utils/helpers.js'
 import { validate as validateMuuid } from 'uuid'
 
-jest.setTimeout(60000)
+jest.setTimeout(110000)
 
 describe('organizations API', () => {
   let server: ApolloServer

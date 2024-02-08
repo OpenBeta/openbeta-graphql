@@ -1,5 +1,5 @@
 // import muid from 'uuid-mongodb'
-import { genMUIDFromPaths } from '../MutableAreaDataSource'
+import { genMUIDFromPaths } from '../MutableAreaDataSource.js'
 
 describe('Test area utilities', () => {
   it('generates UUID from area tokens', () => {

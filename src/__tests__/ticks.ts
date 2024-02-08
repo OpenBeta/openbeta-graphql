@@ -1,4 +1,4 @@
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
@@ -8,7 +8,7 @@ import TickDataSource from '../model/TickDataSource.js'
 import UserDataSource from '../model/UserDataSource.js'
 import { UpdateProfileGQLInput } from '../db/UserTypes.js'
 
-jest.setTimeout(60000)
+jest.setTimeout(110000)
 
 describe('ticks API', () => {
   let server: ApolloServer

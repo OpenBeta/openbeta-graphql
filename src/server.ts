@@ -1,4 +1,4 @@
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import mongoose from 'mongoose'
 import { applyMiddleware } from 'graphql-middleware'
 import { graphqlSchema } from './graphql/resolvers.js'
@@ -18,8 +18,10 @@ import MutableOrgDS from './model/MutableOrganizationDataSource.js'
 import type { Context } from './types.js'
 import type { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import UserDataSource from './model/UserDataSource.js'
+import express from 'express'
+import * as http from 'http'
 
-export async function createServer (): Promise<ApolloServer> {
+export async function startServer (port = 4000): Promise<ApolloServer> {
   const schema = applyMiddleware(
     graphqlSchema,
     (process.env.LOCAL_DEV_BYPASS_AUTH === 'true' ? localDevBypassAuthPermissions : permissions).generate(graphqlSchema)
@@ -40,6 +42,9 @@ export async function createServer (): Promise<ApolloServer> {
     post: new PostDataSource(mongoose.connection.db.collection('post'))
   })
 
+  const app = express()
+  const httpServer = http.createServer(app)
+
   const server = new ApolloServer({
     introspection: true,
     schema,
@@ -47,6 +52,11 @@ export async function createServer (): Promise<ApolloServer> {
     dataSources,
     cache: 'bounded'
   })
+  await server.start()
+  server.applyMiddleware({ app, path: '/' })
+
+  await new Promise<void>((resolve) => httpServer.listen({ port }, resolve))
+  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
 
   return server
 }

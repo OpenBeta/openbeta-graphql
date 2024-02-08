@@ -1,7 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import muid, { MUUID } from 'uuid-mongodb'
 import fs from 'fs'
-import { gql } from 'apollo-server'
+import { gql } from 'apollo-server-express'
 import { DocumentNode } from 'graphql'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'

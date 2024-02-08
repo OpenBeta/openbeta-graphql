@@ -1,6 +1,6 @@
 import bbox2Polygon from '@turf/bbox-polygon'
 import { Point, geometry } from '@turf/helpers'
-import { UserInputError } from 'apollo-server'
+import { UserInputError } from 'apollo-server-express'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 import { produce } from 'immer'
@@ -25,7 +25,7 @@ import { changelogDataSource } from './ChangeLogDataSource.js'
 
 isoCountries.registerLocale(enJson)
 
-interface AddAreaOptions {
+export interface AddAreaOptions {
   user: MUUID
   areaName: string
   parentUuid?: MUUID | null
@@ -36,7 +36,7 @@ interface AddAreaOptions {
   session?: ClientSession
 }
 
-interface UpdateAreaOptions {
+export interface UpdateAreaOptions {
   user: MUUID
   areaUuid: MUUID
   document: AreaEditableFieldsType
