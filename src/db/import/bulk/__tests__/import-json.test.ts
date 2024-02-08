@@ -1,3 +1,4 @@
+import { GradeContexts } from '../../../../GradeUtils.js';
 import { AreaJson, createBulkOperation } from '../import-json.js';
 
 describe('createBulkOperation', () => {
@@ -5,6 +6,7 @@ describe('createBulkOperation', () => {
     const json: AreaJson = {
       area_name: 'Test Area',
       metadata: { lnglat: [1, 2] },
+      gradeContext: GradeContexts.US,
     };
 
     const { operations } = createBulkOperation(json);
@@ -15,7 +17,12 @@ describe('createBulkOperation', () => {
           update: {
             $set: {
               area_name: 'Test Area',
+              content: {},
+              climbs: [],
+              gradeContext: 'US',
               metadata: {
+                leaf: false,
+                isBoulder: false,
                 lnglat: {
                   type: 'Point',
                   coordinates: [1, 2],
@@ -33,10 +40,12 @@ describe('createBulkOperation', () => {
     const json: AreaJson = {
       area_name: 'Test Area',
       metadata: { lnglat: [1, 2] },
+      gradeContext: GradeContexts.US,
       children: [
         {
           area_name: 'Child Area',
           metadata: { lnglat: [3, 4] },
+          gradeContext: GradeContexts.US,
         },
       ],
     };
@@ -49,7 +58,12 @@ describe('createBulkOperation', () => {
           update: {
             $set: {
               area_name: 'Child Area',
+              content: {},
+              climbs: [],
+              gradeContext: 'US',
               metadata: {
+                leaf: false,
+                isBoulder: false,
                 lnglat: {
                   type: 'Point',
                   coordinates: [3, 4],
@@ -66,7 +80,12 @@ describe('createBulkOperation', () => {
           update: {
             $set: {
               area_name: 'Test Area',
+              content: {},
+              climbs: [],
+              gradeContext: 'US',
               metadata: {
+                leaf: false,
+                isBoulder: false,
                 lnglat: {
                   type: 'Point',
                   coordinates: [1, 2],
@@ -94,10 +113,12 @@ describe('createBulkOperation', () => {
     const json: AreaJson = {
       area_name: 'Test Area',
       metadata: { lnglat: [1, 2] },
+      gradeContext: GradeContexts.UIAA,
       children: [
         {
           area_name: 'Child Area',
           metadata: { lnglat: [3, 4] },
+          gradeContext: GradeContexts.UIAA,
           climbs: [
             {
               name: 'Test Climb',
@@ -118,7 +139,11 @@ describe('createBulkOperation', () => {
           update: {
             $set: {
               area_name: 'Child Area',
+              content: {},
+              gradeContext: 'UIAA',
               metadata: {
+                leaf: true,
+                isBoulder: false,
                 lnglat: {
                   type: 'Point',
                   coordinates: [3, 4],
@@ -126,7 +151,11 @@ describe('createBulkOperation', () => {
               },
               climbs: [
                 {
+                  _id: expect.anything(),
                   name: 'Test Climb',
+                  content: {},
+                  metadata: {},
+                  type: { sport: true },
                   grades: {
                     uiaa: '7+',
                   },
@@ -143,7 +172,12 @@ describe('createBulkOperation', () => {
           update: {
             $set: {
               area_name: 'Test Area',
+              content: {},
+              gradeContext: 'UIAA',
+              climbs: [],
               metadata: {
+                leaf: false,
+                isBoulder: false,
                 lnglat: {
                   type: 'Point',
                   coordinates: [1, 2],
@@ -170,6 +204,7 @@ describe('createBulkOperation', () => {
   it('should add the required missing default properties', () => {
       const json: AreaJson = {
         area_name: 'Test Area',
+        gradeContext: GradeContexts.UIAA,
         climbs: [
           {
             name: 'Test Climb',
@@ -188,7 +223,7 @@ describe('createBulkOperation', () => {
             update: {
               $set: {
                 area_name: 'Test Area',
-                gradeContext: 'US',
+                gradeContext: 'UIAA',
                 content: {},
                 metadata: {
                   leaf: true,

@@ -2,7 +2,6 @@ import { Point, geometry } from '@turf/helpers'
 import { AnyBulkWriteOperation, BulkWriteResult } from 'mongodb'
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
-import { GradeContexts } from '../../../GradeUtils.js'
 import { logger } from '../../../logger.js'
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes.js'
@@ -78,7 +77,7 @@ function createArea (
     // eslint-disable-next-line @typescript-eslint/naming-convention
     area_name,
     metadata,
-    gradeContext: exisitingGradeContext,
+    gradeContext,
     content = {},
     climbs = [],
     ...rest
@@ -88,8 +87,6 @@ function createArea (
   const coords = metadata?.lnglat !== undefined && Array.isArray(metadata.lnglat)
     ? geometry('Point', metadata.lnglat)
     : metadata?.lnglat
-  const gradeContext: GradeContexts = exisitingGradeContext ??
-  climbs[0]?.grades?.[0] ?? GradeContexts.US
   const leaf = metadata?.leaf ?? climbs.length > 0
 
   return {
