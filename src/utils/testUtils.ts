@@ -10,13 +10,15 @@ import express from 'express'
 const PORT = 4000
 
 interface QueryAPIProps {
-  query: string
+  query?: string
   operationName?: string
-  variables: any
-  userUuid: string
+  variables?: any
+  userUuid?: string
   roles?: string[]
   port?: number
+  endpoint?: string
   app?: express.Application
+  body?: any
 }
 
 /*
@@ -27,10 +29,12 @@ export const queryAPI = async ({
   query,
   operationName,
   variables,
-  userUuid,
+  userUuid = '',
   roles = [],
   app,
-  port = PORT
+  endpoint = '/',
+  port = PORT,
+  body = { query, operationName, variables }
 }: QueryAPIProps): Promise<request.Response> => {
   // Avoid needing to pass in actual signed tokens.
   const jwtSpy = jest.spyOn(jwt, 'verify')
@@ -42,10 +46,9 @@ export const queryAPI = async ({
     }
   })
 
-  const queryObj = { query, operationName, variables }
   return await request(app ?? `http://localhost:${port}`)
-    .post('/')
-    .send(queryObj)
+    .post(endpoint)
+    .send(body)
     .set('Authorization', 'Bearer placeholder-jwt-see-SpyOn')
 }
 
@@ -63,3 +66,10 @@ export const setUpServer = async (): Promise<SetUpServerReturnType> => {
   const { app, server } = await createServer()
   return { app, server, inMemoryDB }
 }
+
+export const isFulfilled = <T>(
+  p: PromiseSettledResult<T>
+): p is PromiseFulfilledResult<T> => p.status === 'fulfilled'
+export const isRejected = <T>(
+  p: PromiseSettledResult<T>
+): p is PromiseRejectedResult => p.status === 'rejected'

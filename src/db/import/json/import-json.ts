@@ -1,11 +1,12 @@
 import { Point } from '@turf/helpers'
 import mongoose from 'mongoose'
-import { MUUID } from 'uuid-mongodb'
+import muuid, { MUUID } from 'uuid-mongodb'
 import { logger } from '../../../logger.js'
 import MutableAreaDataSource from '../../../model/MutableAreaDataSource.js'
 import MutableClimbDataSource from '../../../model/MutableClimbDataSource.js'
 import { AreaType } from '../../AreaTypes.js'
 import { ClimbChangeInputType, ClimbType } from '../../ClimbTypes.js'
+import { withTransaction } from '../../../utils/helpers'
 
 export type AreaJson = Partial<
 Omit<AreaType, 'metadata' | 'children' | 'climbs'>
@@ -33,7 +34,8 @@ export interface BulkImportOptions {
 }
 
 export interface BulkImportResult {
-  addedAreas: AreaType[]
+  addedAreaIds: string[]
+  updatedAreaIds: string[]
   climbIds: string[]
   errors: Error[]
 }
@@ -50,20 +52,19 @@ export async function bulkImportJson ({
   areas = MutableAreaDataSource.getInstance(),
   climbs = MutableClimbDataSource.getInstance()
 }: BulkImportOptions): Promise<BulkImportResult> {
-  let result: BulkImportResult = {
-    addedAreas: [],
+  const result: BulkImportResult = {
+    addedAreaIds: [],
+    updatedAreaIds: [],
     climbIds: [],
     errors: []
   }
   logger.debug('starting bulk import session...')
   const session = _session ?? (await mongoose.startSession())
   try {
-    await session.withTransaction(async () => {
+    return await withTransaction(session, async () => {
       logger.info('starting bulk import...', json)
-      result = await _bulkImportJson({ user, json, areas, climbs, session })
-      logger.info('bulk import successful', result)
-      return result
-    })
+      return await _bulkImportJson({ user, json, areas, climbs, session })
+    }) ?? result
   } catch (e) {
     logger.error('bulk import failed', e)
     result.errors.push(e)
@@ -80,17 +81,20 @@ async function _bulkImportJson ({
   areas = MutableAreaDataSource.getInstance(),
   climbs = MutableClimbDataSource.getInstance()
 }: BulkImportOptions): Promise<BulkImportResult> {
-  const addedAreas: AreaType[] = []
-  const climbIds: string[] = []
-
-  const addArea = async (
+  const addOrUpdateArea = async (
     node: AreaJson,
     parentUuid?: MUUID
-  ): Promise<AreaType[]> => {
-    const result: AreaType[] = []
-    let area: AreaType
+  ): Promise<BulkImportResult> => {
+    const result: BulkImportResult = {
+      addedAreaIds: [],
+      updatedAreaIds: [],
+      climbIds: [],
+      errors: []
+    }
+    let area: AreaType | null
     if (node.id !== undefined && node.id !== null) {
-      area = (await areas.updateArea(user, node.id, node, session)) as AreaType
+      area = await areas?.updateAreaWith({ user, areaUuid: muuid.from(node.id), document: node, session })
+      if (area != null) { result.updatedAreaIds.push(area.metadata.area_id.toUUID().toString()) }
     } else if (node.areaName !== undefined) {
       area = await areas.addAreaWith({
         user,
@@ -99,36 +103,40 @@ async function _bulkImportJson ({
         parentUuid,
         session
       })
+      result.addedAreaIds.push(area?.metadata.area_id.toUUID().toString())
     } else {
       throw new Error('areaName or id is required')
     }
-    result.push(area)
-    if (node.children != null) {
+    if ((node.children != null) && (area != null)) {
       for (const child of node.children) {
-        result.push(...(await addArea(child, area.metadata.area_id)))
+        const childResult = await addOrUpdateArea(child, area.metadata.area_id)
+        result.updatedAreaIds.push(...childResult.updatedAreaIds)
+        result.addedAreaIds.push(...childResult.addedAreaIds)
+        result.climbIds.push(...childResult.climbIds)
       }
     }
-    if (node.climbs != null) {
-      climbIds.push(
-        ...(await climbs.addOrUpdateClimbsWith({
-          userId: user,
-          parentId: area.metadata.area_id,
-          changes: [...node.climbs],
-          session
-        }))
-      )
+    if ((node.climbs != null) && (area != null)) {
+      const climbIds = await climbs.addOrUpdateClimbsWith({
+        userId: user,
+        parentId: area.metadata.area_id,
+        changes: [...node.climbs ?? []],
+        session
+      })
+      result.climbIds.push(...climbIds)
     }
-    return [...result]
+    return result
   }
 
-  for (const node of json?.areas ?? []) {
-    // fails fast and throws errors up the chain
-    addedAreas.push(...(await addArea(node)))
-  }
-
-  return {
-    addedAreas: [...addedAreas],
-    climbIds,
+  const results = await Promise.all<BulkImportResult>(json?.areas?.map(async (node) => await (addOrUpdateArea(node) ?? {})) ?? [])
+  return results.reduce((acc, r) => ({
+    addedAreaIds: [...acc.addedAreaIds, ...r.addedAreaIds],
+    updatedAreaIds: [...acc.updatedAreaIds, ...r.updatedAreaIds],
+    climbIds: [...acc.climbIds, ...r.climbIds],
+    errors: [...acc.errors, ...r.errors]
+  }), {
+    addedAreaIds: [],
+    updatedAreaIds: [],
+    climbIds: [],
     errors: []
-  }
+  })
 }

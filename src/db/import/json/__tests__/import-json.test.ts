@@ -8,9 +8,11 @@ import {ClimbType} from '../../../ClimbTypes.js';
 import streamListener from '../../../edit/streamListener.js';
 import {AreaJson, bulkImportJson, BulkImportResult} from '../import-json.js';
 import inMemoryDB from "../../../../utils/inMemoryDB.js";
+import {isFulfilled, isRejected} from "../../../../utils/testUtils.js";
 
 type TestResult = BulkImportResult & {
   addedAreas: Partial<AreaType>[];
+  updatedAreas: Partial<AreaType>[];
   addedClimbs: Partial<ClimbType>[];
 };
 
@@ -27,15 +29,14 @@ describe('bulk import e2e', () => {
       areas,
     });
 
-    const isFulfilled = <T>(
-      p: PromiseSettledResult<T>
-    ): p is PromiseFulfilledResult<T> => p.status === 'fulfilled';
-    const isRejected = <T>(
-      p: PromiseSettledResult<T>
-    ): p is PromiseRejectedResult => p.status === 'rejected';
-    const committedAreas = await Promise.allSettled(
-      result.addedAreas.map((area) =>
-        areas.findOneAreaByUUID(area.metadata.area_id)
+    const addedAreas = await Promise.allSettled(
+      result.addedAreaIds.map((areaId) =>
+        areas.findOneAreaByUUID(muuid.from(areaId))
+      )
+    );
+    const updatedAreas = await Promise.allSettled(
+      result.updatedAreaIds.map((areaId) =>
+        areas.findOneAreaByUUID(muuid.from(areaId))
       )
     );
     const committedClimbs = await Promise.allSettled(
@@ -46,10 +47,12 @@ describe('bulk import e2e', () => {
       ...result,
       errors: [
         ...result.errors,
-        ...committedAreas.filter(isRejected).map((p) => p.reason),
+        ...addedAreas.filter(isRejected).map((p) => p.reason),
         ...committedClimbs.filter(isRejected).map((p) => p.reason),
+        ...updatedAreas.filter(isRejected).map((p) => p.reason),
       ],
-      addedAreas: committedAreas.filter(isFulfilled).map((p) => p.value),
+      addedAreas: addedAreas.filter(isFulfilled).map((p) => p.value),
+      updatedAreas: updatedAreas.filter(isFulfilled).map((p) => p.value),
       addedClimbs: committedClimbs
       .filter(isFulfilled)
       .map((p) => p.value as Partial<ClimbType>),
@@ -241,7 +244,7 @@ describe('bulk import e2e', () => {
         })
       ).resolves.toMatchObject({
         errors: [],
-        addedAreas: [{area_name: 'New Name'}],
+        updatedAreas: [{area_name: 'New Name'}],
       });
     });
   });

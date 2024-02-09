@@ -9,7 +9,7 @@ export const importJsonRequestHandler = async (req, res): Promise<void> => {
       res.status(500).send({ message: 'Error importing JSON', errors: result.errors.map((e) => e.toString()) })
     } else {
       res.status(200).send(result)
-      logger.info(`Imported JSON: ${result.addedAreas.length} areas, ${result.climbIds.length} climbs`)
+      logger.info(`Imported JSON: ${result.addedAreaIds.length} areas created, ${result.updatedAreaIds.length} areas updated, ${result.climbIds.length} climbs updated or added`)
     }
   } catch (e) {
     logger.error(`Error importing JSON: ${e.toString() as string}`)

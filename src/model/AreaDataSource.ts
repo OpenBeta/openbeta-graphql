@@ -5,7 +5,16 @@ import bboxPolygon from '@turf/bbox-polygon'
 
 import { getAreaModel, getMediaObjectModel } from '../db/index.js'
 import { AreaType } from '../db/AreaTypes'
-import { GQLFilter, AreaFilterParams, PathTokenParams, LeafStatusParams, ComparisonFilterParams, StatisticsType, CragsNear, BBoxType } from '../types'
+import {
+  AreaFilterParams,
+  BBoxType,
+  ComparisonFilterParams,
+  CragsNear,
+  GQLFilter,
+  LeafStatusParams,
+  PathTokenParams,
+  StatisticsType
+} from '../types'
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
 import { logger } from '../logger.js'
@@ -113,7 +122,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     if (rs != null && rs.length === 1) {
       return rs[0]
     }
-    throw new Error(`Area ${uuid.toUUID().toString()} not found.`)
+    throw new Error(`Area ${uuid.toString()} not found.`)
   }
 
   async findManyClimbsByUuids (uuidList: muuid.MUUID[]): Promise<any> {
@@ -152,7 +161,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         { $unwind: '$parent' }, // Previous stage returns as an array of 1 element. 'unwind' turn it into an object.
         {
           $set: {
-            // create aliases
+          // create aliases
             pathTokens: '$parent.pathTokens',
             ancestors: '$parent.ancestors'
           }

@@ -405,7 +405,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       if (isBoulder != null) {
         area.set({ 'metadata.isBoulder': isBoulder })
         if (isBoulder) {
-          // boulfer == true implies leaf = true
+          // boulder == true implies leaf = true
           area.set({ 'metadata.leaf': true })
         }
       }
