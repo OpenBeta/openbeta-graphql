@@ -34,7 +34,7 @@ export type AreaType = IAreaProps & {
  * they may be hard to locate based on the contents of this object.
  * See AreaType for the reified version of this object, and always use it
  * if you are working with data that exists inside the database.
-*/
+ */
 export interface IAreaProps extends AuthorMetadata {
   _id: mongoose.Types.ObjectId
   /**
@@ -78,7 +78,7 @@ export interface IAreaProps extends AuthorMetadata {
   /**
    * computed aggregations on this document. See the AggregateType documentation for
    * more information.
-  */
+   */
   aggregate: AggregateType
   /**
    * User-composed content that makes up most of the user-readable data in the system.
@@ -154,6 +154,7 @@ export interface IAreaMetadata {
    */
   polygon?: Polygon
 }
+
 export interface IAreaContent {
   /** longform to mediumform description of this area.
    * Remembering that areas can be the size of countries, or as precise as a single cliff/boulder,
@@ -190,11 +191,13 @@ export interface CountByGroupType {
   count: number
   label: string
 }
+
 export interface AggregateType {
   byGrade: CountByGroupType[]
   byDiscipline: CountByDisciplineType
   byGradeBand: CountByGradeBandType
 }
+
 export interface CountByDisciplineType {
   trad?: DisciplineStatsType
   sport?: DisciplineStatsType
@@ -223,7 +226,7 @@ export interface CountByGradeBandType {
 }
 
 /** The audit trail comprises a set of controlled events that may occur in relation
- * to user actiion on core data. The enumeration herein defines the set of events
+ * to user action on core data. The enumeration herein defines the set of events
  * that may occur, and short documentation of what they mean
  */
 export enum OperationType {
@@ -242,7 +245,7 @@ export enum OperationType {
    * specific field's boolean state.
    */
   updateDestination = 'updateDestination',
-  /** signals that a user has pushed new user-changable data has been pushed into an area document. */
+  /** signals that a user has pushed new user-changeable data has been pushed into an area document. */
   updateArea = 'updateArea',
 
   /** Set areas' sorting index */

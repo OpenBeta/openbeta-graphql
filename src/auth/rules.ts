@@ -7,15 +7,6 @@ export const isEditor = rule()(async (parent, args, ctx, info) => {
   return _hasUserUuid(ctx) && ctx.user.roles.includes('editor')
 })
 
-export const hasEditorRoleMiddleware = async (req, res, next): Promise<void> => {
-  const roles: string[] = req.user?.roles ?? []
-  if (_hasUserUuid(req) && roles.includes('editor')) {
-    next()
-  } else {
-    res.status(403).send('Forbidden')
-  }
-}
-
 export const isUserAdmin = rule()(async (parent, args, ctx, info) => {
   return _hasUserUuid(ctx) && ctx.user.roles.includes('user_admin')
 })

@@ -9,7 +9,7 @@ import express from 'express'
 
 const PORT = 4000
 
-interface QueryAPIProps {
+export interface QueryAPIProps {
   query?: string
   operationName?: string
   variables?: any
@@ -33,8 +33,7 @@ export const queryAPI = async ({
   roles = [],
   app,
   endpoint = '/',
-  port = PORT,
-  body = { query, operationName, variables }
+  port = PORT
 }: QueryAPIProps): Promise<request.Response> => {
   // Avoid needing to pass in actual signed tokens.
   const jwtSpy = jest.spyOn(jwt, 'verify')
@@ -46,9 +45,10 @@ export const queryAPI = async ({
     }
   })
 
+  const queryObj = { query, operationName, variables }
   return await request(app ?? `http://localhost:${port}`)
     .post(endpoint)
-    .send(body)
+    .send(queryObj)
     .set('Authorization', 'Bearer placeholder-jwt-see-SpyOn')
 }
 

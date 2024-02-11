@@ -1,61 +1,46 @@
 import {ChangeStream} from 'mongodb';
 import muuid from 'uuid-mongodb';
-import {changelogDataSource} from '../../../../model/ChangeLogDataSource.js';
-import MutableAreaDataSource from '../../../../model/MutableAreaDataSource.js';
-import MutableClimbDataSource from '../../../../model/MutableClimbDataSource.js';
-import {AreaType} from '../../../AreaTypes.js';
-import {ClimbType} from '../../../ClimbTypes.js';
-import streamListener from '../../../edit/streamListener.js';
-import {AreaJson, bulkImportJson, BulkImportResult} from '../import-json.js';
-import inMemoryDB from "../../../../utils/inMemoryDB.js";
-import {isFulfilled, isRejected} from "../../../../utils/testUtils.js";
-
-type TestResult = BulkImportResult & {
-  addedAreas: Partial<AreaType>[];
-  updatedAreas: Partial<AreaType>[];
-  addedClimbs: Partial<ClimbType>[];
-};
+import {changelogDataSource} from '../ChangeLogDataSource.js';
+import MutableClimbDataSource from '../MutableClimbDataSource.js';
+import {AreaType} from '../../db/AreaTypes.js';
+import {ClimbType} from '../../db/ClimbTypes.js';
+import streamListener from '../../db/edit/streamListener.js';
+import inMemoryDB from "../../utils/inMemoryDB.js";
+import {isFulfilled} from "../../utils/testUtils.js";
+import BulkImportDataSource from "../BulkImportDataSource.js";
+import {BulkImportAreaInputType, BulkImportResultType} from "../../db/BulkImportTypes.js";
 
 describe('bulk import e2e', () => {
-  let areas: MutableAreaDataSource;
+  let bulkImport: BulkImportDataSource;
   let climbs: MutableClimbDataSource;
   let stream: ChangeStream;
   const testUser = muuid.v4();
 
-  const assertBulkImport = async (...json: AreaJson[]): Promise<TestResult> => {
-    const result = await bulkImportJson({
+  const assertBulkImport = async (...input: BulkImportAreaInputType[]): Promise<BulkImportResultType> => {
+    const result = await bulkImport.bulkImport({
       user: testUser,
-      json: {areas: json},
-      areas,
+      input: {areas: input},
+      climbs
     });
 
     const addedAreas = await Promise.allSettled(
-      result.addedAreaIds.map((areaId) =>
-        areas.findOneAreaByUUID(muuid.from(areaId))
+      result.addedAreas.map((area) =>
+        bulkImport.findOneAreaByUUID(area.metadata.area_id)
       )
     );
     const updatedAreas = await Promise.allSettled(
-      result.updatedAreaIds.map((areaId) =>
-        areas.findOneAreaByUUID(muuid.from(areaId))
+      result.updatedAreas.map((area) =>
+        bulkImport.findOneAreaByUUID(area.metadata.area_id)
       )
     );
-    const committedClimbs = await Promise.allSettled(
-      result.climbIds.map((id) => climbs.findOneClimbByMUUID(muuid.from(id)))
+    const addedOrUpdatedClimbs = await Promise.allSettled(
+      result.addedOrUpdatedClimbs.map((climb) => climbs.findOneClimbByMUUID(climb._id))
     );
 
     return {
-      ...result,
-      errors: [
-        ...result.errors,
-        ...addedAreas.filter(isRejected).map((p) => p.reason),
-        ...committedClimbs.filter(isRejected).map((p) => p.reason),
-        ...updatedAreas.filter(isRejected).map((p) => p.reason),
-      ],
       addedAreas: addedAreas.filter(isFulfilled).map((p) => p.value),
       updatedAreas: updatedAreas.filter(isFulfilled).map((p) => p.value),
-      addedClimbs: committedClimbs
-      .filter(isFulfilled)
-      .map((p) => p.value as Partial<ClimbType>),
+      addedOrUpdatedClimbs: addedOrUpdatedClimbs.filter(isFulfilled).map((p) => p.value as ClimbType),
     };
   };
 
@@ -74,10 +59,10 @@ describe('bulk import e2e', () => {
   });
 
   beforeEach(async () => {
-    areas = MutableAreaDataSource.getInstance();
+    bulkImport = BulkImportDataSource.getInstance();
     climbs = MutableClimbDataSource.getInstance();
 
-    await areas.addCountry('us');
+    await bulkImport.addCountry('us');
   });
 
   afterEach(async () => {
@@ -93,7 +78,6 @@ describe('bulk import e2e', () => {
           countryCode: 'us',
         })
       ).resolves.toMatchObject({
-        errors: [],
         addedAreas: [
           {
             area_name: 'Minimal Area',
@@ -118,10 +102,7 @@ describe('bulk import e2e', () => {
             areaName: 'Test Area 2',
           }
         )
-      ).resolves.toMatchObject({
-        errors: expect.arrayContaining([expect.any(Error)]),
-        addedAreas: [],
-      });
+      ).rejects.toThrowError("Must provide parent Id or country code");
     });
 
     it('should import nested areas with children', async () => {
@@ -136,7 +117,6 @@ describe('bulk import e2e', () => {
           ],
         })
       ).resolves.toMatchObject({
-        errors: [],
         addedAreas: [
           {area_name: 'Parent Area', gradeContext: 'US'},
           {area_name: 'Child Area 2', gradeContext: 'US'},
@@ -161,7 +141,6 @@ describe('bulk import e2e', () => {
           ],
         })
       ).resolves.toMatchObject({
-        errors: [],
         addedAreas: [
           {
             area_name: 'Test Area',
@@ -202,7 +181,6 @@ describe('bulk import e2e', () => {
           ],
         })
       ).resolves.toMatchObject({
-        errors: [],
         addedAreas: [
           {
             area_name: 'Test Area',
@@ -211,10 +189,15 @@ describe('bulk import e2e', () => {
               leaf: true,
               isBoulder: false,
             },
-            climbs: [expect.anything()],
+            climbs: [{
+              name: 'Test Climb',
+              grades: {
+                yds: '5.10a',
+              },
+            }],
           },
         ],
-        addedClimbs: [
+        addedOrUpdatedClimbs: [
           {
             name: 'Test Climb',
             grades: {
@@ -239,11 +222,10 @@ describe('bulk import e2e', () => {
     it('should update an existing area', async () => {
       await expect(
         assertBulkImport({
-          id: area.metadata.area_id,
+          uuid: area.metadata.area_id,
           areaName: 'New Name',
         })
       ).resolves.toMatchObject({
-        errors: [],
         updatedAreas: [{area_name: 'New Name'}],
       });
     });

@@ -19,14 +19,3 @@ export const localDevBypassAuthContext = (() => {
     return { user }
   }
 })()
-
-export const localDevBypassAuthMiddleware = async (req, res, next): Promise<any> => {
-  req.user = {
-    roles: ['user_admin', 'org_admin', 'editor'],
-    uuid: muuid.v4(),
-    isBuilder: false
-  }
-  req.userId = req.user.uuid
-  req.token = 'local-dev-bypass'
-  next()
-}

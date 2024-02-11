@@ -23,6 +23,13 @@ type Mutation {
   Update area sorting order in bulk
   """
   updateAreasSortingOrder(input: [AreaSortingInput]): [ID]
+
+  """
+  Add or update an area tree in bulk, including climbs and pitches.
+  You can start at any point in the tree given a valid parent area with its id.
+  If starting at the root level, the countryCode must be provided.
+  """
+  bulkImportAreas(input: BulkImportInput): [BulkImportResult]
 }
 
 input DestinationFlagInput {
@@ -42,6 +49,117 @@ input AreaInput {
   isLeaf: Boolean
   isBoulder: Boolean
   experimentalAuthor: ExperimentalAuthorType
+}
+
+"""
+Bulk input for adding or updating areas, climbs, and pitches.
+"""
+input BulkImportInput {
+  areas: [BulkImportAreaInput]!
+}
+
+"""
+Bulk input for adding or updating areas.
+Either define `id` or `name` to indicate whether to add or update an area.
+Provide an `id` to update an area, and `name` to add a new area.
+If none of the fields are provided, an error will be thrown.
+"""
+input BulkImportAreaInput {
+  "The area UUID, not the internal ID"
+  uuid: ID
+  "The name of the new area or if provided with an id, the new name of the area"
+  areaName: String
+  "An optional description of the area. If provided with an id, the description will be updated"
+  description: String
+  "Only relevant for the top most areas of a country. Get a list of valid countries by querying the countries field"
+  countryCode: String
+  "The grade context of the area. Every area that has climbs must have a valid grade context"
+  gradeContext: String
+  "The sorting index of the area. Defaults to -1 if not provided"
+  leftRightIndex: Int
+  "Coordinates of the area. If provided with an id, the coordinates will be updated"
+  lng: Float
+  "Coordinates of the area. If provided with an id, the coordinates will be updated"
+  lat: Float
+  "An optional bounding box that can be displayed on maps"
+  bbox: [Float]
+  "A list of child areas. They can be deeply nested"
+  children: [BulkImportAreaInput]
+  """
+  A list of climbs that are directly associated with this area.
+  An area that has climbs cannot have children and is automatically a leaf node.
+  """
+  climbs: [BulkImportClimbInput]
+}
+
+"""
+Bulk input for adding or updating climbs and pitches within an area.
+Either define `id` or `name` to indicate whether to add or update a climb.
+Provide an `id` to update a climb, and `name` to add a new climb.
+If none of the fields are provided, an error will be thrown.
+Make sure to update all climbs if the leftRightIndex of a climb is updated.
+"""
+input BulkImportClimbInput {
+  "The climb UUID, not the internal ID"
+  uuid: ID
+  "The name of the new climb or if provided with an id, the new name of the climb"
+  name: String
+  "The grade of the climb. The parent must have a valid grade context for this to be resolved correctly."
+  grade: String!
+  "The disciplines of the climb. At least one must be provided"
+  disciplines: DisciplineType!
+  "The safety rating of the climb"
+  safety: SafetyEnum
+  "Optional coordinates of the climb"
+  lng: Float
+  "Optional coordinates of the climb"
+  lat: Float
+  "The index of the climb in the area"
+  leftRightIndex: Int
+  "The description of the climb"
+  description: String
+  "The location of the climb, e.g. 'The first climb on the left, entry directly behind the tree'"
+  location: String
+  "The protection of the climb, e.g. 'Long run out to the first bolt'"
+  protection: String
+  "The legacy FA data"
+  fa: String
+  "The length of the climb in meters"
+  length: Int
+  "The number of fixed anchors"
+  boltsCount: Int
+  "The experimental author of the climb"
+  experimentalAuthor: ExperimentalAuthorType
+  "A list of pitches that are directly associated with this climb"
+  pitches: [BulkImportPitchesInput]
+}
+
+"""
+Bulk input for adding or updating pitches within a climb.
+Define `id` to update a pitch.
+Make sure to update all pitches if the pitchNumber of a pitch is changed.
+"""
+input BulkImportPitchesInput {
+  "The pitch UUID, if provided the pitch will be updated"
+  id: ID
+  "The index of the pitch in the climb"
+  pitchNumber: Int!
+  "The grade of the pitch."
+  grade: String!
+  "The disciplines of the pitch if different from the parent climb"
+  disciplines: DisciplineType
+  "The description of the pitch"
+  description: String
+  "The length of the pitch in meters"
+  length: Int
+  "The number of fixed anchors"
+  boltsCount: Int
+}
+
+type BulkImportResult {
+  addedAreas: [Area]
+  updatedAreas: [Area]
+  addedOrUpdatedClimbs: [Climb]
 }
 
 input RemoveAreaInput {

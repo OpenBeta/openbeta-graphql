@@ -7,10 +7,26 @@ import {muuidToString} from "../utils/helpers.js";
 import MutableAreaDataSource from "../model/MutableAreaDataSource.js";
 import exampleImportData from './import-example.json' assert {type: 'json'};
 import {AreaType} from "../db/AreaTypes.js";
-import {BulkImportResult} from "../db/import/json/import-json";
+import {BulkImportResultType} from "../db/BulkImportTypes.js";
+import MutableClimbDataSource from "../model/MutableClimbDataSource.js";
 
-describe('/import', () => {
-  const endpoint = '/import'
+describe('bulkImportAreas', () => {
+  const query = `
+    mutation bulkImportAreas($input: BulkImportInput!) {
+      bulkImportAreas(input: $input) {
+        addedAreas {
+          uuid
+        }
+        updatedAreas {
+          uuid
+        }
+        addedOrUpdatedClimbs {
+          id
+        }
+      }
+    }
+  `
+
   let server: ApolloServer
   let user: muuid.MUUID
   let userUuid: string
@@ -19,6 +35,7 @@ describe('/import', () => {
   let testArea: AreaType
 
   let areas: MutableAreaDataSource
+  let climbs: MutableClimbDataSource
 
   beforeAll(async () => {
     ({server, inMemoryDB, app} = await setUpServer())
@@ -26,11 +43,13 @@ describe('/import', () => {
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
     userUuid = muuidToString(user)
+
+    areas = MutableAreaDataSource.getInstance()
+    climbs = MutableClimbDataSource.getInstance()
   })
 
   beforeEach(async () => {
     await inMemoryDB.clear()
-    areas = MutableAreaDataSource.getInstance()
     await areas.addCountry('usa')
     testArea = await areas.addArea(user, "Test Area", null, "us")
   })
@@ -43,31 +62,34 @@ describe('/import', () => {
   it('should return 403 if no user', async () => {
     const res = await queryAPI({
       app,
-      endpoint,
-      body: exampleImportData
+      query,
+      operationName: 'bulkImportAreas',
+      variables: {input: exampleImportData}
     })
-    expect(res.status).toBe(403)
-    expect(res.text).toBe('Forbidden')
+    expect(res.statusCode).toBe(200)
+    expect(res.body.errors[0].message).toBe('Not Authorised!')
   })
 
   it('should return 403 if user is not an editor', async () => {
     const res = await queryAPI({
       app,
-      endpoint,
       userUuid,
-      body: exampleImportData
+      query,
+      operationName: 'bulkImportAreas',
+      variables: {input: exampleImportData}
     })
-    expect(res.status).toBe(403)
-    expect(res.text).toBe('Forbidden')
+    expect(res.statusCode).toBe(200)
+    expect(res.body.errors[0].message).toBe('Not Authorised!')
   })
 
   it('should return 200 if user is an editor', async () => {
     const res = await queryAPI({
       app,
-      endpoint,
       userUuid,
       roles: ['editor'],
-      body: exampleImportData
+      query,
+      operationName: 'bulkImportAreas',
+      variables: {input: exampleImportData}
     })
     expect(res.status).toBe(200)
   })
@@ -75,31 +97,34 @@ describe('/import', () => {
   it('should import data', async () => {
     const res = await queryAPI({
       app,
-      endpoint,
       userUuid,
       roles: ['editor'],
-      body: {
-        areas: [
-          ...exampleImportData.areas,
-          {
-            id: testArea.metadata.area_id.toUUID().toString(),
-            areaName: "Updated Test Area",
-          }
-        ],
-      },
+      query,
+      operationName: 'bulkImportAreas',
+      variables: {
+        input: {
+          areas: [
+            ...exampleImportData.areas,
+            {
+              uuid: testArea.metadata.area_id.toUUID().toString(),
+              areaName: "Updated Test Area",
+            }
+          ]
+        }
+      }
     });
     expect(res.status).toBe(200)
 
-    const result = res.body as BulkImportResult
-    expect(result.addedAreaIds.length).toBe(4)
+    const result = res.body.data as BulkImportResultType
+    expect(result.addedAreas.length).toBe(4)
 
-    const committedAreas = await Promise.all(result.addedAreaIds.map((areaId: string) => areas.findOneAreaByUUID(muuid.from(areaId))));
+    const committedAreas = await Promise.all(result.addedAreas.map((area) => areas.findOneAreaByUUID(area.metadata.area_id)));
     expect(committedAreas.length).toBe(4);
 
-    const committedClimbs = await Promise.all(result.climbIds.map((id: string) => areas.findOneClimbByUUID(muuid.from(id))));
+    const committedClimbs = await Promise.all(result.addedOrUpdatedClimbs.map((climb) => climbs.findOneClimbByMUUID(climb._id)));
     expect(committedClimbs.length).toBe(2);
 
-    const updatedAreas = await Promise.all(result.updatedAreaIds.map((areaId: any) => areas.findOneAreaByUUID(muuid.from(areaId))));
+    const updatedAreas = await Promise.all(result.updatedAreas.map((area) => areas.findOneAreaByUUID(area.metadata.area_id)));
     expect(updatedAreas.length).toBe(1);
     expect(updatedAreas[0].area_name).toBe("Updated Test Area");
   })

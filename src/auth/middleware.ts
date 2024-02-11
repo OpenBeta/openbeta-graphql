@@ -15,19 +15,6 @@ export const createContext = async ({ req }): Promise<any> => {
   }
 }
 
-export const authMiddleware = async (req, res, next): Promise<void> => {
-  try {
-    const { user, token } = await validateTokenAndExtractUser(req)
-    req.user = user
-    req.userId = user.uuid
-    req.token = token
-    next()
-  } catch (e) {
-    logger.error(`Can't verify JWT token ${e.toString() as string}`)
-    res.status(401).send('Unauthorized')
-  }
-}
-
 async function validateTokenAndExtractUser (req: Request): Promise<{ user: AuthUserType, token: string }> {
   const { headers } = req
   // eslint-disable-next-line @typescript-eslint/dot-notation
