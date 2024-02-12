@@ -29,7 +29,7 @@ type Mutation {
   You can start at any point in the tree given a valid parent area with its id.
   If starting at the root level, the countryCode must be provided.
   """
-  bulkImportAreas(input: BulkImportInput): [BulkImportResult]
+  bulkImportAreas(input: BulkImportInput): BulkImportResult
 }
 
 input DestinationFlagInput {
@@ -71,7 +71,7 @@ input BulkImportAreaInput {
   areaName: String
   "An optional description of the area. If provided with an id, the description will be updated"
   description: String
-  "Only relevant for the top most areas of a country. Get a list of valid countries by querying the countries field"
+  "Only relevant for the top most areas of a country. Get a list of valid countries by using the countries query"
   countryCode: String
   "The grade context of the area. Every area that has climbs must have a valid grade context"
   gradeContext: String

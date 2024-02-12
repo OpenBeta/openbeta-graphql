@@ -4,11 +4,11 @@ import express from "express";
 import {InMemoryDB} from "../utils/inMemoryDB.js";
 import {queryAPI, setUpServer} from "../utils/testUtils.js";
 import {muuidToString} from "../utils/helpers.js";
-import MutableAreaDataSource from "../model/MutableAreaDataSource.js";
 import exampleImportData from './import-example.json' assert {type: 'json'};
 import {AreaType} from "../db/AreaTypes.js";
 import {BulkImportResultType} from "../db/BulkImportTypes.js";
 import MutableClimbDataSource from "../model/MutableClimbDataSource.js";
+import BulkImportDataSource from "../model/BulkImportDataSource.js";
 
 describe('bulkImportAreas', () => {
   const query = `
@@ -16,9 +16,15 @@ describe('bulkImportAreas', () => {
       bulkImportAreas(input: $input) {
         addedAreas {
           uuid
+          metadata {
+            area_id
+          }
         }
         updatedAreas {
           uuid
+          metadata {
+            area_id
+          }
         }
         addedOrUpdatedClimbs {
           id
@@ -34,7 +40,7 @@ describe('bulkImportAreas', () => {
   let inMemoryDB: InMemoryDB
   let testArea: AreaType
 
-  let areas: MutableAreaDataSource
+  let bulkImport: BulkImportDataSource
   let climbs: MutableClimbDataSource
 
   beforeAll(async () => {
@@ -44,14 +50,14 @@ describe('bulkImportAreas', () => {
     user = muuid.mode('relaxed').v4()
     userUuid = muuidToString(user)
 
-    areas = MutableAreaDataSource.getInstance()
+    bulkImport = BulkImportDataSource.getInstance()
     climbs = MutableClimbDataSource.getInstance()
   })
 
   beforeEach(async () => {
     await inMemoryDB.clear()
-    await areas.addCountry('usa')
-    testArea = await areas.addArea(user, "Test Area", null, "us")
+    await bulkImport.addCountry('usa')
+    testArea = await bulkImport.addArea(user, "Test Area", null, "us")
   })
 
   afterAll(async () => {
@@ -106,25 +112,25 @@ describe('bulkImportAreas', () => {
           areas: [
             ...exampleImportData.areas,
             {
-              uuid: testArea.metadata.area_id.toUUID().toString(),
+              uuid: testArea.metadata.area_id,
               areaName: "Updated Test Area",
             }
           ]
         }
       }
     });
-    expect(res.status).toBe(200)
+    expect(res.body.errors).toBeFalsy()
 
-    const result = res.body.data as BulkImportResultType
+    const result = res.body.data.bulkImportAreas as BulkImportResultType
     expect(result.addedAreas.length).toBe(4)
 
-    const committedAreas = await Promise.all(result.addedAreas.map((area) => areas.findOneAreaByUUID(area.metadata.area_id)));
+    const committedAreas = await Promise.all(result.addedAreas.map((area) => bulkImport.findOneAreaByUUID(muuid.from(area.metadata.area_id))));
     expect(committedAreas.length).toBe(4);
 
     const committedClimbs = await Promise.all(result.addedOrUpdatedClimbs.map((climb) => climbs.findOneClimbByMUUID(climb._id)));
     expect(committedClimbs.length).toBe(2);
 
-    const updatedAreas = await Promise.all(result.updatedAreas.map((area) => areas.findOneAreaByUUID(area.metadata.area_id)));
+    const updatedAreas = await Promise.all(result.updatedAreas.map((area) => bulkImport.findOneAreaByUUID(muuid.from(area.metadata.area_id))));
     expect(updatedAreas.length).toBe(1);
     expect(updatedAreas[0].area_name).toBe("Updated Test Area");
   })

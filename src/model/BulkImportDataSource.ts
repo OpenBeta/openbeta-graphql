@@ -1,5 +1,5 @@
 import MutableAreaDataSource from './MutableAreaDataSource.js'
-import mongoose from 'mongoose'
+import mongoose, { ClientSession } from 'mongoose'
 import { withTransaction } from '../utils/helpers.js'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { AreaType } from '../db/AreaTypes.js'
@@ -48,7 +48,9 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
       logger.error('bulk import failed', e)
       throw e
     } finally {
-      await session.endSession()
+      if (!session.hasEnded) {
+        await session.endSession()
+      }
     }
   }
 
@@ -71,7 +73,7 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
       if (areaNode.uuid !== undefined && areaNode.uuid !== null) {
         area = await this.updateAreaWith({
           user,
-          areaUuid: areaNode.uuid,
+          areaUuid: muuid.from(areaNode.uuid),
           document: {
             areaName: areaNode.areaName,
             description: areaNode.description,
@@ -118,16 +120,17 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
         }
       }
       if (areaNode.climbs !== undefined) {
-        result.addedOrUpdatedClimbs.push(...(await climbs?.addOrUpdateClimbsWith({
+        const addedOrUpdatedClimbs = await Promise.all(await climbs?.addOrUpdateClimbsWith({
           userId: user,
           parentId: area.metadata.area_id,
           changes: [...areaNode.climbs.map(this.toClimbChangeInputType) ?? []],
           session
-        }).then((climbIds) => climbIds.map(async (id) =>
-          await climbs?.findOneClimbByMUUID(muuid.from(id)))
+        }).then((climbIds) => climbIds
+          .map((id) => climbs?.climbModel.findById(muuid.from(id)).session(session as ClientSession))) ?? [])
+        result.addedOrUpdatedClimbs.push(...addedOrUpdatedClimbs
           .filter((climb) => climb !== null)
-          .map((climb) => climb as unknown as ClimbType))
-        ))
+          .map((climb) => climb as unknown as ClimbType)
+        )
       }
       return result
     }

@@ -20,6 +20,7 @@ import type { DataSources } from 'apollo-server-core/dist/graphqlOptions'
 import UserDataSource from './model/UserDataSource.js'
 import express from 'express'
 import * as http from 'http'
+import BulkImportDataSource from './model/BulkImportDataSource'
 
 export async function createServer (): Promise<{ app: express.Application, server: ApolloServer }> {
   const schema = applyMiddleware(
@@ -29,6 +30,7 @@ export async function createServer (): Promise<{ app: express.Application, serve
   const dataSources: () => DataSources<Context> = () => ({
     climbs: MutableClimbDataSource.getInstance(),
     areas: MutableAreaDataSource.getInstance(),
+    bulkImport: BulkImportDataSource.getInstance(),
     organizations: MutableOrgDS.getInstance(),
     ticks: TickDataSource.getInstance(),
     history: ChangeLogDataSource.getInstance(),

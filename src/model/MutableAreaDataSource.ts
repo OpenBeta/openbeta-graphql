@@ -158,20 +158,26 @@ export default class MutableAreaDataSource extends AreaDataSource {
       throw new Error(`Adding area "${areaName}" failed. Must provide parent Id or country code`)
     }
 
-    let uuid: MUUID
+    let parentId: MUUID
     if (parentUuid != null) {
-      uuid = parentUuid
+      parentId = parentUuid
     } else if (countryCode != null) {
-      uuid = countryCode2Uuid(countryCode)
+      parentId = countryCode2Uuid(countryCode)
     } else {
       throw new Error(`Adding area "${areaName}" failed. Unable to determine parent id or country code`)
     }
 
     const session = sessionCtx ?? await this.areaModel.startSession()
-    if (session.inTransaction()) {
-      return await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder)
-    } else {
-      return await withTransaction(session, async () => await this._addArea(session, user, areaName, uuid, experimentalAuthor, isLeaf, isBoulder))
+    try {
+      if (session.inTransaction()) {
+        return await this._addArea(session, user, areaName, parentId, experimentalAuthor, isLeaf, isBoulder)
+      } else {
+        return await withTransaction(session, async () => await this._addArea(session, user, areaName, parentId, experimentalAuthor, isLeaf, isBoulder))
+      }
+    } finally {
+      if (sessionCtx == null) {
+        await session.endSession()
+      }
     }
   }
 
@@ -338,6 +344,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param user
    * @param areaUuid Area uuid to be updated
    * @param document New fields
+   * @param sessionCtx optional existing session to use for the transactions
    * @returns Newly updated area
    */
   async updateArea (user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType, sessionCtx?: ClientSession): Promise<AreaType | null> {
@@ -349,7 +356,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       const area = await this.areaModel.findOne(filter).session(session)
 
       if (area == null) {
-        throw new Error('Area update error.  Reason: Area not found.')
+        throw new Error(`Area update error. Reason: Area with id ${areaUuid.toString()} not found.`)
       }
 
       const {
@@ -365,23 +372,23 @@ export default class MutableAreaDataSource extends AreaDataSource {
       } = document
 
       // See https://github.com/OpenBeta/openbeta-graphql/issues/244
-      let experimentaAuthorId: MUUID | null = null
+      let experimentalAuthorId: MUUID | null = null
       if (experimentalAuthor != null) {
-        experimentaAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
+        experimentalAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
       }
 
       const opType = OperationType.updateArea
       const change = await changelogDataSource.create(session, user, opType)
 
       const _change: ChangeRecordMetadataType = {
-        user: experimentaAuthorId ?? user,
+        user: experimentalAuthorId ?? user,
         historyId: change._id,
         prevHistoryId: area._change?.historyId._id,
         operation: opType,
         seq: 0
       }
       area.set({ _change })
-      area.updatedBy = experimentaAuthorId ?? user
+      area.updatedBy = experimentalAuthorId ?? user
 
       if (area.pathTokens.length === 1) {
         if (areaName != null || shortCode != null) throw new Error(`[${area.area_name}]: Area update error. Reason: Updating country name or short code is not allowed.`)
@@ -435,10 +442,16 @@ export default class MutableAreaDataSource extends AreaDataSource {
     }
 
     const session = sessionCtx ?? await this.areaModel.startSession()
-    if (session.inTransaction()) {
-      return await _updateArea(session, user, areaUuid, document)
-    } else {
-      return await withTransaction(session, async () => await _updateArea(session, user, areaUuid, document))
+    try {
+      if (session.inTransaction()) {
+        return await _updateArea(session, user, areaUuid, document)
+      } else {
+        return await withTransaction(session, async () => await _updateArea(session, user, areaUuid, document))
+      }
+    } finally {
+      if (sessionCtx == null) {
+        await session.endSession()
+      }
     }
   }
 
