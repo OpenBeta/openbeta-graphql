@@ -79,7 +79,7 @@ input BulkImportAreaInput {
   lng: Float
   "Latitude coordinate of the area, using the WGS 84 reference system."
   lat: Float
-  "An optional bounding box that can be displayed on maps, using the WGS 84 reference system."
+  "An optional bounding box that can be displayed on maps, using GeoJSON bbox (see https://datatracker.ietf.org/doc/html/rfc7946#section-5)."
   bbox: [Float]
   "A list of child areas. Can be deeply nested."
   children: [BulkImportAreaInput]
