@@ -1,6 +1,6 @@
 type Mutation {
   """
-  Add an area attributes
+  Add an area
   """
   addArea(input: AreaInput): Area
 
@@ -25,11 +25,11 @@ type Mutation {
   updateAreasSortingOrder(input: [AreaSortingInput]): [ID]
 
   """
-  Add or update an area tree in bulk, including climbs and pitches.
-  You can start at any point in the tree given a valid parent area with its id.
-  If starting at the root level, the countryCode must be provided.
+  Add or update an area tree in bulk, including climbs (and their pitches).
+  You can start at any point in the tree given a valid parent area with its uuid.
+  If starting at the root level, the `countryCode` must be provided.
   """
-  bulkImportAreas(input: BulkImportInput): BulkImportResult
+  bulkImportAreas(input: BulkImportInput): [BulkImportResult]
 }
 
 input DestinationFlagInput {
@@ -60,99 +60,96 @@ input BulkImportInput {
 
 """
 Bulk input for adding or updating areas.
-Either define `id` or `name` to indicate whether to add or update an area.
-Provide an `id` to update an area, and `name` to add a new area.
-If none of the fields are provided, an error will be thrown.
+Provide either a `uuid` to UPDATE an existing area, or `areaName` to ADD a new area.
 """
 input BulkImportAreaInput {
-  "The area UUID, not the internal ID"
+  "The area UUID"
   uuid: ID
-  "The name of the new area or if provided with an id, the new name of the area"
+  "The name of the new area (or, if provided together with a uuid, the updated name of the area)"
   areaName: String
-  "An optional description of the area. If provided with an id, the description will be updated"
+  "The name that this area is commonly identified by within the climbing community."
   description: String
-  "Only relevant for the top most areas of a country. Get a list of valid countries by using the countries query"
+  "Only relevant for the first level of areas (i. e. USA -> Utah). Must be ISO 3166-1 Alpha-3 country code (e. g. ‘USA’)."
   countryCode: String
-  "The grade context of the area. Every area that has climbs must have a valid grade context"
+  "The grading system used for climbing/bouldering in the area. Inherits from parent node if current node does not have one. UIAA = UIAA/font, US = yds/vscale, FR = french/font (see https://github.com/OpenBeta/openbeta-graphql/blob/9c517329db079c922fe7f092a78b658cb295e158/src/GradeUtils.ts#L40.)"
   gradeContext: String
-  "The sorting index of the area. Defaults to -1 if not provided"
+  "The sorting index of the area. Defaults to -1 if not provided."
   leftRightIndex: Int
-  "Coordinates of the area. If provided with an id, the coordinates will be updated"
+  "Longitude coordinate of the area, using the WGS 84 reference system."
   lng: Float
-  "Coordinates of the area. If provided with an id, the coordinates will be updated"
+  "Latitude coordinate of the area, using the WGS 84 reference system."
   lat: Float
-  "An optional bounding box that can be displayed on maps"
+  "An optional bounding box that can be displayed on maps, using the WGS 84 reference system."
   bbox: [Float]
-  "A list of child areas. They can be deeply nested"
+  "A list of child areas. Can be deeply nested."
   children: [BulkImportAreaInput]
   """
   A list of climbs that are directly associated with this area.
-  An area that has climbs cannot have children and is automatically a leaf node.
+  An area that has climbs cannot have child areas and automatically becomes a leaf node.
   """
   climbs: [BulkImportClimbInput]
 }
 
 """
-Bulk input for adding or updating climbs and pitches within an area.
-Either define `id` or `name` to indicate whether to add or update a climb.
-Provide an `id` to update a climb, and `name` to add a new climb.
-If none of the fields are provided, an error will be thrown.
+Bulk input for adding or updating climbs (and pitches) within an area.
+Either define `uuid` or `name` to indicate whether to add or update a climb.
+Provide a `uuid` to UPDATE a climb, and `name` to ADD a new climb.
 Make sure to update all climbs if the leftRightIndex of a climb is updated.
 """
 input BulkImportClimbInput {
-  "The climb UUID, not the internal ID"
+  "The climb UUID"
   uuid: ID
-  "The name of the new climb or if provided with an id, the new name of the climb"
+  "The name that this climb is commonly identified by (or if provided together with a uuid, the updated name of the climb)."
   name: String
-  "The grade of the climb. The parent must have a valid grade context for this to be resolved correctly."
+  "The difficulty grade of the climb. Must be coherent with the area's gradeContext. I. e. gradeContext = 'US' requires denomination in yds/vscale (climbing/bouldering), so '5.11'/'V14', 'FR' would be french/font '9c+'/'9a', 'UIIA' would be uiaa/font '9+'/'9a'. (see https://github.com/OpenBeta/sandbag)."
   grade: String!
-  "The disciplines of the climb. At least one must be provided"
+  "Object of applicable disciplines (e.g. { "trad:" true }). Options: trad, sport, bouldering, deepwatersolo, alpine, ice, mixed, aid, tr (= toprope). Can be combined."
   disciplines: DisciplineType!
-  "The safety rating of the climb"
+  "The safety rating of a climb based on US movie ratings (see https://github.com/OpenBeta/openbeta-graphql/blob/9c517329db079c922fe7f092a78b658cb295e158/src/graphql/schema/Climb.gql#L177)."
   safety: SafetyEnum
-  "Optional coordinates of the climb"
+  "Longitude coordinate of the climb, using the WGS 84 reference system."
   lng: Float
-  "Optional coordinates of the climb"
+  "Latitude coordinate of the climb, using the WGS 84 reference system."
   lat: Float
-  "The index of the climb in the area"
+  "A numeric index used for sorting climbs from left to right (of a wall)."
   leftRightIndex: Int
-  "The description of the climb"
+  "The description of this climb, this is the main text field for this climb. This contains beta, visual descriptors, and any other information useful to identifying and attempting the climb."
   description: String
-  "The location of the climb, e.g. 'The first climb on the left, entry directly behind the tree'"
+  "The location of the climb, e.g. 'The first climb on the left, entry directly behind the tree'."
   location: String
-  "The protection of the climb, e.g. 'Long run out to the first bolt'"
+  "The protection of the climb, e.g. 'Long run out to the first bolt'."
   protection: String
-  "The legacy FA data"
+  "The first ascent information of the climb. Usually formatted as: name(s) (year)."
   fa: String
-  "The length of the climb in meters"
+  "Total length in meters if known (-1 otherwise)"
   length: Int
-  "The number of fixed anchors"
+  "The number of bolts (fixed anchors) on the climb."
   boltsCount: Int
-  "The experimental author of the climb"
+  "The experimental author of the climb."
   experimentalAuthor: ExperimentalAuthorType
-  "A list of pitches that are directly associated with this climb"
+  "A list of pitches that are directly associated with this climb (applies only to multi-pitch climbs)."
   pitches: [BulkImportPitchesInput]
 }
 
 """
 Bulk input for adding or updating pitches within a climb.
-Define `id` to update a pitch.
-Make sure to update all pitches if the pitchNumber of a pitch is changed.
+Provide `id` to UPDATE an existing pitch.
+Make sure to update all pitches if the pitchNumber of one pitch is changed.
 """
 input BulkImportPitchesInput {
-  "The pitch UUID, if provided the pitch will be updated"
+  "The pitch UUID (if provided, the pitch data will be UPDATED)."
   id: ID
-  "The index of the pitch in the climb"
+  "The number of the pitch in the sequence."
   pitchNumber: Int!
-  "The grade of the pitch."
+  "The difficulty grade of the pitch (see Climb.grade)."
   grade: String!
-  "The disciplines of the pitch if different from the parent climb"
+  "The climbing disciplines applicable to the pitch (see Climb.disciplines)."
   disciplines: DisciplineType
-  "The description of the pitch"
+  "The description of the pitch."
   description: String
-  "The length of the pitch in meters"
+  "The length of the pitch in meters."
   length: Int
-  "The number of fixed anchors"
+  "The number of bolts (fixed anchors) on the pitch."
   boltsCount: Int
 }
 
