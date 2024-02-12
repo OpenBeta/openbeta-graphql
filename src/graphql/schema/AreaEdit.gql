@@ -29,7 +29,7 @@ type Mutation {
   You can start at any point in the tree given a valid parent area with its uuid.
   If starting at the root level, the `countryCode` must be provided.
   """
-  bulkImportAreas(input: BulkImportInput): [BulkImportResult]
+  bulkImportAreas(input: BulkImportInput): BulkImportResult
 }
 
 input DestinationFlagInput {
