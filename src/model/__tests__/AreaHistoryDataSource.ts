@@ -1,52 +1,36 @@
-import mongoose from 'mongoose'
-import { ChangeStream } from 'mongodb'
-import { jest } from '@jest/globals'
 import muuid from 'uuid-mongodb'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
-import { connectDB, createIndexes, getAreaModel } from '../../db/index.js'
-import streamListener from '../../db/edit/streamListener.js'
-import { logger } from '../../logger.js'
 import { changelogDataSource } from '../ChangeLogDataSource.js'
 import { OperationType } from '../../db/AreaTypes.js'
-
-jest.setTimeout(120000)
+import inMemoryDB from '../../utils/inMemoryDB.js'
+import waitForExpect from 'wait-for-expect'
+import jest from 'jest-mock'
 
 describe('Area history', () => {
   let areas: MutableAreaDataSource
-  let stream: ChangeStream
+  let onChange: jest.Mock
   const testUser = muuid.v4()
 
   beforeAll(async () => {
-    await connectDB()
-
-    stream = await streamListener()
-
-    try {
-      await getAreaModel().collection.drop()
-      await createIndexes()
-    } catch (e) {
-      logger.info('Expected exception')
-    }
-
+    onChange = jest.fn()
+    await inMemoryDB.connect(onChange)
     await changelogDataSource._testRemoveAll()
 
-    areas = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
+    areas = MutableAreaDataSource.getInstance()
   })
 
   afterAll(async () => {
     try {
-      await stream.close()
-      await mongoose.disconnect()
+      await inMemoryDB.close()
     } catch (e) {
       console.log('closing mongoose', e)
     }
   })
 
   beforeEach(async () => {
-    // await changelogDataSource._testRemoveAll()
-    // eslint-disable-next-line
-    await new Promise(res => setTimeout(res, 3000))
+    await changelogDataSource._testRemoveAll()
+    onChange.mockClear()
   })
 
   it('should create history records for new subareas', async () => {
@@ -55,16 +39,12 @@ describe('Area history', () => {
     expect(newArea.area_name).toEqual(usa.area_name)
 
     const or = await areas.addArea(testUser, 'oregon', usa.metadata.area_id)
-    // eslint-disable-next-line
-    await new Promise(res => setTimeout(res, 1000))
     const nv = await areas.addArea(testUser, 'nevada', usa.metadata.area_id)
 
     expect(nv?._id).toBeTruthy()
     expect(or?._id).toBeTruthy()
 
-    // eslint-disable-next-line
-    await new Promise(res => setTimeout(res, 2000))
-
+    await waitForExpect(() => expect(onChange).toHaveBeenCalledTimes(5))
     const areaHistory = await changelogDataSource.getAreaChangeSets()
 
     expect(areaHistory).toHaveLength(2)
@@ -125,9 +105,7 @@ describe('Area history', () => {
       await areas.setDestinationFlag(testUser, areaUuid, true)
       await areas.setDestinationFlag(testUser, areaUuid, false)
 
-      // eslint-disable-next-line
-      await new Promise(res => setTimeout(res, 2000))
-
+      await waitForExpect(() => expect(onChange).toHaveBeenCalledTimes(5))
       const changset = await changelogDataSource.getAreaChangeSets(areaUuid)
 
       expect(changset).toHaveLength(3)
@@ -149,9 +127,7 @@ describe('Area history', () => {
 
     await areas.deleteArea(testUser, leonidio.metadata.area_id)
 
-    // eslint-disable-next-line
-    await new Promise(res => setTimeout(res, 10000))
-
+    await waitForExpect(() => expect(onChange).toHaveBeenCalledTimes(5))
     const history = await changelogDataSource.getAreaChangeSets(leonidio.metadata.area_id)
 
     expect(history).toHaveLength(2)
@@ -181,9 +157,7 @@ describe('Area history', () => {
 
     expect(deleted).toBeTruthy()
 
-    // eslint-disable-next-line
-    await new Promise(res => setTimeout(res, 3000))
-
+    await waitForExpect(() => expect(onChange).toHaveBeenCalledTimes(5))
     const history = await changelogDataSource.getAreaChangeSets(spain.metadata.area_id)
 
     // should only have 2 entries:

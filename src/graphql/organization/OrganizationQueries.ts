@@ -1,5 +1,5 @@
 import type OrganizationDataSource from '../../model/OrganizationDataSource'
-import { QueryByIdType, OrganizationGQLFilter, Sort, Context } from '../../types'
+import { Context, OrganizationGQLFilter, QueryByIdType, Sort } from '../../types'
 
 const OrganizationQueries = {
   organization: async (_: any,
@@ -7,7 +7,7 @@ const OrganizationQueries = {
     context: Context, info) => {
     const { dataSources } = context
     const { organizations }: { organizations: OrganizationDataSource } = dataSources
-    if (muuid !== undefined) {
+    if (muuid != null) {
       return await organizations.findOneOrganizationByOrgId(muuid)
     }
     return null

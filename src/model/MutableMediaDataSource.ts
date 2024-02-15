@@ -1,4 +1,4 @@
-import { UserInputError } from 'apollo-server'
+import { UserInputError } from 'apollo-server-express'
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 

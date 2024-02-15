@@ -1,12 +1,12 @@
-import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
 import MutableOrganizationDataSource from '../MutableOrganizationDataSource.js'
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
-import { connectDB, createIndexes, getAreaModel, getOrganizationModel } from '../../db/index.js'
+import { createIndexes, getAreaModel, getOrganizationModel } from '../../db/index.js'
 import { OrganizationEditableFieldsType, OrgType } from '../../db/OrganizationTypes.js'
 import { AreaType } from '../../db/AreaTypes.js'
 import { muuidToString } from '../../utils/helpers.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 describe('Organization', () => {
   let organizations: MutableOrganizationDataSource
@@ -19,7 +19,7 @@ describe('Organization', () => {
   const testUser = muuid.v4()
 
   beforeAll(async () => {
-    await connectDB()
+    await inMemoryDB.connect()
     try { // Use the same fixed areas for testing so no need to drop and re-create on each test.
       await getAreaModel().collection.drop()
     } catch (e) {
@@ -57,7 +57,7 @@ describe('Organization', () => {
   })
 
   afterAll(async () => {
-    await mongoose.connection.close()
+    await inMemoryDB.close()
   })
 
   it('should successfully create a document when passed valid input', async () => {
@@ -82,7 +82,12 @@ describe('Organization', () => {
   it('should retrieve documents based on displayName', async () => {
     const newOrg = await organizations.addOrganization(testUser, OrgType.localClimbingOrganization, fullOrg)
     // Match should be case-insensitive.
-    const displayNameSearchCursor = await organizations.findOrganizationsByFilter({ displayName: { match: 'openbeta', exactMatch: false } })
+    const displayNameSearchCursor = await organizations.findOrganizationsByFilter({
+      displayName: {
+        match: 'openbeta',
+        exactMatch: false
+      }
+    })
     const displayNameSearchRes = await displayNameSearchCursor.toArray()
     expect(displayNameSearchRes).toHaveLength(1)
     expect(displayNameSearchRes[0]._id).toEqual(newOrg._id)
@@ -107,7 +112,9 @@ describe('Organization', () => {
       const updatedOrg = await organizations.updateOrganization(testUser, newOrg.orgId, document)
 
       expect(updatedOrg).toBeDefined()
-      if (updatedOrg == null) { fail('should not reach here.') }
+      if (updatedOrg == null) {
+        fail('should not reach here.')
+      }
       expect(updatedOrg.associatedAreaIds.map(muuidToString).sort())
         .toStrictEqual(document?.associatedAreaIds?.map(muuidToString).sort())
       expect(updatedOrg.excludedAreaIds.map(muuidToString).sort())

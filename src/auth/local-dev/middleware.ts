@@ -6,7 +6,7 @@ import muuid, { MUUID } from 'uuid-mongodb'
 import { AuthUserType } from '../../types.js'
 import { logger } from '../../logger.js'
 
-export const localDevBypassAuthMiddleware = (() => {
+export const localDevBypassAuthContext = (() => {
   const testUUID: MUUID = muuid.v4()
 
   return async ({ req }): Promise<any> => {

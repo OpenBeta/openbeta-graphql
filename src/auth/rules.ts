@@ -1,4 +1,4 @@
-import { rule, inputRule } from 'graphql-shield'
+import { inputRule, rule } from 'graphql-shield'
 
 import MediaDataSource from '../model/MutableMediaDataSource.js'
 import { MediaObjectGQLInput } from '../db/MediaObjectTypes.js'

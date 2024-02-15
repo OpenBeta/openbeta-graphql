@@ -1,8 +1,9 @@
 import mongoose, { ConnectOptions } from 'mongoose'
-import { ChangeStream, MongoClient } from 'mongodb'
+import { ChangeStream, ChangeStreamDocument, MongoClient } from 'mongodb'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
-import { defaultPostConnect, checkVar } from '../db/index.js'
+import { checkVar, defaultPostConnect } from '../db/index.js'
 import { logger } from '../logger.js'
+import { testStreamListener } from '../db/edit/streamListener'
 
 /**
  * In-memory Mongo replset used for testing.
@@ -10,12 +11,12 @@ import { logger } from '../logger.js'
  * Need a replset to faciliate transactions.
  */
 let mongod: MongoMemoryReplSet
-let stream: ChangeStream
+let stream: ChangeStream | undefined
 
 /**
  * Connect to the in-memory database.
  */
-const connect = async (): Promise<void> => {
+export const connect = async (onChange?: (change: ChangeStreamDocument) => void): Promise<void> => {
   mongod = await MongoMemoryReplSet.create({
     // Stream listener listens on DB denoted by 'MONGO_DBNAME' env var.
     replSet: { count: 1, storageEngine: 'wiredTiger', dbName: checkVar('MONGO_DBNAME') }
@@ -27,14 +28,14 @@ const connect = async (): Promise<void> => {
   }
 
   await mongoose.connect(uri, mongooseOpts)
-  stream = await defaultPostConnect()
+  stream = await defaultPostConnect(async () => await testStreamListener(onChange))
 }
 
 /**
  * Drop database, close the connection and stop mongod.
  */
-const close = async (): Promise<void> => {
-  await stream.close()
+export const close = async (): Promise<void> => {
+  await stream?.close()
   await mongoose.connection.dropDatabase()
   await mongoose.connection.close()
   await mongod.stop()
@@ -43,7 +44,7 @@ const close = async (): Promise<void> => {
 /**
  * Remove all the data for all db collections.
  */
-const clear = async (): Promise<void> => {
+export const clear = async (): Promise<void> => {
   const collections = mongoose.connection.collections
 
   for (const key in collections) {
@@ -79,4 +80,4 @@ export interface InMemoryDB {
   insertDirectly: (collection: string, documents: any[]) => Promise<void>
 }
 
-export default { connect, close, clear, insertDirectly }
+export default { connect, close, clear, insertDirectly, stream }

@@ -1,11 +1,11 @@
-import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { geometry } from '@turf/helpers'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import MutableClimbDataSource from '../MutableClimbDataSource.js'
-import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
+import { createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { AreaEditableFieldsType, UpdateSortingOrderType } from '../../db/AreaTypes.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource
@@ -13,7 +13,7 @@ describe('Areas', () => {
   const testUser = muuid.v4()
 
   beforeAll(async () => {
-    await connectDB()
+    await inMemoryDB.connect()
 
     try {
       await getAreaModel().collection.drop()
@@ -27,7 +27,7 @@ describe('Areas', () => {
   })
 
   afterAll(async () => {
-    await mongoose.connection.close()
+    await inMemoryDB.close()
   })
 
   it('should create a country by Alpha-3 country code', async () => {

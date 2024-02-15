@@ -11,6 +11,7 @@ import XMediaDataSource from './model/XMediaDataSource.js'
 import PostDataSource from './model/PostDataSource.js'
 import MutableOrganizationDataSource from './model/MutableOrganizationDataSource.js'
 import type UserDataSource from './model/UserDataSource.js'
+import BulkImportDataSource from './model/BulkImportDataSource'
 
 export enum SortDirection {
   ASC = 1,
@@ -67,6 +68,7 @@ export type OrganizationGQLFilter = Partial<Record<OrganizationFilterable, Organ
 
 export type LNGLAT = [number, number]
 export type BBoxType = BBox
+
 export interface StatisticsType {
   totalClimbs: number
   totalCrags: number
@@ -92,6 +94,7 @@ export interface AuthUserType {
 
 export interface DataSourcesType {
   areas: MutableAreaDataSource
+  bulkImport: BulkImportDataSource
   organizations: MutableOrganizationDataSource
   ticks: TickDataSource
   history: HistoryDataSouce

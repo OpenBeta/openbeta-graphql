@@ -1,11 +1,11 @@
-import mongoose from 'mongoose'
 import { produce } from 'immer'
 import TickDataSource from '../TickDataSource.js'
-import { connectDB, getTickModel, getUserModel } from '../../db/index.js'
+import { getTickModel, getUserModel } from '../../db/index.js'
 import { TickInput } from '../../db/TickTypes.js'
 import muuid from 'uuid-mongodb'
 import UserDataSource from '../UserDataSource.js'
 import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 const userId = muuid.v4()
 
@@ -51,7 +51,7 @@ describe('Ticks', () => {
 
   beforeAll(async () => {
     console.log('#BeforeAll Ticks')
-    await connectDB()
+    await inMemoryDB.connect()
 
     try {
       await getTickModel().collection.drop()
@@ -65,7 +65,7 @@ describe('Ticks', () => {
   })
 
   afterAll(async () => {
-    await mongoose.connection.close()
+    await inMemoryDB.close()
   })
 
   afterEach(async () => {

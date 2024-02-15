@@ -46,16 +46,16 @@ type Climb {
   content: Content!
 
   """
-  Area names traversing up the heirarchy from this climbs immediate
+  Area names traversing up the hierarchy from this climbs immediate
   parent to the root area.
   """
-  pathTokens: [String!]!
+  pathTokens: [String!]
 
   """
   Area UUIDs traversing up the heirarchy from this climbs immediate
   parent to the root area.
   """
-  ancestors: [String!]!
+  ancestors: [String!]
 
   "Media associated with this climb"
   media: [MediaWithTags]

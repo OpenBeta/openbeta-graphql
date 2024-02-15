@@ -1,22 +1,22 @@
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
-import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
-import { OrgType, OrganizationType, OperationType, OrganizationEditableFieldsType } from '../db/OrganizationTypes.js'
+import { OperationType, OrganizationEditableFieldsType, OrganizationType, OrgType } from '../db/OrganizationTypes.js'
 import { changelogDataSource } from '../model/ChangeLogDataSource.js'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
 import { muuidToString } from '../utils/helpers.js'
 import { validate as validateMuuid } from 'uuid'
-
-jest.setTimeout(60000)
+import { InMemoryDB } from '../utils/inMemoryDB.js'
+import express from 'express'
 
 describe('organizations API', () => {
   let server: ApolloServer
   let user: muuid.MUUID
   let userUuid: string
-  let inMemoryDB
+  let app: express.Application
+  let inMemoryDB: InMemoryDB
 
   // Mongoose models for mocking pre-existing state.
   let areas: MutableAreaDataSource
@@ -26,7 +26,7 @@ describe('organizations API', () => {
   let wa: AreaType
 
   beforeAll(async () => {
-    ({ server, inMemoryDB } = await setUpServer())
+    ({ server, inMemoryDB, app } = await setUpServer())
     // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
@@ -43,8 +43,8 @@ describe('organizations API', () => {
   })
 
   afterAll(async () => {
-    await server.stop()
-    await inMemoryDB.close()
+    await server?.stop()
+    await inMemoryDB?.close()
   })
 
   describe('mutations', () => {
@@ -87,7 +87,8 @@ describe('organizations API', () => {
         operationName: 'addOrganization',
         variables: { input: { displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION' } },
         userUuid,
-        roles: ['user_admin']
+        roles: ['user_admin'],
+        app
       })
 
       expect(createResponse.statusCode).toBe(200)
@@ -120,7 +121,8 @@ describe('organizations API', () => {
           }
         },
         userUuid,
-        roles: ['user_admin']
+        roles: ['user_admin'],
+        app
       })
       expect(updateResponse.statusCode).toBe(200)
       expect(updateResponse.body.errors).toBeUndefined()
@@ -165,7 +167,8 @@ describe('organizations API', () => {
         operationName: 'addOrganization',
         variables: { input: { displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION' } },
         userUuid,
-        roles: ['editor']
+        roles: ['editor'],
+        app
       })
       expect(response.statusCode).toBe(200)
       expect(response.body.data.organization).toBeNull()
@@ -251,7 +254,8 @@ describe('organizations API', () => {
         query: organizationQuery,
         operationName: 'organization',
         variables: { input: muuidToString(alphaOrg.orgId) },
-        userUuid
+        userUuid,
+        app
       })
       expect(response.statusCode).toBe(200)
       const orgResult = response.body.data.organization
@@ -269,7 +273,8 @@ describe('organizations API', () => {
         query: organizationsQuery,
         operationName: 'organizations',
         variables: { filter: { displayName: { match: 'Delta OpenBeta Club', exactMatch: true } } },
-        userUuid
+        userUuid,
+        app
       })
 
       expect(response.statusCode).toBe(200)
@@ -283,7 +288,8 @@ describe('organizations API', () => {
         query: organizationsQuery,
         operationName: 'organizations',
         variables: { filter: { displayName: { match: 'delta', exactMatch: false } } },
-        userUuid
+        userUuid,
+        app
       })
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
@@ -298,7 +304,8 @@ describe('organizations API', () => {
         variables: {
           limit: 1
         },
-        userUuid
+        userUuid,
+        app
       })
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
@@ -310,7 +317,8 @@ describe('organizations API', () => {
         query: organizationsQuery,
         operationName: 'organizations',
         variables: { filter: { associatedAreaIds: { includes: [muuidToString(ca.metadata.area_id)] } } },
-        userUuid
+        userUuid,
+        app
       })
       // Graphql should convert `includes` from a string[] to MUUID[]
       expect(response.statusCode).toBe(200)
@@ -324,7 +332,8 @@ describe('organizations API', () => {
         query: organizationsQuery,
         operationName: 'organizations',
         variables: { filter: { excludedAreaIds: { excludes: [muuidToString(wa.metadata.area_id)] } } },
-        userUuid
+        userUuid,
+        app
       })
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations

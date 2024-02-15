@@ -4,7 +4,14 @@ import dot from 'dot-object'
 
 import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
-import { BaseChangeRecordType, ResumeToken, UpdateDescription, DBOperation, SupportedCollectionTypes, DocumentKind } from '../ChangeLogType.js'
+import {
+  BaseChangeRecordType,
+  DBOperation,
+  DocumentKind,
+  ResumeToken,
+  SupportedCollectionTypes,
+  UpdateDescription
+} from '../ChangeLogType.js'
 import { checkVar } from '../index.js'
 import { updateAreaIndex, updateClimbIndex } from '../export/Typesense/Client.js'
 import { AreaType } from '../AreaTypes.js'
@@ -15,6 +22,22 @@ import { ClimbType } from '../ClimbTypes.js'
  * Start a new stream listener to track changes
  */
 export default async function streamListener (): Promise<ChangeStream> {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  return (await createChangeStream()).on('change', onChange)
+}
+
+/**
+ * The test stream listener awaits all change events
+ */
+export async function testStreamListener (callback?: (change: ChangeStreamDocument) => void): Promise<ChangeStream> {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  return (await createChangeStream()).on('change', async (change: ChangeStreamDocument) => {
+    await onChange(change)
+    if (callback != null) callback(change)
+  })
+}
+
+async function createChangeStream (): Promise<ChangeStream> {
   const resumeId = await mostRecentResumeId()
   logger.info({ resumeId }, 'Starting stream listener')
 
@@ -40,11 +63,10 @@ export default async function streamListener (): Promise<ChangeStream> {
     }
   }]
 
-  const changeStream = mongoose.connection.watch(pipeline, opts)
-  return changeStream.on('change', onChange)
+  return mongoose.connection.watch(pipeline, opts)
 }
 
-const onChange = (change: ChangeStreamDocument): void => {
+const onChange = async (change: ChangeStreamDocument): Promise<void> => {
   const { operationType } = change
 
   switch (operationType) {
@@ -57,15 +79,24 @@ const onChange = (change: ChangeStreamDocument): void => {
         dbOp = 'delete'
       }
 
-      void recordChange({ _id: _id as ResumeToken, source, fullDocument: fullDocument as SupportedCollectionTypes, updateDescription, dbOp })
-      break
+      return await recordChange({
+        _id: _id as ResumeToken,
+        source,
+        fullDocument: fullDocument as SupportedCollectionTypes,
+        updateDescription,
+        dbOp
+      })
     }
     case 'insert': {
       const dbOp = 'insert'
       const source = DocumentKind[change.ns.coll]
       const { fullDocument, _id } = change
-      void recordChange({ _id: _id as ResumeToken, source, fullDocument: fullDocument as SupportedCollectionTypes, dbOp })
-      break
+      return await recordChange({
+        _id: _id as ResumeToken,
+        source,
+        fullDocument: fullDocument as SupportedCollectionTypes,
+        dbOp
+      })
     }
   }
 }
@@ -89,9 +120,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.climbs
       }
-      void changelogDataSource.record(newDocument)
-      void updateClimbIndex(fullDocument as ClimbType, dbOp)
-      break
+      return await changelogDataSource.record(newDocument).then(async () => await updateClimbIndex(fullDocument as ClimbType, dbOp))
     }
     case DocumentKind.areas: {
       const newDocument: BaseChangeRecordType = {
@@ -101,9 +130,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.areas
       }
-      void changelogDataSource.record(newDocument)
-      void updateAreaIndex(fullDocument as AreaType, dbOp)
-      break
+      return await changelogDataSource.record(newDocument).then(async () => await updateAreaIndex(fullDocument as AreaType, dbOp))
     }
     case DocumentKind.organizations: {
       const newDocument: BaseChangeRecordType = {
@@ -113,8 +140,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.organizations
       }
-      void changelogDataSource.record(newDocument)
-      break
+      return await changelogDataSource.record(newDocument).then()
     }
     default:
       exhaustiveCheck(source)

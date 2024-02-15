@@ -1,13 +1,15 @@
-import { ApolloServer } from 'apollo-server'
+import { ApolloServer } from 'apollo-server-express'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
 import MutableClimbDataSource from '../model/MutableClimbDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
-import { OrgType, OrganizationType } from '../db/OrganizationTypes.js'
+import { OrganizationType, OrgType } from '../db/OrganizationTypes.js'
 import { muuidToString } from '../utils/helpers.js'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
+import { InMemoryDB } from '../utils/inMemoryDB.js'
+import express from 'express'
 
 jest.setTimeout(60000)
 
@@ -15,7 +17,8 @@ describe('history API', () => {
   let server: ApolloServer
   let user: muuid.MUUID
   let userUuid: string
-  let inMemoryDB
+  let app: express.Application
+  let inMemoryDB: InMemoryDB
 
   // Mongoose models for mocking pre-existing state.
   let areas: MutableAreaDataSource
@@ -23,7 +26,7 @@ describe('history API', () => {
   let climbs: MutableClimbDataSource
 
   beforeAll(async () => {
-    ({ server, inMemoryDB } = await setUpServer())
+    ({ server, inMemoryDB, app } = await setUpServer())
     // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
@@ -107,7 +110,8 @@ describe('history API', () => {
       const resp = await queryAPI({
         query: QUERY_RECENT_CHANGE_HISTORY,
         variables: { filter: {} },
-        userUuid
+        userUuid,
+        app
       })
       expect(resp.statusCode).toBe(200)
       const histories = resp.body.data.getChangeHistory

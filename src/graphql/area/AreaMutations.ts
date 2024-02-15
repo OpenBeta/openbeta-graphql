@@ -3,6 +3,7 @@ import muuid from 'uuid-mongodb'
 import { AreaType } from '../../db/AreaTypes.js'
 import { ContextWithAuth } from '../../types.js'
 import type MutableAreaDataSource from '../../model/MutableAreaDataSource.js'
+import { BulkImportInputType, BulkImportResultType } from '../../db/BulkImportTypes.js'
 
 const AreaMutations = {
 
@@ -77,6 +78,19 @@ const AreaMutations = {
       user.uuid,
       input
     )
+  },
+
+  bulkImportAreas: async (_, { input }: { input: BulkImportInputType }, {
+    dataSources,
+    user
+  }: ContextWithAuth): Promise<BulkImportResultType> => {
+    const { bulkImport, climbs } = dataSources
+    if (user?.uuid == null) throw new Error('Missing user uuid')
+    return await bulkImport.bulkImport({
+      user: user.uuid,
+      input,
+      climbs
+    })
   }
 }
 

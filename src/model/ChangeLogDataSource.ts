@@ -3,7 +3,14 @@ import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
 
 import { getChangeLogModel } from '../db/index.js'
-import { ChangeLogType, OpType, BaseChangeRecordType, AreaChangeLogType, ClimbChangeLogType, OrganizationChangeLogType } from '../db/ChangeLogType'
+import {
+  AreaChangeLogType,
+  BaseChangeRecordType,
+  ChangeLogType,
+  ClimbChangeLogType,
+  OpType,
+  OrganizationChangeLogType
+} from '../db/ChangeLogType'
 import { logger } from '../logger.js'
 import { areaHistoryDataSource } from './AreaHistoryDatasource.js'
 import { organizationHistoryDataSource } from './OrganizationHistoryDatasource.js'
@@ -70,14 +77,13 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
    * @returns change sets
    */
   async getChangeSets (uuidList: MUUID[]): Promise<Array<AreaChangeLogType | ClimbChangeLogType | OrganizationChangeLogType>> {
-    const rs = await this.changeLogModel.aggregate([
+    return await this.changeLogModel.aggregate([
       {
         $sort: {
           createdAt: -1
         }
       }
     ]).limit(500)
-    return rs
   }
 
   async _testRemoveAll (): Promise<void> {

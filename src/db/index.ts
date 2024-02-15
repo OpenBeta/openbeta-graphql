@@ -82,10 +82,10 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
   })
 }
 
-export const defaultPostConnect = async (): Promise<ChangeStream> => {
+export const defaultPostConnect = async (changeStreamListener = streamListener): Promise<ChangeStream> => {
   console.log('Kudos!')
   await createIndexes()
-  return await streamListener()
+  return await changeStreamListener()
 }
 
 // eslint-disable-next-line

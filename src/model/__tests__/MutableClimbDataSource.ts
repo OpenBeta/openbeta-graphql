@@ -1,16 +1,16 @@
-import mongoose from 'mongoose'
 import muid from 'uuid-mongodb'
 import { ChangeStream } from 'mongodb'
 
 import MutableClimbDataSource from '../MutableClimbDataSource.js'
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
 
-import { connectDB, createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
+import { createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { logger } from '../../logger.js'
-import { ClimbType, ClimbChangeInputType } from '../../db/ClimbTypes.js'
+import { ClimbChangeInputType, ClimbType } from '../../db/ClimbTypes.js'
 import { sanitizeDisciplines } from '../../GradeUtils.js'
 import streamListener from '../../db/edit/streamListener.js'
 import { changelogDataSource } from '../ChangeLogDataSource.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 export const newSportClimb1: ClimbChangeInputType = {
   name: 'Cool route 1',
@@ -140,7 +140,7 @@ describe('Climb CRUD', () => {
   }
 
   beforeAll(async () => {
-    await connectDB()
+    await inMemoryDB.connect()
     stream = await streamListener()
 
     try {
@@ -161,7 +161,7 @@ describe('Climb CRUD', () => {
   afterAll(async () => {
     try {
       await stream.close()
-      await mongoose.disconnect()
+      await inMemoryDB.close()
     } catch (e) {
       console.log('closing mongoose', e)
     }

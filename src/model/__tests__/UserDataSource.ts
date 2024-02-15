@@ -2,15 +2,16 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 
-import { connectDB, getUserModel } from '../../db/index.js'
+import { getUserModel } from '../../db/index.js'
 import UserDataSource from '../UserDataSource.js'
 import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
+import inMemoryDB from '../../utils/inMemoryDB.js'
 
 describe('UserDataSource', () => {
   let users: UserDataSource
 
   beforeAll(async () => {
-    await connectDB()
+    await inMemoryDB.connect()
     const userModel = getUserModel()
     try {
       await userModel.collection.drop()
@@ -22,7 +23,7 @@ describe('UserDataSource', () => {
   })
 
   afterAll(async () => {
-    await mongoose.connection.close()
+    await inMemoryDB.close()
   })
 
   afterEach(() => {
