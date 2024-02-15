@@ -33,7 +33,7 @@ export async function testStreamListener (callback?: (change: ChangeStreamDocume
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   return (await createChangeStream()).on('change', async (change: ChangeStreamDocument) => {
     await onChange(change)
-    if (callback !== undefined) callback(change)
+    if (callback != null) callback(change)
   })
 }
 

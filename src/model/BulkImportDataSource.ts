@@ -40,10 +40,14 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
     logger.debug('starting bulk import session...')
     const session = _session ?? (await mongoose.startSession())
     try {
-      return await withTransaction(session, async () => {
-        logger.info('starting bulk import...', input)
+      const bulkImportResult = await withTransaction(session, async () => {
+        logger.info('starting bulk import...')
+        logger.debug(input)
         return await this._bulkImportJson({ user, input, climbs, session })
       }) ?? result
+      logger.info(`bulk import complete: added ${bulkImportResult.addedAreas.length} new areas, updated ${bulkImportResult.updatedAreas.length} areas, added or updated ${bulkImportResult.addedOrUpdatedClimbs.length} climbs`)
+      logger.debug(bulkImportResult)
+      return bulkImportResult
     } catch (e) {
       logger.error('bulk import failed', e)
       throw e
@@ -70,7 +74,7 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
         addedOrUpdatedClimbs: []
       }
       let area: AreaType | null
-      if (areaNode.uuid !== undefined && areaNode.uuid !== null) {
+      if (areaNode.uuid != null) {
         area = await this.updateAreaWith({
           user,
           areaUuid: muuid.from(areaNode.uuid),
@@ -88,7 +92,7 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
         } else {
           throw new Error(`area with id ${areaNode.uuid.toUUID().toString()} (${areaNode.areaName ?? 'unknown name'}) not found`)
         }
-      } else if (areaNode.areaName !== undefined) {
+      } else if (areaNode.areaName != null) {
         area = await this.addAreaWith({
           user,
           areaName: areaNode.areaName,
@@ -111,7 +115,7 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
       } else {
         throw new Error('areaName or id is required')
       }
-      if (areaNode.children !== undefined) {
+      if (areaNode.children != null) {
         for (const child of areaNode.children) {
           const childResult = await addOrUpdateArea(child, area.metadata.area_id)
           result.updatedAreas.push(...childResult.updatedAreas)
@@ -119,7 +123,7 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
           result.addedOrUpdatedClimbs.push(...childResult.addedOrUpdatedClimbs)
         }
       }
-      if (areaNode.climbs !== undefined) {
+      if (areaNode.climbs != null) {
         const addedOrUpdatedClimbs = await Promise.all(await climbs?.addOrUpdateClimbsWith({
           userId: user,
           parentId: area.metadata.area_id,

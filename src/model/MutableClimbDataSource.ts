@@ -14,7 +14,7 @@ import { changelogDataSource } from './ChangeLogDataSource.js'
 import ClimbDataSource from './ClimbDataSource.js'
 import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
-import { withTransaction } from '../utils/helpers'
+import { withTransaction } from '../utils/helpers.js'
 
 export interface AddOrUpdateClimbsOptions {
   userId: MUUID

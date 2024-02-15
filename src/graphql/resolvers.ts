@@ -5,19 +5,19 @@ import { gql } from 'apollo-server-express'
 import { DocumentNode } from 'graphql'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
-import { HistoryQueries, HistoryFieldResolvers } from '../graphql/history/index.js'
-import { QueryByIdType, GQLFilter, Sort, Context } from '../types'
+import { HistoryFieldResolvers, HistoryQueries } from '../graphql/history/index.js'
+import { Context, GQLFilter, QueryByIdType, Sort } from '../types'
 import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { PostMutations, PostQueries, PostResolvers } from './posts/index.js'
 import { XMediaMutations, XMediaQueries, XMediaResolvers } from './xmedia/index.js'
-import { AreaQueries, AreaMutations } from './area/index.js'
+import { AreaMutations, AreaQueries } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
 import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
 import { TickMutations, TickQueries } from './tick/index.js'
-import { UserQueries, UserMutations, UserResolvers } from './user/index.js'
+import { UserMutations, UserQueries, UserResolvers } from './user/index.js'
 import { getAuthorMetadataFromBaseNode } from '../db/utils/index.js'
 import { geojsonPointToLatitude, geojsonPointToLongitude } from '../utils/helpers.js'
 
@@ -74,7 +74,7 @@ const resolvers = {
       { uuid }: QueryByIdType,
       { dataSources }: Context) => {
       const { areas } = dataSources
-      if (uuid !== undefined && uuid !== '') {
+      if (uuid != null && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
       }
       return null

@@ -28,7 +28,7 @@ import { createInstance as createExperimentalUserDataSource } from '../model/Exp
 import { sanitizeStrict } from '../utils/sanitize.js'
 import AreaDataSource from './AreaDataSource.js'
 import { changelogDataSource } from './ChangeLogDataSource.js'
-import { withTransaction } from '../utils/helpers'
+import { withTransaction } from '../utils/helpers.js'
 
 isoCountries.registerLocale(enJson)
 
