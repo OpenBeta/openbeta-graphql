@@ -182,7 +182,7 @@ const resolvers = {
       })
     },
 
-    ancestors: (node: ClimbGQLQueryType) => node.ancestors.split(','),
+    ancestors: (node: ClimbGQLQueryType) => node.ancestors?.split(',') ?? [],
 
     media: async (node: ClimbType, args: any, { dataSources }: Context) => {
       const { media } = dataSources
@@ -220,7 +220,7 @@ const resolvers = {
       return node.aggregate
     },
 
-    ancestors: async (parent) => parent.ancestors.split(','),
+    ancestors: async (parent) => parent.ancestors?.split(',') ?? [],
 
     climbs: async (node: AreaType, _, { dataSources: { areas } }: Context) => {
       if ((node?.climbs?.length ?? 0) === 0) {
