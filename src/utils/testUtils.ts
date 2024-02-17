@@ -46,10 +46,15 @@ export const queryAPI = async ({
   })
 
   const queryObj = { query, operationName, variables }
-  return await request(app ?? `http://localhost:${port}`)
+  let req = request(app ?? `http://localhost:${port}`)
     .post(endpoint)
     .send(queryObj)
-    .set('Authorization', 'Bearer placeholder-jwt-see-SpyOn')
+
+  if (userUuid != null) {
+    req = req.set('Authorization', 'Bearer placeholder-jwt-see-SpyOn')
+  }
+
+  return await req
 }
 
 export interface SetUpServerReturnType {

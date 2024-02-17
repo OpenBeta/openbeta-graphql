@@ -75,22 +75,6 @@ describe('areas API', () => {
         })
     })
 
-    it('retrieves an area and lists associated organizations', async () => {
-      const response = await queryAPI({
-        query: areaQuery,
-        operationName: 'area',
-        variables: { input: wa.metadata.area_id },
-        userUuid,
-        app
-      })
-
-      expect(response.statusCode).toBe(200)
-      const areaResult = response.body.data.area
-      expect(areaResult.uuid).toBe(muuidToString(wa.metadata.area_id))
-      expect(areaResult.organizations).toHaveLength(1)
-      expect(areaResult.organizations[0].orgId).toBe(muuidToString(alphaOrg.orgId))
-    })
-
     it('retrieves an area omitting organizations that exclude it', async () => {
       const response = await queryAPI({
         query: areaQuery,
@@ -105,6 +89,22 @@ describe('areas API', () => {
       // Even though alphaOrg associates with ca's parent, usa, it excludes
       // ca and so should not be listed.
       expect(areaResult.organizations).toHaveLength(0)
+    })
+
+    it.each([userUuid, undefined])('retrieves an area and lists associated organizations', async (userId) => {
+      const response = await queryAPI({
+        query: areaQuery,
+        operationName: 'area',
+        variables: { input: wa.metadata.area_id },
+        userUuid: userId,
+        app
+      })
+
+      expect(response.statusCode).toBe(200)
+      const areaResult = response.body.data.area
+      expect(areaResult.uuid).toBe(muuidToString(wa.metadata.area_id))
+      expect(areaResult.organizations).toHaveLength(1)
+      expect(areaResult.organizations[0].orgId).toBe(muuidToString(alphaOrg.orgId))
     })
   })
 })
