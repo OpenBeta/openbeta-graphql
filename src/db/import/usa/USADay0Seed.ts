@@ -10,7 +10,10 @@ import { logger } from '../../../logger.js'
 const contentDir: string = process.env.CONTENT_BASEDIR ?? ''
 
 const DEFAULT_CONCURRENT_JOBS = 4
-const concurrentJobs: number = process.env.OB_SEED_JOBS !== undefined ? parseInt(process.env.OB_SEED_JOBS) : DEFAULT_CONCURRENT_JOBS
+const concurrentJobs: number =
+  process.env.OB_SEED_JOBS !== undefined
+    ? parseInt(process.env.OB_SEED_JOBS)
+    : DEFAULT_CONCURRENT_JOBS
 
 logger.info('Data dir', contentDir)
 logger.info('Max concurrent jobs: ', concurrentJobs)
@@ -21,7 +24,9 @@ if (contentDir === '') {
 }
 
 const main = async (): Promise<void> => {
-  const limiter = pLimit(concurrentJobs > 0 ? concurrentJobs : DEFAULT_CONCURRENT_JOBS)
+  const limiter = pLimit(
+    concurrentJobs > 0 ? concurrentJobs : DEFAULT_CONCURRENT_JOBS
+  )
 
   // TODO: Allow update.  Right now we drop the entire collection on each run.
   await dropCollection('areas')
@@ -33,17 +38,19 @@ const main = async (): Promise<void> => {
 
   const rootNode = await createRoot('US', 'USA')
 
-  const stats: Array<JobStats | any> = await Promise.all<Array<JobStats | any>>(US_STATES.map(async state => {
-    const code = state.code.toLowerCase()
-    const fRoutes = `${contentDir}/${code}-routes.jsonlines`
-    const fAreas = `${contentDir}/${code}-areas.jsonlines`
+  const stats: Array<JobStats | any> = await Promise.all<Array<JobStats | any>>(
+    US_STATES.map(async state => {
+      const code = state.code.toLowerCase()
+      const fRoutes = `${contentDir}/${code}-routes.jsonlines`
+      const fAreas = `${contentDir}/${code}-areas.jsonlines`
 
-    if (fs.existsSync(fRoutes) && fs.existsSync(fAreas)) {
-      /* eslint-disable-next-line */
-      return limiter(seedState, rootNode, code, fRoutes, fAreas)
-    }
-    return await Promise.resolve()
-  }))
+      if (fs.existsSync(fRoutes) && fs.existsSync(fAreas)) {
+        /* eslint-disable-next-line */
+        return limiter(seedState, rootNode, code, fRoutes, fAreas)
+      }
+      return await Promise.resolve()
+    })
+  )
 
   printStats(stats)
 

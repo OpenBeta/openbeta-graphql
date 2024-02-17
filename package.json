@@ -91,9 +91,9 @@
     "export-prod": "./export.sh",
     "prepare": "husky install",
     "import-users": "tsc ; node build/db/utils/jobs/migration/CreateUsersCollection.js",
-    "maptiles:export-db": "tsc ; node build/db/utils/jobs/CragGeojson/index.js",
-    "maptiles:generate": "tsc ; node build/db/utils/jobs/CragGeojson/generate.js",
-    "maptiles:upload": "tsc ; node build/db/utils/jobs/CragGeojson/upload.js"
+    "maptiles:export-db": "tsc ; node build/db/utils/jobs/MapTiles/index.js",
+    "maptiles:generate": "tsc ; node build/db/utils/jobs/MapTiles/generate.js",
+    "maptiles:upload": "tsc ; node build/db/utils/jobs/MapTiles/uploadCmd.js"
   },
   "standard": {
     "plugins": [

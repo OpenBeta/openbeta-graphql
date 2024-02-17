@@ -1,9 +1,21 @@
 import { WriteStream, createWriteStream } from 'node:fs'
-import { point, feature, featureCollection, Feature, Point, Polygon } from '@turf/helpers'
+import {
+  point,
+  feature,
+  featureCollection,
+  Feature,
+  Point,
+  Polygon
+} from '@turf/helpers'
 import os from 'node:os'
 import { MUUID } from 'uuid-mongodb'
 
-import { connectDB, gracefulExit, getAreaModel, getClimbModel } from '../../../index.js'
+import {
+  connectDB,
+  gracefulExit,
+  getAreaModel,
+  getClimbModel
+} from '../../../index.js'
 import { logger } from '../../../../logger.js'
 import { ClimbType } from '../../../ClimbTypes.js'
 import MutableMediaDataSource from '../../../../model/MutableMediaDataSource.js'
@@ -16,14 +28,25 @@ export const WORKING_DIR = './maptiles'
 async function exportLeafCrags (): Promise<void> {
   const model = getAreaModel()
 
-  let features: Array<Feature<Point, {
+  let features: Array<
+  Feature<
+  Point,
+  {
     name: string
-  }>> = []
+  }
+  >
+  > = []
 
   let fileIndex = 0
-  let stream: WriteStream = createWriteStream(`crags.${fileIndex}.geojson`, { encoding: 'utf-8' })
-  const cursor = model.find({ 'metadata.leaf': true, 'metadata.lnglat': { $ne: null } })
-    .populate<{ climbs: ClimbType[] }>({ path: 'climbs', model: getClimbModel() })
+  let stream: WriteStream = createWriteStream(`crags.${fileIndex}.geojson`, {
+    encoding: 'utf-8'
+  })
+  const cursor = model
+    .find({ 'metadata.leaf': true, 'metadata.lnglat': { $ne: null } })
+    .populate<{ climbs: ClimbType[] }>({
+    path: 'climbs',
+    model: getClimbModel()
+  })
     .batchSize(10)
     .allowDiskUse(true)
     .lean()
@@ -33,27 +56,42 @@ async function exportLeafCrags (): Promise<void> {
       continue
     }
 
-    const { metadata, area_name: areaName, pathTokens, ancestors, content, gradeContext, climbs } = doc
+    const {
+      metadata,
+      area_name: areaName,
+      pathTokens,
+      ancestors,
+      content,
+      gradeContext,
+      climbs
+    } = doc
 
     const ancestorArray = ancestors.split(',')
-    const pointFeature = point(doc.metadata.lnglat.coordinates, {
-      id: metadata.area_id,
-      name: areaName,
-      type: 'crag',
-      content,
-      media: await MutableMediaDataSource.getInstance().findMediaByAreaId(metadata.area_id, ancestors),
-      climbs: climbs.map(({ _id, name, type, grades }: ClimbType) => ({
-        id: _id.toUUID().toString(),
-        name,
-        discipline: type,
-        grade: grades
-      })),
-      ancestors: ancestorArray,
-      pathTokens,
-      gradeContext
-    }, {
-      id: metadata.area_id.toUUID().toString()
-    })
+    const pointFeature = point(
+      doc.metadata.lnglat.coordinates,
+      {
+        id: metadata.area_id,
+        name: areaName,
+        type: 'crag',
+        content,
+        media: await MutableMediaDataSource.getInstance().findMediaByAreaId(
+          metadata.area_id,
+          ancestors
+        ),
+        climbs: climbs.map(({ _id, name, type, grades }: ClimbType) => ({
+          id: _id.toUUID().toString(),
+          name,
+          discipline: type,
+          grade: grades
+        })),
+        ancestors: ancestorArray,
+        pathTokens,
+        gradeContext
+      },
+      {
+        id: metadata.area_id.toUUID().toString()
+      }
+    )
     features.push(pointFeature)
 
     if (features.length === 5000) {
@@ -63,7 +101,9 @@ async function exportLeafCrags (): Promise<void> {
       features = []
 
       fileIndex++
-      stream = createWriteStream(`${WORKING_DIR}/crags.${fileIndex}.geojson`, { encoding: 'utf-8' })
+      stream = createWriteStream(`${WORKING_DIR}/crags.${fileIndex}.geojson`, {
+        encoding: 'utf-8'
+      })
     }
   }
 
@@ -105,9 +145,7 @@ async function exportCragGroups (): Promise<void> {
     },
     {
       $match: {
-        $and: [
-          { parentCrags: { $type: 'array', $ne: [] } }
-        ]
+        $and: [{ parentCrags: { $type: 'array', $ne: [] } }]
       }
     },
     {
@@ -147,20 +185,32 @@ async function exportCragGroups (): Promise<void> {
     }
   ])
 
-  const features: Array<Feature<Polygon, {
+  const features: Array<
+  Feature<
+  Polygon,
+  {
     name: string
-  }>> = []
+  }
+  >
+  > = []
 
   for await (const doc of rs) {
-    const polygonFeature = feature(doc.polygon, {
-      type: 'crag-group',
-      id: doc.uuid.toUUID().toString(),
-      name: doc.name,
-      children: doc.childAreaList.map(({ uuid, name, leftRightIndex }) => (
-        { id: uuid.toUUID().toString(), name, lr: leftRightIndex }))
-    }, {
-      id: doc.uuid.toUUID().toString()
-    })
+    const polygonFeature = feature(
+      doc.polygon,
+      {
+        type: 'crag-group',
+        id: doc.uuid.toUUID().toString(),
+        name: doc.name,
+        children: doc.childAreaList.map(({ uuid, name, leftRightIndex }) => ({
+          id: uuid.toUUID().toString(),
+          name,
+          lr: leftRightIndex
+        }))
+      },
+      {
+        id: doc.uuid.toUUID().toString()
+      }
+    )
     features.push(polygonFeature)
   }
 
