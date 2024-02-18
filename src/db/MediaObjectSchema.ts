@@ -23,7 +23,7 @@ const EntitySchema = new Schema<EntityTag>({
 }, { _id: true, toObject: { versionKey: false } })
 
 const schema = new Schema<MediaObject>({
-  userUuid: { ...UUID_TYPE, index: true },
+  userUuid: { ...UUID_TYPE, index: true, transform: (v: any) => v.toUUID().toString() },
   mediaUrl: { type: Schema.Types.String, unique: true, index: true },
   width: { type: Schema.Types.Number, required: true },
   height: { type: Schema.Types.Number, required: true },

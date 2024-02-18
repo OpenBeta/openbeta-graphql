@@ -18,7 +18,7 @@ export interface MediaObject {
 
 export interface EntityTag {
   _id: mongoose.Types.ObjectId
-  targetId: MUUID | string
+  targetId: MUUID
   type: number
   ancestors: string
   climbName?: string

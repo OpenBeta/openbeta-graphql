@@ -26,7 +26,7 @@ const MediaResolvers = {
 
   EntityTag: {
     id: (node: EntityTag) => node._id,
-    targetId: (node: EntityTag) => node.targetId,
+    targetId: (node: EntityTag) => node.targetId.toUUID().toString(),
     lat: (node: EntityTag) => geojsonPointToLatitude(node.lnglat),
     lng: (node: EntityTag) => geojsonPointToLongitude(node.lnglat)
   },

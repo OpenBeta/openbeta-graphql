@@ -1,5 +1,4 @@
 import fs from 'fs'
-import { config } from 'dotenv'
 import {
   PutObjectCommand,
   PutObjectCommandOutput,
@@ -10,24 +9,7 @@ import UploadService, {
   MapiResponse
 } from '@mapbox/mapbox-sdk/services/uploads.js'
 import { logger } from '../../../../logger.js'
-
-config({ path: ['.env.local', '.env'] })
-
-const mapboxUsername = process.env.MAPBOX_USERNAME
-const mapboxToken = process.env.MAPBOX_TOKEN
-const workingDir = process.env.MAPTILES_WORKING_DIR
-
-if (mapboxUsername == null) {
-  throw new Error('MAPBOX_USERNAME not set')
-}
-
-if (mapboxToken == null) {
-  throw new Error('MAPBOX_TOKEN not set')
-}
-
-if (workingDir == null) {
-  throw new Error('MAPTILES_WORKING_DIR not set')
-}
+import { mapboxUsername, mapboxToken, workingDir } from './init.js'
 
 const uploadsClient = UploadService({ accessToken: mapboxToken })
 
@@ -97,8 +79,8 @@ const notifyMapbox = async (
 export const upload = async (options: UploadOptions): Promise<void> => {
   try {
     const credentials = await getCredentials()
-    const ret = await stageFileOnS3(credentials, options.filePath)
-    logger.info(ret.$metadata, 'File staged on S3')
+    await stageFileOnS3(credentials, options.filePath)
+    logger.info('File staged on S3')
     const res = await notifyMapbox(credentials, options)
     if (res.statusCode >= 200 && res.statusCode < 300) {
       logger.info('File uploaded to Mapbox')
@@ -115,7 +97,22 @@ export const upload = async (options: UploadOptions): Promise<void> => {
 export const uploadCragsTiles = async (): Promise<void> => {
   logger.info('Uploading crags tiles')
   const filePath = `${workingDir}/crags.mbtiles`
-  await upload({ tilesetId: 'crags', name: 'all crags and boulders', filePath })
+  try {
+    await upload({ tilesetId: 'crags', name: 'all crags and boulders', filePath })
+  } catch (err) {
+    logger.error(err, 'Failed to upload crags tiles')
+  }
+}
+
+export const uploadCragGroupsTiles = async (): Promise<void> => {
+  logger.info('Uploading crag-groups tiles')
+  const filePath = `${workingDir}/crag-groups.mbtiles`
+  try {
+    await upload({ tilesetId: 'crag-groups', name: 'crag groups', filePath })
+  } catch (err) {
+    logger.error(err, 'Failed to upload crag-groups tiles')
+  }
 }
 
 await uploadCragsTiles()
+await uploadCragGroupsTiles()

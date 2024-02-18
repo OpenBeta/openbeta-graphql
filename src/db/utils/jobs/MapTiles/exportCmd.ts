@@ -19,8 +19,7 @@ import {
 import { logger } from '../../../../logger.js'
 import { ClimbType } from '../../../ClimbTypes.js'
 import MutableMediaDataSource from '../../../../model/MutableMediaDataSource.js'
-
-export const WORKING_DIR = './maptiles'
+import { workingDir } from './init.js'
 
 /**
  * Export leaf areas as Geojson.  Leaf areas are crags/boulders that have climbs.
@@ -38,7 +37,7 @@ async function exportLeafCrags (): Promise<void> {
   > = []
 
   let fileIndex = 0
-  let stream: WriteStream = createWriteStream(`crags.${fileIndex}.geojson`, {
+  let stream: WriteStream = createWriteStream(`${workingDir}/crags.${fileIndex}.geojson`, {
     encoding: 'utf-8'
   })
   const cursor = model
@@ -70,7 +69,7 @@ async function exportLeafCrags (): Promise<void> {
     const pointFeature = point(
       doc.metadata.lnglat.coordinates,
       {
-        id: metadata.area_id,
+        id: metadata.area_id.toUUID().toString(),
         name: areaName,
         type: 'crag',
         content,
@@ -101,7 +100,7 @@ async function exportLeafCrags (): Promise<void> {
       features = []
 
       fileIndex++
-      stream = createWriteStream(`${WORKING_DIR}/crags.${fileIndex}.geojson`, {
+      stream = createWriteStream(`${workingDir}/crags.${fileIndex}.geojson`, {
         encoding: 'utf-8'
       })
     }
@@ -119,8 +118,10 @@ async function exportLeafCrags (): Promise<void> {
  * Export crag groups as Geojson.  Crag groups are immediate parent of leaf areas (crags/boulders).
  */
 async function exportCragGroups (): Promise<void> {
+  logger.info('Exporting crag groups')
+  const stream = createWriteStream(`${workingDir}/crag-groups.geojson`, { encoding: 'utf-8' })
+
   const model = getAreaModel()
-  const stream = createWriteStream('crag-groups.geojson', { encoding: 'utf-8' })
 
   interface CragGroup {
     uuid: MUUID
@@ -221,7 +222,7 @@ async function exportCragGroups (): Promise<void> {
 async function onDBConnected (): Promise<void> {
   logger.info('Start exporting crag data as Geojson')
   // await exportLeafCrags()
-  // await exportCragGroups()
+  await exportCragGroups()
   await gracefulExit()
 }
 
