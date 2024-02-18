@@ -221,7 +221,7 @@ async function exportCragGroups (): Promise<void> {
 
 async function onDBConnected (): Promise<void> {
   logger.info('Start exporting crag data as Geojson')
-  // await exportLeafCrags()
+  await exportLeafCrags()
   await exportCragGroups()
   await gracefulExit()
 }
