@@ -10,7 +10,7 @@ const UUID_TYPE = {
 }
 
 const EntitySchema = new Schema<EntityTag>({
-  targetId: { ...UUID_TYPE, index: true },
+  targetId: { ...UUID_TYPE, index: true, transform: (v: any) => v.toUUID().toString() },
   climbName: { type: Schema.Types.String },
   areaName: { type: Schema.Types.String, required: true },
   type: { type: Schema.Types.Number, required: true },
@@ -20,17 +20,17 @@ const EntitySchema = new Schema<EntityTag>({
     index: '2dsphere',
     required: false
   }
-}, { _id: true })
+}, { _id: true, toObject: { versionKey: false } })
 
 const schema = new Schema<MediaObject>({
-  userUuid: { ...UUID_TYPE, index: true },
+  userUuid: { ...UUID_TYPE, index: true, transform: (v: any) => v.toUUID().toString() },
   mediaUrl: { type: Schema.Types.String, unique: true, index: true },
   width: { type: Schema.Types.Number, required: true },
   height: { type: Schema.Types.Number, required: true },
   size: { type: Schema.Types.Number, required: true },
   format: { type: Schema.Types.String, required: true },
   entityTags: [EntitySchema]
-}, { _id: true, timestamps: true })
+}, { _id: true, timestamps: true, toJSON: { versionKey: false }, toObject: { versionKey: false } })
 
 /**
  * Additional indices

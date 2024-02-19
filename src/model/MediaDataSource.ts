@@ -270,10 +270,9 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
    * @returns `UserMediaWithTags` array
    */
   async findMediaByAreaId (areaId: MUUID, ancestors: string): Promise<MediaObject[]> {
-    const rs = await this.mediaObjectModel.find({
+    return await this.mediaObjectModel.find({
       'entityTags.ancestors': { $regex: areaId.toUUID().toString() }
-    }).lean()
-    return rs
+    })
   }
 
   /**
