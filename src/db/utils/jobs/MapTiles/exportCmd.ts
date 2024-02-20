@@ -1,4 +1,4 @@
-import { WriteStream, createWriteStream } from 'node:fs'
+import { WriteStream, createWriteStream, existsSync, mkdirSync } from 'node:fs'
 import {
   point,
   feature,
@@ -27,14 +27,7 @@ import { workingDir } from './init.js'
 async function exportLeafCrags (): Promise<void> {
   const model = getAreaModel()
 
-  let features: Array<
-  Feature<
-  Point,
-  {
-    name: string
-  }
-  >
-  > = []
+  let features: Array<Feature<Point, { name: string }>> = []
 
   let fileIndex = 0
   let stream: WriteStream = createWriteStream(`${workingDir}/crags.${fileIndex}.geojson`, {
@@ -219,8 +212,22 @@ async function exportCragGroups (): Promise<void> {
   stream.close()
 }
 
+/**
+ * Create working directory if it does not exist
+ */
+function prepareWorkingDir (): void {
+  if (!existsSync(workingDir)) {
+    logger.info(`Working dir doesn't exist.  Creating ${workingDir}`)
+    mkdirSync(workingDir, { recursive: true })
+  }
+}
+
+/**
+ * Export crag data as Geojson
+ */
 async function onDBConnected (): Promise<void> {
   logger.info('Start exporting crag data as Geojson')
+  prepareWorkingDir()
   await exportLeafCrags()
   await exportCragGroups()
   await gracefulExit()
