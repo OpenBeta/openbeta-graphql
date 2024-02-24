@@ -7,7 +7,8 @@ EXPOSE 4000
 
 RUN mkdir -p ${APP_DIR}
 
-COPY . ./
+COPY . *.env ./
+
 
 RUN yarn install --no-progress && \
     yarn build-release
