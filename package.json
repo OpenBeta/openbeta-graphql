@@ -92,9 +92,8 @@
     "prepare": "husky install",
     "import-users": "yarn build && node build/db/utils/jobs/migration/CreateUsersCollection.js",
     "maptiles:export-db": "node build/db/utils/jobs/MapTiles/exportCmd.js",
-    "maptiles:generate": "./scripts/gen-tiles.sh",
-    "maptiles:upload": "node build/db/utils/jobs/MapTiles/uploadCmd.js",
-    "maptiles:full": "yarn build && yarn maptiles:export-db && yarn maptiles:generate && yarn maptiles:upload"
+    "maptiles:upload": "./scripts/upload-tiles.sh",
+    "maptiles:full": "yarn build && yarn maptiles:export-db && yarn maptiles:upload"
   },
   "standard": {
     "plugins": [
