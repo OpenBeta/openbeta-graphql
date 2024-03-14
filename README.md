@@ -65,12 +65,13 @@ query Example1 {
 ```
 
 ### Development
-#### Requirements:
+#### Requirements
 
 - [Docker](https://docs.docker.com/get-docker)
 - [Node.js](https://nodejs.org) (v16.14.0 or later)
 - [yarn](https://yarnpkg.com/getting-started/install)
-- `mongorestore` command-line utility (you have to install the entire [MongoDB Database Tools](https://www.mongodb.com/docs/database-tools/installation/installation/)).
+- `mongorestore` command-line utility (you have to install the entire [MongoDB Database Tools](https://www.mongodb.com/docs/database-tools/installation/installation/))
+- [wget](https://www.gnu.org/software/wget/) (used for retrieving the remote file for seeding your local database)
 
 
 0. Add '127.0.0.1 mongodb' entry to your `/etc/hosts` file (or C:\Windows\System32\drivers\etc\hosts on Windows)
@@ -99,8 +100,8 @@ yarn serve
 
 #### Navigating the codebase
 These links explain the structure and key abstractions of our codebase. It's a good place to start before you go spelunking in the code.
- - [Layers](documentation/layers.md). 
- - [Testing](documentation/testing.md). 
+ - [Layers](documentation/layers.md)
+ - [Testing](documentation/testing.md)
 
 ### Troubleshooting
 
