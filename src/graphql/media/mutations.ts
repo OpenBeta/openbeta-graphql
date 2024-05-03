@@ -19,11 +19,12 @@ const MediaMutations = {
   addEntityTag: async (_: any, args, { dataSources }: Context): Promise<EntityTag> => {
     const { media } = dataSources
     const { input }: { input: AddEntityTagGQLInput } = args
-    const { mediaId, entityId, entityType } = input
-    return await media.addEntityTag({
+    const { mediaId, entityId, entityType, topoData } = input
+    return await media.upsertEntityTag({
       mediaId: new mongoose.Types.ObjectId(mediaId),
       entityUuid: muid.from(entityId),
-      entityType
+      entityType,
+      topoData
     })
   },
 
@@ -36,6 +37,11 @@ const MediaMutations = {
       tagId: new mongoose.Types.ObjectId(tagId)
     })
   }
+
+  // updateTopoData: async (_: any, args, { dataSources }: Context): Promise<EntityTag> => {
+  //   const { media } = dataSources
+  //   const { input }: { input: AddEntityTagGQLInput } = args
+  //   const { mediaId, entityId, entityType
 }
 
 export default MediaMutations

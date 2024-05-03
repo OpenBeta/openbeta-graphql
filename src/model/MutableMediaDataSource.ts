@@ -61,30 +61,46 @@ export default class MutableMediaDataSource extends MediaDataSource {
   }
 
   /**
-   * Add a new entity tag (a climb or area) to a media object.
-   * @returns new EntityTag . 'null' if the entity already exists.
+   * Add a new entity tag to a media object.  `mediaId`, `entityUuid`, `entityType`
+   * together uniquely identify the entity tag.  Providing the same 3 IDs with a
+   * different `topoData` to update the existing entity tag.
+   * @returns the new EntityTag or the one being updated.
    */
-  async addEntityTag ({ mediaId, entityUuid, entityType }: AddTagEntityInput): Promise<EntityTag> {
+  async upsertEntityTag ({ mediaId, entityUuid, entityType, topoData }: AddTagEntityInput): Promise<EntityTag> {
     // Find the entity we want to tag
     const newEntityTagDoc = await this.getEntityDoc({ entityUuid, entityType })
+    newEntityTagDoc.topoData = topoData
 
-    // We treat 'entityTags' like a Set - can't tag the same climb/area id twice.
-    // See https://stackoverflow.com/questions/33576223/using-mongoose-mongodb-addtoset-functionality-on-array-of-objects
-    const filter = {
-      _id: new mongoose.Types.ObjectId(mediaId),
-      'entityTags.targetId': { $ne: entityUuid }
-    }
-
-    await this.mediaObjectModel
-      .updateOne(
-        filter,
-        {
+    // Use `bulkWrite` because we can't upsert an array element in a document.
+    // See https://www.mongodb.com/community/forums/t/how-to-update-nested-array-using-arrayfilters-but-if-it-doesnt-find-a-match-it-should-insert-new-values/245505
+    const bulkOperations: any [] = [{
+      updateOne: {
+        filter: {
+          _id: new mongoose.Types.ObjectId(mediaId)
+        },
+        update: {
+          $pull: {
+            entityTags: { targetId: entityUuid }
+          }
+        }
+      }
+    }, {
+      // We treat 'entityTags' like a Set - can't add a new tag the same climb/area id twice.
+      // See https://stackoverflow.com/questions/33576223/using-mongoose-mongodb-addtoset-functionality-on-array-of-objects
+      updateOne: {
+        filter: {
+          _id: new mongoose.Types.ObjectId(mediaId),
+          'entityTags.targetId': { $ne: entityUuid }
+        },
+        update: {
           $push: {
             entityTags: newEntityTagDoc
           }
-        })
-      .orFail(new UserInputError('Media not found or tag already exists.'))
-      .lean()
+        }
+      }
+    }]
+
+    await this.mediaObjectModel.bulkWrite(bulkOperations, { ordered: true })
 
     return newEntityTagDoc
   }

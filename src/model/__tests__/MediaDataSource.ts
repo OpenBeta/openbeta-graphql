@@ -82,7 +82,8 @@ describe('MediaDataSource', () => {
     areaTag2 = {
       mediaId: testMediaObject._id,
       entityType: 1,
-      entityUuid: areaForTagging2.metadata.area_id
+      entityUuid: areaForTagging2.metadata.area_id,
+      topoData: { name: 'AA', value: '1234' }
     }
 
     climbTag = {
@@ -102,7 +103,7 @@ describe('MediaDataSource', () => {
       entityType: 1,
       entityUuid: muuid.v4() // some random area
     }
-    await expect(media.addEntityTag(badAreaTag)).rejects.toThrow(/area .* not found/i)
+    await expect(media.upsertEntityTag(badAreaTag)).rejects.toThrow(/area .* not found/i)
   })
 
   it('should not tag a nonexistent *climb*', async () => {
@@ -111,7 +112,7 @@ describe('MediaDataSource', () => {
       entityType: 0,
       entityUuid: muuid.v4() // some random climb
     }
-    await expect(media.addEntityTag(badClimbTag)).rejects.toThrow(/climb .* not found/i)
+    await expect(media.upsertEntityTag(badClimbTag)).rejects.toThrow(/climb .* not found/i)
   })
 
   it('should tag & remove an area tag', async () => {
@@ -122,10 +123,10 @@ describe('MediaDataSource', () => {
     expect(mediaObjects[0].entityTags).toHaveLength(0)
 
     // add 1st tag
-    await media.addEntityTag(areaTag1)
+    await media.upsertEntityTag(areaTag1)
 
     // add 2nd tag
-    const tag = await media.addEntityTag(climbTag)
+    const tag = await media.upsertEntityTag(climbTag)
 
     expect(tag).toMatchObject<Partial<EntityTag>>({
       targetId: climbTag.entityUuid,
@@ -165,11 +166,10 @@ describe('MediaDataSource', () => {
   })
 
   it('should not add a duplicate tag', async () => {
-    const newTag = await media.addEntityTag(areaTag2)
+    const updating = { ...areaTag2, topoData: { name: 'ZZ' } }
+    const newTag = await media.upsertEntityTag(updating)
     expect(newTag.targetId).toEqual(areaTag2.entityUuid)
-
-    // Insert the same tag again
-    await expect(media.addEntityTag(areaTag2)).rejects.toThrowError(/tag already exists/i)
+    expect(newTag.topoData).toEqual(updating.topoData)
   })
 
   it('should not add media with the same url', async () => {

@@ -3,6 +3,7 @@ import muid, { MUUID } from 'uuid-mongodb'
 import fs from 'fs'
 import { gql } from 'apollo-server-express'
 import { DocumentNode } from 'graphql'
+import { GraphQLJSONObject } from 'graphql-type-json'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { HistoryFieldResolvers, HistoryQueries } from '../graphql/history/index.js'
@@ -128,6 +129,7 @@ const resolvers = {
   ...PostResolvers,
   ...XMediaResolvers,
   ...UserResolvers,
+  JSONObject: GraphQLJSONObject,
 
   Climb: {
     id: (node: ClimbGQLQueryType) => node._id.toUUID().toString(),

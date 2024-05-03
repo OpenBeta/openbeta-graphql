@@ -19,7 +19,8 @@ const EntitySchema = new Schema<EntityTag>({
     type: PointSchema,
     index: '2dsphere',
     required: false
-  }
+  },
+  topoData: { type: Schema.Types.Mixed }
 }, { _id: true, toObject: { versionKey: false } })
 
 const schema = new Schema<MediaObject>({

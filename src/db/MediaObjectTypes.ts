@@ -24,6 +24,7 @@ export interface EntityTag {
   climbName?: string
   areaName: string
   lnglat?: Point
+  topoData?: object
 }
 
 export interface MediaByUsers {
@@ -99,12 +100,13 @@ export interface AddEntityTagGQLInput {
   mediaId: string
   entityId: string
   entityType: number
+  topoData?: object
 }
 
 /**
  * Formal input type for addEntityTag function
  */
-export type AddTagEntityInput = Pick<AddEntityTagGQLInput, 'entityType'> & {
+export type AddTagEntityInput = Pick<AddEntityTagGQLInput, 'entityType' | 'topoData'> & {
   mediaId: mongoose.Types.ObjectId
   entityUuid: MUUID
 }

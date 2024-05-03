@@ -1,3 +1,5 @@
+scalar JSONObject
+
 type Mutation {
   """
   Add one or more media objects. Each media object may contain one tag.
@@ -11,7 +13,8 @@ type Mutation {
 
 
   """
-  Add an entity tag to a media.
+  Add an entity tag to a media.  Calling this function with the same
+  mediaId, entityUuid, and entityType will update the topo data.
   """
   addEntityTag(input: MediaEntityTagInput): EntityTag!
 
@@ -150,6 +153,9 @@ type EntityTag {
 
   "Latitude"
   lat: Float!
+
+  "Topo data"
+  topoData: JSONObject
 }
 
 "Represent a media object"
@@ -195,6 +201,8 @@ input MediaEntityTagInput {
   entityId: ID!
   "0: climb, 1: area"
   entityType: Int!
+  "Optional topo data"
+  topoData: JSONObject
 }
 
 "Input parameters for deleting a tag"
