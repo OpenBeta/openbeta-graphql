@@ -24,6 +24,19 @@ import { ClimbType } from '../../../ClimbTypes.js'
 import MutableMediaDataSource from '../../../../model/MutableMediaDataSource.js'
 import { workingDir } from './init.js'
 
+const MEDIA_PROJECTION = {
+  width: 1,
+  height: 1,
+  mediaUrl: 1,
+  format: 1,
+  _id: 0,
+  'entityTags.targetId': 1,
+  'entityTags.ancestors': 1,
+  'entityTags.climbName': 1,
+  'entityTags.areaName': 1,
+  'entityTags.type': 1
+}
+
 /**
  * Export leaf areas as Geojson.  Leaf areas are crags/boulders that have climbs.
  */
@@ -72,8 +85,8 @@ async function exportLeafCrags (): Promise<void> {
         content,
         media: await MutableMediaDataSource.getInstance().findMediaByAreaId(
           metadata.area_id,
-          ancestors
-        ),
+          MEDIA_PROJECTION,
+          true),
         climbs: climbs.map(({ _id, name, type, grades }: ClimbType) => ({
           id: _id.toUUID().toString(),
           name,
@@ -169,7 +182,8 @@ async function exportAreas (): Promise<void> {
         metadata: {
           isDestination: 1,
           polygon: 1,
-          leftRightIndex: 1
+          leftRightIndex: 1,
+          level: { $size: { $split: ['$ancestors', ','] } }
         },
         pathTokens: 1,
         ancestors: { $split: ['$ancestors', ','] },
@@ -192,19 +206,7 @@ async function exportAreas (): Promise<void> {
       {
         type: 'areas',
         ...doc,
-        media: await MutableMediaDataSource.getInstance().findMediaByAreaId(muuid.from(doc.id), {
-          width: 1,
-          height: 1,
-          mediaUrl: 1,
-          format: 1,
-          _id: 0,
-          'entityTags.targetId': 1,
-          'entityTags.ancestors': 1,
-          'entityTags.climbName': 1,
-          'entityTags.areaName': 1,
-          'entityTags.type': 1
-        },
-        true),
+        media: await MutableMediaDataSource.getInstance().findMediaByAreaId(muuid.from(doc.id), MEDIA_PROJECTION, true),
         metadata: doc.metadata
       },
       {
