@@ -119,7 +119,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: '16.15'
+          node-version-file: 'package.json'
           cache: 'yarn'
 
       - name: Start MongoDB
