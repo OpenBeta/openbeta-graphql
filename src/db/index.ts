@@ -76,10 +76,8 @@ export const createIndexes = async (): Promise<void> => {
 }
 
 export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
-  await mongoose.connection.close(function () {
-    logger.info('Gracefully exiting.')
-    process.exit(exitCode)
-  })
+  await mongoose.connection.close(true)
+  logger.info('Gracefully exiting.')
 }
 
 export const defaultPostConnect = async (changeStreamListener = streamListener): Promise<ChangeStream> => {

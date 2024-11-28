@@ -1,7 +1,7 @@
 import muuid from 'uuid-mongodb'
 
 import MutableAreaDataSource from '../MutableAreaDataSource.js'
-import { changelogDataSource } from '../ChangeLogDataSource.js'
+import ChangeLogDataSource from '../ChangeLogDataSource.js'
 import { OperationType } from '../../db/AreaTypes.js'
 import inMemoryDB from '../../utils/inMemoryDB.js'
 import waitForExpect from 'wait-for-expect'
@@ -15,7 +15,7 @@ describe('Area history', () => {
   beforeAll(async () => {
     onChange = jest.fn()
     await inMemoryDB.connect(onChange)
-    await changelogDataSource._testRemoveAll()
+    await ChangeLogDataSource.getInstance()._testRemoveAll()
 
     areas = MutableAreaDataSource.getInstance()
   })
@@ -29,7 +29,7 @@ describe('Area history', () => {
   })
 
   beforeEach(async () => {
-    await changelogDataSource._testRemoveAll()
+    await ChangeLogDataSource.getInstance()._testRemoveAll()
     onChange.mockClear()
   })
 
@@ -45,7 +45,7 @@ describe('Area history', () => {
     expect(or?._id).toBeTruthy()
 
     await waitForExpect(() => expect(onChange).toHaveBeenCalledTimes(5))
-    const areaHistory = await changelogDataSource.getAreaChangeSets()
+    const areaHistory = await ChangeLogDataSource.getInstance().getAreaChangeSets()
 
     expect(areaHistory).toHaveLength(2)
     // verify changes in most recent order
@@ -79,11 +79,11 @@ describe('Area history', () => {
     const orAreaHistory = areaHistory[1].changes
     expect(orAreaHistory).toHaveLength(2)
 
-    const randomHistory = await changelogDataSource.getAreaChangeSets(muuid.v4())
+    const randomHistory = await ChangeLogDataSource.getInstance().getAreaChangeSets(muuid.v4())
     expect(randomHistory).toHaveLength(0)
 
     // Verify USA history
-    const usaHistory = await changelogDataSource.getAreaChangeSets(usa.metadata.area_id)
+    const usaHistory = await ChangeLogDataSource.getInstance().getAreaChangeSets(usa.metadata.area_id)
     expect(usaHistory).toHaveLength(2)
     expect(usaHistory[0].operation).toEqual('addArea')
     expect(usaHistory[1].operation).toEqual('addArea')
@@ -106,7 +106,7 @@ describe('Area history', () => {
       await areas.setDestinationFlag(testUser, areaUuid, false)
 
       await waitForExpect(() => expect(onChange).toHaveBeenCalledTimes(5))
-      const changset = await changelogDataSource.getAreaChangeSets(areaUuid)
+      const changset = await ChangeLogDataSource.getInstance().getAreaChangeSets(areaUuid)
 
       expect(changset).toHaveLength(3)
       expect(changset[0].operation).toEqual('updateDestination')
@@ -128,7 +128,7 @@ describe('Area history', () => {
     await areas.deleteArea(testUser, leonidio.metadata.area_id)
 
     await waitForExpect(() => expect(onChange).toHaveBeenCalledTimes(5))
-    const history = await changelogDataSource.getAreaChangeSets(leonidio.metadata.area_id)
+    const history = await ChangeLogDataSource.getInstance().getAreaChangeSets(leonidio.metadata.area_id)
 
     expect(history).toHaveLength(2)
     expect(history[0].operation).toEqual('deleteArea')
@@ -158,7 +158,7 @@ describe('Area history', () => {
     expect(deleted).toBeTruthy()
 
     await waitForExpect(() => expect(onChange).toHaveBeenCalledTimes(5))
-    const history = await changelogDataSource.getAreaChangeSets(spain.metadata.area_id)
+    const history = await ChangeLogDataSource.getInstance().getAreaChangeSets(spain.metadata.area_id)
 
     // should only have 2 entries:
     // 1. Add country

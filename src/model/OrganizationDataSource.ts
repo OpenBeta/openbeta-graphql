@@ -39,14 +39,14 @@ export default class OrganizationDataSource extends MongoDataSource<Organization
       }, {})
     }
 
-    mongoFilter._deleting = { $eq: null } // marked for deletion
+    mongoFilter._deleting = { $eq: null } // not marked for deletion
     return this.collection.find(mongoFilter)
   }
 
   async findOneOrganizationByOrgId (orgId: muuid.MUUID): Promise<OrganizationType> {
     const rs = await this.organizationModel
       .aggregate([
-        { $match: { orgId, _deleting: { $exists: false } } }
+        { $match: { orgId, _deleting: { $eq: null } } }
       ])
 
     if (rs != null && rs.length === 1) {

@@ -15,7 +15,11 @@ export const createRoot = async (countryCode: string, shortCode?: string): Promi
     throw new Error('ISO code must be alpha 2 or 3')
   }
   const areaModel = getAreaModel('areas')
-  const countryNode = createRootNode(isoCountries.toAlpha3(countryCode).toUpperCase())
+  const code = isoCountries.toAlpha3(countryCode)?.toUpperCase()
+  if (code == null) {
+    throw new Error(`Unexpected look up error for ${countryCode}`)
+  }
+  const countryNode = createRootNode(code)
   const doc = makeDBArea(countryNode)
   if (shortCode != null) {
     doc.shortCode = shortCode

@@ -1,6 +1,7 @@
 import bbox2Polygon from '@turf/bbox-polygon'
 import { geometry, Point } from '@turf/helpers'
-import { UserInputError } from 'apollo-server-express'
+import { GraphQLError } from 'graphql'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
 import isoCountries from 'i18n-iso-countries'
 import enJson from 'i18n-iso-countries/langs/en.json' assert {type: 'json'}
 import { produce } from 'immer'
@@ -24,11 +25,12 @@ import { createRootNode } from '../db/import/usa/AreaTree.js'
 import { leafReducer, nodesReducer, StatsSummary } from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
 import { bboxFrom } from '../geo-utils.js'
 import { logger } from '../logger.js'
-import { createInstance as createExperimentalUserDataSource } from '../model/ExperimentalUserDataSource.js'
+import ExperimentalUserDataSource from '../model/ExperimentalUserDataSource.js'
 import { sanitizeStrict } from '../utils/sanitize.js'
 import AreaDataSource from './AreaDataSource.js'
-import { changelogDataSource } from './ChangeLogDataSource.js'
+import ChangeLogDataSource from './ChangeLogDataSource.js'
 import { withTransaction } from '../utils/helpers.js'
+import { getAreaModel } from '../db/AreaSchema.js'
 
 isoCountries.registerLocale(enJson)
 
@@ -51,7 +53,7 @@ export interface UpdateAreaOptions {
 }
 
 export default class MutableAreaDataSource extends AreaDataSource {
-  experimentalUserDataSource = createExperimentalUserDataSource()
+  experimentalUserDataSource = ExperimentalUserDataSource.getInstance()
 
   private areaNameCompare (name: string): string {
     return name.trim().toLocaleLowerCase().split(' ').filter(i => i !== '').join(' ')
@@ -70,7 +72,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     neighbours = neighbours.map(i => this.areaNameCompare(i))
     if (neighbours.includes(this.areaNameCompare(areaName))) {
-      throw new UserInputError(`[${areaName}]: This name already exists for some other area in this parent`)
+      throw new GraphQLError(`[${areaName}]: This name already exists for some other area in this parent`, {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      })
     }
   }
 
@@ -89,7 +95,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
   }
 
   async _setDestinationFlag (session, user: MUUID, uuid: MUUID, flag: boolean): Promise<AreaType> {
-    const change = await changelogDataSource.create(session, uuid, OperationType.updateDestination)
+    const change = await ChangeLogDataSource.getInstance().create(session, uuid, OperationType.updateDestination)
 
     const filter = { 'metadata.area_id': uuid }
     const update: Pick<AreaType, '_change' & { metadata: Pick<AreaType['metadata'], 'isDestination'> }> = [{
@@ -122,6 +128,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // Country code can be either alpha2 or 3. Let's convert it to alpha3.
     const alpha3 = countryCode.length === 2 ? isoCountries.toAlpha3(countryCode) : countryCode
     const countryName = isoCountries.getName(countryCode, 'en')
+    if (alpha3 == null || countryName == null) {
+      throw new GraphQLError(`Invalid country code ${countryCode}`)
+    }
     const countryNode = createRootNode(alpha3, countryName)
 
     // Build the Mongo document to be inserted
@@ -206,11 +215,19 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType, isLeaf?: boolean, isBoulder?: boolean): Promise<any> {
     const parentFilter = { 'metadata.area_id': parentUuid }
-    const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new UserInputError(`[${areaName}]: Expecting country or area parent, found none with id ${parentUuid.toString()}`))
+    const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new GraphQLError(`[${areaName}]: Expecting country or area parent, found none with id ${parentUuid.toString()}`, {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT
+      }
+    }))
 
     if (parent.metadata.leaf || (parent.metadata?.isBoulder ?? false)) {
       if (parent.children.length > 0 || parent.climbs.length > 0) {
-        throw new UserInputError(`[${areaName}]: Adding new areas to a leaf or boulder area is not allowed.`)
+        throw new GraphQLError(`[${areaName}]: Adding new areas to a leaf or boulder area is not allowed.`, {
+          extensions: {
+            code: ApolloServerErrorCode.BAD_USER_INPUT
+          }
+        })
       }
       // No children.  It's ok to continue turning an empty crag/boulder into an area.
       parent.metadata.leaf = false
@@ -225,7 +242,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       experimentaAuthorId = await this.experimentalUserDataSource.updateUser(session, experimentalAuthor.displayName, experimentalAuthor.url)
     }
 
-    const change = await changelogDataSource.create(session, user, OperationType.addArea)
+    const change = await ChangeLogDataSource.getInstance().create(session, user, OperationType.addArea)
     const newChangeMeta: ChangeRecordMetadataType = {
       user: experimentaAuthorId ?? user,
       historyId: change._id,
@@ -285,14 +302,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
   async _deleteArea (session: ClientSession, user: MUUID, uuid: MUUID): Promise<any> {
     const filter = {
       'metadata.area_id': uuid,
-      deleting: { $ne: null }
+      _deleting: { $eq: null }
     }
 
     const area = await this.areaModel.findOne(filter).session(session).orFail()
-
-    if (area == null) {
-      throw new Error('Delete area error.  Reason: area not found.')
-    }
 
     if (area?.children?.length > 0) {
       throw new Error('Delete area error.  Reason: subareas not empty.')
@@ -302,7 +315,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       throw new Error('Delete area error.  Reason: climbs not empty.')
     }
 
-    const change = await changelogDataSource.create(session, user, OperationType.deleteArea)
+    const change = await ChangeLogDataSource.getInstance().create(session, user, OperationType.deleteArea)
 
     const _change: ChangeRecordMetadataType = {
       user,
@@ -376,8 +389,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const _updateArea = async (session: ClientSession, user: MUUID, areaUuid: MUUID, document: AreaEditableFieldsType): Promise<any> => {
       const filter = {
         'metadata.area_id': areaUuid,
-        deleting: { $ne: null }
+        _deleting: { $eq: null }
       }
+
       const area = await this.areaModel.findOne(filter).session(session)
 
       if (area == null) {
@@ -409,7 +423,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       }
 
       const opType = OperationType.updateArea
-      const change = await changelogDataSource.create(session, user, opType)
+      const change = await ChangeLogDataSource.getInstance().create(session, user, opType)
 
       const _change: ChangeRecordMetadataType = {
         user: experimentalAuthorId ?? user,
@@ -527,7 +541,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
   async updateSortingOrder (user: MUUID, input: UpdateSortingOrderType[]): Promise<string[] | null> {
     const doUpdate = async (session: ClientSession, user: MUUID, input: UpdateSortingOrderType[]): Promise<string[]> => {
       const opType = OperationType.orderAreas
-      const change = await changelogDataSource.create(session, user, opType)
+      const change = await ChangeLogDataSource.getInstance().create(session, user, opType)
       const updates: any[] = []
 
       input.forEach(({ areaId, leftRightIndex }, index) => {
@@ -550,9 +564,9 @@ export default class MutableAreaDataSource extends AreaDataSource {
         })
       })
 
-      const rs = (await this.areaModel.bulkWrite(updates, { session })).toJSON()
+      const rs = (await this.areaModel.bulkWrite(updates, { session }))
 
-      if (rs.ok === 1 && rs.nMatched === rs.nModified) {
+      if (rs.ok === 1 && rs.matchedCount === rs.modifiedCount) {
         return input.map(item => item.areaId)
       } else {
         throw new Error(`Expect to update ${input.length} areas but found ${rs.nMatched}.`)
@@ -634,7 +648,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   static getInstance (): MutableAreaDataSource {
     if (MutableAreaDataSource.instance == null) {
-      MutableAreaDataSource.instance = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
+      // @ts-expect-error
+      MutableAreaDataSource.instance = new MutableAreaDataSource({ modelOrCollection: getAreaModel() })
     }
     return MutableAreaDataSource.instance
   }
@@ -692,5 +707,8 @@ export const countryCode2Uuid = (code: string): MUUID => {
     throw new Error(`Invalid country code: ${code}. Expect alpha2 or alpha3`)
   }
   const alpha3 = code.length === 2 ? isoCountries.toAlpha3(code) : code
+  if (alpha3 == null) {
+    throw new Error(`Can't find alpha3 for country code: ${code}`)
+  }
   return muuid.from(uuidv5(alpha3.toUpperCase(), NIL))
 }

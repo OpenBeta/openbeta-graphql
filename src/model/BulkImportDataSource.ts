@@ -183,7 +183,7 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
 
   static getInstance (): BulkImportDataSource {
     if (BulkImportDataSource.instance == null) {
-      BulkImportDataSource.instance = new BulkImportDataSource(mongoose.connection.db.collection('areas'))
+      BulkImportDataSource.instance = new BulkImportDataSource({ modelOrCollection: mongoose.connection.db.collection('areas') })
     }
     return BulkImportDataSource.instance
   }

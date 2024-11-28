@@ -28,6 +28,7 @@ export const connect = async (onChange?: (change: ChangeStreamDocument) => void)
   }
 
   await mongoose.connect(uri, mongooseOpts)
+  mongoose.set('debug', false) // Set to 'true' to enable verbose mode
   stream = await defaultPostConnect(async () => await testStreamListener(onChange))
 }
 

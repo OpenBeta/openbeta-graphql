@@ -1,4 +1,3 @@
-import mongoose from 'mongoose'
 import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
 import { connectDB, gracefulExit } from '../../index.js'
@@ -13,7 +12,7 @@ const onConnected = async (): Promise<void> => {
 }
 
 const insertAllCountries = async (): Promise<void> => {
-  const areaDS = new MutableAreaDataSource(mongoose.connection.db.collection('areas'))
+  const areaDS = MutableAreaDataSource.getInstance()
   await Promise.all(
     Object.keys(enJson.countries).map(async code => {
       if (code === 'US') return null

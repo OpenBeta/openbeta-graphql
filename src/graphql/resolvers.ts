@@ -1,13 +1,13 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import muid, { MUUID } from 'uuid-mongodb'
 import fs from 'fs'
-import { gql } from 'apollo-server-express'
 import { DocumentNode } from 'graphql'
 import { GraphQLJSONObject } from 'graphql-type-json'
+import { gql } from 'graphql-tag'
 
 import { CommonResolvers, CommonTypeDef } from './common/index.js'
 import { HistoryFieldResolvers, HistoryQueries } from '../graphql/history/index.js'
-import { Context, GQLFilter, QueryByIdType, Sort } from '../types'
+import { GQLContext, GQLFilter, QueryByIdType, Sort } from '../types'
 import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
@@ -73,7 +73,7 @@ const resolvers = {
     climb: async (
       _,
       { uuid }: QueryByIdType,
-      { dataSources }: Context) => {
+      { dataSources }: GQLContext) => {
       const { areas } = dataSources
       if (uuid != null && uuid !== '') {
         return await areas.findOneClimbByUUID(muid.from(uuid))
@@ -84,7 +84,7 @@ const resolvers = {
     areas: async (
       _,
       { filter, sort }: { filter?: GQLFilter, sort?: Sort },
-      { dataSources }: Context
+      { dataSources }: GQLContext
     ) => {
       const { areas } = dataSources
       const filtered = await areas.findAreasByFilter(filter)
@@ -93,16 +93,16 @@ const resolvers = {
 
     area: async (_: any,
       { uuid }: QueryByIdType,
-      { dataSources }: Context
+      { dataSources }: GQLContext
     ) => {
       const { areas } = dataSources
-      if (uuid !== undefined && uuid !== '') {
+      if (uuid != null && uuid !== '') {
         return await areas.findOneAreaByUUID(muid.from(uuid))
       }
       return null
     },
 
-    stats: async (parent: any, args: any, { dataSources }: Context) => {
+    stats: async (parent: any, args: any, { dataSources }: GQLContext) => {
       const { areas } = dataSources
       return await areas.getStats()
     },
@@ -110,7 +110,7 @@ const resolvers = {
     cragsNear: async (
       node: any,
       args,
-      { dataSources }: Context
+      { dataSources }: GQLContext
     ) => {
       const { placeId, lnglat, minDistance, maxDistance, includeCrags } = args
       const areas = dataSources.areas as AreaDataSource
@@ -186,7 +186,7 @@ const resolvers = {
 
     ancestors: (node: ClimbGQLQueryType) => node.ancestors?.split(',') ?? [],
 
-    media: async (node: ClimbType, args: any, { dataSources }: Context) => {
+    media: async (node: ClimbType, args: any, { dataSources }: GQLContext) => {
       const { media } = dataSources
       return await media.findMediaByClimbId(node._id, node.name)
     },
@@ -211,9 +211,10 @@ const resolvers = {
     // New camel case field
     areaName: async (node: AreaType) => node.area_name,
 
-    children: async (parent: AreaType, _: any, { dataSources: { areas } }: Context) => {
+    children: async (parent: AreaType, _: any, { dataSources: { areas } }: GQLContext) => {
       if (parent.children.length > 0) {
-        return await areas.findManyByIds(parent.children)
+        const rs = await areas.findManyByIds(parent.children)
+        return rs
       }
       return []
     },
@@ -224,7 +225,7 @@ const resolvers = {
 
     ancestors: async (parent) => parent.ancestors?.split(',') ?? [],
 
-    climbs: async (node: AreaType, _, { dataSources: { areas } }: Context) => {
+    climbs: async (node: AreaType, _, { dataSources: { areas } }: GQLContext) => {
       if ((node?.climbs?.length ?? 0) === 0) {
         return []
       }
@@ -249,6 +250,7 @@ const resolvers = {
 
       return ({
         ...node.metadata,
+        leaf: metadata?.leaf ?? false,
         isDestination: metadata?.isDestination ?? false,
         isBoulder: metadata?.isBoulder ?? false,
         leftRightIndex: metadata?.leftRightIndex ?? -1,
@@ -261,14 +263,14 @@ const resolvers = {
       })
     },
 
-    media: async (node: any, args: any, { dataSources }: Context) => {
+    media: async (node: any, args: any, { dataSources }: GQLContext) => {
       const { media } = dataSources
       return await media.findMediaByAreaId(node.metadata.area_id, null)
     },
 
     authorMetadata: getAuthorMetadataFromBaseNode,
 
-    organizations: async (node: AreaType, args: any, { dataSources }: Context) => {
+    organizations: async (node: AreaType, args: any, { dataSources }: GQLContext) => {
       const { organizations } = dataSources
       const areaIdsToSearch = [node.metadata.area_id, ...node.ancestors.split(',').map(s => muid.from(s))]
       const associatedOrgsCursor = await organizations.findOrganizationsByFilter({

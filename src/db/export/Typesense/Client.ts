@@ -48,7 +48,7 @@ export const updateAreaIndex = async (area: AreaType | null, op: DBOperation): P
         await typesense()?.collections(areaSchema.name).documents().upsert(mongoAreaToTypeSense(area))
         break
       case 'delete':
-        await typesense()?.collections(areaSchema.name).documents().delete(area.metadata.area_id.toUUID().toString())
+        await typesense()?.collections(areaSchema.name).documents(area.metadata.area_id.toUUID().toString()).delete()
         break
     }
   } catch (e) {
@@ -83,7 +83,7 @@ export const updateClimbIndex = async (climb: ClimbType | null, op: DBOperation)
         await typesense()?.collections(climbSchema.name).documents().upsert(mongoClimbToTypeSense(climbExt))
         break
       case 'delete':
-        await typesense()?.collections(climbSchema.name).documents().delete(climb._id.toUUID().toString())
+        await typesense()?.collections(climbSchema.name).documents(climb._id.toUUID().toString()).delete()
         break
     }
   } catch (e) {

@@ -5,10 +5,10 @@ import {
   GetAreaHistoryInputFilterType,
   GetOrganizationHistoryInputFilterType
 } from '../../db/ChangeLogType.js'
-import { Context } from '../../types.js'
+import { GQLContext } from '../../types.js'
 
 const HistoryQueries = {
-  getChangeHistory: async (_, { filter }, { dataSources }: Context): Promise<any> => {
+  getChangeHistory: async (_, { filter }, { dataSources }: GQLContext): Promise<any> => {
     const { history } = dataSources
     const { uuidList }: GetHistoryInputFilterType = filter ?? {}
     // Note: userUuid, fromDate, toDate filters don't currently work.
@@ -19,14 +19,14 @@ const HistoryQueries = {
     return await history.getChangeSets(muidList)
   },
 
-  getAreaHistory: async (_, { filter }, { dataSources }: Context): Promise<any> => {
+  getAreaHistory: async (_, { filter }, { dataSources }: GQLContext): Promise<any> => {
     const { history } = dataSources
     const { areaId }: GetAreaHistoryInputFilterType = filter ?? {}
     const id = muid.from(areaId)
     return await history.getAreaChangeSets(id)
   },
 
-  getOrganizationHistory: async (_, { filter }, { dataSources }: Context): Promise<any> => {
+  getOrganizationHistory: async (_, { filter }, { dataSources }: GQLContext): Promise<any> => {
     const { history } = dataSources
     const { orgId }: GetOrganizationHistoryInputFilterType = filter ?? {}
     return await history.getOrganizationChangeSets(orgId)

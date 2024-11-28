@@ -12,8 +12,8 @@ import {
   OrganizationChangeLogType
 } from '../db/ChangeLogType'
 import { logger } from '../logger.js'
-import { areaHistoryDataSource } from './AreaHistoryDatasource.js'
-import { organizationHistoryDataSource } from './OrganizationHistoryDatasource.js'
+import { AreaHistoryDataSource } from './AreaHistoryDatasource.js'
+import { OrganizationHistoryDataSource } from './OrganizationHistoryDatasource.js'
 
 export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> {
   changeLogModel = getChangeLogModel()
@@ -64,11 +64,11 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
   }
 
   async getAreaChangeSets (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
-    return await areaHistoryDataSource.getChangeSetsByUuid(areaUuid)
+    return await AreaHistoryDataSource.getInstance().getChangeSetsByUuid(areaUuid)
   }
 
   async getOrganizationChangeSets (orgId?: MUUID): Promise<OrganizationChangeLogType[]> {
-    return await organizationHistoryDataSource.getChangeSetsByOrgId(orgId)
+    return await OrganizationHistoryDataSource.getInstance().getChangeSetsByOrgId(orgId)
   }
 
   /**
@@ -98,17 +98,8 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
        * Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
        */
       // @ts-expect-error
-      ChangeLogDataSource.instance = new ChangeLogDataSource(getChangeLogModel())
+      ChangeLogDataSource.instance = new ChangeLogDataSource({ modelOrCollection: getChangeLogModel() })
     }
     return ChangeLogDataSource.instance
   }
 }
-
-// Normally we instantiate the data source in the server main function because
-// the only place they're used is in GQL resolvers.
-// In this case we instantiate it once in order to use history in multiple places.
-//
-// Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
-// @ts-expect-error
-// eslint-disable-next-line
-export const changelogDataSource = new ChangeLogDataSource(getChangeLogModel())

@@ -1,12 +1,10 @@
+import { GraphQLError } from "graphql"
 import { getAreaModel, createIndexes } from "../../db"
 import inMemoryDB from "../../utils/inMemoryDB"
 import MutableAreaDataSource from "../MutableAreaDataSource"
 import muid, { MUUID } from 'uuid-mongodb'
 import { AreaType, OperationType } from "../../db/AreaTypes"
 import { ChangeRecordMetadataType } from "../../db/ChangeLogType"
-import { UserInputError } from "apollo-server-core"
-import mongoose from "mongoose"
-import exp from "constants"
 
 
 describe("Test area mutations", () => {
@@ -120,7 +118,7 @@ describe("Test area mutations", () => {
 
         test("area names should be unique in their parent context", () => addArea('test').then(async parent => {
             await addArea('Big ol boulder', { parent })
-            await expect(() => addArea('Big ol boulder', { parent })).rejects.toThrowError(UserInputError)
+            await expect(() => addArea('Big ol boulder', { parent })).rejects.toThrow(GraphQLError)
         }))
       })
 
@@ -167,7 +165,7 @@ describe("Test area mutations", () => {
                 // name-uniqueness should not be global, so this shouldn't throw
                 areas.updateArea(testUser, divorcedArea.metadata.area_id, { areaName: area.area_name }),
                 // if we update one of the areas to have a name for which another area already exists, we should expect this to throw.
-                expect(() => areas.updateArea(testUser, newArea.metadata.area_id, { areaName: area.area_name })).rejects.toThrowError(UserInputError),
+                expect(() => areas.updateArea(testUser, newArea.metadata.area_id, { areaName: area.area_name })).rejects.toThrow(GraphQLError),
             ])
         }))
       })

@@ -58,8 +58,14 @@ export class OrganizationHistoryDataSource extends MongoDataSource<OrganizationC
       return rs2
     }
   }
-}
 
-// TS error bug: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
-// @ts-expect-error
-export const organizationHistoryDataSource = new OrganizationHistoryDataSource(getChangeLogModel())
+  static instance: OrganizationHistoryDataSource
+
+  static getInstance (): OrganizationHistoryDataSource {
+    if (OrganizationHistoryDataSource.instance == null) {
+      // @ts-expect-error
+      OrganizationHistoryDataSource.instance = new OrganizationHistoryDataSource({ modelOrCollection: getChangeLogModel() })
+    }
+    return OrganizationHistoryDataSource.instance
+  }
+}

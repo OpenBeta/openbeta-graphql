@@ -4,11 +4,12 @@ import { produce } from 'immer'
 
 import { OrganizationType, OperationType, OrgType, OrganizationEditableFieldsType } from '../db/OrganizationTypes.js'
 import OrganizationDataSource from './OrganizationDataSource.js'
-import { changelogDataSource } from './ChangeLogDataSource.js'
+import ChangeLogDataSource from './ChangeLogDataSource.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
 import { muuidToString } from '../utils/helpers.js'
 import { getAreaModel } from '../db/AreaSchema.js'
+import { getOrganizationModel } from '../db/OrganizationSchema.js'
 
 export default class MutableOrganizationDataSource extends OrganizationDataSource {
   /**
@@ -32,7 +33,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
   }
 
   async _addOrganization (session, user: MUUID, orgType: OrgType, document: OrganizationEditableFieldsType): Promise<any> {
-    const change = await changelogDataSource.create(session, user, OperationType.addOrganization)
+    const change = await ChangeLogDataSource.getInstance().create(session, user, OperationType.addOrganization)
     const newChangeMeta: ChangeRecordMetadataType = {
       user,
       historyId: change._id,
@@ -81,7 +82,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
   async _updateOrganization (session: ClientSession, user: MUUID, orgId: MUUID, document: OrganizationEditableFieldsType): Promise<any> {
     const filter = {
       orgId,
-      deleting: { $ne: null }
+      _deleting: { $eq: null }
     }
 
     const org = await this.organizationModel.findOne(filter).session(session)
@@ -92,7 +93,7 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
 
     const orgFragment = await sanitizeEditableFields(document)
     const opType = OperationType.updateOrganization
-    const change = await changelogDataSource.create(session, user, opType)
+    const change = await ChangeLogDataSource.getInstance().create(session, user, opType)
 
     const _change: ChangeRecordMetadataType = {
       user,
@@ -113,7 +114,8 @@ export default class MutableOrganizationDataSource extends OrganizationDataSourc
 
   static getInstance (): MutableOrganizationDataSource {
     if (MutableOrganizationDataSource.instance == null) {
-      MutableOrganizationDataSource.instance = new MutableOrganizationDataSource(mongoose.connection.db.collection('organizations'))
+      // @ts-expect-error
+      MutableOrganizationDataSource.instance = new MutableOrganizationDataSource({ modelOrCollection: getOrganizationModel() })
     }
     return MutableOrganizationDataSource.instance
   }

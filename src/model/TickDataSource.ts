@@ -57,7 +57,8 @@ export default class TickDataSource extends MongoDataSource<TickType> {
    * @returns the new/updated tick
    */
   async editTick (filter: TickEditFilterType, updatedTick: TickInput): Promise<TickType | null> {
-    return await this.tickModel.findOneAndUpdate(filter, updatedTick, { new: true })
+    const rs = await this.tickModel.findOneAndUpdate(filter, updatedTick, { new: true })
+    return await rs?.toObject() ?? null
   }
 
   /**
@@ -113,7 +114,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
 
   static getInstance (): TickDataSource {
     if (TickDataSource.instance == null) {
-      TickDataSource.instance = new TickDataSource(mongoose.connection.db.collection('ticks'))
+      TickDataSource.instance = new TickDataSource({ modelOrCollection: mongoose.connection.db.collection('ticks') })
     }
     return TickDataSource.instance
   }

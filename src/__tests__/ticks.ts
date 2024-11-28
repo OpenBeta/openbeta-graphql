@@ -1,4 +1,4 @@
-import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer } from '@apollo/server'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
@@ -211,7 +211,7 @@ describe('ticks API', () => {
           }
         },
         userUuid,
-        roles: ['user_admin'],
+        roles: [], // ['user_admin'],
         app
       })
 

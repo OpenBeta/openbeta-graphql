@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import { ChangeStream, ChangeStreamDocument, ChangeStreamUpdateDocument } from 'mongodb'
 import dot from 'dot-object'
 
-import { changelogDataSource } from '../../model/ChangeLogDataSource.js'
+import ChangeLogDataSource from '../../model/ChangeLogDataSource.js'
 import { logger } from '../../logger.js'
 import {
   BaseChangeRecordType,
@@ -120,7 +120,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.climbs
       }
-      return await changelogDataSource.record(newDocument).then(async () => await updateClimbIndex(fullDocument as ClimbType, dbOp))
+      return await ChangeLogDataSource.getInstance().record(newDocument).then(async () => await updateClimbIndex(fullDocument as ClimbType, dbOp))
     }
     case DocumentKind.areas: {
       const newDocument: BaseChangeRecordType = {
@@ -130,7 +130,7 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.areas
       }
-      return await changelogDataSource.record(newDocument).then(async () => await updateAreaIndex(fullDocument as AreaType, dbOp))
+      return await ChangeLogDataSource.getInstance().record(newDocument).then(async () => await updateAreaIndex(fullDocument as AreaType, dbOp))
     }
     case DocumentKind.organizations: {
       const newDocument: BaseChangeRecordType = {
@@ -140,7 +140,8 @@ const recordChange = async ({ source, dbOp, fullDocument, updateDescription, _id
         updateDescription: dotifyUpdateDescription(updateDescription),
         kind: DocumentKind.organizations
       }
-      return await changelogDataSource.record(newDocument).then()
+      await ChangeLogDataSource.getInstance().record(newDocument)
+      return
     }
     default:
       exhaustiveCheck(source)

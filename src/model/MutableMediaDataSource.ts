@@ -1,4 +1,5 @@
-import { UserInputError } from 'apollo-server-express'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
+import { GraphQLError } from 'graphql'
 import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 
@@ -18,7 +19,11 @@ export default class MutableMediaDataSource extends MediaDataSource {
         const climb = await this.areaDS.findOneClimbByUUID(entityUuid)
 
         if (climb == null) {
-          throw new UserInputError(`Climb with id: ${entityUuid.toUUID().toString()} not found`)
+          throw new GraphQLError(`Climb with id: ${entityUuid.toUUID().toString()} not found`, {
+            extensions: {
+              code: ApolloServerErrorCode.BAD_USER_INPUT
+            }
+          })
         }
 
         newEntityTagDoc = {
@@ -40,7 +45,11 @@ export default class MutableMediaDataSource extends MediaDataSource {
         const area = await this.areaDS.findOneAreaByUUID(entityUuid)
 
         if (area == null) {
-          throw new UserInputError(`Area with id: ${entityUuid.toUUID().toString()} not found`)
+          throw new GraphQLError(`Area with id: ${entityUuid.toUUID().toString()} not found`, {
+            extensions: {
+              code: ApolloServerErrorCode.BAD_USER_INPUT
+            }
+          })
         }
 
         newEntityTagDoc = {
@@ -55,7 +64,11 @@ export default class MutableMediaDataSource extends MediaDataSource {
         break
       }
 
-      default: throw new UserInputError(`Entity type ${entityType} not supported.`)
+      default: throw new GraphQLError(`Entity type ${entityType} not supported.`, {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      })
     }
     return newEntityTagDoc
   }
@@ -121,7 +134,11 @@ export default class MutableMediaDataSource extends MediaDataSource {
         }
       },
       { multi: true })
-      .orFail(new UserInputError('Tag not found'))
+      .orFail(new GraphQLError('Tag not found', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      }))
       .lean()
 
     return rs.modifiedCount === 1
@@ -152,7 +169,8 @@ export default class MutableMediaDataSource extends MediaDataSource {
       })
     }))
 
-    const rs = await this.mediaObjectModel.insertMany(docs, { lean: true })
+    // Do not set `lean = true` as it will not return 'createdAt'
+    const rs = await this.mediaObjectModel.insertMany(docs)
     return rs != null ? rs : []
   }
 
@@ -161,10 +179,18 @@ export default class MutableMediaDataSource extends MediaDataSource {
    */
   async deleteMediaObject (mediaId: mongoose.Types.ObjectId): Promise<boolean> {
     const filter = { _id: mediaId }
-    const rs = await this.mediaObjectModel.find(filter).orFail(new UserInputError(`Media Id not found ${mediaId.toString()}`))
+    const rs = await this.mediaObjectModel.find(filter).orFail(new GraphQLError(`Media Id not found ${mediaId.toString()}`, {
+      extensions: {
+        code: ApolloServerErrorCode.BAD_USER_INPUT
+      }
+    }))
 
     if ((rs[0].entityTags?.length ?? 0) > 0) {
-      throw new UserInputError('Cannot delete media object with non-empty tags. Delete tags first.')
+      throw new GraphQLError('Cannot delete media object with non-empty tags. Delete tags first.', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      })
     }
 
     const rs2 = await this.mediaObjectModel.deleteMany(filter)
@@ -175,7 +201,7 @@ export default class MutableMediaDataSource extends MediaDataSource {
 
   static getInstance (): MutableMediaDataSource {
     if (MutableMediaDataSource.instance == null) {
-      MutableMediaDataSource.instance = new MutableMediaDataSource(mongoose.connection.db.collection('media'))
+      MutableMediaDataSource.instance = new MutableMediaDataSource({ modelOrCollection: mongoose.connection.db.collection('media') })
     }
     return MutableMediaDataSource.instance
   }

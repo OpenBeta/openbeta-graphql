@@ -1,6 +1,6 @@
 import { AddPostInputType, RemovePostInputType } from '../../db/PostTypes'
 import { getPostModel } from '../../db/PostSchema.js'
-import { Context } from '../../types'
+import { GQLContext } from '../../types'
 import muid from 'uuid-mongodb'
 import { XMediaType } from '../../db/XMediaTypes'
 
@@ -9,7 +9,7 @@ const PostMutations = {
   addPost: async (
     _: any,
     { input }: { input: AddPostInputType },
-    { dataSources }: Context
+    { dataSources }: GQLContext
   ) => {
     const { xmedia, post } = dataSources
     const { userId, description, photoUrls }: AddPostInputType = input

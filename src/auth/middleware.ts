@@ -1,7 +1,13 @@
 import muid from 'uuid-mongodb'
+import { Request } from 'express'
 import { AuthUserType } from '../types.js'
 import { verifyJWT } from './util.js'
 import { logger } from '../logger.js'
+
+export interface CustomContext {
+  user: AuthUserType
+  token?: string
+}
 
 const EMTPY_USER: AuthUserType = {
   isBuilder: false,
@@ -12,7 +18,7 @@ const EMTPY_USER: AuthUserType = {
 /**
  * Create a middleware context for Apollo server
  */
-export const createContext = async ({ req }): Promise<any> => {
+export const createContext = async ({ req }: { req: Request }): Promise<CustomContext> => {
   try {
     return await validateTokenAndExtractUser(req)
   } catch (e) {
@@ -21,7 +27,7 @@ export const createContext = async ({ req }): Promise<any> => {
   }
 }
 
-async function validateTokenAndExtractUser (req: Request): Promise<{ user: AuthUserType, token?: string }> {
+async function validateTokenAndExtractUser (req: Request): Promise<CustomContext> {
   const { headers } = req
   // eslint-disable-next-line @typescript-eslint/dot-notation
   const authHeader = String(headers?.['authorization'] ?? '')

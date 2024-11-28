@@ -19,7 +19,7 @@ describe('UserDataSource', () => {
       console.log('Cleaning up db before test')
     }
     await userModel.ensureIndexes()
-    users = new UserDataSource(mongoose.connection.db.collection('users'))
+    users = new UserDataSource({ modelOrCollection: mongoose.connection.db.collection('users') })
   })
 
   afterAll(async () => {

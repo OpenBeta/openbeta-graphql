@@ -1,11 +1,12 @@
 import jwt from 'jsonwebtoken'
 import { jest } from '@jest/globals'
 import request from 'supertest'
+import { ApolloServer } from '@apollo/server'
+import express from 'express'
+
 import type { InMemoryDB } from './inMemoryDB.js'
 import inMemoryDB from './inMemoryDB.js'
 import { createServer } from '../server.js'
-import { ApolloServer } from 'apollo-server-express'
-import express from 'express'
 
 const PORT = 4000
 
@@ -68,6 +69,7 @@ export interface SetUpServerReturnType {
 */
 export const setUpServer = async (): Promise<SetUpServerReturnType> => {
   await inMemoryDB.connect()
+
   const { app, server } = await createServer()
   return { app, server, inMemoryDB }
 }

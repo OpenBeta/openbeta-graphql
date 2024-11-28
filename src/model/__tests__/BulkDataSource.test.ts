@@ -1,6 +1,6 @@
 import {ChangeStream} from 'mongodb';
 import muuid from 'uuid-mongodb';
-import {changelogDataSource} from '../ChangeLogDataSource.js';
+import ChangeLogDataSource from '../ChangeLogDataSource.js';
 import MutableClimbDataSource from '../MutableClimbDataSource.js';
 import {AreaType} from '../../db/AreaTypes.js';
 import {ClimbType} from '../../db/ClimbTypes.js';
@@ -66,7 +66,7 @@ describe('bulk import e2e', () => {
   });
 
   afterEach(async () => {
-    await changelogDataSource._testRemoveAll();
+    await ChangeLogDataSource.getInstance()._testRemoveAll();
     await inMemoryDB.clear()
   });
 

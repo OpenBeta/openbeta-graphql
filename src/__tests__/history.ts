@@ -1,4 +1,4 @@
-import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer } from '@apollo/server'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'

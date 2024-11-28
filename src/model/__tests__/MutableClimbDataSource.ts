@@ -9,7 +9,7 @@ import { logger } from '../../logger.js'
 import { ClimbChangeInputType, ClimbType } from '../../db/ClimbTypes.js'
 import { sanitizeDisciplines } from '../../GradeUtils.js'
 import streamListener from '../../db/edit/streamListener.js'
-import { changelogDataSource } from '../ChangeLogDataSource.js'
+import ChangeLogDataSource from '../ChangeLogDataSource.js'
 import inMemoryDB from '../../utils/inMemoryDB.js'
 
 export const newSportClimb1: ClimbChangeInputType = {
@@ -154,7 +154,7 @@ describe('Climb CRUD', () => {
 
     climbs = MutableClimbDataSource.getInstance()
     areas = MutableAreaDataSource.getInstance()
-    await changelogDataSource._testRemoveAll()
+    await ChangeLogDataSource.getInstance()._testRemoveAll()
     await areas.addCountry('fr')
   })
 

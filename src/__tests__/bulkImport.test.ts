@@ -1,4 +1,4 @@
-import {ApolloServer} from "apollo-server-express";
+import {ApolloServer} from "@apollo/server";
 import muuid from "uuid-mongodb";
 import express from "express";
 import {InMemoryDB} from "../utils/inMemoryDB.js";
@@ -49,7 +49,6 @@ describe('bulkImportAreas', () => {
     // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
     user = muuid.mode('relaxed').v4()
     userUuid = muuidToString(user)
-
     bulkImport = BulkImportDataSource.getInstance()
     climbs = MutableClimbDataSource.getInstance()
   })

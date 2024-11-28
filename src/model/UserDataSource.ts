@@ -241,7 +241,7 @@ export default class UserDataSource extends MongoDataSource<User> {
 
   static getInstance (): UserDataSource {
     if (UserDataSource.instance == null) {
-      UserDataSource.instance = new UserDataSource(mongoose.connection.db.collection('user'))
+      UserDataSource.instance = new UserDataSource({ modelOrCollection: mongoose.connection.db.collection('user') })
     }
     return UserDataSource.instance
   }

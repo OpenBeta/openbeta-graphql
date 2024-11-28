@@ -1,9 +1,9 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { MUUID } from 'uuid-mongodb'
-import { AreaChangeLogType } from '../db/ChangeLogType.js'
+import { AreaChangeLogType, ChangeLogType } from '../db/ChangeLogType.js'
 import { getChangeLogModel } from '../db/index.js'
 
-export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
+export class AreaHistoryDataSource extends MongoDataSource<ChangeLogType> {
   changelogModel = getChangeLogModel()
 
   async getChangeSetsByUuid (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
@@ -58,8 +58,14 @@ export class AreaHistoryDataSource extends MongoDataSource<AreaChangeLogType> {
       return rs2
     }
   }
-}
 
-// TS error bug: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
-// @ts-expect-error
-export const areaHistoryDataSource = new AreaHistoryDataSource(getChangeLogModel())
+  static instance: AreaHistoryDataSource
+
+  static getInstance (): AreaHistoryDataSource {
+    if (AreaHistoryDataSource.instance == null) {
+      // @ts-expect-error
+      AreaHistoryDataSource.instance = new AreaHistoryDataSource({ modelOrCollection: getChangeLogModel() })
+    }
+    return AreaHistoryDataSource.instance
+  }
+}

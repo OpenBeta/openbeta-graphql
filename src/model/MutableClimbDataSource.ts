@@ -1,4 +1,5 @@
-import { UserInputError } from 'apollo-server-express'
+import { GraphQLError } from 'graphql'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
 import { ClientSession } from 'mongoose'
 import muid, { MUUID } from 'uuid-mongodb'
 
@@ -10,9 +11,9 @@ import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbChangeDocType, ClimbChangeInputType, ClimbEditOperationType, ClimbType, IPitch } from '../db/ClimbTypes.js'
 import { aggregateCragStats } from '../db/utils/Aggregate.js'
 import { sanitize, sanitizeStrict } from '../utils/sanitize.js'
-import { changelogDataSource } from './ChangeLogDataSource.js'
+import ChangeLogDataSource from './ChangeLogDataSource.js'
 import ClimbDataSource from './ClimbDataSource.js'
-import { createInstance as createExperimentalUserDataSource } from './ExperimentalUserDataSource.js'
+import ExperimentalUserDataSource from './ExperimentalUserDataSource.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
 import { withTransaction } from '../utils/helpers.js'
 
@@ -24,14 +25,18 @@ export interface AddOrUpdateClimbsOptions {
 }
 
 export default class MutableClimbDataSource extends ClimbDataSource {
-  experimentalUserDataSource = createExperimentalUserDataSource()
+  experimentalUserDataSource = ExperimentalUserDataSource.getInstance()
 
   async _addOrUpdateClimbs (userId: MUUID, session: ClientSession, parentId: MUUID, userInput: ClimbChangeInputType[]): Promise<string[]> {
     const newClimbIds = new Array<MUUID>(userInput.length)
     for (let i = 0; i < newClimbIds.length; i++) {
       // make sure there's some input
       if (Object.keys(userInput[i]).length === 0) {
-        throw new UserInputError(`Climb ${userInput[i]?.id ?? ''} doesn't have any updated fields.`)
+        throw new GraphQLError(`Climb ${userInput[i]?.id ?? ''} doesn't have any updated fields.`, {
+          extensions: {
+            code: ApolloServerErrorCode.BAD_USER_INPUT
+          }
+        })
       }
       const userinputId = userInput[i]?.id
 
@@ -60,13 +65,17 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     }, [])
 
     const opType = ClimbEditOperationType.updateClimb
-    const change = await changelogDataSource.create(session, userId, opType)
+    const change = await ChangeLogDataSource.getInstance().create(session, userId, opType)
 
     const parentFilter = { 'metadata.area_id': parentId }
 
     const parent = await this.areaModel
       .findOne(parentFilter).session(session)
-      .orFail(new UserInputError(`Area with id: ${parentId.toUUID().toString()} not found`))
+      .orFail(new GraphQLError(`Area with id: ${parentId.toUUID().toString()} not found`, {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      }))
 
     const _change: ChangeRecordMetadataType = {
       user: userId,
@@ -79,7 +88,11 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
     // does the parent area have subareas?
     if (parent.children.length > 0) {
-      throw new UserInputError('You can only add climbs to a crag or a bouldering area (an area that doesn\'t contain other areas)')
+      throw new GraphQLError('You can only add climbs to a crag or a bouldering area (an area that doesn\'t contain other areas)', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      })
     }
 
     if (!parent.metadata.leaf) {
@@ -97,7 +110,11 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     for (let i = 0; i < userInput.length; i++) {
       // when adding new climbs we require name and disciplines
       if (!idList[i].existed && userInput[i].name == null) {
-        throw new UserInputError(`Can't add new climbs without name. (Index[index=${i}])`)
+        throw new GraphQLError(`Can't add new climbs without name. (Index[index=${i}])`, {
+          extensions: {
+            code: ApolloServerErrorCode.BAD_USER_INPUT
+          }
+        })
       }
 
       // See https://github.com/OpenBeta/openbeta-graphql/issues/244
@@ -121,7 +138,11 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         ? pitches.map((pitch): IPitch => {
           const { id, ...partialPitch } = pitch // separate 'id' input and rest of the pitch properties to avoid duplicate id and _id
           if (partialPitch.pitchNumber === undefined) {
-            throw new UserInputError('Each pitch in a multi-pitch climb must have a pitchNumber representing its sequence in the climb. Please ensure that every pitch is numbered.')
+            throw new GraphQLError('Each pitch in a multi-pitch climb must have a pitchNumber representing its sequence in the climb. Please ensure that every pitch is numbered.', {
+              extensions: {
+                code: ApolloServerErrorCode.BAD_USER_INPUT
+              }
+            })
           }
           return {
             _id: muid.from(id ?? muid.v4()), // populate _id
@@ -196,14 +217,14 @@ export default class MutableClimbDataSource extends ClimbDataSource {
       }
     }))
 
-    const rs = (await this.climbModel.bulkWrite(bulk, { session })).toJSON()
+    const rs = (await this.climbModel.bulkWrite(bulk, { session }))
 
     if (rs.ok === 1) {
       const idList: MUUID[] = []
       const idStrList: string[] = []
-      rs.upserted.forEach(({ _id }) => {
-        idList.push(_id)
-        idStrList.push(_id.toUUID().toString())
+      Object.values(rs.upsertedIds).forEach(value => {
+        idList.push(value)
+        idStrList.push(value.toUUID().toString())
       })
 
       if (idList.length > 0) {
@@ -257,7 +278,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // see https://jira.mongodb.org/browse/NODE-2014
     await session.withTransaction(
       async (session) => {
-        const changeset = await changelogDataSource.create(session, userId, ClimbEditOperationType.deleteClimb)
+        const changeset = await ChangeLogDataSource.getInstance().create(session, userId, ClimbEditOperationType.deleteClimb)
         const _change: ChangeRecordMetadataType = {
           user: userId,
           historyId: changeset._id,
@@ -279,7 +300,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         // Mark climbs delete
         const filter = {
           _id: { $in: idList },
-          _deleting: { $exists: false }
+          _deleting: { $eq: null }
         }
         const rs = await this.climbModel.updateMany(
           filter,
@@ -306,7 +327,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     if (MutableClimbDataSource.instance == null) {
       // Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
       // @ts-expect-error
-      MutableClimbDataSource.instance = new MutableClimbDataSource(getClimbModel())
+      MutableClimbDataSource.instance = new MutableClimbDataSource({ modelOrCollection: getClimbModel() })
     }
     return MutableClimbDataSource.instance
   }

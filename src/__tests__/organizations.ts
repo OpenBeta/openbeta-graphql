@@ -1,10 +1,10 @@
-import { ApolloServer } from 'apollo-server-express'
+import { ApolloServer } from '@apollo/server'
 import muuid from 'uuid-mongodb'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
 import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
 import { AreaType } from '../db/AreaTypes.js'
 import { OperationType, OrganizationEditableFieldsType, OrganizationType, OrgType } from '../db/OrganizationTypes.js'
-import { changelogDataSource } from '../model/ChangeLogDataSource.js'
+import ChangeLogDataSource from '../model/ChangeLogDataSource.js'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
 import { muuidToString } from '../utils/helpers.js'
 import { validate as validateMuuid } from 'uuid'
@@ -142,7 +142,7 @@ describe('organizations API', () => {
       // eslint-disable-next-line
       await new Promise(res => setTimeout(res, 1000))
 
-      const orgHistory = await changelogDataSource.getOrganizationChangeSets()
+      const orgHistory = await ChangeLogDataSource.getInstance().getOrganizationChangeSets()
       expect(orgHistory).toHaveLength(2)
 
       // verify changes in most recent order

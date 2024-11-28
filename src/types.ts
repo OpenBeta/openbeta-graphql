@@ -7,8 +7,6 @@ import type TickDataSource from './model/TickDataSource.js'
 import type HistoryDataSouce from './model/ChangeLogDataSource.js'
 import type MutableMediaDataSource from './model/MutableMediaDataSource.js'
 import MutableClimbDataSource from './model/MutableClimbDataSource.js'
-import XMediaDataSource from './model/XMediaDataSource.js'
-import PostDataSource from './model/PostDataSource.js'
 import MutableOrganizationDataSource from './model/MutableOrganizationDataSource.js'
 import type UserDataSource from './model/UserDataSource.js'
 import BulkImportDataSource from './model/BulkImportDataSource'
@@ -100,16 +98,14 @@ export interface DataSourcesType {
   history: HistoryDataSouce
   media: MutableMediaDataSource
   climbs: MutableClimbDataSource
-  xmedia: XMediaDataSource
-  post: PostDataSource
   users: UserDataSource
 }
 
-export interface Context {
+export interface GQLContext {
   dataSources: DataSourcesType
 }
 
-export interface ContextWithAuth extends Context {
+export interface ContextWithAuth extends GQLContext {
   user: AuthUserType
 }
 

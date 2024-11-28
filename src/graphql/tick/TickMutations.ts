@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import { TickType } from '../../db/TickTypes'
 import type TickDataSource from '../../model/TickDataSource'
 
@@ -44,7 +45,7 @@ const TickMutations = {
     { dataSources }) => {
     const { ticks }: { ticks: TickDataSource } = dataSources
     const { _id, updatedTick } = input
-    return await ticks.editTick(_id, updatedTick)
+    return await ticks.editTick(new mongoose.Types.ObjectId(_id), updatedTick)
   }
 }
 

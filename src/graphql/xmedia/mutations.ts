@@ -1,13 +1,13 @@
 import { XMediaType, RemoveXMediaInputType } from '../../db/XMediaTypes'
 import { getXMediaModel } from '../../db/XMediaSchema.js'
-import { Context } from '../../types'
+import { GQLContext } from '../../types'
 
 const XMediaMutations = {
   // addXMedia
   addXMedia: async (
     _: any,
     { input }: { input: XMediaType },
-    { dataSources }: Context
+    { dataSources }: GQLContext
   ) => {
     const { xmedia } = dataSources
 

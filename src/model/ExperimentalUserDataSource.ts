@@ -1,12 +1,15 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
-import mongoose, { ClientSession } from 'mongoose'
+import { ClientSession } from 'mongoose'
 import muuid, { MUUID } from 'uuid-mongodb'
 import { v5 as uuidv5, NIL } from 'uuid'
 
 import { getExperimentalUserModel } from '../db/index.js'
 import { ExperimentalUserType } from '../db/UserTypes.js'
 
-export default class MediaDataSource extends MongoDataSource<ExperimentalUserType> {
+/**
+ * @deprecated
+ */
+export default class ExperimentalUserDataSource extends MongoDataSource<ExperimentalUserType> {
   experimentUserModel = getExperimentalUserModel()
 
   /**
@@ -48,6 +51,15 @@ export default class MediaDataSource extends MongoDataSource<ExperimentalUserTyp
     }
     return null
   }
-}
 
-export const createInstance = (): MediaDataSource => new MediaDataSource(mongoose.connection.db.collection(getExperimentalUserModel().modelName))
+  static instance: ExperimentalUserDataSource
+
+  static getInstance (): ExperimentalUserDataSource {
+    if (ExperimentalUserDataSource.instance == null) {
+      // Why suppress TS error? See: https://github.com/GraphQLGuide/apollo-datasource-mongodb/issues/88
+      // @ts-expect-error
+      ExperimentalUserDataSource.instance = new ExperimentalUserDataSource({ modelOrCollection: getExperimentalUserModel() })
+    }
+    return ExperimentalUserDataSource.instance
+  }
+}
