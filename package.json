@@ -57,7 +57,7 @@
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.1.4",
     "mongoose": "^7.8.3",
-    "mongoose-lean-virtuals": "^0.9.1",
+    "mongoose-lean-virtuals": "^1.0.0",
     "node-fetch": "2",
     "p-limit": "^4.0.0",
     "pino": "^9.5.0",
@@ -109,6 +109,6 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=16.14.0"
+    "node": ">=18.20.0"
   }
 }

@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/openbeta/openbeta-nodejs-docker:16
+FROM registry.gitlab.com/openbeta/openbeta-nodejs-docker:18
 
 ENV APP_DIR=/apps/openbeta-graphql
 
