@@ -12,8 +12,6 @@ import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
-import { PostMutations, PostQueries, PostResolvers } from './posts/index.js'
-import { XMediaMutations, XMediaQueries, XMediaResolvers } from './xmedia/index.js'
 import { AreaMutations, AreaQueries } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
 import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
@@ -42,16 +40,11 @@ const HistoryTypeDef = loadSchema('History.gql')
 const AreaEditTypeDef = loadSchema('AreaEdit.gql')
 const OrganizationEditTypeDef = loadSchema('OrganizationEdit.gql')
 const ClimbMutationTypeDefs = loadSchema('ClimbEdit.gql')
-const PostTypeDef = loadSchema('Post.gql')
-
-const XMediaTypeDef = loadSchema('XMedia.gql')
 const TagTypeDef = loadSchema('Tag.gql')
 const UserTypeDef = loadSchema('User.gql')
 
 const resolvers = {
   Mutation: {
-    ...XMediaMutations,
-    ...PostMutations,
     ...MediaMutations,
     ...AreaMutations,
     ...ClimbMutations,
@@ -60,8 +53,6 @@ const resolvers = {
     ...UserMutations
   },
   Query: {
-    ...XMediaQueries,
-    ...PostQueries,
     ...MediaQueries,
     ...AreaQueries,
     ...TickQueries,
@@ -126,8 +117,6 @@ const resolvers = {
   ...CommonResolvers,
   ...MediaResolvers,
   ...HistoryFieldResolvers,
-  ...PostResolvers,
-  ...XMediaResolvers,
   ...UserResolvers,
   JSONObject: GraphQLJSONObject,
 
@@ -301,8 +290,6 @@ export const graphqlSchema = makeExecutableSchema({
     TickTypeDef,
     HistoryTypeDef,
     ClimbMutationTypeDefs,
-    PostTypeDef,
-    XMediaTypeDef,
     TagTypeDef,
     UserTypeDef
   ],
