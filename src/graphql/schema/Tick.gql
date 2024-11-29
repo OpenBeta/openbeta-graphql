@@ -104,6 +104,9 @@ type TickType {
   """
   grade: String
   source: TickSource
+
+  """User public profile"""
+  user: UserPublicProfile!
 }
 
 "The tick sources that openbeta supports."

@@ -15,7 +15,7 @@ import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { AreaMutations, AreaQueries } from './area/index.js'
 import { ClimbMutations } from './climb/index.js'
 import { OrganizationMutations, OrganizationQueries } from './organization/index.js'
-import { TickMutations, TickQueries } from './tick/index.js'
+import { TickMutations, TickQueries, TickResolvers } from './tick/index.js'
 import { UserMutations, UserQueries, UserResolvers } from './user/index.js'
 import { getAuthorMetadataFromBaseNode } from '../db/utils/index.js'
 import { geojsonPointToLatitude, geojsonPointToLongitude } from '../utils/helpers.js'
@@ -118,6 +118,7 @@ const resolvers = {
   ...MediaResolvers,
   ...HistoryFieldResolvers,
   ...UserResolvers,
+  ...TickResolvers,
   JSONObject: GraphQLJSONObject,
 
   Climb: {
@@ -188,7 +189,13 @@ const resolvers = {
         }
       : node.content,
 
-    authorMetadata: getAuthorMetadataFromBaseNode
+    authorMetadata: getAuthorMetadataFromBaseNode,
+
+    ticks: async (node: ClimbGQLQueryType, _: any, { dataSources }: GQLContext) => {
+      const { ticks } = dataSources
+      return await ticks.ticksByUserIdAndClimb(node._id.toUUID().toString())
+    }
+
   },
 
   Area: {

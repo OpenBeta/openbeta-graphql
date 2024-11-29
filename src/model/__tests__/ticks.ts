@@ -156,7 +156,7 @@ describe('Ticks', () => {
     if (tick == null || tick2 == null) {
       fail('Should add a new tick')
     }
-    const userClimbTicks = await ticks.ticksByUserIdAndClimb(userId.toUUID().toString(), climbId)
+    const userClimbTicks = await ticks.ticksByUserIdAndClimb(climbId, userId.toUUID().toString())
     expect(userClimbTicks.length).toEqual(1)
   })
 

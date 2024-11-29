@@ -9,7 +9,7 @@ const TickQueries = {
   userTicksByClimbId: async (_, input, { dataSources }): Promise<TickType[] | null> => {
     const { ticks }: { ticks: TickDataSource } = dataSources
     const { climbId, userId } = input
-    return await ticks.ticksByUserIdAndClimb(userId, climbId)
+    return await ticks.ticksByUserIdAndClimb(climbId, userId)
   }
 }
 

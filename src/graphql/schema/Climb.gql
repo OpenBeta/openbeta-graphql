@@ -67,6 +67,9 @@ type Climb {
 
   "Metadata about creation & update of this climb"
   authorMetadata: AuthorMetadata!
+
+  "User ticks of this climb"
+  ticks: [TickType]
 }
 
 type ClimbMetadata {

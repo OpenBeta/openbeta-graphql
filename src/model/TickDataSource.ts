@@ -106,8 +106,13 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     return await this.tickModel.find({ userId: userIdObject._id.toUUID().toString() })
   }
 
-  async ticksByUserIdAndClimb (userId: string, climbId: string): Promise<TickType[]> {
-    return await this.tickModel.find({ userId, climbId })
+  /**
+   * Get all ticks by climb uuid and optional user uuid
+   * @param userId Optional user uuid
+   * @param climbId climb uuid
+   */
+  async ticksByUserIdAndClimb (climbId: string, userId?: string): Promise<TickType[]> {
+    return await this.tickModel.find({ ...(userId != null && { userId }), climbId }).sort({ dateClimbed: -1 }).lean()
   }
 
   static instance: TickDataSource
