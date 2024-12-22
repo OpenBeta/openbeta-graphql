@@ -204,7 +204,7 @@ describe('ticks API', () => {
               name: 'Updated Route One',
               climbId: 'new climb id',
               userId: userUuid,
-              dateClimbed: '2022-11-10',
+              dateClimbed: new Date('2022-11-10T12:00:00Z'),
               grade: 'new grade',
               source: 'OB'
             }
@@ -217,6 +217,22 @@ describe('ticks API', () => {
 
       expect(updateResponse.statusCode).toBe(200)
       expect(updateResponse.body.data.tick.name).toBe('Updated Route One')
+    })
+    it('verifies date formats correctly', async () => {
+      const validDateTick = {
+        ...tickOne,
+        dateClimbed: new Date('2022-11-10T15:30:00Z').getTime()
+      }
+      const validResponse = await queryAPI({
+        query: createQuery,
+        variables: { input: validDateTick },
+        userUuid,
+        roles: ['user_admin'],
+        app
+      })
+      expect(validResponse.statusCode).toBe(200)
+      expect(validResponse.body.data.tick.dateClimbed)
+        .toBe(new Date('2022-11-10T15:30:00Z').getTime())
     })
   })
 })
