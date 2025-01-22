@@ -16,7 +16,12 @@ export type TickSource =
    */
   'MP'
 
+export type TickStyle = 'Lead' | 'Solo' | 'TR' | 'Follow'
+export type TickAttemptType = 'Onsight' | 'Flash' | 'Redpoint' | 'Pinkpoint' | 'Frenchfree' | 'Fell/Hung' | 'Send' | 'Attempt'
+
 export const TickSourceValues: TickSource[] = ['OB', 'MP']
+export const TickStyleValues: TickStyle[] = ['Lead', 'Solo', 'TR', 'Follow']
+export const TickAttemptTypeValues: TickAttemptType[] = ['Onsight', 'Flash', 'Redpoint', 'Pinkpoint', 'Frenchfree', 'Fell/Hung', 'Send', 'Attempt']
 
 /** Ticks
  * Ticks represent log entries for a user's climbing activity. They contain
@@ -66,7 +71,7 @@ export interface TickInput {
    * If this is a native tick, you can enforce updated values here by referencing
    * the climb document (climbId -> climbs:uuid)
    */
-  style: string
+  style: TickStyle
 
   /**
    * Describe the type of successful attempt that was made here.
@@ -74,7 +79,7 @@ export interface TickInput {
    * This is again a free-form field. Data of practically any descriptive nature may find
    * itself here.
    */
-  attemptType: string
+  attemptType: TickAttemptType
 
   /**
    * Not the same as date created. Ticks can be back-filled by the user, and do
