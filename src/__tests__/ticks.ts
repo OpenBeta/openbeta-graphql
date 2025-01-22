@@ -80,7 +80,6 @@ describe('ticks API', () => {
     const newIDs = await climbs.addOrUpdateClimbs(user, routesArea.metadata.area_id, newClimbsToAdd)
     // Update tick inputs with generated climb IDs
     tickOne.climbId = newIDs[0]
-    console.log('newIDs[0] ', newIDs[0])
   })
 
   afterAll(async () => {
@@ -126,7 +125,6 @@ describe('ticks API', () => {
         username: 'cat.dog',
         email: 'cat@example.com'
       }
-      console.log('tickOne ', tickOne)
       await users.createOrUpdateUserProfile(user, userProfileInput)
       await ticks.addTick(tickOne)
       const response = await queryAPI({
