@@ -1,20 +1,23 @@
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import type { DeleteResult } from 'mongodb'
 import mongoose from 'mongoose'
+import muuid from 'uuid-mongodb'
 
 import { TickEditFilterType, TickInput, TickType, TickUserSelectors } from '../db/TickTypes'
 import { getTickModel, getUserModel } from '../db/index.js'
 import type { User } from '../db/UserTypes'
+import { getClimbModel } from '../db/ClimbSchema.js'
 
 export default class TickDataSource extends MongoDataSource<TickType> {
   tickModel = getTickModel()
   userModel = getUserModel()
-
+  climbModel = getClimbModel()
   /**
    * @param tick takes in a new tick
    * @returns new tick
    */
   async addTick (tick: TickInput): Promise<TickType> {
+    await this.validateTick(tick)
     return await this.tickModel.create({ ...tick })
   }
 
@@ -57,8 +60,30 @@ export default class TickDataSource extends MongoDataSource<TickType> {
    * @returns the new/updated tick
    */
   async editTick (filter: TickEditFilterType, updatedTick: TickInput): Promise<TickType | null> {
+    await this.validateTick(updatedTick)
     const rs = await this.tickModel.findOneAndUpdate(filter, updatedTick, { new: true })
     return await rs?.toObject() ?? null
+  }
+
+  private async validateTick (tick: TickInput): Promise<void> {
+    const climbIdAsUUID = muuid.from(tick.climbId)
+    const climb = await this.climbModel.findOne({ _id: climbIdAsUUID, _deleting: { $eq: null } }).lean()
+    if (climb == null) {
+      throw new Error('Climb not found')
+    }
+    // Some imports from MP have both a route and boulder grade for example The heart route on el cap
+    const isBoulderingOnly = (climb.type.bouldering === true) && Object.keys(climb.type).every(key => key === 'bouldering' || climb.type[key] === false)
+    // bouldering only. solo, lead, follow, tr only applicable to roped climbs
+    if (isBoulderingOnly) {
+      if ((!['Send', 'Flash', 'Attempt'].includes(tick.attemptType)) || (['Lead', 'Solo', 'Tr', 'Follow'].includes(tick.style))) {
+        throw new Error('Invalid attempt type or style for bouldering')
+      }
+    // Only applicable to boulders or roped climbs with "lead" style
+    } else if (!(tick.style === 'Lead')) {
+      if ((['Attempt', 'Redpoint', 'Pinkpoint', 'Flash', 'Onsight'].includes(tick.attemptType))) {
+        throw new Error('Invalid attempt type for a non-lead style')
+      }
+    }
   }
 
   /**

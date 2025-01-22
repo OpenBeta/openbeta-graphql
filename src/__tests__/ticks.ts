@@ -9,8 +9,29 @@ import UserDataSource from '../model/UserDataSource.js'
 import { UpdateProfileGQLInput } from '../db/UserTypes.js'
 import { InMemoryDB } from '../utils/inMemoryDB.js'
 import express from 'express'
+import MutableClimbDataSource from '../model/MutableClimbDataSource.js'
+import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
+import { ClimbChangeInputType } from '../db/ClimbTypes.js'
 
 jest.setTimeout(110000)
+
+const newClimbsToAdd: ClimbChangeInputType[] = [
+  {
+    name: 'Sport 1',
+    disciplines: {
+      sport: true
+    },
+    description: 'The best climb',
+    location: '5m left of the big tree',
+    protection: '5 quickdraws'
+  },
+  {
+    name: 'Deep water 1',
+    disciplines: {
+      deepwatersolo: true
+    }
+  }
+]
 
 describe('ticks API', () => {
   let server: ApolloServer
@@ -23,6 +44,8 @@ describe('ticks API', () => {
   let ticks: TickDataSource
   let users: UserDataSource
   let tickOne: TickInput
+  let climbs: MutableClimbDataSource
+  let areas: MutableAreaDataSource
 
   beforeAll(async () => {
     ({ server, inMemoryDB, app } = await setUpServer())
@@ -32,7 +55,7 @@ describe('ticks API', () => {
     tickOne = {
       name: 'Route One',
       notes: 'Nice slab',
-      climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',
+      climbId: 'tbd', // need to create a climb for tick validation
       userId: userUuid,
       style: 'Lead',
       attemptType: 'Onsight',
@@ -45,7 +68,19 @@ describe('ticks API', () => {
   beforeEach(async () => {
     ticks = TickDataSource.getInstance()
     users = UserDataSource.getInstance()
+    climbs = MutableClimbDataSource.getInstance()
+    areas = MutableAreaDataSource.getInstance()
     await inMemoryDB.clear()
+
+    // Add climbs because add/update tick requires type validation
+    await areas.addCountry('usa')
+    const newDestination = await areas.addArea(user, 'California', null, 'usa')
+    const routesArea = await areas.addArea(user, 'Sport & Trad', newDestination.metadata.area_id)
+
+    const newIDs = await climbs.addOrUpdateClimbs(user, routesArea.metadata.area_id, newClimbsToAdd)
+    // Update tick inputs with generated climb IDs
+    tickOne.climbId = newIDs[0]
+    console.log('newIDs[0] ', newIDs[0])
   })
 
   afterAll(async () => {
@@ -91,6 +126,7 @@ describe('ticks API', () => {
         username: 'cat.dog',
         email: 'cat@example.com'
       }
+      console.log('tickOne ', tickOne)
       await users.createOrUpdateUserProfile(user, userProfileInput)
       await ticks.addTick(tickOne)
       const response = await queryAPI({
@@ -202,7 +238,7 @@ describe('ticks API', () => {
             _id: createTickRes._id,
             updatedTick: {
               name: 'Updated Route One',
-              climbId: 'new climb id',
+              climbId: tickOne.climbId,
               userId: userUuid,
               dateClimbed: new Date('2022-11-10T12:00:00Z'),
               grade: 'new grade',
