@@ -134,6 +134,8 @@ enum TickAttemptType {
   Attempt
   "Send: Sending a route with no falls"
   Send
+  "Redpoint"
+  Redpoint
 
 }
 

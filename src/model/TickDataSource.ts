@@ -114,11 +114,11 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     const tickStyle = tick.style ?? 'null' // Provide a default value if tick.style is undefined
     const attemptType = tick.attemptType ?? 'null' // Provide a default value if tick.attempy is undefined
     if (isDWSOnly || isBoulderingOnly) { // bouldering and dws can only have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight' and should have no sytle
-      if ((['Lead', 'Solo', 'Tr', 'Follow', 'Aid'].includes(tickStyle)) || ['Pinkpoint', 'Frenchfree'].includes(attemptType)) {
+      if ((['Lead', 'Solo', 'Tr', 'Follow', 'Aid'].includes(tickStyle)) || ['Pinkpoint', 'Frenchfree', 'Redpoint'].includes(attemptType)) {
         throw new Error('Invalid attempt type or style for DWS/Bouldering')
       }
     } else if (isTROnly) { // TopRope can only have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight' and styles: 'TR'
-      if (!['TR', 'null'].includes(tickStyle) || ['Pinkpoint', 'Frenchfree'].includes(attemptType)) {
+      if (!['TR', 'null'].includes(tickStyle) || ['Pinkpoint', 'Frenchfree', 'Redpoint'].includes(attemptType)) {
         throw new Error('Invalid attempt type or style for TR only')
       }
     } else if (isAidOnly) { // Aid can only have attempt types: 'Send', 'Attempt' and styles: 'Aid', 'Follow'
@@ -126,7 +126,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
         throw new Error('Invalid attempt type or style for Aid only')
       }
     } else if (isTradSportAlpineIceMixedAid) { // roped climbs that aren't lead must have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight'
-      if (['Solo', 'TR', 'Follow'].includes(tickStyle) && ['Pinkpoint', 'Frenchfree'].includes(attemptType)) {
+      if (['Solo', 'TR', 'Follow'].includes(tickStyle) && ['Pinkpoint', 'Frenchfree', 'Redpoint'].includes(attemptType)) {
         throw new Error('Invalid attempt type for Solo/TR/Follow style')
       }
     } else {

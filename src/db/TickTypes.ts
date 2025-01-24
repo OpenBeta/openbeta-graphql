@@ -17,11 +17,11 @@ export type TickSource =
   'MP'
 
 export type TickStyle = 'Lead' | 'Solo' | 'TR' | 'Follow' | 'Aid'
-export type TickAttemptType = 'Onsight' | 'Flash' | 'Pinkpoint' | 'Frenchfree' | 'Send' | 'Attempt'
+export type TickAttemptType = 'Onsight' | 'Flash' | 'Pinkpoint' | 'Frenchfree' | 'Send' | 'Attempt' | 'Redpoint'
 
 export const TickSourceValues: TickSource[] = ['OB', 'MP']
 export const TickStyleValues: TickStyle[] = ['Lead', 'Solo', 'TR', 'Follow', 'Aid']
-export const TickAttemptTypeValues: TickAttemptType[] = ['Onsight', 'Flash', 'Pinkpoint', 'Frenchfree', 'Send', 'Attempt']
+export const TickAttemptTypeValues: TickAttemptType[] = ['Onsight', 'Flash', 'Pinkpoint', 'Frenchfree', 'Send', 'Attempt', 'Redpoint']
 
 /** Ticks
  * Ticks represent log entries for a user's climbing activity. They contain
