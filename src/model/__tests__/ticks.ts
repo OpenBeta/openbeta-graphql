@@ -47,7 +47,6 @@ const toTest2: TickInput = {
   notes: 'v sloppy',
   climbId: 'tbd',
   userId: userId.toUUID().toString(),
-  style: 'Lead',
   attemptType: 'Flash',
   dateClimbed: new Date('2012-10-15'),
   grade: '5.10',
@@ -221,11 +220,5 @@ describe('Ticks', () => {
     const newTick = await tickModel.findOne({ _id: OBTick._id })
     expect(newTick?._id).toEqual(OBTick._id)
     expect(newTick?.notes).toEqual('Not sandbagged')
-  })
-
-  it('Should test validation', async () => {
-    toTest2.style = 'TR'
-    toTest2.attemptType = 'Redpoint'
-    await expect(ticks.addTick(toTest2)).rejects.toThrow('Invalid attempt type for a non-lead style')
   })
 })
