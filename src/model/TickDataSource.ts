@@ -65,37 +65,72 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     return await rs?.toObject() ?? null
   }
 
-  private async validateTick (tick: TickInput): Promise<void> {
-    const climbIdAsUUID = muuid.from(tick.climbId)
-    const climb = await this.climbModel.findOne({ _id: climbIdAsUUID, _deleting: { $eq: null } }).lean()
-    if (climb == null) {
-      throw new Error('Climb not found')
-    }
-    // Some imports from MP have both a route and boulder grade for example The heart route on el cap
-    const isBoulderingOnly = (climb.type.bouldering === true) && Object.keys(climb.type).every(key => key === 'bouldering' || climb.type[key] === false)
-    // bouldering only. solo, lead, follow, tr only applicable to roped climbs
-    if (isBoulderingOnly) {
-      if ((!['Send', 'Flash', 'Attempt'].includes(tick.attemptType)) || (['Lead', 'Solo', 'Tr', 'Follow'].includes(tick.style))) {
-        throw new Error('Invalid attempt type or style for bouldering')
-      }
-    // Only applicable to boulders or roped climbs with "lead" style
-    } else if (!(tick.style === 'Lead')) {
-      if ((['Attempt', 'Redpoint', 'Pinkpoint', 'Flash', 'Onsight'].includes(tick.attemptType))) {
-        throw new Error('Invalid attempt type for a non-lead style')
-      }
-    }
-  }
-
   /**
-   * @param ticks an array of ticks, with the Mountain Project id already hashed to the OpenTacos id
-   * @returns an array of ticks, just created in the database
-   */
+     * @param ticks an array of ticks, with the Mountain Project id already hashed to the OpenTacos id
+     * @returns an array of ticks, just created in the database
+     */
   async importTicks (ticks: TickInput[]): Promise<TickType[]> {
     if (ticks.length > 0) {
       const res: TickType[] = await this.tickModel.insertMany(ticks)
       return res
     } else {
       throw new Error("Can't import an empty tick list, check your import url or mutation")
+    }
+  }
+
+  private async validateTick (tick: TickInput): Promise<void> {
+    const climbIdAsUUID = muuid.from(tick.climbId)
+    const climb = await this.climbModel
+      .findOne({ _id: climbIdAsUUID, _deleting: { $eq: null } })
+      .lean()
+    if (climb == null) {
+      throw new Error('Climb not found')
+    }
+    // Getting the climb singular type to verifiy, some climbs have multiple types such as the heart route on elcap (13b/v10)
+    const isDWSOnly =
+      (climb.type.deepwatersolo === true) &&
+      Object.keys(climb.type).every(
+        key => key === 'deepwatersolo' || climb.type[key] === false)
+
+    const isBoulderingOnly =
+      (climb.type.bouldering === true) &&
+      Object.keys(climb.type).every(
+        key => key === 'bouldering' || climb.type[key] === false)
+
+    const isTROnly =
+      (climb.type.tr === true) &&
+      Object.keys(climb.type).every(
+        key => key === 'tr' || climb.type[key] === false)
+
+    const isAidOnly =
+      (climb.type.aid === true) &&
+      Object.keys(climb.type).every(
+        key => key === 'aid' || climb.type[key] === false)
+
+    const isTradSportAlpineIceMixedAid =
+    ['trad', 'sport', 'alpine', 'ice', 'mixed', 'aid'].some(
+      type => climb.type[type] === true)
+
+    const tickStyle = tick.style ?? 'null' // Provide a default value if tick.style is undefined
+    const attemptType = tick.attemptType ?? 'null' // Provide a default value if tick.attempy is undefined
+    if (isDWSOnly || isBoulderingOnly) { // bouldering and dws can only have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight' and should have no sytle
+      if ((['Lead', 'Solo', 'Tr', 'Follow', 'Aid'].includes(tickStyle)) || ['Pinkpoint', 'Frenchfree'].includes(attemptType)) {
+        throw new Error('Invalid attempt type or style for DWS/Bouldering')
+      }
+    } else if (isTROnly) { // TopRope can only have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight' and styles: 'TR'
+      if (!['TR', 'null'].includes(tickStyle) || ['Pinkpoint', 'Frenchfree'].includes(attemptType)) {
+        throw new Error('Invalid attempt type or style for TR only')
+      }
+    } else if (isAidOnly) { // Aid can only have attempt types: 'Send', 'Attempt' and styles: 'Aid', 'Follow'
+      if (!['Aid', 'Follow', 'null'].includes(tickStyle) || ['Onsight', 'Flash', 'Pinkpoint', 'Frenchfree'].includes(attemptType)) {
+        throw new Error('Invalid attempt type or style for Aid only')
+      }
+    } else if (isTradSportAlpineIceMixedAid) { // roped climbs that aren't lead must have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight'
+      if (['Solo', 'TR', 'Follow'].includes(tickStyle) && ['Pinkpoint', 'Frenchfree'].includes(attemptType)) {
+        throw new Error('Invalid attempt type for Solo/TR/Follow style')
+      }
+    } else {
+      throw new Error('Invalid climb type')
     }
   }
 

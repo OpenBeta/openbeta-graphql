@@ -84,7 +84,7 @@ type TickType {
   style: TickStyle
   """
   Describe the type of successful attempt that was made here.
-  Fell/Hung, Flash, Redpoint, Onsight, would be examples of values you might find here.
+  Attempt, Flash, Redpoint, Onsight, would be examples of values you might find here.
   This is again a free-form field. Data of practically any descriptive nature may find
   itself here.
   """
@@ -126,17 +126,13 @@ enum TickAttemptType {
   Onsight
   "Flash: Sending a route first try with prior knowledge"
   Flash
-  "Redpoint: Sending a route with no falls"
-  Redpoint
   "Pinkpoint: Sending a route with no falls on pre-placed gear"
   Pinkpoint
   "French Free: Doing the route with pulling on gear or draws"
-  French_Free
-  "Fell/Hung: Falling or hanging on gear"
-  Fell_Hung
+  FrenchFree
   "Attempt"
   Attempt
-  "Send"
+  "Send: Sending a route with no falls"
   Send
 
 }
@@ -150,6 +146,8 @@ enum TickStyle {
   TR
   "Follow"
   Follow
+  "Aid"
+  Aid
 }
 
 
