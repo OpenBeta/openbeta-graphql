@@ -129,7 +129,7 @@ enum TickAttemptType {
   "Pinkpoint: Sending a route with no falls on pre-placed gear"
   Pinkpoint
   "French Free: Doing the route with pulling on gear or draws"
-  FrenchFree
+  Frenchfree
   "Attempt"
   Attempt
   "Send: Sending a route with no falls"
