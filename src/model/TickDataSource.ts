@@ -86,51 +86,59 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     if (climb == null) {
       throw new Error('Climb not found')
     }
-    // Getting the climb singular type to verifiy, some climbs have multiple types such as the heart route on elcap (13b/v10)
-    const isDWSOnly =
-      (climb.type.deepwatersolo === true) &&
-      Object.keys(climb.type).every(
-        key => key === 'deepwatersolo' || climb.type[key] === false)
 
-    const isBoulderingOnly =
-      (climb.type.bouldering === true) &&
-      Object.keys(climb.type).every(
-        key => key === 'bouldering' || climb.type[key] === false)
+    // Tick validation logic is complicated. see [tick_logic.md](https://github.com/OpenBeta/openbeta-graphql/blob/develop/documentation/tick_logic.md).
 
-    const isTROnly =
-      (climb.type.tr === true) &&
-      Object.keys(climb.type).every(
-        key => key === 'tr' || climb.type[key] === false)
-
-    const isAidOnly =
-      (climb.type.aid === true) &&
-      Object.keys(climb.type).every(
-        key => key === 'aid' || climb.type[key] === false)
-
-    const isTradSportAlpineIceMixedAid =
-    ['trad', 'sport', 'alpine', 'ice', 'mixed', 'aid'].some(
-      type => climb.type[type] === true)
-
-    const tickStyle = tick.style ?? 'null' // Provide a default value if tick.style is undefined
+    const tickStyle = tick.style ?? 'null' // Provide a default value if tick.style is undefined. This 'null' string is not saved in the db, but used for easy validation.
     const attemptType = tick.attemptType ?? 'null' // Provide a default value if tick.attempy is undefined
-    if (isDWSOnly || isBoulderingOnly) { // bouldering and dws can only have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight' and should have no sytle
-      if ((['Lead', 'Solo', 'Tr', 'Follow', 'Aid'].includes(tickStyle)) || ['Pinkpoint', 'Frenchfree', 'Redpoint'].includes(attemptType)) {
-        throw new Error('Invalid attempt type or style for DWS/Bouldering')
-      }
-    } else if (isTROnly) { // TopRope can only have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight' and styles: 'TR'
-      if (!['TR', 'null'].includes(tickStyle) || ['Pinkpoint', 'Frenchfree', 'Redpoint'].includes(attemptType)) {
-        throw new Error('Invalid attempt type or style for TR only')
-      }
-    } else if (isAidOnly) { // Aid can only have attempt types: 'Send', 'Attempt' and styles: 'Aid', 'Follow'
-      if (!['Aid', 'Follow', 'null'].includes(tickStyle) || ['Onsight', 'Flash', 'Pinkpoint', 'Frenchfree'].includes(attemptType)) {
-        throw new Error('Invalid attempt type or style for Aid only')
-      }
-    } else if (isTradSportAlpineIceMixedAid) { // roped climbs that aren't lead must have attempt types: 'Send', 'Flash', 'Attempt', 'Onsight'
-      if (['Solo', 'TR', 'Follow'].includes(tickStyle) && ['Pinkpoint', 'Frenchfree', 'Redpoint'].includes(attemptType)) {
-        throw new Error('Invalid attempt type for Solo/TR/Follow style')
-      }
-    } else {
-      throw new Error('Invalid climb type')
+
+    const leadable = ['trad', 'sport', 'snow', 'ice', 'mixed', 'alpine'].some(type => climb.type[type] === true)
+    const topropeable = (climb.type.tr === true) || leadable
+    const aidable = climb.type.aid === true
+    const boulderable = climb.type.bouldering === true
+    const soloable = (climb.type.deepwatersolo === true) || leadable || aidable || (topropeable && !boulderable)
+
+    // Validate tick style for each climb type
+    if (!leadable && (['Lead', 'Follow'].includes(tickStyle))) {
+      throw new Error(`Invalid style ${tickStyle} for climb type`)
+    }
+    if (!topropeable && (tickStyle === 'TR')) {
+      throw new Error(`Invalid style ${tickStyle} for climb type`)
+    }
+    if (!aidable && (tickStyle === 'Aid')) {
+      throw new Error(`Invalid style ${tickStyle} for climb type`)
+    }
+    if (!boulderable && (tickStyle === 'Boulder')) {
+      throw new Error(`Invalid style ${tickStyle} for climb type`)
+    }
+    if (!soloable && (tickStyle === 'Solo')) {
+      throw new Error(`Invalid style ${tickStyle} for climb type`)
+    }
+
+    // validate attempt type for each tick style
+    switch (tickStyle) {
+      case 'Lead':
+        if (!['Onsight', 'Flash', 'Redpoint', 'Pinkpoint', 'Attempt', 'Frenchfree', 'null'].includes(attemptType)) {
+          throw new Error(`Invalid attempt type ${attemptType} for Lead style`)
+        }
+        break
+      case 'Solo':
+        if (!['Onsight', 'Flash', 'Redpoint', 'Attempt', 'null'].includes(attemptType)) {
+          throw new Error(`Invalid attempt type ${attemptType} for Solo style`)
+        }
+        break
+      case 'Boulder':
+        if (!['Flash', 'Send', 'Attempt', 'null'].includes(attemptType)) {
+          throw new Error(`Invalid attempt type ${attemptType} for Boulder style`)
+        }
+        break
+      case 'TR':
+      case 'Follow':
+      case 'Aid':
+        if (!['Send', 'Attempt', 'null'].includes(attemptType)) {
+          throw new Error(`Invalid attempt type ${attemptType} for TR/Follow/Aid style`)
+        }
+        break
     }
   }
 
