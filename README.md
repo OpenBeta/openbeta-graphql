@@ -129,7 +129,7 @@ These links explain the structure and key abstractions of our codebase. It's a g
 
   Start up your local server with `yarn serve-dev` (instead of `yarn serve`)
   ```bash
-  # Run this in open-tacos project
+  # Run this in openbeta-graphql project
   yarn serve-dev
   ```
 

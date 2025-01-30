@@ -150,6 +150,8 @@ enum TickStyle {
   Follow
   "Aid"
   Aid
+  "Boulder"
+  Boulder
 }
 
 
@@ -168,7 +170,7 @@ input Tick {
   style: TickStyle
   attemptType: TickAttemptType
   dateClimbed: Date!
-  grade: String!
+  grade: String
   source: TickSource!
 }
 

@@ -16,11 +16,11 @@ export type TickSource =
    */
   'MP'
 
-export type TickStyle = 'Lead' | 'Solo' | 'TR' | 'Follow' | 'Aid'
+export type TickStyle = 'Lead' | 'Solo' | 'TR' | 'Follow' | 'Aid' | 'Boulder'
 export type TickAttemptType = 'Onsight' | 'Flash' | 'Pinkpoint' | 'Frenchfree' | 'Send' | 'Attempt' | 'Redpoint'
 
 export const TickSourceValues: TickSource[] = ['OB', 'MP']
-export const TickStyleValues: TickStyle[] = ['Lead', 'Solo', 'TR', 'Follow', 'Aid']
+export const TickStyleValues: TickStyle[] = ['Lead', 'Solo', 'TR', 'Follow', 'Aid', 'Boulder']
 export const TickAttemptTypeValues: TickAttemptType[] = ['Onsight', 'Flash', 'Pinkpoint', 'Frenchfree', 'Send', 'Attempt', 'Redpoint']
 
 /** Ticks
@@ -74,8 +74,8 @@ export interface TickInput {
   style?: TickStyle
 
   /**
-   * Describe the type of successful attempt that was made here.
-   * Attempt, Flash, Redpoint, Onsight, would be examples of values you might find here.
+   * Describe the type of attempt that was made here.
+   * Attempt, Flash, Redpoint, Onsight, Attempt would be examples of values you might find here.
    * This is again a free-form field. Data of practically any descriptive nature may find
    * itself here.
    */
@@ -94,7 +94,7 @@ export interface TickInput {
    * proper operation when importing ticks for entities that cannot be located
    * within OpenBeta's database.
    * */
-  grade: string
+  grade?: string
 
   /**
    * we support any number of sources for tick import or native ticks,
