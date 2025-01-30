@@ -16,29 +16,29 @@ Let's get to the technical details. There are 3 layers to this architecturally i
 * `Tick.style`
 * `Tick.attemptType`
 
-(Here)[https://github.com/OpenBeta/openbeta-graphql/blob/develop/src/graphql/schema/Climb.gql#L115] are all the possible values for `Climb.type`, as defined in the [limb Schema](https://github.com/OpenBeta/openbeta-graphql/blob/develop/src/graphql/schema/Climb.gql#L115), and style and attempts types defined in the [TickSchema](https://github.com/OpenBeta/openbeta-graphql/blob/develop/src/db/TickTypes.ts).
+Here are all the possible values for `Climb.type` (also called discipline), as defined in the [Climb Schema](https://github.com/OpenBeta/openbeta-graphql/blob/develop/src/graphql/schema/Climb.gql#L115), and Tick style and attemptsTypes defined in the [TickSchema](https://github.com/OpenBeta/openbeta-graphql/blob/develop/src/db/TickTypes.ts).
 
 | Climb.type    | Tick.style | Tick.attemptType |
 |---------------|------------|------------------|
-| trad          | Lead       | Onsight   |
-| sport         | Follow     | Flash     |
-| bouldering    | TR         | Redpoint  |
-| deepwatersolo | Solo       | Pinkpoint |
-| snow          | Aid        | Send      |
-| ice           | Boulder    | Attempt   |
-| aid           | Frenchfree | |
-| tr            | |
-| alpine        | |
-| mixed         | |
+| trad          | Lead       | Onsight          |
+| sport         | Follow     | Flash            |
+| bouldering    | TR         | Redpoint         |
+| deepwatersolo | Solo       | Pinkpoint        |
+| snow          | Aid        | Send             |
+| ice           | Boulder    | Attempt          |
+| aid           |            | Frenchfree       |
+| tr            |            |                  |
+| alpine        |            |                  |
+| mixed         |            |                  |
 
 
 See the [Wikipedia Glossary of Climbing Terms](https://en.wikipedia.org/wiki/Glossary_of_climbing_terms) for common definitions of all these terms.
 
-Given the 10 climb types, 6 styles, and 7 attempt types, there are 10*6*7=**420** diffent ways to "tick" a route.
+Given the 10 climb types, 6 styles, and 7 attempt types, there are `10*6*7=`**420** diffent ways to "tick" a route. *(Thats not even accounting for the fact that a route can be multiple disciplines, eg: boulder & TR, or sport & deepwatersolo. If you really want to get nerdy: with the `2^10=1024` possible discipline combinations, there are a whopping `1024*6*7=`**43,008** ways to tick a route!)*
 
-Here's a Hierarchical way to restrict values:
+## Here's a Hierarchical way to restrict values:
 
-## Climb type -> Tick Style
+### Climb type -> Tick Style
 
 | Climb Type        | logical description | Tick Style Options     |
 |-------------------|---------------------|--------------------    |
@@ -48,15 +48,17 @@ Here's a Hierarchical way to restrict values:
 | 'deepwatersolo' or leadable or aidable or topropeable | soloable | Solo       |
 | bouldering        | boulderable | Boulder                        |
 
-## Tick Style -> Tick Attempt Type
+
+Since a route can have multiple disciplines, these options are composable. eg: a route marked as 'trad, aid', is both 'leadable' and 'aidable'. A route that is 'boulder, tr', is both 'boulderable' and 'topropeable'
+
+### Tick Style -> Tick Attempt Type
 
 | Tick Style | Attempt Type options |
 |------------|----------------------|
 | 'Lead' | 'Onsight', 'Flash', 'Redpoint', 'Pinkpoint', 'Attempt', 'Frenchfree' |
-| 'Follow' or 'TR' | 'Send', 'Attempt', 'Frenchfree' |
+| 'Follow', 'TR' or 'Aid | 'Send', 'Attempt' |
 | 'Solo' | 'Onsight', 'Flash', 'Redpoint', 'Attempt' |
 | 'Boulder' | 'Flash', 'Send', 'Attempt' |
-| 'Aid' | 'Send', 'Attempt' |
 
 ## A few justifications
 
@@ -65,7 +67,7 @@ Here's a Hierarchical way to restrict values:
 * OB does not use the term "Fell/Hung" for roped climbs, and instead normalizes it to "Attempt", just like boulders. Importing routes from MP will convert "Fell/Hung" to "Attempt"
 * While 'Frenchfree' and 'Aid' could be considered synomonous, some climbers may want to distinguish, for example, a multipitch route where one pitch was intentionally 'French freed' (Time Wave Zero being a common example), which is distinctly different in character than, eg: aiding the Nose on El Cap.
 * Eventually, it might be cool to allow ticks for individual pitches, but that is not supported right now.
-* Given the 420 possible combination, no simple logical system will perfectly capture every edge case.
+* Given the 43,008 possible combinations, no simple logical system will perfectly capture every edge case.
 
 
 ## Importing from Mountain Project

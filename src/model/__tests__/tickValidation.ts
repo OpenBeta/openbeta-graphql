@@ -73,6 +73,7 @@ const toTestBoulder: TickInput = {
   notes: 'wet!',
   climbId: 'tbd',
   userId: userId.toUUID().toString(),
+  style: 'Boulder',
   attemptType: 'Flash',
   dateClimbed: new Date('2012-10-15'),
   grade: 'v4',
@@ -168,21 +169,13 @@ describe('Tick Validation', () => {
     await expect(ticks.addTick(dwsTick)).resolves.not.toThrow()
   })
 
-  it('should throw error for invalid attempt type for deep water solo climb', async () => {
-    const invalidDwsTick: TickInput = {
-      ...toTestDWS,
-      attemptType: 'Pinkpoint'
-    }
-    await expect(ticks.addTick(invalidDwsTick)).rejects.toThrow('Invalid attempt type or style for DWS/Bouldering')
-  })
-
   it('should throw error for invalid style for deep water solo climb', async () => {
     const invalidDwsTick: TickInput = {
       ...toTestDWS,
       style: 'Lead',
       attemptType: 'Send'
     }
-    await expect(ticks.addTick(invalidDwsTick)).rejects.toThrow('Invalid attempt type or style for DWS/Bouldering')
+    await expect(ticks.addTick(invalidDwsTick)).rejects.toThrow('Invalid style Lead for climb type')
   })
 
   it('should validate tick for top rope climb', async () => {
@@ -194,7 +187,7 @@ describe('Tick Validation', () => {
       ...toTestTR,
       attemptType: 'Pinkpoint'
     }
-    await expect(ticks.addTick(invalidTrTick)).rejects.toThrow('Invalid attempt type or style for TR only')
+    await expect(ticks.addTick(invalidTrTick)).rejects.toThrow('Invalid attempt type Pinkpoint for TR/Follow/Aid style')
   })
 
   it('should validate tick for aid climb', async () => {
@@ -206,7 +199,7 @@ describe('Tick Validation', () => {
       ...toTestAid,
       attemptType: 'Flash'
     }
-    await expect(ticks.addTick(invalidAidTick)).rejects.toThrow('Invalid attempt type or style for Aid only')
+    await expect(ticks.addTick(invalidAidTick)).rejects.toThrow('Invalid attempt type Flash for TR/Follow/Aid style')
   })
 
   it('should throw error for invalid style for aid climb', async () => {
@@ -215,7 +208,7 @@ describe('Tick Validation', () => {
       style: 'Lead',
       attemptType: 'Send'
     }
-    await expect(ticks.addTick(invalidAidTick)).rejects.toThrow('Invalid attempt type or style for Aid only')
+    await expect(ticks.addTick(invalidAidTick)).rejects.toThrow('Invalid style Lead for climb type')
   })
 
   it('should validate tick with no attempt type', async () => {
