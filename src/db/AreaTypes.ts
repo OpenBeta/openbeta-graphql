@@ -162,14 +162,15 @@ export interface IAreaMetadata {
 }
 
 export interface IAreaContent {
-  /** longform to mediumform description of this area.
-   * Remembering that areas can be the size of countries, or as precise as a single cliff/boulder,
+  /** longform to mediumform description and location of this area.
+   * Remembering that area descriptions can be the size of countries, or as precise as a single cliff/boulder,
    * there is not a single definition of valid content for this field.
    *
    * We expect users to make a call about whatever kind of context may be appropriate for this
    * entity, and may be pretty short to extremely detailed.
    */
   description?: string
+  areaLocation?: string
 }
 
 /** Fields that may be directly modified by users.
@@ -179,6 +180,7 @@ export interface IAreaContent {
 export interface AreaEditableFieldsType {
   areaName?: string
   description?: string
+  areaLocation?: string
   isDestination?: boolean
   isLeaf?: boolean
   isBoulder?: boolean
