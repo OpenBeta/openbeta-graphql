@@ -401,6 +401,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       const {
         areaName,
         description,
+        areaLocation,
         shortCode,
         isDestination,
         isLeaf,
@@ -464,6 +465,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
       if (description != null) {
         const sanitized = sanitizeStrict(description)
         area.set({ 'content.description': sanitized })
+      }
+      if (areaLocation != null) {
+        const sanitized = sanitizeStrict(areaLocation)
+        area.set({ 'content.areaLocation': sanitized })
       }
 
       const latLngHasChanged = lat != null && lng != null
@@ -697,7 +702,8 @@ export const newAreaHelper = (areaName: string, parentAncestors: string, parentP
     density: 0,
     totalClimbs: 0,
     content: {
-      description: ''
+      description: '',
+      areaLocation: ''
     }
   }
 }

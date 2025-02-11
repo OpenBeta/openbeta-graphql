@@ -110,7 +110,9 @@ export const makeDBArea = (node: AreaNode): AreaType => {
     density: 0,
     totalClimbs: 0,
     content: {
-      description: isLeaf ? (Array.isArray(node.jsonLine.description) ? node.jsonLine.description.join('\n\n') : '') : ''
+      description: isLeaf ? (Array.isArray(node.jsonLine.description) ? node.jsonLine.description.join('\n\n') : '') : '',
+      // TODO: mike fix this by creating a new area and testing
+      areaLocation: isLeaf ? (Array.isArray(node.jsonLine.areaLocation) ? node.jsonLine.areaLocation.join('\n\n') : '') : ''
     }
   }
 }
