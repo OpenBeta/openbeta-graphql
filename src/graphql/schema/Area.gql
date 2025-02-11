@@ -158,6 +158,7 @@ type CountByGradeBand {
 
 type AreaContent {
   description: String
+  areaLocation: String
 }
 
 input Point {
