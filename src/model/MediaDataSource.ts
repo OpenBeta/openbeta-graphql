@@ -167,6 +167,8 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       }
     ])
 
+    const itemCount = await this.mediaObjectModel.countDocuments({ userUuid })
+
     let hasNextPage = false
     if (rs.length > first) {
       // ok there's a next page. remove the extra item.
@@ -185,6 +187,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
         )),
         pageInfo: {
           hasNextPage,
+          totalItems: itemCount,
           endCursor: null
         }
 

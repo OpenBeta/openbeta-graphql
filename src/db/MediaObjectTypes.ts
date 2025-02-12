@@ -117,6 +117,7 @@ export interface UserMedia {
     edges: MediaEdge[]
     pageInfo: {
       hasNextPage: boolean
+      totalItems: number
       endCursor: string | null
     }
   }
