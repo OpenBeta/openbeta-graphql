@@ -49,6 +49,16 @@ type Query {
   getUserMediaPagination(input: UserMediaInput): UserMedia
 
   """
+  Get media cursor with paginationg for an area
+  """
+  areaMediaPagination(input: AreaMediaInput): AreaMedia
+
+  """
+  Get media cursor with paginationg for a climb
+  """
+  climbMediaPagination(input: ClimbMediaInput): ClimbMedia
+
+  """
   Get a list of users and their tagged photo count.
   """
   getTagsLeaderboard(limit: Int): TagsLeaderboard
@@ -60,6 +70,24 @@ See https://graphql.org/learn/pagination/
 """
 type UserMedia {
   userUuid: ID!
+  mediaConnection: MediaConnection!
+}
+
+"""
+Area media cursor with pagination support.
+See https://graphql.org/learn/pagination/
+"""
+type AreaMedia {
+  areaUuid: ID!
+  mediaConnection: MediaConnection!
+}
+
+"""
+Climb media cursor with pagination support.
+See https://graphql.org/learn/pagination/
+"""
+type ClimbMedia {
+  climbUuid: ID!
   mediaConnection: MediaConnection!
 }
 
@@ -230,6 +258,29 @@ input UserMediaInput {
   after: ID
 }
 
+"Input parameters for area and climb media queries."
+input AreaMediaInput {
+  "Area UUID   Ex: 5f5b4b4b-0b3b-4b3b-8b3b-7b3b2b3b2b3b"
+  areaUuid: ID!
+  "Max number of objects return.  Ignore when using with pagination query."
+  maxFiles: Int
+  "Number of objects per page (Default = 6)."
+  first: Int
+  "Returning page data after this cursor (exclusive).  Return the first page if omitted."
+  after: ID
+}
+
+"Input parameters for climb media queries."
+input ClimbMediaInput {
+  "Climb UUID   Ex: 5f5b4b4b-0b3b-4b3b-8b3b-7b3b2b3b2b3b"
+  climbUuid: ID!
+  "Max number of objects return.  Ignore when using with pagination query."
+  maxFiles: Int
+  "Number of objects per page (Default = 6)."
+  first: Int
+  "Returning page data after this cursor (exclusive).  Return the first page if omitted."
+  after: ID
+}
 input MediaForFeedInput {
   maxUsers: Int
   maxFiles: Int

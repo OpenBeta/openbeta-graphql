@@ -58,15 +58,30 @@ export interface TagsLeaderboardType {
  */
 export type NewMediaObjectDoc = Omit<MediaObject, '_id' | 'createdAt'>
 
-export interface UserMediaGQLQueryInput {
-  userUuid: string
+/**
+ * GQL input type for getting paginated media for an "Entity", which is either a user, an area, or a climb.
+ * The userUuid is omitted from the Area and Climb versions of this type, which are defined below
+ * as AreaMediaQueryInput and ClimbMediaQueryInput
+ * @param maxFiles - the maximum number of media files to return
+ * @param first - the number of media files to return
+ * @param after - the cursor to start from
+ */
+export interface EntityMediaGQLQueryInput {
   maxFiles?: number
   first?: number
   after?: string
 }
 
-export type UserMediaQueryInput = Omit<UserMediaGQLQueryInput, 'userUuid'> & {
+export type UserMediaQueryInput = EntityMediaGQLQueryInput & {
   userUuid: MUUID
+}
+
+export type AreaMediaQueryInput = EntityMediaGQLQueryInput & {
+  areaUuid: MUUID
+}
+
+export type ClimbMediaQueryInput = EntityMediaGQLQueryInput & {
+  climbUuid: MUUID
 }
 
 /**
@@ -121,6 +136,14 @@ export interface UserMedia {
       endCursor: string | null
     }
   }
+}
+
+export type AreaMedia = Omit<UserMedia, 'userUuid'> & {
+  areaUuid: string
+}
+
+export type ClimbMedia = Omit<UserMedia, 'userUuid'> & {
+  climbUuid: string
 }
 
 interface MediaEdge {
