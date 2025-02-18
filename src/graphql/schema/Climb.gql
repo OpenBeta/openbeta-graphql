@@ -60,6 +60,9 @@ type Climb {
   "Media associated with this climb"
   media: [MediaWithTags]
 
+  "Paginated media for this climb"
+  mediaPagination(input: EmbeddedClimbMediaInput): ClimbMedia
+
   yds: String @deprecated(reason: "Migrating to 'grades' field")
 
   "The parent area object"
@@ -71,6 +74,20 @@ type Climb {
   "User ticks of this climb"
   ticks: [TickType]
 }
+
+"""
+This EmbeddedClimbMediaInput is different from the ClimbMediaInput in Media.gql because we don't need to
+include the climbUuid (which is required over in the paginated Media query). Here in the climb query,
+the climbUuid is already included in top level of the query.
+"""
+input EmbeddedClimbMediaInput {
+  "Max number of objects return.  Ignore when using with pagination query."
+  maxFiles: Int
+  "Number of objects per page (Default = 6)."
+  first: Int
+  "Returning page data after this cursor (exclusive).  Return the first page if omitted."
+  after: ID
+ }
 
 type ClimbMetadata {
   lat: Float
