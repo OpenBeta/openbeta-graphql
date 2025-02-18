@@ -247,7 +247,7 @@ describe('MediaDataSource', () => {
 
     const page1 = await media.getOneUserMediaPagination(input)
 
-    verifyPageData(page1, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page1, MEDIA_TEMPLATE.userUuid, 'userUuid', expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
 
     const page1Edges = page1.mediaConnection.edges
     const input2: UserMediaQueryInput = {
@@ -257,7 +257,7 @@ describe('MediaDataSource', () => {
     }
     const page2 = await media.getOneUserMediaPagination(input2)
 
-    verifyPageData(page2, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page2, MEDIA_TEMPLATE.userUuid, 'userUuid', expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
 
     const page2Edges = page2.mediaConnection.edges
     const input3: UserMediaQueryInput = {
@@ -267,7 +267,7 @@ describe('MediaDataSource', () => {
     }
     const page3 = await media.getOneUserMediaPagination(input3)
 
-    verifyPageData(page3, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(6, 7), mediaCount, 1, false)
+    verifyPageData(page3, MEDIA_TEMPLATE.userUuid, 'userUuid', expectedMedia.slice(6, 7), mediaCount, 1, false)
   })
 
   it('should return paginated area media results', async () => {
@@ -310,7 +310,7 @@ describe('MediaDataSource', () => {
 
     const page1 = await media.getOneAreaMediaPagination(input)
 
-    verifyPageData(page1, areaForTagging3.metadata.area_id.toString(), expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page1, areaForTagging3.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
 
     const page1Edges = page1.mediaConnection.edges
     const input2: AreaMediaQueryInput = {
@@ -320,7 +320,7 @@ describe('MediaDataSource', () => {
     }
     const page2 = await media.getOneAreaMediaPagination(input2)
 
-    verifyPageData(page2, areaForTagging3.metadata.area_id.toString(), expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page2, areaForTagging3.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
 
     const page2Edges = page2.mediaConnection.edges
     const input3: AreaMediaQueryInput = {
@@ -330,7 +330,7 @@ describe('MediaDataSource', () => {
     }
     const page3 = await media.getOneAreaMediaPagination(input3)
 
-    verifyPageData(page3, areaForTagging3.metadata.area_id.toString(), expectedMedia.slice(6, 7), mediaCount, 1, false)
+    verifyPageData(page3, areaForTagging3.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(6, 7), mediaCount, 1, false)
   })
 
   it('should return paginated climb media results', async () => {
@@ -373,7 +373,7 @@ describe('MediaDataSource', () => {
 
     const page1 = await media.getOneClimbMediaPagination(input)
 
-    verifyPageData(page1, climbIdForTagging.toString(), expectedMedia.slice(0, 4), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page1, climbIdForTagging.toString(), 'climbUuid', expectedMedia.slice(0, 4), mediaCount, ITEMS_PER_PAGE, true)
 
     const page1Edges = page1.mediaConnection.edges
     const input2: ClimbMediaQueryInput = {
@@ -383,7 +383,7 @@ describe('MediaDataSource', () => {
     }
     const page2 = await media.getOneClimbMediaPagination(input2)
 
-    verifyPageData(page2, climbIdForTagging.toString(), expectedMedia.slice(4, 8), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page2, climbIdForTagging.toString(), 'climbUuid', expectedMedia.slice(4, 8), mediaCount, ITEMS_PER_PAGE, true)
 
     const page2Edges = page2.mediaConnection.edges
     const input3: ClimbMediaQueryInput = {
@@ -393,7 +393,7 @@ describe('MediaDataSource', () => {
     }
     const page3 = await media.getOneClimbMediaPagination(input3)
 
-    verifyPageData(page3, climbIdForTagging.toString(), expectedMedia.slice(8, 11), mediaCount, 3, false)
+    verifyPageData(page3, climbIdForTagging.toString(), 'climbUuid', expectedMedia.slice(8, 11), mediaCount, 3, false)
   })
 })
 
@@ -401,18 +401,27 @@ describe('MediaDataSource', () => {
  * Verify media page data
  * @param actualPage
  * @param expectedUuid
+ * @param expectedUuidType "userUuid" | "areaUuid" | "climbUuid"
  * @param expectedMedia
  * @param totalItems
  * @param itemsPerPage
  * @param hasNextPage
  */
 const verifyPageData = (
-  actualPage: { mediaConnection: any },
+  actualPage: any,
   expectedUuid: string,
+  expectedUuidType: string,
   expectedMedia: MediaObject[],
   totalItems: number,
   itemsPerPage: number,
   hasNextPage: boolean): void => {
+  if (expectedUuidType === 'userUuid') {
+    expect(actualPage.userUuid).toEqual(expectedUuid)
+  } else if (expectedUuidType === 'areaUuid') {
+    expect(actualPage.areaUuid).toEqual(expectedUuid)
+  } else if (expectedUuidType === 'climbUuid') {
+    expect(actualPage.climbUuid).toEqual(expectedUuid)
+  }
   expect(actualPage.mediaConnection.pageInfo.hasNextPage).toStrictEqual(hasNextPage)
   expect(actualPage.mediaConnection.pageInfo.totalItems).toStrictEqual(totalItems)
   const pageEdges = actualPage.mediaConnection.edges
