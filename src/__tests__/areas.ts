@@ -2,7 +2,9 @@ import { ApolloServer } from '@apollo/server'
 import muuid from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
+import MutableMediaDataSource from '../model/MutableMediaDataSource.js'
 import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
+import { MediaObjectGQLInput } from '../db/MediaObjectTypes.js'
 import { AreaType } from '../db/AreaTypes.js'
 import { OrganizationEditableFieldsType, OrganizationType, OrgType } from '../db/OrganizationTypes.js'
 import { queryAPI, setUpServer } from '../utils/testUtils.js'
@@ -47,6 +49,27 @@ describe('areas API', () => {
     await server.stop()
     await inMemoryDB.close()
   })
+
+  async function insertMediaObjectsForArea (areaId: string, mediaCount: number): Promise<void> {
+    const newMediaListInput: MediaObjectGQLInput[] = []
+    for (let i = 0; i < mediaCount; i++) {
+      newMediaListInput.push({
+        userUuid: 'a2eb6353-65d1-445f-912c-53c6301404bd',
+        width: 800,
+        height: 600,
+        format: 'jpeg',
+        size: 45000,
+        mediaUrl: `/areaPhoto${i}.jpg`,
+        entityTag: {
+          entityType: 1,
+          entityId: areaId
+        }
+      })
+    }
+
+    const media = MutableMediaDataSource.getInstance()
+    await media.addMediaObjects(newMediaListInput)
+  }
 
   describe('queries', () => {
     const areaQuery = `
@@ -106,5 +129,51 @@ describe('areas API', () => {
       expect(areaResult.organizations).toHaveLength(1)
       expect(areaResult.organizations[0].orgId).toBe(muuidToString(alphaOrg.orgId))
     })
+  })
+
+  it('returns paginated Media when requested', async () => {
+    await insertMediaObjectsForArea(usa.metadata.area_id.toString(), 11)
+
+    const areaQueryWithPaginatedMedia = `
+      query area($uuid: ID!, $input: EmbeddedAreaMediaInput) {
+        area(uuid: $uuid) {
+          mediaPagination(input: $input) {
+            areaUuid
+            mediaConnection {
+              edges {
+                node {
+                  id
+                  mediaUrl
+                }
+                cursor
+              }
+              pageInfo {
+                hasNextPage
+                totalItems
+                endCursor
+              }
+            }
+          }
+        }
+      }
+    `
+    const response = await queryAPI({
+      query: areaQueryWithPaginatedMedia,
+      operationName: 'area',
+      variables: {
+        uuid: usa.metadata.area_id,
+        input: {
+          first: 5,
+          after: null
+        }
+      },
+      userUuid,
+      app
+    })
+    expect(response.statusCode).toBe(200)
+    const areaResult = response.body.data.area
+    expect(areaResult.mediaPagination.mediaConnection.edges).toHaveLength(5)
+    expect(areaResult.mediaPagination.mediaConnection.pageInfo.totalItems).toBe(11)
+    expect(areaResult.mediaPagination.mediaConnection.pageInfo.hasNextPage).toBe(true)
   })
 })
