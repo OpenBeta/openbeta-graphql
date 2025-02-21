@@ -136,6 +136,8 @@ enum TickAttemptType {
   Send
   "Redpoint"
   Redpoint
+  "Repeat"
+  Repeat
 }
 
 enum TickStyle {
