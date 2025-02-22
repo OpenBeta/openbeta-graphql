@@ -222,7 +222,8 @@ describe('MediaDataSource', () => {
      * With 3 items per page we should expect 3 pages.
      */
     const newMediaListInput: MediaObjectGQLInput[] = []
-    for (let i = 0; i < 7; i = i + 1) {
+    const mediaCount = 7
+    for (let i = 0; i < mediaCount; i = i + 1) {
       newMediaListInput.push({ ...MEDIA_TEMPLATE, mediaUrl: `/photo${i}.jpg` })
     }
 
@@ -242,7 +243,7 @@ describe('MediaDataSource', () => {
 
     const page1 = await media.getOneUserMediaPagination(input)
 
-    verifyPageData(page1, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(0, 3), ITEMS_PER_PAGE, true)
+    verifyPageData(page1, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
 
     const page1Edges = page1.mediaConnection.edges
     const input2: UserMediaQueryInput = {
@@ -252,7 +253,7 @@ describe('MediaDataSource', () => {
     }
     const page2 = await media.getOneUserMediaPagination(input2)
 
-    verifyPageData(page2, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(3, 6), ITEMS_PER_PAGE, true)
+    verifyPageData(page2, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
 
     const page2Edges = page2.mediaConnection.edges
     const input3: UserMediaQueryInput = {
@@ -262,7 +263,7 @@ describe('MediaDataSource', () => {
     }
     const page3 = await media.getOneUserMediaPagination(input3)
 
-    verifyPageData(page3, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(6, 7), 1, false)
+    verifyPageData(page3, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(6, 7), mediaCount, 1, false)
   })
 })
 
@@ -271,6 +272,7 @@ describe('MediaDataSource', () => {
  * @param actualPage
  * @param expectedUserUuid
  * @param expectedMedia
+ * @param totalItems
  * @param itemsPerPage
  * @param hasNextPage
  */
@@ -278,11 +280,12 @@ const verifyPageData = (
   actualPage: UserMedia,
   expectedUserUuid: string,
   expectedMedia: MediaObject[],
+  totalItems: number,
   itemsPerPage: number,
   hasNextPage: boolean): void => {
   expect(actualPage.userUuid).toEqual(expectedUserUuid)
   expect(actualPage.mediaConnection.pageInfo.hasNextPage).toStrictEqual(hasNextPage)
-
+  expect(actualPage.mediaConnection.pageInfo.totalItems).toStrictEqual(totalItems)
   const pageEdges = actualPage.mediaConnection.edges
   expect(pageEdges).toHaveLength(itemsPerPage)
 

@@ -128,12 +128,13 @@ describe('Areas', () => {
     if (a1 == null) {
       fail()
     }
-    // for testing area desccription is sanitized
+    // for testing area description and location is sanitized
     const iframeStr = '<iframe src="https://www.googlecom" title="Evil Iframe"></iframe>'
     const doc1: AreaEditableFieldsType = {
       areaName: '1',
       shortCode: 'ONE',
       description: `This is a cool area with some malicious code.${iframeStr}`,
+      areaLocation: `This is a cool area location with some malicious code.${iframeStr}`,
       isDestination: true
     }
     let a1Updated = await areas.updateArea(testUser, a1?.metadata.area_id, doc1)
@@ -142,6 +143,8 @@ describe('Areas', () => {
     expect(a1Updated?.shortCode).toEqual(doc1.shortCode)
     // make sure area description is sanitized
     expect(a1Updated?.content.description).toEqual(doc1.description?.replace(iframeStr, ''))
+    // make sure area location is sanitized
+    expect(a1Updated?.content.areaLocation).toEqual(doc1.areaLocation?.replace(iframeStr, ''))
     expect(a1Updated?.metadata.isDestination).toEqual(doc1.isDestination)
 
     const doc2: AreaEditableFieldsType = {

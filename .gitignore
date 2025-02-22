@@ -110,6 +110,9 @@ build
 tmp
 .env.local
 
+# asdf
+.tool-versions
+
 # Intellij and VSCode
 .idea/
 *.iml

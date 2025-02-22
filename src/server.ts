@@ -5,6 +5,7 @@ import express from 'express'
 import cors from 'cors'
 import * as http from 'http'
 import bodyParser from 'body-parser'
+import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache'
 
 import { applyMiddleware } from 'graphql-middleware'
 import { graphqlSchema } from './graphql/resolvers.js'
@@ -47,7 +48,9 @@ export async function createServer (): Promise<{ app: express.Application, serve
     introspection: true,
     schema,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-    cache: 'bounded'
+    cache: new InMemoryLRUCache({
+      max: 100
+    })
   })
   // server must be started before applying middleware
   await server.start()

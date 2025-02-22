@@ -6,13 +6,34 @@ import muuid from 'uuid-mongodb'
 import UserDataSource from '../UserDataSource.js'
 import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
 import inMemoryDB from '../../utils/inMemoryDB.js'
+import { ClimbChangeInputType } from '../../db/ClimbTypes.js'
+import MutableClimbDataSource from '../MutableClimbDataSource.js'
+import MutableAreaDataSource from '../MutableAreaDataSource.js'
 
 const userId = muuid.v4()
+const newClimbsToAdd: ClimbChangeInputType[] = [
+  {
+    name: 'Sport 1',
+    // Intentionally disable TS check to make sure input is sanitized
+    disciplines: {
+      sport: true
+    },
+    description: 'The best climb',
+    location: '5m left of the big tree',
+    protection: '5 quickdraws'
+  },
+  {
+    name: 'Deep water 1',
+    disciplines: {
+      deepwatersolo: true
+    }
+  }
+]
 
 const toTest: TickInput = {
   name: 'Small Dog',
   notes: 'Sandbagged',
-  climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',
+  climbId: 'tbd', // need to create a climb for tick validation
   userId: userId.toUUID().toString(),
   style: 'Lead',
   attemptType: 'Onsight',
@@ -24,18 +45,17 @@ const toTest: TickInput = {
 const toTest2: TickInput = {
   name: 'Sloppy Peaches',
   notes: 'v sloppy',
-  climbId: 'b767d949-0daf-5af3-b1f1-626de8c84b2a',
+  climbId: 'tbd',
   userId: userId.toUUID().toString(),
-  style: 'Lead',
   attemptType: 'Flash',
   dateClimbed: new Date('2012-10-15'),
   grade: '5.10',
   source: 'MP'
 }
 
-const tickUpdate: TickInput = produce(toTest, draft => {
+let tickUpdate: TickInput = produce(toTest, draft => {
   draft.notes = 'Not sandbagged'
-  draft.attemptType = 'Fell/Hung'
+  draft.attemptType = 'Flash'
   draft.source = 'OB'
 })
 
@@ -45,6 +65,8 @@ const testImport: TickInput[] = [
 
 describe('Ticks', () => {
   let ticks: TickDataSource
+  let climbs: MutableClimbDataSource
+  let areas: MutableAreaDataSource
   const tickModel = getTickModel()
 
   let users: UserDataSource
@@ -61,7 +83,22 @@ describe('Ticks', () => {
     }
 
     ticks = TickDataSource.getInstance()
+    climbs = MutableClimbDataSource.getInstance()
     users = UserDataSource.getInstance()
+    areas = MutableAreaDataSource.getInstance()
+    // Add climbs because add/update tick requires type validation
+    await areas.addCountry('usa')
+    const newDestination = await areas.addArea(userId, 'California', null, 'usa')
+    if (newDestination == null) fail('Expect new area to be created')
+
+    const routesArea = await areas.addArea(userId, 'Sport & Trad', newDestination.metadata.area_id)
+
+    const newIDs = await climbs.addOrUpdateClimbs(userId, routesArea.metadata.area_id, newClimbsToAdd)
+
+    // Update tick inputs with generated climb IDs
+    toTest.climbId = newIDs[0]
+    toTest2.climbId = newIDs[1]
+    tickUpdate = { ...tickUpdate, climbId: newIDs[0] } // Ensure tickUpdate has the correct climbId
   })
 
   afterAll(async () => {
@@ -149,7 +186,7 @@ describe('Ticks', () => {
   })
 
   it('should grab all ticks by userId and climbId', async () => {
-    const climbId = 'c76d2083-6b8f-524a-8fb8-76e1dc79833f'
+    const climbId = toTest.climbId
     const tick = await ticks.addTick(toTest)
     const tick2 = await ticks.addTick(toTest2)
 
@@ -175,7 +212,6 @@ describe('Ticks', () => {
   it('should only delete MP imports', async () => {
     const MPTick = await ticks.addTick(toTest)
     const OBTick = await ticks.addTick(tickUpdate)
-
     if (MPTick == null || OBTick == null) {
       fail('Should add two new ticks')
     }

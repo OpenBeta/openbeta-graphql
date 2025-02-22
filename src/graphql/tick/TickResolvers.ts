@@ -7,6 +7,11 @@ export const TickResolvers = {
     user: async (node: TickType, args: any, { dataSources }: GQLContext) => {
       const { users } = dataSources
       return await users.getUserPublicProfileByUuid(muuid.from(node.userId))
+    },
+
+    climb: async (node: TickType, args: any, { dataSources }: GQLContext) => {
+      const { areas } = dataSources
+      return await areas.findOneClimbByUUID(muuid.from(node.climbId))
     }
   }
 }

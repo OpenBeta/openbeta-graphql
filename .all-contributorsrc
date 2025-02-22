@@ -150,6 +150,26 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "PrithipalKhalsa",
+      "name": "Prith",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13841027?v=4",
+      "profile": "https://github.com/PrithipalKhalsa",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "wkencel",
+      "name": "Will Kencel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/72818086?v=4",
+      "profile": "https://github.com/wkencel",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,

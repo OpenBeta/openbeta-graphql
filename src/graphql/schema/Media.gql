@@ -86,6 +86,8 @@ type MediaEdge {
 type PageInfo {
   "True if there are more data after the last cursor."
   hasNextPage: Boolean!
+  "Total number of items."
+  totalItems: Int!
   "Not yet supported."
   endCursor: String
 }
