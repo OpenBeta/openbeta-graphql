@@ -1,6 +1,13 @@
 type Query {
   area(uuid: ID): Area
   areas(filter: Filter, sort: Sort): [Area]
+
+  """
+  Bulk download an area and its children starting from ancestors paths (inclusive).
+  To keep payload at a reasonable size ancestors must have at least 2 elements.
+  """
+  bulkAreas(ancestors: [String!]!): [Area]
+
   stats: Stats
   cragsNear(
     placeId: String

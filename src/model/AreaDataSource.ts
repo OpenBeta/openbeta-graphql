@@ -1,3 +1,5 @@
+import { GraphQLError } from 'graphql'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
 import { Filter } from 'mongodb'
 import muuid from 'uuid-mongodb'
@@ -274,5 +276,17 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       'metadata.leaf': zoom >= 11
     }
     return await this.areaModel.find(filter).lean()
+  }
+
+  async bulkDownloadAreas (ancestors: string[]): Promise<AreaType[]> {
+    if (ancestors.length < 2) {
+      throw new GraphQLError('Must provide at least 2 ancestors.', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      })
+    }
+    const ancestorsCSV = ancestors.join(',')
+    return await this.findDescendantsByPath(ancestorsCSV)
   }
 }
