@@ -110,12 +110,23 @@ export default class MutableClimbDataSource extends ClimbDataSource {
     // when adding new climbs, ensure they are added in expected sort order, such that:
     // * multiple climbs keep the order they're input in.
     // * all newly added climbs come after existing climbs.
-    let newClimbLeftRightIndex = await this.climbModel
+    let newClimbLeftRightIndex = (await this.climbModel
       .find({ _id: { $in: parent.climbs } })
       .select('metadata.left_right_index')
       .sort({ 'metadata.left_right_index': -1 })
-      .limit(1)[0]
+      .limit(1))[0]
       ?.metadata.left_right_index ?? 1
+    function resolveLeftRightIndex (i: number): { left_right_index: number } | null {
+      // user input is always prioritized
+      if (userInput[i].leftRightIndex !== undefined) {
+        return { left_right_index: userInput[i].leftRightIndex! }
+      }
+      // otherwise, auto-order new climbs
+      if (!idList[i].existed) {
+        return { left_right_index: newClimbLeftRightIndex++ }
+      }
+      return null
+    }
 
     for (let i = 0; i < userInput.length; i++) {
       // when adding new climbs we require name and disciplines
@@ -196,9 +207,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
         metadata: {
           areaRef: parent.metadata.area_id,
           lnglat: parent.metadata.lnglat,
-          // waterfall left_right_index -- new climbs get auto incremented, but user input always overrides
-          ...!idList[i].existed && { left_right_index: newClimbLeftRightIndex++ },
-          ...userInput[i]?.leftRightIndex != null && { left_right_index: userInput[i].leftRightIndex }
+          ...resolveLeftRightIndex(i)
         },
         ...!idList[i].existed && { createdBy: experimentalUserId ?? userId },
         ...idList[i].existed && { updatedBy: userId },
