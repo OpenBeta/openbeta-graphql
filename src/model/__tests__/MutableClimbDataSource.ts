@@ -212,7 +212,13 @@ describe('Climb CRUD', () => {
     ).rejects.toThrowError(/You can only add climbs to a crag/)
 
     // Route-only area should accept new boulder problems
-    await climbs.addOrUpdateClimbs(testUser, routesArea.metadata.area_id, [newBoulderProblem1])
+    const [newBoulderID] = await climbs.addOrUpdateClimbs(testUser, routesArea.metadata.area_id, [newBoulderProblem1])
+    // Should come after existing climbs
+    expect(await climbs.findOneClimbByMUUID(muid.from(newBoulderID))).toMatchObject({
+      metadata: {
+        left_right_index: newClimbsToAdd.length + 1
+      }
+    })
   })
 
   it('can add new boulder problems', async () => {
