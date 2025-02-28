@@ -178,22 +178,33 @@ describe('Climb CRUD', () => {
     const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
       routesArea.metadata.area_id,
-      newClimbsToAdd)
+      newClimbsToAdd
+    )
 
     expect(newIDs).toHaveLength(newClimbsToAdd.length)
 
-    const climb0 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+    // Validate all climbs were added, and in the order we expect
+    for (const [i, climbIn] of newClimbsToAdd.entries()) {
+      const climbOut = await climbs.findOneClimbByMUUID(muid.from(newIDs[i]))
 
-    // Validate new climb
-    expect(climb0).toMatchObject({
-      name: newClimbsToAdd[0].name,
-      type: sanitizeDisciplines(newClimbsToAdd[0].disciplines),
-      content: {
-        description: newClimbsToAdd[0].description,
-        location: newClimbsToAdd[0].location,
-        protection: newClimbsToAdd[0].protection
-      }
-    })
+      // Validate new climb
+      expect(climbOut).toMatchObject({
+        name: climbIn.name,
+        type: sanitizeDisciplines(climbIn.disciplines),
+        metadata: {
+          left_right_index: i + 1
+        },
+        ...climbIn.description === undefined
+          ? {}
+          : {
+              content: {
+                description: climbIn.description,
+                location: climbIn.location,
+                protection: climbIn.protection
+              }
+            }
+      })
+    }
 
     // California contains subareas.  Should fail.
     await expect(
