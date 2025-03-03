@@ -45,6 +45,13 @@ const TickMutations = {
     { dataSources }) => {
     const { ticks }: { ticks: TickDataSource } = dataSources
     const { _id, updatedTick } = input
+    if (updatedTick.dateClimbed != null) {
+      const date = new Date(updatedTick.dateClimbed)
+      if (!(date instanceof Date && !isNaN(date.getTime()))) {
+        throw new Error('Invalid date format')
+      }
+      updatedTick.dateClimbed = new Date(`${date.toISOString().split('T')[0]}T12:00:00Z`)
+    }
     return await ticks.editTick(new mongoose.Types.ObjectId(_id), updatedTick)
   }
 }

@@ -1,6 +1,6 @@
 import { produce } from 'immer'
 import { TickInput, TickType } from '../../db/TickTypes.js'
-import { dataFixtures } from '../../__tests__/fixtures/data.fixtures.js'
+import { allowableStyleMap, dataFixtures } from '../../__tests__/fixtures/data.fixtures.js'
 import { muuidToString } from '../../utils/helpers.js'
 import muuid from 'uuid-mongodb'
 
@@ -9,6 +9,10 @@ interface LocalContext {
   tickData: TickInput
   tickUpdateData: TickInput
   tick: TickType
+}
+
+function choose<T> (arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
 }
 
 const it = dataFixtures.extend<LocalContext>({
@@ -20,26 +24,27 @@ const it = dataFixtures.extend<LocalContext>({
         climbId: muuidToString(climb._id),
         userId: userUuid,
         style: 'Lead',
-        attemptType: 'Onsight',
+        attemptType: choose(allowableStyleMap.Lead),
         dateClimbed: new Date(),
         grade: '5.7',
         source: 'MP'
       }
     ))),
-  tickData: async ({ task, userUuid }, use) => await use({
+  tickData: async ({ userUuid, climb }, use) => await use({
     name: 'Small Dog',
     notes: 'Sandbagged',
-    climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',
+    climbId: muuidToString(climb._id),
     userId: userUuid,
     style: 'Lead',
-    attemptType: 'Onsight',
+    attemptType: choose(allowableStyleMap.Lead),
     dateClimbed: new Date('2012-12-12'),
     grade: '5.7',
     source: 'MP'
   }),
+
   tickUpdateData: async ({ tickData }, use) => await use(produce(tickData, draft => {
     draft.notes = 'Not sandbagged'
-    draft.attemptType = 'Fell/Hung'
+    draft.attemptType = choose(allowableStyleMap[tickData.style ?? 'Lead'])
     draft.source = 'OB'
   })),
   tick: async ({ ticks, tickData }, use) => await use(await ticks.addTick(tickData))

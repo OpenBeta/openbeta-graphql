@@ -3,7 +3,7 @@ import { geometry } from '@turf/helpers'
 import countries from 'i18n-iso-countries'
 import { AreaEditableFieldsType, UpdateSortingOrderType } from '../../db/AreaTypes.js'
 import { dataFixtures as it } from '../../__tests__/fixtures/data.fixtures'
-import { GradeContexts, gradeContextToGradeScales } from '../../GradeUtils.js'
+import { gradeContextToGradeScales } from '../../GradeUtils.js'
 
 describe('Areas', () => {
   it('should create a country by Alpha-3 country code', async ({ areas, countryCode }) => {
@@ -47,12 +47,12 @@ describe('Areas', () => {
     expect(countryInDB.children[1]).toEqual(province?._id)
 
     // Verify paths and ancestors
-    if (province != null) { // make TS happy
-      expect(province.ancestors)
-        .toEqual(`${country.metadata.area_id.toUUID().toString()},${province?.metadata.area_id.toUUID().toString()}`)
-      expect(province.pathTokens)
-        .toEqual([country.area_name, province.area_name])
-    }
+    assert(province !== null)
+
+    expect(province.ancestors)
+      .toEqual(`${country.metadata.area_id.toUUID().toString()},${province?.metadata.area_id.toUUID().toString()}`)
+    expect(province.pathTokens)
+      .toEqual([country.area_name, province.area_name])
   })
 
   it('should allow adding child areas to empty leaf area', async ({ areas, user, climbs, country, area }) => {
@@ -104,6 +104,7 @@ describe('Areas', () => {
       areaName: '1',
       shortCode: 'ONE',
       description: `This is a cool area with some malicious code.${iframeStr}`,
+      areaLocation: `This is a cool area location with some malicious code.${iframeStr}`,
       isDestination: true
     }
     let a1Updated = await areas.updateArea(user, area?.metadata.area_id, doc1)
@@ -112,6 +113,8 @@ describe('Areas', () => {
     expect(a1Updated?.shortCode).toEqual(doc1.shortCode)
     // make sure area description is sanitized
     expect(a1Updated?.content.description).toEqual(doc1.description?.replace(iframeStr, ''))
+    // make sure area location is sanitized
+    expect(a1Updated?.content.areaLocation).toEqual(doc1.areaLocation?.replace(iframeStr, ''))
     expect(a1Updated?.metadata.isDestination).toEqual(doc1.isDestination)
 
     const doc2: AreaEditableFieldsType = {

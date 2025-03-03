@@ -23,7 +23,7 @@ import { BaseChangeRecordType, ChangeLogType } from '../../db/ChangeLogType'
  */
 let mongod: MongoMemoryReplSet
 let uri: string
-let stream: ChangeStream
+let _stream: ChangeStream
 
 beforeAll(async () => {
   mongod = await MongoMemoryReplSet.create({
@@ -34,7 +34,11 @@ beforeAll(async () => {
   uri = await mongod.getUri(checkVar('MONGO_DBNAME'))
   await mongoose.connect(uri, { autoIndex: false })
   mongoose.set('debug', false) // Set to 'true' to enable verbose mode
-  stream = await defaultPostConnect()
+  _stream = await defaultPostConnect()
+})
+
+afterAll(async () => {
+  await _stream.close()
 })
 
 interface DbTestContext {

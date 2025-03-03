@@ -62,7 +62,8 @@ const MetadataSchema = new Schema<IAreaMetadata>({
 }, { _id: false })
 
 const ContentSchema = new Schema<IAreaContent>({
-  description: { type: Schema.Types.String }
+  description: { type: Schema.Types.String },
+  areaLocation: { type: Schema.Types.String }
 }, { _id: false })
 
 export const CountByGroup = new Schema<CountByGroupType>({

@@ -1,6 +1,7 @@
+import gql from 'graphql-tag'
 import { TickInput, TickType } from '../db/TickTypes.js'
-import { UpdateProfileGQLInput } from '../db/UserTypes.js'
 import { muuidToString } from '../utils/helpers.js'
+import { allowableStyleMap, choose } from './fixtures/data.fixtures.js'
 import { gqlTest } from './fixtures/gql.fixtures.js'
 
 interface LocalContext {
@@ -9,14 +10,14 @@ interface LocalContext {
 }
 
 const it = gqlTest.extend<LocalContext>({
-  singleTickData: async ({ userUuid }, use) => {
+  singleTickData: async ({ userUuid, climb }, use) => {
     await use({
       name: 'Route One',
       notes: 'Nice slab',
-      climbId: 'c76d2083-6b8f-524a-8fb8-76e1dc79833f',
+      climbId: muuidToString(climb._id),
       userId: userUuid,
       style: 'Lead',
-      attemptType: 'Onsight',
+      attemptType: choose(allowableStyleMap.Lead),
       dateClimbed: new Date('2016-07-20T17:30:15+05:30'),
       grade: '5.8',
       source: 'MP'
@@ -29,7 +30,7 @@ const it = gqlTest.extend<LocalContext>({
 
 describe('ticks API', () => {
   describe('queries', () => {
-    const userQuery = `
+    const userQuery = gql`
       query userTicks($userId: MUUID, $username: String) {
         userTicks(userId: $userId, username: $username) {
           _id
@@ -44,7 +45,7 @@ describe('ticks API', () => {
         }
       }
     `
-    const userTickByClimbQuery = `
+    const userTickByClimbQuery = gql`
       query userTicksByClimbId($userId: String, $climbId: String) {
         userTicksByClimbId(userId: $userId, climbId: $climbId) {
           _id
@@ -63,8 +64,7 @@ describe('ticks API', () => {
     it('queries by userId', async ({ userUuid, profile, tick, query }) => {
       const response = await query({
         query: userQuery,
-        variables: { userId: muuidToString(profile._id) },
-        userUuid
+        variables: { userId: muuidToString(profile._id) }
       })
 
       expect(response.statusCode).toBe(200)
@@ -79,7 +79,7 @@ describe('ticks API', () => {
         variables: { username: profile.username },
         userUuid
       })
-      expect(response.statusCode).toBe(200)
+      expect(response.statusCode, JSON.stringify(response.body.errors)).toBe(200)
       const res = response.body.data.userTicks
       expect(res).toHaveLength(1)
       expect(res[0].name).toBe(tick.name)
@@ -131,7 +131,12 @@ describe('ticks API', () => {
         }
       }
     `
-    it('creates and updates a tick', async ({ query, userUuid, singleTickData }) => {
+
+    it('creates and updates a tick', async ({
+      query,
+      userUuid,
+      singleTickData
+    }) => {
       const createResponse = await query({
         query: createQuery,
         variables: { input: singleTickData },
@@ -140,14 +145,21 @@ describe('ticks API', () => {
       })
 
       expect(createResponse.statusCode).toBe(200)
+      expect(createResponse.body).toBeTruthy()
+      expect(createResponse.body.data).toBeTruthy()
+      expect(createResponse.body.data.tick).toBeTruthy()
+
       const createTickRes = createResponse.body.data.tick
+
       expect(createTickRes.name).toBe(singleTickData.name)
       expect(createTickRes.notes).toBe(singleTickData.notes)
       expect(createTickRes.climbId).toBe(singleTickData.climbId)
       expect(createTickRes.userId).toBe(singleTickData.userId)
       expect(createTickRes.style).toBe(singleTickData.style)
       expect(createTickRes.attemptType).toBe(singleTickData.attemptType)
-      expect(createTickRes.dateClimbed).toBe(new Date(singleTickData.dateClimbed).getTime())
+      expect(createTickRes.dateClimbed).toBe(
+        new Date(singleTickData.dateClimbed).getTime()
+      )
       expect(createTickRes.grade).toBe(singleTickData.grade)
       expect(createTickRes.source).toBe(singleTickData.source)
       expect(createTickRes._id).toBeTruthy()
@@ -159,9 +171,9 @@ describe('ticks API', () => {
             _id: createTickRes._id,
             updatedTick: {
               name: 'Updated Route One',
-              climbId: 'new climb id',
+              climbId: singleTickData.climbId,
               userId: userUuid,
-              dateClimbed: '2022-11-10',
+              dateClimbed: new Date('2022-11-10T12:00:00Z'),
               grade: 'new grade',
               source: 'OB'
             }
@@ -173,6 +185,27 @@ describe('ticks API', () => {
 
       expect(updateResponse.statusCode).toBe(200)
       expect(updateResponse.body.data.tick.name).toBe('Updated Route One')
+    })
+
+    it('verifies date formats correctly', async ({
+      singleTickData,
+      query,
+      userUuid
+    }) => {
+      const validDateTick = {
+        ...singleTickData,
+        dateClimbed: new Date('2022-11-10T15:30:00Z').getTime()
+      }
+      const validResponse = await query({
+        query: createQuery,
+        variables: { input: validDateTick },
+        userUuid,
+        roles: ['user_admin']
+      })
+      expect(validResponse.statusCode).toBe(200)
+      expect(validResponse.body.data.tick.dateClimbed).toBe(
+        new Date('2022-11-10T15:30:00Z').getTime()
+      )
     })
   })
 })

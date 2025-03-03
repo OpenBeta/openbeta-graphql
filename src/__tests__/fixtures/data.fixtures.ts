@@ -1,4 +1,8 @@
-import { ClimbChangeInputType, ClimbType, DisciplineType } from '../../db/ClimbTypes'
+import {
+  ClimbChangeInputType,
+  ClimbType,
+  DisciplineType
+} from '../../db/ClimbTypes'
 import { AreaType } from '../../db/AreaTypes'
 import { dbTest } from './mongo.fixtures'
 import muuid, { MUUID } from 'uuid-mongodb'
@@ -8,13 +12,34 @@ import { UserPublicProfile } from '../../db/UserTypes'
 import { createGradeObject, gradeContextToGradeScales } from '../../GradeUtils'
 import { getScale, GradeScalesTypes } from '@openbeta/sandbag'
 import CountriesLngLat from '../../data/countries-with-lnglat.json'
+import { TickStyle, TickAttemptType } from '../../db/TickTypes'
+
+export const allowableStyleMap: Record<TickStyle, TickAttemptType[]> = {
+  Lead: ['Onsight', 'Flash', 'Redpoint', 'Pinkpoint', 'Attempt', 'Frenchfree'],
+  Solo: ['Onsight', 'Flash', 'Redpoint', 'Attempt'],
+  Boulder: ['Flash', 'Send', 'Attempt'],
+  TR: ['Send', 'Attempt'],
+  Follow: ['Send', 'Attempt'],
+  Aid: ['Send', 'Attempt']
+}
+
+export function choose<T> (arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
 
 interface DbTestContext {
   user: MUUID
   userUuid: string
   profile: UserPublicProfile
 
-  addArea: (name?: string, extra?: Partial<{ leaf: boolean, boulder: boolean, parent: MUUID | AreaType }>) => Promise<AreaType>
+  addArea: (
+    name?: string,
+    extra?: Partial<{
+      leaf: boolean
+      boulder: boolean
+      parent: MUUID | AreaType
+    }>,
+  ) => Promise<AreaType>
   countryCode: Alpha3Code
   country: AreaType
   area: AreaType
@@ -31,7 +56,9 @@ interface DbTestContext {
   randomGrade: (climb: ClimbType | { type: DisciplineType }) => string
 }
 
-const availableCountries: Alpha3Code[] = Object.keys(isoCountries.getAlpha3Codes()).filter(country => CountriesLngLat[country]) as Alpha3Code[]
+const availableCountries: Alpha3Code[] = Object.keys(
+  isoCountries.getAlpha3Codes()
+).filter((country) => CountriesLngLat[country]) as Alpha3Code[]
 
 beforeAll(() => {
   // We set a default grade contexts for all countries
@@ -45,14 +72,11 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
   user: async ({ task }, use) => await use(muuid.v4()),
   userUuid: async ({ user }, use) => await use(muuidToString(user)),
   profile: async ({ task, user, users, userUuid }, use) => {
-    await users.createOrUpdateUserProfile(
-      user,
-      {
-        userUuid,
-        username: task.id,
-        email: 'cat@example.com'
-      }
-    )
+    await users.createOrUpdateUserProfile(user, {
+      userUuid,
+      username: task.id,
+      email: 'cat@example.com'
+    })
 
     const profile = await users.getUserPublicProfileByUuid(user)
     assert(profile != null)
@@ -73,7 +97,9 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
     gradeContextToGradeScales[country.shortCode] = gradeContextToGradeScales.US
     await use(country)
 
-    await areas.areaModel.deleteMany({ 'embeddedRelations.ancestors._id': country._id })
+    await areas.areaModel.deleteMany({
+      'embeddedRelations.ancestors._id': country._id
+    })
     await areas.areaModel.deleteOne({ _id: country._id })
     // once we have cleared out this country and its children, we can happily add this
     // country code back into the stack
@@ -81,7 +107,14 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
   },
 
   addArea: async ({ task, country, user, areas }, use) => {
-    async function addArea (name?: string, extra?: Partial<{ leaf: boolean, boulder: boolean, parent: MUUID | AreaType }>): Promise<AreaType> {
+    async function addArea (
+      name?: string,
+      extra?: Partial<{
+        leaf: boolean
+        boulder: boolean
+        parent: MUUID | AreaType
+      }>
+    ): Promise<AreaType> {
       function isArea (x: any): x is AreaType {
         return typeof x.metadata?.area_id !== 'undefined'
       }
@@ -91,7 +124,7 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
       }
 
       let parent: MUUID | undefined
-      if ((extra?.parent) != null) {
+      if (extra?.parent != null) {
         if (isArea(extra.parent)) {
           parent = extra.parent.metadata?.area_id
         } else {
@@ -114,23 +147,27 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
 
     await areas.areaModel.deleteMany({ area_name: { $regex: `^${task.id}` } })
   },
-  area: async ({ task, addArea }, use) => {
+  area: async ({ addArea }, use) => {
     await use(await addArea())
   },
 
   addClimb: async ({ climbs, area, task, user }, use) => {
-    async function addClimb (data?: Partial<ClimbChangeInputType>): Promise<ClimbType> {
-      const [id] = await climbs.addOrUpdateClimbs(user, area.metadata.area_id, [{
-        name: task.id + process.uptime().toString(),
-        disciplines: {
-          sport: true
-        },
-        description: 'A good warm up problem',
-        location: 'Start from the left arete',
-        protection: '2 bolts',
-        boltsCount: 2,
-        ...(data ?? {})
-      }])
+    async function addClimb (
+      data?: Partial<ClimbChangeInputType>
+    ): Promise<ClimbType> {
+      const [id] = await climbs.addOrUpdateClimbs(user, area.metadata.area_id, [
+        {
+          name: task.id + process.uptime().toString(),
+          disciplines: data?.disciplines ?? {
+            sport: true
+          },
+          description: 'A good warm up problem',
+          location: 'Start from the left arete',
+          protection: '2 bolts',
+          boltsCount: 2,
+          ...(data ?? {})
+        }
+      ])
 
       const climb = await climbs.findOneClimbByMUUID(muuid.from(id))
       assert(climb != null)
@@ -152,7 +189,9 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
     assert(ctx !== undefined)
 
     const generate = (climb: { type: DisciplineType }): GradeScalesTypes => {
-      const system: GradeScalesTypes = gradeContextToGradeScales[country.gradeContext]?.[Object.keys(climb.type).filter(type => climb.type[type])[0]]
+      const key = Object.keys(climb.type).filter((type) => climb.type[type])[0]
+      const system: GradeScalesTypes =
+        gradeContextToGradeScales[country.gradeContext]?.[key]
       assert(system)
       return system
     }

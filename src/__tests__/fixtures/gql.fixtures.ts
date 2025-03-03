@@ -9,6 +9,7 @@ import { graphqlSchema } from '../../graphql/resolvers'
 import cors from 'cors'
 import { dataFixtures } from './data.fixtures'
 import { createContext, permissions } from '../../auth'
+import { ASTNode, print } from 'graphql'
 
 let server: ApolloServer<BaseContext>
 let app: Application
@@ -22,7 +23,7 @@ interface ServerTestFixtures {
 }
 
 export interface QueryAPIProps {
-  query?: string
+  query?: string | ASTNode
   operationName?: string
   variables?: any
   userUuid?: string
@@ -93,12 +94,13 @@ export const gqlTest = dataFixtures.extend<ServerTestFixtures>({
         query,
         operationName,
         variables,
-        userUuid = '',
+        userUuid,
         roles = [],
         endpoint = '/'
       }: QueryAPIProps) => {
         // Avoid needing to pass in actual signed tokens.
         const jwtSpy = vi.spyOn(jwt, 'verify')
+
         jwtSpy.mockImplementation(() => {
           return {
             // Roles defined at https://manage.auth0.com/dashboard/us/dev-fmjy7n5n/roles
@@ -107,7 +109,16 @@ export const gqlTest = dataFixtures.extend<ServerTestFixtures>({
           }
         })
 
+        // It can be convienient to pass in the results of some
+        // gql`dksjfhsdkjf` as in many IDE's this will provide
+        // syntax highlighting and will create a more useful error
+        // message when a mistake in the query literal is made.
+        if (query !== undefined && typeof query !== 'string') {
+          query = print(query)
+        }
+
         const queryObj = { query, operationName, variables }
+
         let req = request(ctx.app)
           .post(endpoint)
           .send(queryObj)
