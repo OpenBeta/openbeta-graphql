@@ -36,10 +36,15 @@ beforeAll(async () => {
   await mongoose.connect(uri, { autoIndex: false })
   mongoose.set('debug', false) // Set to 'true' to enable verbose mode
   _stream = await defaultPostConnect()
+  _stream.on('change', (doc) => {
+    // Dummy consumer
+  })
 })
 
 afterAll(async () => {
-  await _stream.close()
+  if (_stream.listeners.length > 0) {
+    logger.info(`Trailing listeners ${_stream.listeners.length}`)
+  }
 })
 
 interface DbTestContext {
@@ -124,7 +129,7 @@ export const dbTest = test.extend<DbTestContext>({
 
           if ((props.count === undefined && changes.length === 1) || changes.length === props.count) {
             resolve()
-            listener.close()?.catch(console.warn)
+            listener.close()?.catch(logger.warn)
           }
         })
       })

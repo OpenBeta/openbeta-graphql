@@ -6,10 +6,12 @@ import {
   EntityTag,
   MediaObject,
   MediaObjectGQLInput,
-  UserMedia,
-  UserMediaQueryInput
+  UserMediaQueryInput,
+  AreaMediaQueryInput,
+  ClimbMediaQueryInput
 } from '../../db/MediaObjectTypes.js'
 import { gqlTest } from '../../__tests__/fixtures/gql.fixtures.js'
+import { muuidToString } from '../../utils/helpers.js'
 
 interface LocalContext {
   mediaInput: MediaObjectGQLInput
@@ -162,7 +164,7 @@ describe('MediaDataSource', () => {
     await expect(async () => await media.deleteMediaObject(rs[0]._id)).rejects.toThrowError('Cannot delete media object with non-empty tags.')
   })
 
-  it('should return paginated media results', async ({ mediaInput, media }) => {
+  it('should return paginated user media results', async ({ mediaInput, media }) => {
     const ITEMS_PER_PAGE = 3
     const MEDIA_TEMPLATE: MediaObjectGQLInput = {
       ...mediaInput,
@@ -193,7 +195,7 @@ describe('MediaDataSource', () => {
 
     const page1 = await media.getOneUserMediaPagination(input)
 
-    verifyPageData(page1, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page1, MEDIA_TEMPLATE.userUuid, 'userUuid', expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
 
     const page1Edges = page1.mediaConnection.edges
     const input2: UserMediaQueryInput = {
@@ -203,7 +205,7 @@ describe('MediaDataSource', () => {
     }
     const page2 = await media.getOneUserMediaPagination(input2)
 
-    verifyPageData(page2, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page2, MEDIA_TEMPLATE.userUuid, 'userUuid', expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
 
     const page2Edges = page2.mediaConnection.edges
     const input3: UserMediaQueryInput = {
@@ -213,27 +215,157 @@ describe('MediaDataSource', () => {
     }
     const page3 = await media.getOneUserMediaPagination(input3)
 
-    verifyPageData(page3, MEDIA_TEMPLATE.userUuid, expectedMedia.slice(6, 7), mediaCount, 1, false)
+    verifyPageData(page3, MEDIA_TEMPLATE.userUuid, 'userUuid', expectedMedia.slice(6, 7), mediaCount, 1, false)
+  })
+
+  it('should return paginated area media results', async ({ mediaInput, area, media }) => {
+    const ITEMS_PER_PAGE = 3
+    const MEDIA_TEMPLATE: MediaObjectGQLInput = {
+      ...mediaInput,
+      userUuid: 'a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a6'
+    }
+
+    /**
+     * Let's insert 7 media objects with the appropriate areaId in entityTags.
+     * With 3 items per page we should expect 3 pages.
+     */
+    const newMediaListInput: MediaObjectGQLInput[] = []
+    const mediaCount = 7
+    for (let i = 0; i < mediaCount; i = i + 1) {
+      newMediaListInput.push({
+        ...MEDIA_TEMPLATE,
+        mediaUrl: `/areaPhoto${i}.jpg`,
+        entityTag: {
+          entityType: 1,
+          entityId: area.metadata.area_id.toUUID().toString()
+        }
+      })
+    }
+
+    const expectedMedia = await media.addMediaObjects(newMediaListInput)
+
+    assert(expectedMedia !== null)
+
+    // reverse because getOneAreaMediaPagination() returns most recent first
+    expectedMedia.reverse()
+
+    const input: AreaMediaQueryInput = {
+      areaUuid: muuid.from(area.metadata.area_id),
+      first: ITEMS_PER_PAGE
+    }
+
+    const page1 = await media.getOneAreaMediaPagination(input)
+
+    verifyPageData(page1, area.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
+
+    const page1Edges = page1.mediaConnection.edges
+    const input2: AreaMediaQueryInput = {
+      areaUuid: muuid.from(area.metadata.area_id),
+      first: ITEMS_PER_PAGE,
+      after: page1Edges[page1Edges.length - 1].cursor
+    }
+    const page2 = await media.getOneAreaMediaPagination(input2)
+
+    verifyPageData(page2, area.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
+
+    const page2Edges = page2.mediaConnection.edges
+    const input3: AreaMediaQueryInput = {
+      areaUuid: muuid.from(area.metadata.area_id),
+      first: ITEMS_PER_PAGE,
+      after: page2Edges[page2Edges.length - 1].cursor
+    }
+    const page3 = await media.getOneAreaMediaPagination(input3)
+
+    verifyPageData(page3, area.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(6, 7), mediaCount, 1, false)
+  })
+
+  it('should return paginated climb media results', async ({ mediaInput, climb, media }) => {
+    const ITEMS_PER_PAGE = 4
+    const MEDIA_TEMPLATE: MediaObjectGQLInput = {
+      ...mediaInput,
+      userUuid: 'a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a7'
+    }
+
+    /**
+     * insert 11 media objects with the appropriate climbId in entityTags.
+     * With 4 items per page we should expect 3 pages.
+     */
+    const newMediaListInput: MediaObjectGQLInput[] = []
+    const mediaCount = 11
+    for (let i = 0; i < mediaCount; i = i + 1) {
+      newMediaListInput.push({
+        ...MEDIA_TEMPLATE,
+        mediaUrl: `/climbPhoto${i}.jpg`,
+        entityTag: {
+          entityType: 0,
+          entityId: climb._id.toUUID().toString()
+        }
+      })
+    }
+
+    const expectedMedia = await media.addMediaObjects(newMediaListInput)
+
+    assert(expectedMedia !== null)
+
+    // reverse because getOneClimbMediaPagination() returns most recent first
+    expectedMedia.reverse()
+
+    const input: ClimbMediaQueryInput = {
+      climbUuid: muuid.from(climb._id),
+      first: ITEMS_PER_PAGE
+    }
+
+    const page1 = await media.getOneClimbMediaPagination(input)
+
+    verifyPageData(page1, muuidToString(climb._id), 'climbUuid', expectedMedia.slice(0, 4), mediaCount, ITEMS_PER_PAGE, true)
+
+    const page1Edges = page1.mediaConnection.edges
+    const input2: ClimbMediaQueryInput = {
+      climbUuid: climb._id,
+      first: ITEMS_PER_PAGE,
+      after: page1Edges[page1Edges.length - 1].cursor
+    }
+    const page2 = await media.getOneClimbMediaPagination(input2)
+
+    verifyPageData(page2, muuidToString(climb._id), 'climbUuid', expectedMedia.slice(4, 8), mediaCount, ITEMS_PER_PAGE, true)
+
+    const page2Edges = page2.mediaConnection.edges
+    const input3: ClimbMediaQueryInput = {
+      climbUuid: climb._id,
+      first: ITEMS_PER_PAGE,
+      after: page2Edges[page2Edges.length - 1].cursor
+    }
+    const page3 = await media.getOneClimbMediaPagination(input3)
+
+    verifyPageData(page3, muuidToString(climb._id), 'climbUuid', expectedMedia.slice(8, 11), mediaCount, 3, false)
   })
 })
 
 /**
  * Verify media page data
  * @param actualPage
- * @param expectedUserUuid
+ * @param expectedUuid
+ * @param expectedUuidType "userUuid" | "areaUuid" | "climbUuid"
  * @param expectedMedia
  * @param totalItems
  * @param itemsPerPage
  * @param hasNextPage
  */
 const verifyPageData = (
-  actualPage: UserMedia,
-  expectedUserUuid: string,
+  actualPage: any,
+  expectedUuid: string,
+  expectedUuidType: string,
   expectedMedia: MediaObject[],
   totalItems: number,
   itemsPerPage: number,
   hasNextPage: boolean): void => {
-  expect(actualPage.userUuid).toEqual(expectedUserUuid)
+  if (expectedUuidType === 'userUuid') {
+    expect(actualPage.userUuid).toEqual(expectedUuid)
+  } else if (expectedUuidType === 'areaUuid') {
+    expect(actualPage.areaUuid).toEqual(expectedUuid)
+  } else if (expectedUuidType === 'climbUuid') {
+    expect(actualPage.climbUuid).toEqual(expectedUuid)
+  }
   expect(actualPage.mediaConnection.pageInfo.hasNextPage).toStrictEqual(hasNextPage)
   expect(actualPage.mediaConnection.pageInfo.totalItems).toStrictEqual(totalItems)
   const pageEdges = actualPage.mediaConnection.edges

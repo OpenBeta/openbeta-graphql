@@ -8,7 +8,6 @@ describe('Area history', () => {
     changeLog,
     area,
     addArea,
-    country,
     waitForChanges
   }) => {
     const historySettled = waitForChanges({ document: area, count: 2 })

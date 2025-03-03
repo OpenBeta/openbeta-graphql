@@ -118,17 +118,17 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     // validate attempt type for each tick style
     switch (tickStyle) {
       case 'Lead':
-        if (!['Onsight', 'Flash', 'Redpoint', 'Pinkpoint', 'Attempt', 'Frenchfree', 'null'].includes(attemptType)) {
+        if (!['Onsight', 'Flash', 'Redpoint', 'Pinkpoint', 'Attempt', 'Frenchfree', 'Repeat', 'null'].includes(attemptType)) {
           throw new Error(`Invalid attempt type ${attemptType} for Lead style`)
         }
         break
       case 'Solo':
-        if (!['Onsight', 'Flash', 'Redpoint', 'Attempt', 'null'].includes(attemptType)) {
+        if (!['Onsight', 'Flash', 'Redpoint', 'Attempt', 'Repeat', 'null'].includes(attemptType)) {
           throw new Error(`Invalid attempt type ${attemptType} for Solo style`)
         }
         break
       case 'Boulder':
-        if (!['Flash', 'Send', 'Attempt', 'null'].includes(attemptType)) {
+        if (!['Flash', 'Send', 'Attempt', 'Repeat', 'null'].includes(attemptType)) {
           throw new Error(`Invalid attempt type ${attemptType} for Boulder style`)
         }
         break
