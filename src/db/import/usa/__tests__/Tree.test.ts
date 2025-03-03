@@ -1,3 +1,4 @@
+import { logger } from '../../../../logger'
 import { Tree, createRootNode } from '../AreaTree'
 
 const path1 = 'Oregon|Central Oregon|Paulina Peak|Vigilantes de Obsidiana|Roca Rhodales'
@@ -45,7 +46,7 @@ describe('Area Tree data structure', () => {
     const leaf = tree.atPath(path1)
     if (leaf !== undefined) {
       const ancestors = leaf.getAncestors()
-      console.log(ancestors)
+      logger.debug(ancestors)
       expect(ancestors.length).toEqual(path1.split('|').length + 1) // all element of path1 + 1 for US root
       expect(ancestors[0]).toEqual(countryRoot?.uuid)
       const stateRoot = tree.atPath('Oregon')

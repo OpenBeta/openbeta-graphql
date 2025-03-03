@@ -1,3 +1,4 @@
+import { logger } from '../../../logger'
 import { asyncFileProcessor, Writer } from './async-file.processor'
 import path from 'path'
 
@@ -23,7 +24,7 @@ describe('file processor', () => {
 
   function withFailedWriteOn (failingData: { name: string }): Writer {
     return async (data, path) => {
-      console.log(data, failingData)
+      logger.info(data, failingData)
       if (data === JSON.stringify(failingData)) {
         return await Promise.reject('error')
       }

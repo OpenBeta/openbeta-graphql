@@ -69,7 +69,7 @@
   "scripts": {
     "lint": "yarn ts-standard",
     "fix": "yarn ts-standard --fix",
-    "test": "vitest run --silent",
+    "test": "LOG_LEVEL=error vitest run --silent",
     "build": "tsc -p tsconfig.json",
     "build-release": "tsc  -p tsconfig.release.json",
     "clean": "tsc -b --clean && rm -rf build/*",

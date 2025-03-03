@@ -211,7 +211,6 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
       const grade = scale.getGrade(Math.floor(Math.random() * 100))
       assert(grade)
 
-      console.log({ grade, type: climb.type, scale })
       const record = createGradeObject(grade, climb.type, ctx)
       assert(record !== undefined)
 

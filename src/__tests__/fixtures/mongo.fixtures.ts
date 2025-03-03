@@ -15,6 +15,7 @@ import TickDataSource from '../../model/TickDataSource'
 import UserDataSource from '../../model/UserDataSource'
 import { MUUID } from 'uuid-mongodb'
 import { BaseChangeRecordType, ChangeLogType } from '../../db/ChangeLogType'
+import { logger } from '../../logger'
 
 /**
  * In-memory Mongo replset used for testing.
@@ -82,7 +83,7 @@ export const dbTest = test.extend<DbTestContext>({
         const mCollection = database.collection(collection)
         const result = await mCollection.insertMany(documents)
 
-        console.log(`${result.insertedCount} documents were inserted directly into MongoDB`)
+        logger.debug(`${result.insertedCount} documents were inserted directly into MongoDB`)
       } finally {
         await client.close()
       }
