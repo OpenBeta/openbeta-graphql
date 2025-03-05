@@ -119,7 +119,7 @@ export default class MutableClimbDataSource extends ClimbDataSource {
 
     function resolveLeftRightIndex (i: number): { left_right_index: number } | null {
       // user input is always prioritized
-      if (userInput[i].leftRightIndex !== undefined) {
+      if (userInput[i].leftRightIndex != null) {
         return { left_right_index: userInput[i].leftRightIndex ?? 0 }
       }
       // otherwise, auto-order new climbs
