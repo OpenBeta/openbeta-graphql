@@ -1,6 +1,13 @@
 type Query {
   area(uuid: ID): Area
   areas(filter: Filter, sort: Sort): [Area]
+
+  """
+  Bulk download an area and its children starting from ancestors paths (inclusive).
+  To keep payload at a reasonable size ancestors must have at least 2 elements.
+  """
+  bulkAreas(ancestors: [String!]!): [Area]
+
   stats: Stats
   cragsNear(
     placeId: String
@@ -67,11 +74,27 @@ type Area {
   totalClimbs: Int!
   "Media associated with this area, or its child climbs"
   media: [MediaWithTags]
+  "Paginated media for this area"
+  mediaPagination(input: EmbeddedAreaMediaInput): AreaMedia
   "Metadata about creation & update of this area"
   authorMetadata: AuthorMetadata!
   "Organizations associated with this area or its parent areas"
   organizations: [Organization]
 }
+
+"""
+This EmbeddedAreaMediaInput is different from the AreaMediaInput in Media.gql because we don't need to
+include the areaUuid (which is required over in the paginated Media query). Here in the area query,
+the areaUuid is already included in top level of the query
+"""
+input EmbeddedAreaMediaInput {
+  "Max number of objects return.  Ignore when using with pagination query."
+  maxFiles: Int
+  "Number of objects per page (Default = 6)."
+  first: Int
+  "Returning page data after this cursor (exclusive).  Return the first page if omitted."
+  after: ID
+ }
 
 type AreaMetadata {
   isDestination: Boolean!

@@ -1,5 +1,5 @@
 import muuid, { MUUID } from 'uuid-mongodb'
-import { ShadowArea, AreaType } from '../../db/AreaTypes'
+import { ShadowArea, AreaType, BulkAreasGQLQueryInput } from '../../db/AreaTypes'
 import { validate } from 'uuid'
 import { IResolverObject } from 'graphql-middleware/dist/types'
 import { flatFieldSet } from '../gql-parse.js'
@@ -40,6 +40,11 @@ const AreaQueries: IResolverObject = {
       projection: flatFieldSet(info)[0],
       filter: params.filter
     })
+  },
+  bulkAreas: async (_: any, params, { dataSources }: GQLContext): Promise<AreaType[]> => {
+    const { areas } = dataSources
+    const { ancestors } = params as BulkAreasGQLQueryInput
+    return await areas.bulkDownloadAreas(ancestors)
   }
 }
 

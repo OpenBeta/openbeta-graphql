@@ -27,7 +27,7 @@ Here are all the possible values for `Climb.type` (also called discipline), as d
 | snow          | Aid        | Send             |
 | ice           | Boulder    | Attempt          |
 | aid           |            | Frenchfree       |
-| tr            |            |                  |
+| tr            |            | Repeat           |
 | alpine        |            |                  |
 | mixed         |            |                  |
 
@@ -55,10 +55,10 @@ Since a route can have multiple disciplines, these options are composable. eg: a
 
 | Tick Style | Attempt Type options |
 |------------|----------------------|
-| 'Lead' | 'Onsight', 'Flash', 'Redpoint', 'Pinkpoint', 'Attempt', 'Frenchfree' |
+| 'Lead' | 'Onsight', 'Flash', 'Redpoint', 'Pinkpoint', 'Attempt', 'Frenchfree', 'Repeat' |
 | 'Follow', 'TR' or 'Aid | 'Send', 'Attempt' |
-| 'Solo' | 'Onsight', 'Flash', 'Redpoint', 'Attempt' |
-| 'Boulder' | 'Flash', 'Send', 'Attempt' |
+| 'Solo' | 'Onsight', 'Flash', 'Redpoint', 'Attempt', 'Repeat' |
+| 'Boulder' | 'Flash', 'Send', 'Attempt', 'Repeat' |
 
 ## A few justifications
 
@@ -68,6 +68,7 @@ Since a route can have multiple disciplines, these options are composable. eg: a
 * While 'Frenchfree' and 'Aid' could be considered synomonous, some climbers may want to distinguish, for example, a multipitch route where one pitch was intentionally 'French freed' (Time Wave Zero being a common example), which is distinctly different in character than, eg: aiding the Nose on El Cap.
 * Eventually, it might be cool to allow ticks for individual pitches, but that is not supported right now.
 * Given the 43,008 possible combinations, no simple logical system will perfectly capture every edge case.
+* Repeats: routes can be "repeated" after they are sent. this generally only applies if you have previously sent a route or boulder cleanly, and you send the route/boulder again cleanly. This is not typically used, for example, to mark additional attempts on a route that you haven't cleanly sent yet (one would use "attempt" for that). The only `Tick Style`s, for which `Repeat` is not allowed is `Follow` `TR` and `Aid`. While aid routes may be repeated, this is a rare enough use case and simplifies the logic in the code. 
 
 
 ## Importing from Mountain Project

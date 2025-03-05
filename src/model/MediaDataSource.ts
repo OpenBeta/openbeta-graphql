@@ -3,7 +3,7 @@ import muid, { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
 import { logger } from '../logger.js'
 import { getMediaObjectModel } from '../db/index.js'
-import { TagsLeaderboardType, UserMediaQueryInput, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject, UserMedia } from '../db/MediaObjectTypes.js'
+import { TagsLeaderboardType, UserMediaQueryInput, AreaMediaQueryInput, ClimbMediaQueryInput, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject, UserMedia, AreaMedia, ClimbMedia } from '../db/MediaObjectTypes.js'
 
 const HARD_MAX_FILES = 1000
 const HARD_MAX_USERS = 100
@@ -123,75 +123,67 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
    * - https://www.mixmax.com/engineering/api-paging-built-the-right-way
    * - https://graphql.org/learn/pagination/
    * @param input
-   * @returns
+   * @returns array of UserMedia
    */
   async getOneUserMediaPagination (input: UserMediaQueryInput): Promise<UserMedia> {
     const { userUuid, first = 6, after } = input
-    let nextCreatedDate: number
-    let nextId: mongoose.Types.ObjectId
-    let filters: any
-    if (after != null) {
-      const d = after.split('_')
-      nextCreatedDate = Number.parseInt(d[0])
-      nextId = new mongoose.Types.ObjectId(d[1])
-      filters = {
-        $match: {
-          $and: [
-            { userUuid },
-            {
-              $or: [{
-                createdAt: { $lt: new Date(nextCreatedDate) }
-              },
-              {
-                // If the created date is an exact match, we need a tiebreaker,
-                // so we use the _id field from the cursor.
-                createdAt: new Date(nextCreatedDate),
-                _id: { $lt: nextId }
-              }
-              ]
-            }
-          ]
-        }
-      }
-    } else {
-      filters = { $match: { userUuid } }
-    }
-
-    const rs = await this.mediaObjectModel.aggregate<MediaObject>([
-      filters,
-      {
-        $sort: { createdAt: -1, _id: -1 }
-      },
-      {
-        $limit: first + 1 // fetch 1 extra to see if there's a next page
-      }
-    ])
-
-    const itemCount = await this.mediaObjectModel.countDocuments({ userUuid })
-
+    const filters = this.mediaFilters(after, userUuid, 'user')
+    const filteredMedia = await this.aggregateMedia(filters, first)
+    const itemCount = await this.mediaObjectModel.countDocuments(this.getMatchClause(userUuid, 'user'))
     let hasNextPage = false
-    if (rs.length > first) {
+    if (filteredMedia.length > first) {
       // ok there's a next page. remove the extra item.
-      rs.pop()
+      filteredMedia.pop()
       hasNextPage = true
     }
 
     return {
       userUuid: userUuid.toUUID().toString(),
-      mediaConnection: {
-        edges: rs.map(node => (
-          {
-            node,
-            cursor: `${node.createdAt.getTime()}_${node._id.toString()}`
-          }
-        )),
-        pageInfo: {
-          hasNextPage,
-          totalItems: itemCount,
-          endCursor: null
-        }
+      mediaConnection: this.getMediaConnection(filteredMedia, itemCount, hasNextPage)
+    }
+  }
 
-      }
+  /**
+   * Get Area media by page.
+   * @param input
+   * @returns array of AreaMedia
+   */
+  async getOneAreaMediaPagination (input: AreaMediaQueryInput): Promise<AreaMedia> {
+    const { areaUuid, first = 6, after } = input
+    const filters = this.mediaFilters(after, areaUuid, 'area')
+    const filteredMedia = await this.aggregateMedia(filters, first)
+    const itemCount = await this.mediaObjectModel.countDocuments(this.getMatchClause(areaUuid, 'area'))
+    let hasNextPage = false
+    if (filteredMedia.length > first) {
+      filteredMedia.pop()
+      hasNextPage = true
+    }
+
+    return {
+      areaUuid: areaUuid.toUUID().toString(),
+      mediaConnection: this.getMediaConnection(filteredMedia, itemCount, hasNextPage)
+    }
+  }
+
+  /**
+   * Get Climb media by page.
+   * @param input
+   * @returns array of ClimbMedia
+   */
+  async getOneClimbMediaPagination (input: ClimbMediaQueryInput): Promise<ClimbMedia> {
+    const { climbUuid, first = 6, after } = input
+    const filters = this.mediaFilters(after, climbUuid, 'climb')
+    const filteredMedia = await this.aggregateMedia(filters, first)
+    const itemCount = await this.mediaObjectModel.countDocuments(this.getMatchClause(climbUuid, 'climb'))
+    let hasNextPage = false
+    if (filteredMedia.length > first) {
+      filteredMedia.pop()
+      hasNextPage = true
+    }
+
+    return {
+      climbUuid: climbUuid.toUUID().toString(),
+      mediaConnection: this.getMediaConnection(filteredMedia, itemCount, hasNextPage)
     }
   }
 
@@ -270,7 +262,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
    *
    * @param areaId
    * @param ancestors
-   * @returns `UserMediaWithTags` array
+   * @returns `MediaWithTags` array
    */
   async findMediaByAreaId (areaId: MUUID, projection: any, shouldConvertUuidToString = false): Promise<MediaObject[]> {
     const transformFn = (doc: MediaObject): any => {
@@ -303,5 +295,83 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
      */
     const doc = await this.mediaObjectModel.find({ _id, userUuid }, { _id: 1 }).lean()
     return doc != null
+  }
+
+  /**
+   * helper functions for quering media objects by user, area, or climb. Each query has slightly different syntax,
+   * so these private functions return the appropriate filter for the query.
+   * @param entityUuid area, climb or user uuid
+   * @param entityType 'area', 'climb', or 'user'
+   * @returns
+   */
+
+  private mediaFilters (after: string | undefined, entityUuid: MUUID, entityType: string): any {
+    let nextCreatedDate: number
+    let nextId: mongoose.Types.ObjectId
+    let filters: any
+    const matchClause = this.getMatchClause(entityUuid, entityType)
+
+    if (after != null) {
+      const d = after.split('_')
+      nextCreatedDate = Number.parseInt(d[0])
+      nextId = new mongoose.Types.ObjectId(d[1])
+      filters = {
+        $match: {
+          $and: [
+            matchClause,
+            {
+              $or: [{
+                createdAt: { $lt: new Date(nextCreatedDate) }
+              },
+              {
+                // If the created date is an exact match, we need a tiebreaker,
+                // so we use the _id field from the cursor.
+                createdAt: new Date(nextCreatedDate),
+                _id: { $lt: nextId }
+              }
+              ]
+            }
+          ]
+        }
+      }
+    } else {
+      filters = { $match: matchClause }
+    }
+    return filters
+  }
+
+  private getMatchClause (entityUuid: MUUID, entityType: string): any {
+    if (entityType === 'user') {
+      return { userUuid: entityUuid }
+    } else if (entityType === 'area') {
+      return { 'entityTags.ancestors': { $regex: entityUuid.toUUID().toString() } }
+    } else if (entityType === 'climb') {
+      return { 'entityTags.targetId': entityUuid }
+    }
+    throw new Error(`Unexpected entity type: ${entityType}`)
+  }
+
+  private async aggregateMedia (filters: any, first: number): Promise<MediaObject[]> {
+    return await this.mediaObjectModel.aggregate<MediaObject>([
+      filters,
+      { $sort: { createdAt: -1, _id: -1 } },
+      { $limit: first + 1 } // fetch 1 extra to see if there's a next page
+    ])
+  }
+
+  private getMediaConnection (filteredMedia: MediaObject[], itemCount: number, hasNextPage: boolean): any {
+    return {
+      edges: filteredMedia.map(node => (
+        {
+          node,
+          cursor: `${node.createdAt.getTime()}_${node._id.toString()}`
+        }
+      )),
+      pageInfo: {
+        hasNextPage,
+        totalItems: itemCount,
+        endCursor: null
+      }
+    }
   }
 }

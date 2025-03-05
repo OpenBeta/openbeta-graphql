@@ -10,6 +10,7 @@ import { HistoryFieldResolvers, HistoryQueries } from '../graphql/history/index.
 import { GQLContext, GQLFilter, QueryByIdType, Sort } from '../types'
 import { AreaType, CountByDisciplineType } from '../db/AreaTypes.js'
 import { ClimbGQLQueryType, ClimbType } from '../db/ClimbTypes.js'
+import { EntityMediaGQLQueryInput } from '../db/MediaObjectTypes.js'
 import AreaDataSource from '../model/AreaDataSource.js'
 import { MediaMutations, MediaQueries, MediaResolvers } from './media/index.js'
 import { AreaMutations, AreaQueries } from './area/index.js'
@@ -181,6 +182,11 @@ const resolvers = {
       return await media.findMediaByClimbId(node._id, node.name)
     },
 
+    mediaPagination: async (node: ClimbType, { input }: { input: EntityMediaGQLQueryInput }, { dataSources }: GQLContext) => {
+      const { media } = dataSources
+      return await media.getOneClimbMediaPagination({ ...input, climbUuid: node._id })
+    },
+
     content: (node: ClimbGQLQueryType) => node.content == null
       ? {
           description: '',
@@ -262,6 +268,11 @@ const resolvers = {
     media: async (node: any, args: any, { dataSources }: GQLContext) => {
       const { media } = dataSources
       return await media.findMediaByAreaId(node.metadata.area_id, null)
+    },
+
+    mediaPagination: async (node: AreaType, { input }: { input: EntityMediaGQLQueryInput }, { dataSources }: GQLContext) => {
+      const { media } = dataSources
+      return await media.getOneAreaMediaPagination({ ...input, areaUuid: node.metadata.area_id })
     },
 
     authorMetadata: getAuthorMetadataFromBaseNode,
