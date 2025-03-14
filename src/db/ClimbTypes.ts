@@ -100,15 +100,6 @@ export enum SafetyType {
   X = 'X',
 }
 
-export interface IGradeType {
-  yds?: string
-  ewbank?: string
-  brazilianCrux?: string
-  french?: string
-  font?: string
-  uiaa?: string
-}
-
 /**
  * What sort of climb is this? Routes can combine these fields, which is why
  * this is not an enumeration.
