@@ -287,6 +287,10 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       })
     }
     const ancestorsCSV = ancestors.join(',')
-    return await this.findDescendantsByPath(ancestorsCSV)
+    const [leafAreas, nonLeafAreas] = await Promise.all([
+      this.findDescendantsByPath(ancestorsCSV, true),
+      this.findDescendantsByPath(ancestorsCSV, false)
+    ])
+    return nonLeafAreas.concat(leafAreas)
   }
 }
