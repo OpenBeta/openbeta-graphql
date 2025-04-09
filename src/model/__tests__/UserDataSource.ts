@@ -143,7 +143,7 @@ describe('UserDataSource', () => {
         return callCount % 2 === 1 ? 15 : 1
       })
 
-    // Try the update operation that should fail
+    // Try the 3rd update operation that should fail
     let errorThrown = false
     try {
       await users.createOrUpdateUserProfile(updater, {
