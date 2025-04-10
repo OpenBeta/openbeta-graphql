@@ -136,14 +136,14 @@ describe('UserDataSource', () => {
     let callCount = 0
     jest.spyOn(UserDataSource, 'calculateLastUpdatedInDays')
       .mockImplementation(() => {
-        // For both calls in the third update operation:
+      // For both calls in the third update operation:
       // First call (account age) - return 15 days (older than 14 days)
       // Second call (last username update) - return 1 day (very recent)
         callCount++
         return callCount % 2 === 1 ? 15 : 1
       })
 
-    // Try the 3rd update operation that should fail
+    // Try the update operation that should fail
     let errorThrown = false
     try {
       await users.createOrUpdateUserProfile(updater, {
