@@ -14,6 +14,7 @@ export interface MediaObject {
   createdAt: Date
   size: number
   entityTags?: EntityTag[]
+  expiresAt?: Date
 }
 
 export interface EntityTag {

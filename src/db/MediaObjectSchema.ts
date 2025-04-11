@@ -34,7 +34,16 @@ const schema = new Schema<MediaObject>({
   height: { type: Schema.Types.Number, required: true },
   size: { type: Schema.Types.Number, required: true },
   format: { type: Schema.Types.String, required: true },
-  entityTags: [EntitySchema]
+  entityTags: [EntitySchema],
+  expiresAt: {
+    type: Date,
+    // Defines a TTL index on this path.
+    expires: 0,
+    // We want the ttl to be disabled by default since really we want to
+    // prevent any scenario in which a developer pushes out an update that
+    // causes media to go missing.
+    default: null
+  }
 }, { _id: true, timestamps: true, toJSON: { versionKey: false }, toObject: { versionKey: false } })
 
 /**

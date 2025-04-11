@@ -154,6 +154,15 @@ interface IMediaMetadata {
 
   """File size in bytes"""
   size: Int!
+
+  """
+  In all cases but one, this field will be false. When a user uploads a file first and THEN
+  notifies the api, the media entity will never pend since it is reified ahead of the
+  user claiming it. When an image is flagged as pending, the user must understand that the
+  data is still uploading, and as a result they should not expect to find data when
+  going to this media's URL.
+  """
+  pending: Boolean!
 }
 
 "All tags by an author"
@@ -199,6 +208,9 @@ type MediaWithTags implements IMediaMetadata {
   uploadTime: Date!
   size: Int!
   entityTags: [EntityTag]
+  lng: Float
+  lat: Float
+  camera: String
 }
 
 input NewMediaObjectInput {
@@ -207,7 +219,16 @@ input NewMediaObjectInput {
   height: Int!
   format: String!
   size: Int!
-  mediaUrl: String!
+  """
+  If this media is already reified or hosted elsewhere, you can set this and
+  openbeta will recall a reference to it. If you need an upload endpoint,
+  you may leave this field blank OR you may supply an optional filename.
+
+  In the event that you do not supply a filename or a url, a random filename
+  will be chosen for you, and your endpoint will be returned to you with this
+  set.
+  """
+  mediaUrl: String
   entityTag: EmbeddedEntityInput
 }
 
