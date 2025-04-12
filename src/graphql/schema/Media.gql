@@ -42,7 +42,7 @@ type Query {
 
   """
   Get media cursor with pagination support.  We only support forward cursor.
-  See 
+  See
   - https://graphql.org/learn/pagination/
   - https://relay.dev/graphql/connections.htm
   """
@@ -155,14 +155,14 @@ interface IMediaMetadata {
   """File size in bytes"""
   size: Int!
 
-  """
-  In all cases but one, this field will be false. When a user uploads a file first and THEN
-  notifies the api, the media entity will never pend since it is reified ahead of the
-  user claiming it. When an image is flagged as pending, the user must understand that the
-  data is still uploading, and as a result they should not expect to find data when
-  going to this media's URL.
-  """
-  pending: Boolean!
+#  """
+#  In all cases but one, this field will be false. When a user uploads a file first and THEN
+#  notifies the api, the media entity will never pend since it is reified ahead of the
+#  user claiming it. When an image is flagged as pending, the user must understand that the
+#  data is still uploading, and as a result they should not expect to find data when
+#  going to this media's URL.
+#  """
+#  pending: Boolean
 }
 
 "All tags by an author"
