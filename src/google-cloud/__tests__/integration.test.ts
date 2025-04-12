@@ -16,9 +16,9 @@ function runIf (condition: boolean): typeof describe {
 
 const GCS_CLOUD_BUCKET_ID = ID ?? 'GCS_CLOUD_BUCKET_ID'
 const PUBLIC_HOOK = process.env.GCS_MEDIA_HOOK_PUBLIC
-const requirePublicWebHookInstrumentation = runIf(PUBLIC_HOOK !== undefined)
-const requireAuth = runIf(GCS_PRIVATE_KEY !== undefined && GCS_BUCKET_CLIENT_EMAIL !== undefined)
-const requirePullSub = runIf(GCS_NOTIFICATIONS_SUBSCRIPTION !== undefined)
+const requirePublicWebHookInstrumentation = runIf(PUBLIC_HOOK !== undefined && PUBLIC_HOOK !== '')
+const requireAuth = runIf(GCS_PRIVATE_KEY !== undefined && GCS_BUCKET_CLIENT_EMAIL !== undefined && GCS_PRIVATE_KEY !== '' && GCS_BUCKET_CLIENT_EMAIL !== '')
+const requirePullSub = runIf(GCS_NOTIFICATIONS_SUBSCRIPTION !== undefined && GCS_NOTIFICATIONS_SUBSCRIPTION !== '')
 
 requireAuth('Google cloud services integration tests', () => {
   const storage = googleStorage()
