@@ -1,8 +1,9 @@
 import { Request, Response } from 'express'
 import { logger } from '../logger.js'
 import { JwtValidator } from './google-auth.js'
-import { mediaAdded, MediaIdentity, MessageHandlingError } from './adapter-interface.js'
+import { mediaAdded } from './adapter-interface.js'
 import { GCS_CLOUD_BUCKET_ID } from './index.js'
+import { MessageHandlingError, MediaIdentity } from './bucket.js'
 
 export interface RootEventType {
   message: MessageType

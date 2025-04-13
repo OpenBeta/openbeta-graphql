@@ -1,8 +1,9 @@
 import { Message, PubSub, StatusError, Subscription } from '@google-cloud/pubsub'
 import { logger } from '../logger.js'
 import { GCS_BUCKET_CLIENT_EMAIL, GCS_CLOUD_BUCKET_ID, GCS_NOTIFICATIONS_SUBSCRIPTION, GCS_PRIVATE_KEY } from './index.js'
-import { mediaAdded, MediaIdentity, MessageHandlingError } from './adapter-interface.js'
+import { mediaAdded } from './adapter-interface.js'
 import { validateMessageAttributes } from './push-subscriber.js'
+import { MediaIdentity, MessageHandlingError } from './bucket.js'
 
 // Initialize the Pub/Sub client
 const pubSubClient = new PubSub({

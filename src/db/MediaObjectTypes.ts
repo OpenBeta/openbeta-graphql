@@ -107,6 +107,8 @@ export interface EntityTagDeleteInput {
 export type MediaObjectGQLInput = Pick<MediaObject, 'mediaUrl' | 'width' | 'height' | 'format' | 'size'> & {
   userUuid: string
   entityTag?: Omit<AddEntityTagGQLInput, 'mediaId'>
+  filename?: string
+  maskFilename?: boolean
 }
 
 /**

@@ -135,6 +135,9 @@ requireAuth('Google cloud services integration tests', () => {
   })
 
   requirePullSub('Google pull subscriber integration santiy checks', () => {
+    /**
+     * wait for an object matching a pattern appears on the event queue.
+    */
     async function waitForObject (objectname: string): Promise<Message> {
       const sub = gcsTopicSubscription()
 
@@ -159,6 +162,9 @@ requireAuth('Google cloud services integration tests', () => {
 
     test('Auth', async () => {
       const objectname = process.uptime().toString()
+      uploadSmallObject(objectname, 'yay!').catch(err => { throw err })
+      uploadSmallObject(objectname, 'yay!').catch(err => { throw err })
+      uploadSmallObject(objectname, 'yay!').catch(err => { throw err })
       uploadSmallObject(objectname, 'yay!').catch(err => { throw err })
       await waitForObject(objectname)
     })

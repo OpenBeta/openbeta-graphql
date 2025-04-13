@@ -1,11 +1,11 @@
 import request from 'supertest'
 import express, { } from 'express'
-import { MessageHandlingError } from '../adapter-interface'
 import { googleCloudWebHookRecieverWithValidator, RootEventType } from '../push-subscriber'
 import { GCS_CLOUD_BUCKET_ID } from '../index.js'
 import inMemoryDB from '../../utils/inMemoryDB'
 import { getAreaModel } from '../../db'
 import merge from 'deepmerge'
+import { MessageHandlingError } from '../bucket'
 
 if (GCS_CLOUD_BUCKET_ID === undefined) {
   throw new Error('We need GCS_CLOUD_BUCKET_ID variable set for tests')

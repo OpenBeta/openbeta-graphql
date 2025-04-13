@@ -50,12 +50,6 @@ describe('Media storage notification adapter tests', () => {
       expect(mockWork).not.toHaveBeenCalled()
     })
 
-    it('should return early if media object has expiresAt as null (already reified)', async () => {
-      const media = await reifiedMedia()
-      await standardMessageHandlingLifecycle({ objectId: media.mediaUrl }, mockWork)
-      expect(mockWork).not.toHaveBeenCalled()
-    })
-
     it('should execute the work function for a valid, unreified media object found in the database', async () => {
       const media = await unreifiedMedia()
       await standardMessageHandlingLifecycle({ objectId: media.mediaUrl }, mockWork)
@@ -80,6 +74,13 @@ describe('Media storage notification adapter tests', () => {
       await mediaDs.mediaObjectModel.deleteOne({ _id: media._id })
       await mediaAdded({ objectId: media.mediaUrl })
       await mediaAdded({ objectId: 'does not exist' })
+    })
+
+    it('should not fail if media object has expiresAt as null (already reified)', async () => {
+      const media = await reifiedMedia()
+      const mockWork: jest.Mock<(media: MediaObject, mutableDs: MutableMediaDataSource) => Promise<void>> = jest.fn()
+      await standardMessageHandlingLifecycle({ objectId: media.mediaUrl }, mockWork)
+      expect(mockWork).toHaveBeenCalled()
     })
 
     it('should update the media object to unset expiresAt if found and not already reified', async () => {

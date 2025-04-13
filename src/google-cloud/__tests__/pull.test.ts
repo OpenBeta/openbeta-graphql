@@ -3,11 +3,11 @@ import { handleMessageOnChannel } from '../pull-subscriber'
 import { Subscriber } from '@google-cloud/pubsub/build/src/subscriber'
 import { GCS_CLOUD_BUCKET_ID } from '../index.js'
 import { PubsubMessage } from '@google-cloud/pubsub/build/src/publisher'
-import { MessageHandlingError } from '../adapter-interface'
 import merge from 'deepmerge'
 import { MessageType } from '../push-subscriber'
 import inMemoryDB from '../../utils/inMemoryDB'
 import { jest } from '@jest/globals'
+import { MessageHandlingError } from '../bucket'
 
 if (GCS_CLOUD_BUCKET_ID === undefined) throw new Error('We cannot run this test without a bucketID')
 

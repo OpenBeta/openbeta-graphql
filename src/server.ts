@@ -26,6 +26,7 @@ import { GCS_ENABLE_SERVICES, GCS_MEDIA_HOOK_URL } from './google-cloud/index.js
 import { gcsTopicSubscription, handleMessageOnChannel } from './google-cloud/pull-subscriber.js'
 import { logger } from './logger.js'
 import { validateGoogleJWT } from './google-cloud/google-auth.js'
+import uploadRouter from './google-cloud/mock-storage-upload.js'
 
 /**
  * Create a GraphQL server
@@ -78,7 +79,8 @@ export async function createServer (): Promise<{ app: express.Application, serve
       gcsTopicSubscription().on('message', (msg) => { handleMessageOnChannel(msg).then().catch(logger.warn) })
     }
   } else {
-    logger.warn('GCS integration disabled, media upload will not work as expected')
+    logger.info('Mock upload is enabled')
+    app.use('/rest', uploadRouter)
   }
 
   app.use('/',

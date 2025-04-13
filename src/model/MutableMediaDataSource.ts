@@ -6,9 +6,11 @@ import muuid from 'uuid-mongodb'
 import MediaDataSource from './MediaDataSource.js'
 import { EntityTag, EntityTagDeleteInput, MediaObject, MediaObjectGQLInput, AddTagEntityInput, NewMediaObjectDoc } from '../db/MediaObjectTypes.js'
 import MutableAreaDataSource from './MutableAreaDataSource.js'
+import { BucketStorage, safeFilename } from '../google-cloud/bucket.js'
 
 export default class MutableMediaDataSource extends MediaDataSource {
   areaDS = MutableAreaDataSource.getInstance()
+  bucket: BucketStorage
 
   async getEntityDoc ({ entityUuid, entityType }: Omit<AddTagEntityInput, 'mediaId'>): Promise<EntityTag> {
     let newEntityTagDoc: EntityTag
@@ -145,11 +147,50 @@ export default class MutableMediaDataSource extends MediaDataSource {
   }
 
   /**
-   * Add one or more media objects.  The embedded entityTag may have one tag.
+   * Add one or more media objects. The embedded entityTag may have one tag.
+   *
+   * Adding media has two possible paths:
+   *
+   * 1. In the event that the media already exists, we are simply creating a
+   * reference to it in the media collection so that we can ascociate tags with
+   * the media without losing relational integrity. This case is very simple,
+   * since we only need to fulfil a database request.
+   *
+   * 2. In th event that a user is trying to add media for which an object in the
+   * storage bucket is PENDING, we need to create the signed url for this user to
+   * upload the media and fulfil the pending media.
+   *
+   * In this case, the reference that we create in the database is a future that is
+   * awaiting fulfilment by the user. When the user uploads the media that they have
+   * promised to us, the storage bucket will create an event for us to consume and we
+   * will fulfill the media promise. In the event that the user does NOT fulfil their
+   * promise, the document will expire and be cleaned out of the database.
    */
-  async addMediaObjects (input: MediaObjectGQLInput[]): Promise<MediaObject[]> {
-    const docs: NewMediaObjectDoc[] = await Promise.all(input.map(async entry => {
-      const { userUuid: userUuidStr, mediaUrl, width, height, format, size, entityTag } = entry
+  async addMediaObjects (input: MediaObjectGQLInput[]): Promise<Array<MediaObject & { uploadTo?: string }>> {
+    const pendingUrls: Record<string, string> = {}
+    const documents: NewMediaObjectDoc[] = await Promise.all(input.map(async entry => {
+      let { mediaUrl, width, height, format, size, entityTag, filename, userUuid, maskFilename } = entry
+      let expiresAt: Date | undefined
+
+      if (mediaUrl === undefined) {
+        if (filename === undefined) {
+          throw new GraphQLError('filename not provided for new media', {
+            extensions: {
+              code: ApolloServerErrorCode.BAD_USER_INPUT
+            }
+          })
+        }
+
+        // Use the supplied filename if the user has suppressed masking, otherwise use a safe filename
+        // drop-in replacement.
+        const path = `/u/${userUuid}/${maskFilename === false ? filename : safeFilename(filename)}`
+        const signed = await this.bucket.signedUrl(path)
+
+        mediaUrl = path
+        pendingUrls[mediaUrl] = signed.url
+        expiresAt = new Date(signed.expires)
+      }
+
       let newTag: EntityTag | undefined
       if (entityTag != null) {
         newTag = await this.getEntityDoc({
@@ -164,14 +205,16 @@ export default class MutableMediaDataSource extends MediaDataSource {
         height,
         format,
         size,
-        userUuid: muuid.from(userUuidStr),
+        expiresAt,
+        userUuid: muuid.from(userUuid),
         ...newTag != null && { entityTags: [newTag] }
       })
     }))
 
     // Do not set `lean = true` as it will not return 'createdAt'
-    const rs = await this.mediaObjectModel.insertMany(docs)
-    return rs != null ? rs : []
+    const rs = await this.mediaObjectModel.insertMany(documents)
+    // join an uploadTo reference if it is necessary
+    return rs != null ? rs.map(i => ({ ...i.toObject(), uploadTo: pendingUrls[i.mediaUrl] })) : []
   }
 
   /**

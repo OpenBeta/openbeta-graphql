@@ -213,22 +213,67 @@ type MediaWithTags implements IMediaMetadata {
   camera: String
 }
 
+"""
+There are two ways to use a media input, one to create a fully reified media object
+and one to create a 'pending' media object. what this means is that you have not yet
+uploaded the file yet, but you will be uploading it at some point in the near future.
+
+The server will return you the media object and an endpoint to send it to with
+a simple PUT request with the image data in the body.
+
+When using this input type it is important to not partially specify the metadata. If you
+are going to bother with width and height, the GQL endpoint will enforce specification of the
+size and format (Or any other missing attributes, since you can save it a trip past the bucket.)
+"""
 input NewMediaObjectInput {
-  userUuid: ID!
-  width: Int!
-  height: Int!
-  format: String!
-  size: Int!
   """
-  If this media is already reified or hosted elsewhere, you can set this and
+  optionally supply the width AND height, otherwise the GQL endpoint will fetch the object
+  from the database to get it
+  """
+  width: Int
+  """
+  optionally supply the width AND height, otherwise the GQL endpoint will fetch the object
+  from the database to get it
+  """
+  height: Int
+  """
+  optionally the image size, otherwise the GQL endpoint will fetch the object
+  from the database to get it. The size is given in bytes.
+  """
+  size: Int
+  """
+  Optionally specify the fileformat of this media, if you neglect to supply it
+  the gql endpoint will fetch the object
+  """
+  format: String
+
+  """
+  If this media is already reified, you can set this and
   openbeta will recall a reference to it. If you need an upload endpoint,
-  you may leave this field blank OR you may supply an optional filename.
+  you may leave this field blank and/or supply an optional filename - though
+  if you supply a URL the filename will be ignored.
 
   In the event that you do not supply a filename or a url, a random filename
   will be chosen for you, and your endpoint will be returned to you with this
   set.
   """
   mediaUrl: String
+  """
+  You can optionally supply a filename for this media object. This is usually a
+  good idea if your user is expected to have unique filenames - as it should help
+  to prevent duplication of media items (namespaced by user).
+  """
+  filename: String
+  """
+  By default, openbeta will mask the original filename provided to us, but if you would
+  like to maintain the filename you can set this explicitly to 'false'.
+
+  If you are performing some action where the image filenames are unlikely to be sensitive
+  then this can be convienient to disable - since it will prevent double-upload of the same
+  image.
+  """
+  maskFilename: Boolean
+
   entityTag: EmbeddedEntityInput
 }
 

@@ -1,7 +1,7 @@
 import { OAuth2Client } from 'google-auth-library'
 import { Request } from 'express'
 import { logger } from '../logger.js'
-import { MessageHandlingError } from './adapter-interface.js'
+import { MessageHandlingError } from './bucket.js'
 
 const client = new OAuth2Client()
 

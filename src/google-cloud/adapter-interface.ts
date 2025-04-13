@@ -1,21 +1,10 @@
 import { logger } from '../logger.js'
-import { MediaObject } from '../db/MediaObjectTypes.js'
+import { ImageFormatType, MediaObject } from '../db/MediaObjectTypes.js'
 import MutableMediaDataSource from '../model/MutableMediaDataSource.js'
-
-/**
- * The adapter interface at this level is quite primitive, but depends on one
- * key principal which is not enforced in any meaningful sense but is likely to hold
- * as the project proceeds: Regardless of where the media is stored, we hold a url
- * reference to it in our data store.
- **/
-export interface MediaIdentity {
-  /**
-   * This field is cognate to the mediaUrl in our data store.
-   */
-  objectId: string
-}
-
-export class MessageHandlingError extends Error {}
+import { googleStorage } from './gcs-storage.js'
+import { GCS_CLOUD_BUCKET_ID } from './index.js'
+import { Storage } from '@google-cloud/storage'
+import { BucketStorage, BucketStorageError, MediaIdentity } from './bucket.js'
 
 export async function standardMessageHandlingLifecycle (message: MediaIdentity, work: (media: MediaObject, mutableDs: MutableMediaDataSource) => Promise<void>): Promise<void> {
   const mutableDs = MutableMediaDataSource.getInstance()
@@ -32,12 +21,6 @@ export async function standardMessageHandlingLifecycle (message: MediaIdentity, 
       return
     }
 
-    // If we have already flagged this media as reified then we needn't do any message processing
-    // and we can step over immediately to acknowledging the message.
-    if (media.expiresAt === null) {
-      return
-    }
-
     // An unreified and valid media object
     await work(media, mutableDs)
   } catch (error) {
@@ -48,7 +31,80 @@ export async function standardMessageHandlingLifecycle (message: MediaIdentity, 
 
 export async function mediaAdded (message: MediaIdentity): Promise<void> {
   await standardMessageHandlingLifecycle(message, async (media, mutableDs) => {
+    // If we have already flagged this media as reified then we needn't do any message processing
+    // and we can step over immediately to acknowledging the message.
+    if (media.expiresAt === null) {
+      return
+    }
+
     // Prevent mongodb from cleaning up this record, since it has been reified by the user.
     await mutableDs.mediaObjectModel.updateOne({ _id: media._id }, { $unset: { expiresAt: 1 } })
   })
+}
+
+export class GoogleStorage implements BucketStorage {
+  private readonly storage: Storage
+  private readonly bucketName: string
+
+  constructor (bucketName: string = GCS_CLOUD_BUCKET_ID ?? '') {
+    if (bucketName === '') throw new Error('env var GCS_CLOUD_BUCKET_ID is not set or you did not provide a proper string to GoogleStorage')
+    this.storage = googleStorage()
+    this.bucketName = bucketName
+  }
+
+  async signedUrl (filename: string): Promise<{ url: string, expires: number }> {
+    const expires = Date.now() + 15 * 60 * 1000
+    const options = {
+      version: 'v4' as 'v4',
+      action: 'write' as 'write',
+      expires
+    }
+
+    const [url] = await this.storage
+      .bucket(this.bucketName)
+      .file(filename)
+      .getSignedUrl(options)
+
+    return { url, expires }
+  }
+
+  async getFileInfo (url: string): Promise<Pick<MediaObject, 'size' | 'width' | 'height' | 'format'>> {
+    const parsedUrl = new URL(url)
+    const pathParts = parsedUrl.pathname.split('/')
+    const fileName = pathParts.pop()
+    const bucketName = pathParts[1]
+
+    if (fileName === undefined || fileName === '' || bucketName === undefined || bucketName === '') {
+      throw new BucketStorageError('Invalid URL format.')
+    }
+
+    const file = this.storage.bucket(bucketName).file(fileName)
+    const [metadata] = await file.getMetadata()
+
+    if (metadata === undefined) {
+      throw new BucketStorageError('File not found.')
+    }
+
+    const size = parseInt(metadata.size, 10)
+    const width = parseInt(metadata.width, 10)
+    const height = parseInt(metadata.height, 10)
+    const format: ImageFormatType = metadata.contentEncoding
+
+    if (format === undefined) { throw new BucketStorageError(`Format could not be determined from ${JSON.stringify(metadata)}`) }
+
+    return { size, width, height, format }
+  }
+
+  async deleteFile (url: string): Promise<void> {
+    const parsedUrl = new URL(url)
+    const pathParts = parsedUrl.pathname.split('/')
+    const fileName = pathParts.pop()
+    const bucketName = pathParts[1]
+
+    if (fileName === undefined || fileName === '' || bucketName === undefined || bucketName === '') {
+      throw new BucketStorageError('Invalid URL format.')
+    }
+
+    await this.storage.bucket(bucketName).file(fileName).delete()
+  }
 }
