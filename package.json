@@ -114,8 +114,9 @@
       "hacks",
       "db-migrations",
       "src/db/export/**/*.test.ts",
-      "src/model/**/*.test.ts",
-      "src/__tests__/bulkImport.test.ts"
+      "src/__tests__/bulkImport.test.ts",
+      "src/model/__tests__/BulkDataSource.test.ts",
+      "src/model/__tests__/MutableAreaDataSource.test.ts"
     ]
   },
   "type": "module",
