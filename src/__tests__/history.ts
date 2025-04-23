@@ -3,8 +3,6 @@ import { OrgType } from '../db/OrganizationTypes.js'
 import { muuidToString } from '../utils/helpers.js'
 import { gqlTest as it } from './fixtures/gql.fixtures.js'
 import muuid from 'uuid-mongodb'
-import { AreaChangeLogType } from '../db/ChangeLogType.js'
-import { OperationType } from '../db/AreaTypes.js'
 
 describe('history API', () => {
   describe('queries', () => {
