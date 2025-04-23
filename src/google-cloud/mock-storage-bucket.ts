@@ -1,16 +1,24 @@
 import { MediaObject } from '../db/MediaObjectTypes'
-import { BucketStorage, BucketStorageError } from './bucket'
 import fs from 'fs/promises'
 import { fileTypeFromFile } from 'file-type'
 import decode from 'image-decode'
-import sizeOf from 'image-size' // Import the image-size library
+import sizeOf from 'image-size'
+import { BucketStorage, BucketStorageError } from './bucket.js'
 
 /**
  * When doing local development and local integration, we can use a localfilestorage interface
  */
 export class LocalFileStorage implements BucketStorage {
+  async fileExists (url: string | string[]): Promise<boolean[]> {
+    if (Array.isArray(url)) {
+      return await Promise.all(url.map(async f => await fs.readFile(`./bucket/${f}`).then(() => true).catch(() => false)))
+    }
+    return [await fs.readFile(`./bucket/${url}`).then(() => true).catch(() => false)]
+  }
+
   async signedUrl (path: string): Promise<{ url: string, expires: number }> {
     const expires = Date.now() + 15 * 60 * 1000
+
     return { url: `http://localhost:4000/rest/media/${path}`, expires }
   }
 

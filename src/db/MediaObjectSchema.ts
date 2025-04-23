@@ -42,7 +42,9 @@ const schema = new Schema<MediaObject>({
     // We want the ttl to be disabled by default since really we want to
     // prevent any scenario in which a developer pushes out an update that
     // causes media to go missing.
-    default: null
+    default: undefined,
+    // We don't need to keep track of this aftert the pending status is lapsed
+    required: false
   }
 }, { _id: true, timestamps: true, toJSON: { versionKey: false }, toObject: { versionKey: false } })
 

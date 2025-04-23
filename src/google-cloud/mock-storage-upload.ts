@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express'
 import path from 'path'
 import fs from 'fs/promises'
-import { logger } from '../logger'
-import { mediaAdded } from './adapter-interface'
+import { logger } from '../logger.js'
+import { mediaAdded } from './adapter-interface.js'
 
 const router = express.Router()
 

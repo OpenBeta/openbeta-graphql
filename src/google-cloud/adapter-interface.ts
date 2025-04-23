@@ -33,7 +33,7 @@ export async function mediaAdded (message: MediaIdentity): Promise<void> {
   await standardMessageHandlingLifecycle(message, async (media, mutableDs) => {
     // If we have already flagged this media as reified then we needn't do any message processing
     // and we can step over immediately to acknowledging the message.
-    if (media.expiresAt === null) {
+    if (media.expiresAt === undefined) {
       return
     }
 
@@ -50,6 +50,10 @@ export class GoogleStorage implements BucketStorage {
     if (bucketName === '') throw new Error('env var GCS_CLOUD_BUCKET_ID is not set or you did not provide a proper string to GoogleStorage')
     this.storage = googleStorage()
     this.bucketName = bucketName
+  }
+
+  async fileExists (url: string): Promise<[boolean]> {
+    return await this.storage.bucket(this.bucketName).file(url).exists()
   }
 
   async signedUrl (filename: string): Promise<{ url: string, expires: number }> {

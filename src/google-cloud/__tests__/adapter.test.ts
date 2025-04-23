@@ -86,13 +86,13 @@ describe('Media storage notification adapter tests', () => {
     it('should update the media object to unset expiresAt if found and not already reified', async () => {
       const media = await unreifiedMedia()
       await mediaAdded({ objectId: media.mediaUrl })
-      expect(await mediaDs.mediaObjectModel.findOne({ mediaUrl: media.mediaUrl }).then(x => x?.expiresAt)).toBeNull()
+      expect(await mediaDs.mediaObjectModel.findOne({ mediaUrl: media.mediaUrl }).then(x => x?.expiresAt)).toBeUndefined()
     })
 
     it('should not attempt to update if the media object is already reified', async () => {
       const media = await reifiedMedia()
       await mediaAdded({ objectId: media.mediaUrl })
-      expect(await mediaDs.mediaObjectModel.findOne({ mediaUrl: media.mediaUrl }).then(x => x?.expiresAt)).toBeNull()
+      expect(await mediaDs.mediaObjectModel.findOne({ mediaUrl: media.mediaUrl }).then(x => x?.expiresAt)).toBeUndefined()
     })
   })
 })

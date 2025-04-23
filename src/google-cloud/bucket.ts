@@ -1,4 +1,4 @@
-import { MediaObject } from '../db/MediaObjectTypes'
+import { MediaObject } from '../db/MediaObjectTypes.js'
 import { extname } from 'path'
 import { customAlphabet } from 'nanoid'
 
@@ -12,6 +12,7 @@ export interface BucketStorage {
   signedUrl: (path: string) => Promise<{ url: string, expires: number }>
   deleteFile: (url: string) => Promise<void>
   getFileInfo: (url: string) => Promise<Pick<MediaObject, 'size' | 'width' | 'height' | 'format'>>
+  fileExists: (url: string | string[]) => Promise<boolean[]>
 }
 
 export class BucketStorageError extends Error {}
