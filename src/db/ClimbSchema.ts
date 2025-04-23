@@ -66,7 +66,8 @@ const GradeTypeSchema = new Schema<GradeScalesTypes>({
   brazilian_crux: { type: Schema.Types.String, required: false },
   french: { type: Schema.Types.String, required: false },
   font: { type: Schema.Types.String, required: false },
-  UIAA: { type: Schema.Types.String, required: false }
+  UIAA: { type: Schema.Types.String, required: false },
+  wi: { type: Schema.Types.String, required: false }
 }, { _id: false })
 
 const PitchSchema = new mongoose.Schema({

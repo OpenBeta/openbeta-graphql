@@ -187,6 +187,11 @@ type GradeType {
   https://en.wikipedia.org/wiki/Grade_(climbing)#UIAA
   """
   uiaa: String
+  """
+  Water Ice Grading System
+  https://en.wikipedia.org/wiki/Ice_climbing#WI-grades
+  """
+  wi: String
 }
 
 """

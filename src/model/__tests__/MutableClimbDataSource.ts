@@ -136,22 +136,33 @@ describe('Climb CRUD', () => {
     const newIDs = await climbs.addOrUpdateClimbs(
       user,
       routesArea.metadata.area_id,
-      newClimbsToAdd)
+      newClimbsToAdd
+    )
 
     expect(newIDs).toHaveLength(newClimbsToAdd.length)
 
-    const climb0 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+    // Validate all climbs were added, and in the order we expect
+    for (const [i, climbIn] of newClimbsToAdd.entries()) {
+      const climbOut = await climbs.findOneClimbByMUUID(muid.from(newIDs[i]))
 
-    // Validate new climb
-    expect(climb0).toMatchObject({
-      name: newClimbsToAdd[0].name,
-      type: sanitizeDisciplines(newClimbsToAdd[0].disciplines),
-      content: {
-        description: newClimbsToAdd[0].description,
-        location: newClimbsToAdd[0].location,
-        protection: newClimbsToAdd[0].protection
-      }
-    })
+      // Validate new climb
+      expect(climbOut).toMatchObject({
+        name: climbIn.name,
+        type: sanitizeDisciplines(climbIn.disciplines),
+        metadata: {
+          left_right_index: i + 1
+        },
+        ...climbIn.description === undefined
+          ? {}
+          : {
+              content: {
+                description: climbIn.description,
+                location: climbIn.location,
+                protection: climbIn.protection
+              }
+            }
+      })
+    }
 
     // California contains subareas.  Should fail.
     await expect(
@@ -159,7 +170,13 @@ describe('Climb CRUD', () => {
     ).rejects.toThrowError(/You can only add climbs to a crag/)
 
     // Route-only area should accept new boulder problems
-    await climbs.addOrUpdateClimbs(user, routesArea.metadata.area_id, [newBoulderProblem1])
+    const [newBoulderID] = await climbs.addOrUpdateClimbs(user, routesArea.metadata.area_id, [newBoulderProblem1])
+    // Should come after existing climbs
+    expect(await climbs.findOneClimbByMUUID(muid.from(newBoulderID))).toMatchObject({
+      metadata: {
+        left_right_index: newClimbsToAdd.length + 1
+      }
+    })
   })
 
   it('can add new boulder problems', async ({ areas, climbs, user }) => {

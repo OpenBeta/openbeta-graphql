@@ -1,6 +1,6 @@
 [![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-17-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 # Climbing Route Catalog API 
@@ -194,6 +194,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/enapupe"><img src="https://avatars.githubusercontent.com/u/291082?v=4?s=100" width="100px;" alt="Iacami Gevaerd"/><br /><sub><b>Iacami Gevaerd</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=enapupe" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/PrithipalKhalsa"><img src="https://avatars.githubusercontent.com/u/13841027?v=4?s=100" width="100px;" alt="Prith"/><br /><sub><b>Prith</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=PrithipalKhalsa" title="Code">💻</a> <a href="#ideas-PrithipalKhalsa" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/wkencel"><img src="https://avatars.githubusercontent.com/u/72818086?v=4?s=100" width="100px;" alt="Will Kencel"/><br /><sub><b>Will Kencel</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=wkencel" title="Code">💻</a> <a href="#ideas-wkencel" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/greghart"><img src="https://avatars.githubusercontent.com/u/3514280?v=4?s=100" width="100px;" alt="Greg Hart"/><br /><sub><b>Greg Hart</b></sub></a><br /><a href="https://github.com/OpenBeta/openbeta-graphql/commits?author=greghart" title="Code">💻</a> <a href="#ideas-greghart" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>

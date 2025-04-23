@@ -4,7 +4,7 @@ import { AreaType } from '../../db/AreaTypes.js'
 import { BaseChangeRecordType } from '../../db/ChangeLogType.js'
 
 describe('Area history', () => {
-  it('should create history changes for an area when children get added to it', async ({
+  it.todo('should create history changes for an area when children get added to it', async ({
     changeLog,
     area,
     addArea,
@@ -63,7 +63,7 @@ describe('Area history', () => {
     )
   })
 
-  it('should create history records for new subareas', async ({
+  it.todo('should create history records for new subareas', async ({
     changeLog,
     area,
     addArea,

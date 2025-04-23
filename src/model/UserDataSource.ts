@@ -141,15 +141,19 @@ export default class UserDataSource extends MongoDataSource<User> {
     }
 
     const usernameInfo = rs?.usernameInfo
+    const accountCreatedAt = rs?.createdAt ?? new Date()
 
     if (username != null && username !== usernameInfo?.username) {
-      const lastUpdated = usernameInfo?.updatedAt ?? new Date()
+      const accountAgeInDays = UserDataSource.calculateLastUpdatedInDays(accountCreatedAt)
+      const lastUpdated = usernameInfo?.updatedAt ?? new Date(accountAgeInDays)
       const lastUpdatedInDays =
-        UserDataSource.calculateLastUpdatedInDays(lastUpdated)
-      if (lastUpdatedInDays < USERNAME_UPDATE_WAITING_IN_DAYS) {
+        UserDataSource.calculateLastUpdatedInDays(new Date(lastUpdated))
+      const withinFirst14Days = accountAgeInDays < 14
+
+      if (!withinFirst14Days && lastUpdatedInDays < USERNAME_UPDATE_WAITING_IN_DAYS) {
         const daysToWait = USERNAME_UPDATE_WAITING_IN_DAYS - lastUpdatedInDays
         throw new Error(
-          `Too frequent update.  Please wait ${daysToWait.toString()} more days.`
+          `Too frequent update. Please wait ${daysToWait.toString()} more days.`
         )
       }
 

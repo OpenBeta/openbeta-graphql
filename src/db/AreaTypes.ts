@@ -259,3 +259,7 @@ export enum OperationType {
   /** Set areas' sorting index */
   orderAreas = 'orderArea'
 }
+
+export interface BulkAreasGQLQueryInput {
+  ancestors: string[]
+}

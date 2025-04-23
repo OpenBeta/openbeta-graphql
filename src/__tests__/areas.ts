@@ -38,9 +38,9 @@ const it = gqlTest.extend<LocalContext>({
           userUuid: user,
           width: 800,
           height: 600,
-          format: 'jpeg',
           size: 45000,
-          mediaUrl: `/areaPhoto${areaId}-${picIndex}.jpg`,
+          format: 'jpeg',
+          mediaUrl: `/u/${user}/${areaId}-${picIndex}.jpg`,
           entityTag: {
             entityType: 1,
             entityId: areaId
@@ -144,14 +144,19 @@ describe('areas API', () => {
       query: areaQueryWithPaginatedMedia,
       operationName: 'area',
       variables: {
-        uuid: area.metadata.area_id,
+        uuid: area.metadata.area_id.toString(),
         input: {
           first: 5,
           after: null
         }
       }
     })
+
     expect(response.statusCode).toBe(200)
+    expect(response.body).toBeTruthy()
+    expect(response.body.data).toBeTruthy()
+    expect(response.body.data.area).toBeTruthy()
+
     const areaResult = response.body.data.area
     expect(areaResult.mediaPagination.mediaConnection.edges).toHaveLength(5)
     expect(areaResult.mediaPagination.mediaConnection.pageInfo.totalItems).toBe(11)
