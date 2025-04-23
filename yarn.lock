@@ -5683,7 +5683,7 @@ vite-node@3.1.2:
   optionalDependencies:
     fsevents "~2.3.3"
 
-vitest@3.2.1:
+vitest@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/vitest/-/vitest-3.1.2.tgz#63afc16b6da3bea6e39f5387d80719e70634ba66"
   integrity sha512-WaxpJe092ID1C0mr+LH9MmNrhfzi8I65EX/NRU/Ld016KqQNRgxSOlGNP1hHN+a/F8L15Mh8klwaF77zR3GeDQ==
