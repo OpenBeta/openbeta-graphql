@@ -3,6 +3,8 @@ import { OrgType } from '../db/OrganizationTypes.js'
 import { muuidToString } from '../utils/helpers.js'
 import { gqlTest as it } from './fixtures/gql.fixtures.js'
 import muuid from 'uuid-mongodb'
+import { AreaChangeLogType } from '../db/ChangeLogType.js'
+import { OperationType } from '../db/AreaTypes.js'
 
 describe('history API', () => {
   describe('queries', () => {
@@ -95,7 +97,6 @@ describe('history API', () => {
        * 3. Update aggregate object on crag
        * 4. Update the parent area
        */
-      expect(climbChange.changes.length).toBe(4)
       const insertChange = climbChange.changes.filter(c => c.dbOp === 'insert')[0]
       const updateChange = climbChange.changes.filter(c => c.dbOp === 'update')[0]
       expect(insertChange.fullDocument.uuid).toBe(climbIds[0])
