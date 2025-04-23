@@ -37,7 +37,9 @@ const it = gqlTest.extend<LocalContext >({
     ])
   },
   orgs: async ({ organizations, user, orgData }, use) => {
-    await use(await Promise.all(orgData.map(async fields => await organizations.addOrganization(user, OrgType.localClimbingOrganization, fields))))
+    const orgs = await Promise.all(orgData.map(async fields => await organizations.addOrganization(user, OrgType.localClimbingOrganization, fields)))
+    await use(orgs)
+    await Promise.all(orgs.map(async (org) => await organizations.deleteFromCacheById(org._id)))
   }
 })
 
@@ -136,7 +138,11 @@ describe('organizations API', () => {
       // eslint-disable-next-line
       await new Promise(res => setTimeout(res, 1000))
 
-      const orgHistory = await ChangeLogDataSource.getInstance().getOrganizationChangeSets()
+      const orgHistory = await ChangeLogDataSource
+        .getInstance()
+        .getOrganizationChangeSets()
+        .then(sets => sets.filter(i => i.editedBy.toString() === userUuid))
+
       expect(orgHistory).toHaveLength(2)
 
       // verify changes in most recent order

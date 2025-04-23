@@ -56,12 +56,11 @@ interface DbTestContext {
   randomGrade: (climb: ClimbType | { type: DisciplineType }) => string
 }
 
-const availableCountries: Alpha3Code[] = Object.keys(
-  isoCountries.getAlpha3Codes()
-).filter((country) => CountriesLngLat[country]) as Alpha3Code[]
-
 beforeAll(() => {
-  // We set a default grade contexts for all countries
+  const availableCountries: Alpha3Code[] = Object.keys(
+    isoCountries.getAlpha3Codes()
+  ).filter((country) => CountriesLngLat[country]) as Alpha3Code[]
+
   for (const country of availableCountries) {
     if (gradeContextToGradeScales[country] !== undefined) continue
     gradeContextToGradeScales[country] = gradeContextToGradeScales.US
@@ -85,25 +84,46 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
     await users.deleteFromCacheByFields({ username: task.id })
   },
 
-  countryCode: async ({ task }, use) => {
-    const countryCode = availableCountries.pop()
-    assert(countryCode !== undefined)
-    await use(countryCode)
+  countryCode: async ({ client, areas }, use) => {
+    // atomically fetch & reserve one unused country:
+    const res = await client.db()
+      .collection('test_countries')
+      .findOneAndUpdate(
+        { reserved: false },
+        { $set: { reserved: true } },
+        { returnDocument: 'after' }
+      )
+
+    if (res.value == null) throw new Error('no more country codes in the pool')
+    const code = res.value.code as Alpha3Code
+
+    await use(code)
+
+    // teardown:
+    // release this area back to the queue
+    await areas.areaModel.deleteOne({ area_name: isoCountries.getName(code, 'en') })
+    await expect(areas.areaModel.find({ pathTokens: { $size: 1 } }).then(x => x.map(i => i.area_name)))
+      .not
+      .toContain(isoCountries.getName(code, 'en'))
+    await client.db()
+      .collection('test_countries')
+      .updateOne({ code }, { $set: { reserved: false } })
   },
 
   country: async ({ areas, countryCode }, use) => {
     const country = await areas.addCountry(countryCode)
+    assert(country !== null)
+
     assert(country.shortCode)
     gradeContextToGradeScales[country.shortCode] = gradeContextToGradeScales.US
+
     await use(country)
 
-    await areas.areaModel.deleteMany({
-      'embeddedRelations.ancestors._id': country._id
-    })
-    await areas.areaModel.deleteOne({ _id: country._id })
-    // once we have cleared out this country and its children, we can happily add this
-    // country code back into the stack
-    availableCountries.push(countryCode)
+    await areas.areaModel.deleteMany({ 'embeddedRelations.ancestors._id': country._id })
+    await areas.areaModel.deleteOne({ _id: country._id }).orFail()
+    await expect(areas.areaModel.find({ pathTokens: { $size: 1 } }).then(x => x.map(i => i.area_name)))
+      .not
+      .toContain(country.area_name)
   },
 
   addArea: async ({ task, country, user, areas }, use) => {

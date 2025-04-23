@@ -18,7 +18,7 @@
     "supertest": "^6.3.3",
     "ts-standard": "^12.0.0",
     "typescript": "4.9.5",
-    "vitest": "^2.1.8"
+    "vitest": "3.2.1"
   },
   "dependencies": {
     "@apollo/server": "^4.11.2",
@@ -69,7 +69,7 @@
   "scripts": {
     "lint": "yarn ts-standard",
     "fix": "yarn ts-standard --fix",
-    "test": "LOG_LEVEL=error vitest run --silent",
+    "test": "LOG_LEVEL=silent vitest run --silent",
     "build": "tsc -p tsconfig.json",
     "build-release": "tsc  -p tsconfig.release.json",
     "clean": "tsc -b --clean && rm -rf build/*",

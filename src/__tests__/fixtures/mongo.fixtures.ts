@@ -1,10 +1,8 @@
 /* eslint-disable no-empty-pattern */
 // To explain the rule for this file: Object destructuring is REQUIRED for vitest fixtures because
 // of how they utilize autoloading.
-import { MongoMemoryReplSet } from 'mongodb-memory-server'
-import { ChangeStream, MongoClient } from 'mongodb'
-import mongoose from 'mongoose'
-import { checkVar, defaultPostConnect } from '../../db'
+import { MongoClient } from 'mongodb'
+import mongoose, { Connection } from 'mongoose'
 import MutableAreaDataSource from '../../model/MutableAreaDataSource'
 import MutableClimbDataSource from '../../model/MutableClimbDataSource'
 import BulkImportDataSource from '../../model/BulkImportDataSource'
@@ -16,41 +14,12 @@ import UserDataSource from '../../model/UserDataSource'
 import { MUUID } from 'uuid-mongodb'
 import { BaseChangeRecordType, ChangeLogType } from '../../db/ChangeLogType'
 import { logger } from '../../logger'
-
-/**
- * In-memory Mongo replset used for testing.
- * More portable than requiring user to set up Mongo in a background Docker process.
- * Need a replset to faciliate transactions.
- */
-let mongod: MongoMemoryReplSet
-let uri: string
-let _stream: ChangeStream
-
-beforeAll(async () => {
-  mongod = await MongoMemoryReplSet.create({
-    // Stream listener listens on DB denoted by 'MONGO_DBNAME' env var.
-    replSet: { count: 1, storageEngine: 'wiredTiger', dbName: checkVar('MONGO_DBNAME') }
-  })
-
-  uri = await mongod.getUri(checkVar('MONGO_DBNAME'))
-  await mongoose.connect(uri, { autoIndex: false })
-  mongoose.set('debug', false) // Set to 'true' to enable verbose mode
-  _stream = await defaultPostConnect()
-  _stream.on('change', (doc) => {
-    // Dummy consumer
-  })
-})
-
-afterAll(async () => {
-  if (_stream.listeners.length > 0) {
-    logger.info(`Trailing listeners ${_stream.listeners.length}`)
-  }
-})
+import { inject } from 'vitest'
 
 interface DbTestContext {
   uri: string
   client: MongoClient
-  insertDirectly: (collection: string, documents: any[]) => Promise<void>
+  mongoose: Connection
 
   areas: MutableAreaDataSource
   climbs: MutableClimbDataSource
@@ -66,36 +35,18 @@ interface DbTestContext {
 }
 
 export const dbTest = test.extend<DbTestContext>({
-  uri: async ({ }, use) => await use(uri),
-  client: async ({ uri }, use) => {
+  uri: async ({ }, use) => await use(inject('uri')),
+  client: [async ({ uri }, use) => {
     const client = new MongoClient(uri)
+    await client.connect()
     await use(client)
     await client.close()
-  },
+  }, { auto: true }],
 
-  insertDirectly: async ({ task, uri }, use) => {
-    /**
-     * Bypass Mongoose to insert data directly into Mongo.
-     * Useful for inserting data that is incompatible with Mongoose schemas for migration testing.
-     * @param collection Name of collection for documents to be inserted into.
-     * @param docs Documents to be inserted into collection.
-     */
-    const insertDirectly = async (collection: string, documents: any[]): Promise<void> => {
-      const client = new MongoClient(uri)
-
-      try {
-        const database = client.db(task.id)
-        const mCollection = database.collection(collection)
-        const result = await mCollection.insertMany(documents)
-
-        logger.debug(`${result.insertedCount} documents were inserted directly into MongoDB`)
-      } finally {
-        await client.close()
-      }
-    }
-
-    await use(insertDirectly)
-  },
+  mongoose: [async ({ uri }, use) => {
+    await mongoose.connect(uri)
+    await use(mongoose.connection)
+  }, { auto: true }],
 
   areas: async ({ }, use) => await use(MutableAreaDataSource.getInstance()),
   climbs: async ({ }, use) => await use(MutableClimbDataSource.getInstance()),
@@ -107,7 +58,7 @@ export const dbTest = test.extend<DbTestContext>({
   users: async ({ }, use) => await use(UserDataSource.getInstance()),
   changeLog: async ({ }, use) => await use(ChangeLogDataSource.getInstance()),
 
-  waitForChanges: async ({ changeLog, task }, use) => {
+  waitForChanges: async ({ changeLog }, use) => {
     const changeStream = changeLog.changeLogModel.collection.watch<ChangeLogType>()
 
     async function wait (props: WaitProps): Promise<void> {

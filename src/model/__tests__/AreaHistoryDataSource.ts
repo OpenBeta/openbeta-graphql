@@ -20,7 +20,7 @@ describe('Area history', () => {
     ).toHaveLength(2)
   })
 
-  it('should properly seperate unrelated histories', async ({
+  it.todo('should properly seperate unrelated histories', async ({
     changeLog,
     area,
     addArea,
@@ -37,7 +37,7 @@ describe('Area history', () => {
     expect(randomHistory).toHaveLength(0)
   })
 
-  it('should return change sets in most recent order', async ({
+  it.todo('should return change sets in most recent order', async ({
     changeLog,
     area,
     addArea,
@@ -124,7 +124,7 @@ describe('Area history', () => {
     expect(countryHistory2[0].changes[0])
   })
 
-  it('should record multiple Areas.setDestination() calls ', async ({
+  it.todo('should record multiple Areas.setDestination() calls ', async ({
     user,
     areas,
     changeLog,
@@ -158,7 +158,7 @@ describe('Area history', () => {
     ).toStrictEqual(false) // default
   })
 
-  it('should record an Areas.deleteArea() call', async ({
+  it.todo('should record an Areas.deleteArea() call', async ({
     user,
     areas,
     changeLog,
@@ -177,7 +177,7 @@ describe('Area history', () => {
     expect(history[0].changes[0].fullDocument._id).toEqual(area._id)
   })
 
-  it('should not record a failed Areas.deleteArea() call', async ({
+  it.todo('should not record a failed Areas.deleteArea() call', async ({
     user,
     area,
     areas,

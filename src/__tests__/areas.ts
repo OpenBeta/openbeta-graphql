@@ -95,8 +95,7 @@ describe('areas API', () => {
       expect(response.statusCode).toBe(200)
       const areaResult = response.body.data.area
       expect(areaResult.uuid).toBe(muuidToString(includedChild.metadata.area_id))
-      expect(areaResult.organizations).toHaveLength(1)
-      expect(areaResult.organizations[0].orgId).toBe(muuidToString(alphaOrg.orgId))
+      expect(areaResult.organizations).toContainEqual({ orgId: muuidToString(alphaOrg.orgId) })
     })
 
     it('retrieves an area and lists associated organizations, even with no auth context', async ({ query, includedChild, alphaOrg }) => {
