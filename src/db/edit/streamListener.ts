@@ -75,10 +75,6 @@ const onChange = async (change: ChangeStreamDocument): Promise<void> => {
       let dbOp: DBOperation = 'update'
       const source = DocumentKind[change.ns.coll]
       const { fullDocument, _id, updateDescription } = change as ChangeStreamUpdateDocument
-      if (fullDocument === undefined) {
-        logger.warn('no fulldocument joined')
-        return
-      }
       if (fullDocument?._deleting != null) {
         dbOp = 'delete'
       }

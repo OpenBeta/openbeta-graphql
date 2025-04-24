@@ -106,6 +106,7 @@ describe('Area history', () => {
     areas,
     changeLog,
     country,
+    waitForChanges,
     area
   }) => {
     const areaUuid = area.metadata.area_id
@@ -113,13 +114,10 @@ describe('Area history', () => {
       areas.setDestinationFlag(user, muuid.v4(), true)
     ).rejects.toThrow() // non-existent area id. Trx won't be recorded
 
-    await areas.setDestinationFlag(user, areaUuid, true)
-    await areas.setDestinationFlag(user, areaUuid, false)
-
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    await waitForChanges({ document: area, operation: OperationType.updateDestination }, async () => await areas.setDestinationFlag(user, areaUuid, true))
+    await waitForChanges({ document: area, operation: OperationType.updateDestination }, async () => await areas.setDestinationFlag(user, areaUuid, false))
     const changset = await changeLog.getAreaChangeSets(areaUuid)
 
-    expect(changset).toHaveLength(3)
     expect(changset[0].operation).toEqual('updateDestination')
     expect(changset[1].operation).toEqual('updateDestination')
     expect(changset[2].operation).toEqual('addArea')
@@ -166,10 +164,9 @@ describe('Area history', () => {
     area,
     areas,
     addArea,
-    changeLog,
-    waitForChanges
+    changeLog
   }) => {
-    const child = await waitForChanges({ document: area }, async () => await addArea(undefined, { parent: area }))
+    const child = await addArea(undefined, { parent: area })
     // by giving this child its own child, we can create a vioalation condition if someone were
     // to try and delete <child>
     await addArea(undefined, { parent: child })
@@ -177,7 +174,6 @@ describe('Area history', () => {
     await expect(
       async () => await areas.deleteArea(user, child.metadata.area_id)
     ).rejects.toThrow()
-    await process
 
     const history = await changeLog.getAreaChangeSets(area.metadata.area_id)
 

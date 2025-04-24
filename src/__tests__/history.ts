@@ -49,7 +49,7 @@ describe('history API', () => {
       }
     `
 
-    it('queries recent change history successfully', async ({ user, userUuid, query, climbs, organizations, area, country }) => {
+    it('queries recent change history successfully', async ({ user, userUuid, query, climbs, organizations, area, country, waitForChanges }) => {
       // Make changes to be tracked.
       const alphaFields = {
         displayName: 'Alpha OpenBeta Club',
@@ -58,7 +58,7 @@ describe('history API', () => {
       }
 
       const alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, alphaFields)
-      const climbIds = await climbs.addOrUpdateClimbs(user, area.metadata.area_id, [{ name: 'Alpha Climb' }])
+      const climbIds = await waitForChanges({ document: area }, async () => await climbs.addOrUpdateClimbs(user, area.metadata.area_id, [{ name: 'Alpha Climb' }]))
 
       // Query for changes and ensure they are tracked.
       const resp = await query({
@@ -70,7 +70,6 @@ describe('history API', () => {
       expect(resp.statusCode).toBe(200)
       const histories = resp.body.data.getChangeHistory
 
-      await new Promise((resolve) => setTimeout(resolve, 500))
       const climb = await climbs.findOneClimbByMUUID(muuid.from(climbIds[0]))
 
       assert(climb)
@@ -97,6 +96,11 @@ describe('history API', () => {
        */
       const insertChange = climbChange.changes.filter(c => c.dbOp === 'insert')[0]
       const updateChange = climbChange.changes.filter(c => c.dbOp === 'update')[0]
+
+      expect(insertChange).toBeTruthy()
+      expect(insertChange.fullDocument).toBeTruthy()
+      expect(insertChange.fullDocument.uuid).toBeTruthy()
+
       expect(insertChange.fullDocument.uuid).toBe(climbIds[0])
       expect(updateChange.fullDocument.uuid).toBe(muuidToString(area.metadata.area_id))
 
