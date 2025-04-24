@@ -1,8 +1,8 @@
 import muuid from "uuid-mongodb";
-import exampleImportData from './import-example.json' assert {type: 'json'};
-import {BulkImportResultType} from "../db/BulkImportTypes.js";
-import { gqlTest   } from "./fixtures/gql.fixtures.js";
-import { muuidToString } from "../utils/helpers";
+import exampleImportData from '../../__tests__/import-example.json' assert {type: 'json'};
+import {BulkImportResultType} from "../../db/BulkImportTypes.js";
+import { gqlTest   } from "../../__tests__/fixtures/gql.fixtures.js";
+import { muuidToString } from "../../utils/helpers";
 
 interface LocalContext {
   importData: typeof exampleImportData

@@ -1,9 +1,9 @@
-import { OperationType, OrganizationEditableFieldsType, OrganizationType, OrgType } from '../db/OrganizationTypes.js'
-import ChangeLogDataSource from '../model/ChangeLogDataSource.js'
-import { muuidToString } from '../utils/helpers.js'
+import { OperationType, OrganizationEditableFieldsType, OrganizationType, OrgType } from '../../db/OrganizationTypes.js'
+import ChangeLogDataSource from '../../model/ChangeLogDataSource.js'
+import { muuidToString } from '../../utils/helpers.js'
 import { validate as validateMuuid } from 'uuid'
-import { gqlTest } from './fixtures/gql.fixtures'
-import { AreaType } from '../db/AreaTypes.js'
+import { gqlTest } from '../../__tests__/fixtures/gql.fixtures.js'
+import { AreaType } from '../../db/AreaTypes.js'
 
 interface LocalContext {
   ca: AreaType

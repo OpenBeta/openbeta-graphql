@@ -1,5 +1,5 @@
-import { DisciplineType } from '../db/ClimbTypes.js'
-import { sanitizeDisciplines, createGradeObject, gradeContextToGradeScales } from '../GradeUtils.js'
+import { DisciplineType } from '../../db/ClimbTypes.js'
+import { sanitizeDisciplines, createGradeObject, gradeContextToGradeScales } from '../../GradeUtils.js'
 
 describe('Test grade utilities', () => {
   it('sanitizes bad discipline object', () => {

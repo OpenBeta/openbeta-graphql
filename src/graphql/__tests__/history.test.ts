@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
-import { OrgType } from '../db/OrganizationTypes.js'
-import { muuidToString } from '../utils/helpers.js'
-import { gqlTest as it } from './fixtures/gql.fixtures.js'
+import { OrgType } from '../../db/OrganizationTypes.js'
+import { muuidToString } from '../../utils/helpers.js'
+import { gqlTest as it } from '../../__tests__/fixtures/gql.fixtures.js'
 import muuid from 'uuid-mongodb'
 
 describe('history API', () => {

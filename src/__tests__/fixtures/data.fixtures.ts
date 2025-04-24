@@ -73,7 +73,7 @@ export const dataFixtures = dbTest.extend<DbTestContext>({
   profile: async ({ task, user, users, userUuid }, use) => {
     await users.createOrUpdateUserProfile(user, {
       userUuid,
-      username: task.id,
+      username: task.id.replace('-', ''),
       email: 'cat@example.com'
     })
 

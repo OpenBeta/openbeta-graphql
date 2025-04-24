@@ -1,8 +1,8 @@
-import { MediaObjectGQLInput } from '../db/MediaObjectTypes.js'
-import { AreaType } from '../db/AreaTypes.js'
-import { OrganizationEditableFieldsType, OrganizationType, OrgType } from '../db/OrganizationTypes.js'
-import { muuidToString } from '../utils/helpers.js'
-import { gqlTest } from './fixtures/gql.fixtures.js'
+import { MediaObjectGQLInput } from '../../db/MediaObjectTypes.js'
+import { AreaType } from '../../db/AreaTypes.js'
+import { OrganizationEditableFieldsType, OrganizationType, OrgType } from '../../db/OrganizationTypes.js'
+import { muuidToString } from '../../utils/helpers.js'
+import { gqlTest } from '../../__tests__/fixtures/gql.fixtures.js'
 import gql from 'graphql-tag'
 interface LocalContext {
   includedChild: AreaType

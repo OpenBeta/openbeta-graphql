@@ -1,8 +1,7 @@
 import gql from 'graphql-tag'
-import { TickInput, TickType } from '../db/TickTypes.js'
-import { muuidToString } from '../utils/helpers.js'
-import { allowableStyleMap, choose } from './fixtures/data.fixtures.js'
-import { gqlTest } from './fixtures/gql.fixtures.js'
+import { TickInput, TickType } from '../../db/TickTypes.js'
+import { allowableStyleMap, choose } from '../../__tests__/fixtures/data.fixtures.js'
+import { gqlTest } from '../../__tests__/fixtures/gql.fixtures.js'
 
 interface LocalContext {
   singleTickData: TickInput
@@ -14,7 +13,7 @@ const it = gqlTest.extend<LocalContext>({
     await use({
       name: 'Route One',
       notes: 'Nice slab',
-      climbId: muuidToString(climb._id),
+      climbId: climb._id.toString(),
       userId: userUuid,
       style: 'Lead',
       attemptType: choose(allowableStyleMap.Lead),
@@ -64,7 +63,7 @@ describe('ticks API', () => {
     it('queries by userId', async ({ userUuid, profile, tick, query }) => {
       const response = await query({
         query: userQuery,
-        variables: { userId: muuidToString(profile._id) }
+        variables: { userId: profile._id.toString() }
       })
 
       expect(response.statusCode).toBe(200)
