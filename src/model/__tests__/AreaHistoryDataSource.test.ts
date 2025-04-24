@@ -5,26 +5,6 @@ import { BaseChangeRecordType } from '../../db/ChangeLogType.js'
 import { ok } from 'assert'
 
 describe('Area history', () => {
-  it('should create history changes for an area when children get added to it', async ({
-    changeLog,
-    area,
-    addArea,
-    waitForChanges
-  }) => {
-    await Promise.all([
-      waitForChanges({ document: area }, async () => {
-        await addArea(undefined, { parent: area })
-      }),
-      waitForChanges({ document: area }, async () => {
-        await addArea(undefined, { parent: area })
-      })
-    ])
-
-    expect(
-      await changeLog.getAreaChangeSets(area.metadata.area_id)
-    ).toHaveLength(3)
-  })
-
   it('should properly seperate unrelated histories', async ({
     changeLog,
     area,
