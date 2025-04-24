@@ -73,7 +73,7 @@
     "build": "tsc -p tsconfig.json",
     "build-release": "tsc  -p tsconfig.release.json",
     "clean": "tsc -b --clean && rm -rf build/*",
-    "serve": "yarn build && node --experimental-json-modules build/main.js",
+    "serve": "yarn build && node --experimental-json-modules build/src/main.js",
     "serve-dev": "echo \"🚨 LOCAL_DEV_BYPASS_AUTH enabled 🚨\" && LOCAL_DEV_BYPASS_AUTH=true yarn serve",
     "seed-db": "./seed-db.sh",
     "add-countries": "yarn build && node build/db/utils/jobs/AddCountriesJob.js",

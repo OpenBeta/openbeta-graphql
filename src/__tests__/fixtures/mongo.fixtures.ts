@@ -12,9 +12,9 @@ import MutableOrganizationDataSource from '../../model/MutableOrganizationDataSo
 import TickDataSource from '../../model/TickDataSource'
 import UserDataSource from '../../model/UserDataSource'
 import { MUUID } from 'uuid-mongodb'
-import { BaseChangeRecordType, ChangeLogType } from '../../db/ChangeLogType'
-import { logger } from '../../logger'
 import { inject } from 'vitest'
+import { ClimbEditOperationType } from '../../db/ClimbTypes'
+import { OperationType } from '../../db/AreaTypes'
 
 interface DbTestContext {
   uri: string
@@ -31,7 +31,7 @@ interface DbTestContext {
   users: UserDataSource
   changeLog: ChangeLogDataSource
 
-  waitForChanges: (props: WaitProps) => Promise<void>
+  waitForChanges: <TReturn> (props: WaitProps, op?: () => Promise<TReturn>) => Promise<TReturn>
 }
 
 export const dbTest = test.extend<DbTestContext>({
@@ -58,41 +58,38 @@ export const dbTest = test.extend<DbTestContext>({
   users: async ({ }, use) => await use(UserDataSource.getInstance()),
   changeLog: async ({ }, use) => await use(ChangeLogDataSource.getInstance()),
 
-  waitForChanges: async ({ changeLog }, use) => {
-    const changeStream = changeLog.changeLogModel.collection.watch<ChangeLogType>()
+  waitForChanges: async ({ mongoose }, use) => {
+    async function wait<T> (
+      props: WaitProps,
+      op?: () => Promise<T>
+    ): Promise<T> {
+      const { document, operation, user } = props
+      const match: any = {}
+      // match a changeset based on whether the changes include the target document.
+      if (document !== undefined) match['fullDocument.changes.fullDocument._id'] = document._id
+      if (user !== undefined) match['fullDocument.editedBy'] = user
+      if (operation !== undefined) match['fullDocument.operation'] = operation
 
-    async function wait (props: WaitProps): Promise<void> {
-      return await new Promise<void>((resolve) => {
-        const listener = changeStream.on('change', (doc) => {
-          let changes: BaseChangeRecordType[]
+      const pipeline = [{ $match: match }]
+      const stream = mongoose.watch(pipeline, { fullDocument: 'updateLookup' })
 
-          if (doc.operationType === 'insert') {
-            changes = doc.fullDocument.changes
-          } else if (doc.operationType === 'update') {
-            assert(doc.updateDescription.updatedFields?.changes)
-            changes = doc.updateDescription.updatedFields?.changes
-          } else {
-            // we may not know what to do here
-            return
-          }
+      // 1) Trigger the change that should produce the event that we are waiting fot
+      const result = (op !== undefined) ? await op() : undefined as T
 
-          if (changes[0] === undefined) return
+      // 2) Then wait for it
+      await stream.hasNext()
+      await stream.next()
+      await stream.close()
 
-          if ((props.count === undefined && changes.length === 1) || changes.length === props.count) {
-            resolve()
-            listener.close()?.catch(logger.warn)
-          }
-        })
-      })
+      return result
     }
 
     await use(wait)
-    await changeStream.close()
   }
 })
 
 interface WaitProps {
-  count?: number
-  // operation?: AreaOperationType | ClimbEditOperationType
-  document: { _id: mongoose.Types.ObjectId | MUUID }
+  operation?: OperationType | ClimbEditOperationType
+  document?: { _id: mongoose.Types.ObjectId | MUUID }
+  user?: MUUID
 }
