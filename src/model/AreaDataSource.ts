@@ -116,7 +116,9 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
         },
         {
           $set: {
-            'climbs.gradeContext': '$gradeContext' // manually set area's grade context to climb
+            'climbs.gradeContext': '$gradeContext', // manually set area's grade context to climb
+            'climbs.ancestors': '$ancestors', // copy ancestors from area to climbs
+            'climbs.pathTokens': '$pathTokens' // copy pathTokens from area to climbs
           }
         }
       ])
@@ -184,8 +186,52 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
    */
   async findDescendantsByPath (path: string, isLeaf: boolean = false): Promise<AreaType[]> {
     const regex = new RegExp(`^${path}`)
-    const data = this.collection.find({ ancestors: regex, 'metadata.leaf': isLeaf })
-    return await data.toArray()
+
+    const pipeline = [
+      {
+        $match: {
+          ancestors: regex,
+          'metadata.leaf': isLeaf
+        }
+      },
+      {
+        $lookup: {
+          from: 'climbs', // Collection name for climbs
+          localField: 'climbs',
+          foreignField: '_id',
+          as: 'climbs'
+        }
+      },
+      {
+        $unwind: {
+          path: '$climbs',
+          preserveNullAndEmptyArrays: true // Ensure areas without climbs are still included
+        }
+      },
+      {
+        $set: {
+          'climbs.ancestors': '$ancestors', // Copy ancestors from area to climbs
+          'climbs.pathTokens': '$pathTokens' // Copy pathTokens from area to climbs
+        }
+      },
+      {
+        $group: {
+          _id: '$_id',
+          area: { $first: '$$ROOT' }, // Group back into areas
+          climbs: { $push: '$climbs' }
+        }
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ['$area', { climbs: '$climbs' }]
+          }
+        }
+      }
+    ]
+
+    const data = await this.collection.aggregate(pipeline).toArray()
+    return data as AreaType[] // Explicitly cast the result to AreaType[]
   }
 
   /**
