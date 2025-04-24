@@ -34,6 +34,7 @@ async function setupSharedCountryQueue (): Promise<void> {
   await db.collection('test_countries').insertMany(
     availableCountries.map(code => ({ code, reserved: false }))
   )
+  await client.close()
 }
 
 export async function setup (project: TestProject): Promise<void> {
