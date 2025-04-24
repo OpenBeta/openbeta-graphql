@@ -99,7 +99,6 @@
     "ignore": [
       "build",
       "hacks",
-      "**/*.test.ts",
       "db-migrations"
     ]
   },

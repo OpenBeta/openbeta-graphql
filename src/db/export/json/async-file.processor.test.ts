@@ -1,4 +1,5 @@
 import { logger } from '../../../logger'
+import { Processor } from '../common/processor'
 import { asyncFileProcessor, Writer } from './async-file.processor'
 import path from 'path'
 
@@ -9,11 +10,11 @@ describe('file processor', () => {
   const testData: TestType[] = [{ name: 'test', path: ['one', 'two'] }, { name: 'test2' }]
   const testPath = 'testPath'
 
-  function assertWriterCalledFor (data: TestType) {
+  function assertWriterCalledFor (data: TestType): void {
     expect(writer).toHaveBeenCalledWith(JSON.stringify(data), path.resolve(testPath, ...data.path ?? '', `${data.name}.json`))
   }
 
-  function createProcessor (w: Writer = writer) {
+  function createProcessor (w: Writer = writer): Processor<TestType> {
     return asyncFileProcessor({
       basePath: testPath,
       fileNameResolver: (data: TestType) => data.name,
@@ -22,11 +23,11 @@ describe('file processor', () => {
     })
   }
 
-  function withFailedWriteOn (failingData: { name: string }): Writer {
+  function withFailedWriteOn (failingData: TestType): (data: any, path: any) => Promise<void> {
     return async (data, path) => {
       logger.info(data, failingData)
       if (data === JSON.stringify(failingData)) {
-        return await Promise.reject('error')
+        return await Promise.reject(new Error('IO: We made this error'))
       }
 
       return await writer(data, path)
@@ -46,7 +47,7 @@ describe('file processor', () => {
     const processor = createProcessor(withFailedWriteOn(testData[0]))
 
     // First, check that our failed writer fires as expected
-    await expect(() => withFailedWriteOn(testData[0])(JSON.stringify(testData[0]), 'path')).rejects.toContain('error')
+    await expect(async () => await withFailedWriteOn(testData[0])(JSON.stringify(testData[0]), 'path')).rejects.toThrow('IO: We made this error')
     // now in the context of a strem, we should expect 1 out of two possible files to fail
     await expect(async () => await processor(testData, 0)).rejects.toThrow('Failed to write 1/2 files')
 
