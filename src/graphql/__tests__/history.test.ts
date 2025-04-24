@@ -3,6 +3,7 @@ import { OrgType } from '../../db/OrganizationTypes.js'
 import { muuidToString } from '../../utils/helpers.js'
 import { gqlTest as it } from '../../__tests__/fixtures/gql.fixtures.js'
 import muuid from 'uuid-mongodb'
+import { ClimbEditOperationType } from '../../db/ClimbTypes.js'
 
 describe('history API', () => {
   describe('queries', () => {
@@ -58,7 +59,10 @@ describe('history API', () => {
       }
 
       const alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, alphaFields)
-      const climbIds = await waitForChanges({ document: area }, async () => await climbs.addOrUpdateClimbs(user, area.metadata.area_id, [{ name: 'Alpha Climb' }]))
+      const climbIds = await waitForChanges(
+        { document: area, operation: ClimbEditOperationType.updateClimb },
+        async () => await climbs.addOrUpdateClimbs(user, area.metadata.area_id, [{ name: 'Alpha Climb' }])
+      )
 
       // Query for changes and ensure they are tracked.
       const resp = await query({
@@ -94,15 +98,15 @@ describe('history API', () => {
        * 3. Update aggregate object on crag
        * 4. Update the parent area
        */
-      const insertChange = climbChange.changes.filter(c => c.dbOp === 'insert')[0]
-      const updateChange = climbChange.changes.filter(c => c.dbOp === 'update')[0]
+      const climbInsertChange = climbChange.changes.find(c => c.dbOp === 'insert')
+      const climbUpdateChange = climbChange.changes.find(c => c.dbOp === 'update')
 
-      expect(insertChange).toBeTruthy()
-      expect(insertChange.fullDocument).toBeTruthy()
-      expect(insertChange.fullDocument.uuid).toBeTruthy()
+      expect(climbInsertChange).toBeTruthy()
+      expect(climbInsertChange.fullDocument).toBeTruthy()
+      expect(climbInsertChange.fullDocument.uuid).toBeTruthy()
 
-      expect(insertChange.fullDocument.uuid).toBe(climbIds[0])
-      expect(updateChange.fullDocument.uuid).toBe(muuidToString(area.metadata.area_id))
+      expect(climbInsertChange.fullDocument.uuid).toBe(climbIds[0])
+      expect(climbUpdateChange.fullDocument.uuid).toBe(muuidToString(area.metadata.area_id))
 
       expect(orgChange.operation).toBe('addOrganization')
       expect(orgChange.editedBy).toBe(userUuid)
