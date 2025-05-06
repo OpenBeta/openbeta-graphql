@@ -4,7 +4,7 @@ import express from "express";
 import {InMemoryDB} from "../utils/inMemoryDB.js";
 import {queryAPI, setUpServer} from "../utils/testUtils.js";
 import {muuidToString} from "../utils/helpers.js";
-import exampleImportData from './import-example.json' assert {type: 'json'};
+import exampleImportData from './import-example.json'
 import {AreaType} from "../db/AreaTypes.js";
 import {BulkImportResultType} from "../db/BulkImportTypes.js";
 import MutableClimbDataSource from "../model/MutableClimbDataSource.js";
