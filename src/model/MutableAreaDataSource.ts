@@ -3,14 +3,14 @@ import { geometry, Point } from '@turf/helpers'
 import { GraphQLError } from 'graphql'
 import { ApolloServerErrorCode } from '@apollo/server/errors'
 import isoCountries from 'i18n-iso-countries'
-import enJson from 'i18n-iso-countries/langs/en.json' assert {type: 'json'}
+import enJson from 'i18n-iso-countries/langs/en.json'
 import { produce } from 'immer'
 import mongoose, { ClientSession } from 'mongoose'
 import { NIL, v5 as uuidv5 } from 'uuid'
 import muuid, { MUUID } from 'uuid-mongodb'
 
 import { GradeContexts } from '../GradeUtils.js'
-import CountriesLngLat from '../data/countries-with-lnglat.json' assert {type: 'json'}
+import CountriesLngLat from '../data/countries-with-lnglat.json'
 import {
   AreaDocumnent,
   AreaEditableFieldsType,
