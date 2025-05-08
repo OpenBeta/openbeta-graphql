@@ -238,7 +238,18 @@ export const getCountriesDefaultGradeContext = (): { [x: string]: GradeContexts 
   return countries
 }
 
-export const validDisciplines = ['trad', 'sport', 'bouldering', 'deepwatersolo', 'alpine', 'snow', 'ice', 'mixed', 'aid', 'tr']
+export const validDisciplines: Array<keyof DisciplineType> = [
+  'trad',
+  'sport',
+  'bouldering',
+  'deepwatersolo',
+  'alpine',
+  'snow',
+  'ice',
+  'mixed',
+  'aid',
+  'tr'
+]
 
 /**
  * Perform runtime validation of climb discipline object

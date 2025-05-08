@@ -7,10 +7,11 @@ import MutableAreaDataSource from '../MutableAreaDataSource.js'
 import { createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { logger } from '../../logger.js'
 import { ClimbChangeInputType, ClimbType } from '../../db/ClimbTypes.js'
-import { sanitizeDisciplines } from '../../GradeUtils.js'
+import { sanitizeDisciplines, validDisciplines } from '../../GradeUtils.js'
 import streamListener from '../../db/edit/streamListener.js'
 import ChangeLogDataSource from '../ChangeLogDataSource.js'
 import inMemoryDB from '../../utils/inMemoryDB.js'
+import assert from 'assert'
 
 export const newSportClimb1: ClimbChangeInputType = {
   name: 'Cool route 1',
@@ -186,6 +187,12 @@ describe('Climb CRUD', () => {
     // Validate all climbs were added, and in the order we expect
     for (const [i, climbIn] of newClimbsToAdd.entries()) {
       const climbOut = await climbs.findOneClimbByMUUID(muid.from(newIDs[i]))
+
+      assert(climbOut !== null)
+      for (const key of validDisciplines) {
+        expect(climbOut.type[key]).not.toBeNull()
+        expect(climbOut.type[key]).not.toBeUndefined()
+      }
 
       // Validate new climb
       expect(climbOut).toMatchObject({

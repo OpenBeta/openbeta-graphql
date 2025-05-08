@@ -20,6 +20,7 @@ import {
 import { getClimbModel } from '../db/ClimbSchema.js'
 import { ClimbGQLQueryType } from '../db/ClimbTypes.js'
 import { logger } from '../logger.js'
+import { validDisciplines } from '../GradeUtils.js'
 
 export default class AreaDataSource extends MongoDataSource<AreaType> {
   areaModel = getAreaModel()
@@ -152,6 +153,20 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     const rs = await this.climbModel
       .aggregate([
         { $match: { _id: uuid } },
+        // Stage to ensure all discipline fields exist and are booleans. This data may not exist
+        // for chronology reasons and is an easier fix than doing migrations.
+        {
+          $addFields: {
+            ...validDisciplines.reduce((prev, curr) => {
+              prev[`type.${curr}`] = { $ifNull: [`$type.${curr}`, false] }
+              return prev
+            }, {}
+            ),
+            // This ensures 'type' is an object, so the above $ifNull
+            // operations work correctly on their fields.
+            disciplines: { $ifNull: ['$type', {}] }
+          }
+        },
         {
           $lookup: {
             from: 'areas', // other collection name
