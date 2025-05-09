@@ -13,16 +13,28 @@ type Mutation {
 }
 
 type Query {
+  user(input: LocateUserBy!): UserPublicProfile!
+  userPage(input: LocateUserBy!): UserPublicPage!
+
   "Check to see if a username already exists in the database."
   usernameExists(input: UsernameInput!): Boolean
-
   "Get username object by user uuid"
   getUsername(input: UserIDInput!): UsernameDetail
-
   "Get user public profile"
   getUserPublicProfileByUuid(input: UserIDInput!): UserPublicProfile
-
+  "A users page is their profile + their media (paginated)"
   getUserPublicPage(input: UsernameInput!): UserPublicPage
+}
+
+"""
+Users can be principally identified either by their username or by their user id.
+There is reason to prefer the latter over the former - usernames can be changed, and
+in any scenario where you might be caching or trying to produce a permanent resource
+reference you will want to prefer the uuid over the username.
+"""
+input LocateUserBy {
+  username: String
+  userUuid: ID
 }
 
 input UsernameInput {
