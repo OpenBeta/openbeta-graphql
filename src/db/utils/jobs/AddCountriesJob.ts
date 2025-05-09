@@ -1,4 +1,4 @@
-import enJson from 'i18n-iso-countries/langs/en.json'
+import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
 import { connectDB, gracefulExit } from '../../index.js'
 import MutableAreaDataSource from '../../../model/MutableAreaDataSource.js'
