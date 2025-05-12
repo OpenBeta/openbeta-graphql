@@ -1,4 +1,4 @@
-[![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
+c[![Build](https://gitlab.com/openbeta/openbeta-graphql/badges/develop/pipeline.svg)](https://gitlab.com/openbeta/openbeta-graphql/-/pipelines) [![License](https://img.shields.io/github/license/openbeta/openbeta-graphql?style=flat-square)](./LICENSE)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
@@ -65,6 +65,12 @@ query Example1 {
 ```
 
 ### Development
+#### Installing mongodb
+
+This step often trips up new devs. the install for most database engines can be little bit hairy, but mongodb is made a particular challenge by its lack of wide availability in common package managers. If you have docker installed, then your easiest bet is definitely to just do `docker compose up` when you need the persistent database. If that doesn't seem like fun to you, your next option is to get a binary [from their page directly](https://www.mongodb.com/try/download/community) they have wide platform support and you shouldn't have an issue finding one that will run for you.
+
+When configuring it for development, it should be fine to leave auth disabled, since the data inside is not sensitive.
+
 #### Requirements
 
 - [Docker](https://docs.docker.com/get-docker)
