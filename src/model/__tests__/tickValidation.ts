@@ -132,10 +132,10 @@ describe('Tick Validation', () => {
     areas = MutableAreaDataSource.getInstance()
     // Add climbs because add/update tick requires type validation
     await areas.addCountry('usa')
-    const newDestination = await areas.addArea(userId, 'California', null, 'usa')
+    const newDestination = await areas.addArea(userId, { areaName: 'California', countryCode: 'usa' })
     if (newDestination == null) fail('Expect new area to be created')
 
-    const routesArea = await areas.addArea(userId, 'Sport & Trad', newDestination.metadata.area_id)
+    const routesArea = await areas.addArea(userId, { areaName: 'Sport & Trad', parentUuid: newDestination.metadata.area_id })
 
     const newIDs = await climbs.addOrUpdateClimbs(userId, routesArea.metadata.area_id, newClimbsToAdd)
 

@@ -56,7 +56,7 @@ describe('bulkImportAreas', () => {
   beforeEach(async () => {
     await inMemoryDB.clear()
     await bulkImport.addCountry('usa')
-    testArea = await bulkImport.addArea(user, "Test Area", null, "us")
+    testArea = await bulkImport.addArea(user, { areaName: "Test Area", countryCode: "us" })
   })
 
   afterAll(async () => {

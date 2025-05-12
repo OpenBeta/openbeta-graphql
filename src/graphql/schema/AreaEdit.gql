@@ -49,6 +49,8 @@ input AreaInput {
   isLeaf: Boolean
   isBoulder: Boolean
   experimentalAuthor: ExperimentalAuthorType
+  lat: Float
+  lng: Float
 }
 
 """

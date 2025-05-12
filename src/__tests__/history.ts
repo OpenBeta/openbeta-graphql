@@ -97,7 +97,7 @@ describe('history API', () => {
     it('queries recent change history successfully', async () => {
       // Make changes to be tracked.
       usa = await areas.addCountry('usa')
-      ca = await areas.addArea(user, 'CA', usa.metadata.area_id)
+      ca = await areas.addArea(user, { areaName: 'CA', parentUuid: usa.metadata.area_id })
       const alphaFields = {
         displayName: 'Alpha OpenBeta Club',
         associatedAreaIds: [usa.metadata.area_id],

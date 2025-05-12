@@ -38,8 +38,8 @@ describe('Area history', () => {
     const newArea = await areas.findOneAreaByUUID(usa.metadata.area_id)
     expect(newArea.area_name).toEqual(usa.area_name)
 
-    const or = await areas.addArea(testUser, 'oregon', usa.metadata.area_id)
-    const nv = await areas.addArea(testUser, 'nevada', usa.metadata.area_id)
+    const or = await areas.addArea(testUser, { areaName: 'oregon', parentUuid: usa.metadata.area_id })
+    const nv = await areas.addArea(testUser, { areaName: 'nevada', parentUuid: usa.metadata.area_id })
 
     expect(nv?._id).toBeTruthy()
     expect(or?._id).toBeTruthy()
@@ -94,7 +94,7 @@ describe('Area history', () => {
 
   it('should record multiple Areas.setDestination() calls ', async () => {
     const canada = await areas.addCountry('can')
-    const squamish = await areas.addArea(testUser, 'squamish', canada.metadata.area_id)
+    const squamish = await areas.addArea(testUser, { areaName: 'squamish', parentUuid: canada.metadata.area_id })
 
     expect(squamish?._id).toBeTruthy()
 
@@ -121,7 +121,7 @@ describe('Area history', () => {
 
   it('should record an Areas.deleteArea() call', async () => {
     const greece = await areas.addCountry('grc')
-    const leonidio = await areas.addArea(testUser, 'Leonidio', greece.metadata.area_id)
+    const leonidio = await areas.addArea(testUser, { areaName: 'Leonidio', parentUuid: greece.metadata.area_id })
 
     if (leonidio == null) fail()
 
@@ -139,11 +139,11 @@ describe('Area history', () => {
 
   it('should not record a failed Areas.deleteArea() call', async () => {
     const spain = await areas.addCountry('esp')
-    const margalef = await areas.addArea(testUser, 'margalef', spain.metadata.area_id)
+    const margalef = await areas.addArea(testUser, { areaName: 'margalef', parentUuid: spain.metadata.area_id })
 
     if (margalef == null) fail()
 
-    const newChild = await areas.addArea(testUser, 'One', margalef.metadata.area_id)
+    const newChild = await areas.addArea(testUser, { areaName: 'One', parentUuid: margalef.metadata.area_id })
 
     if (newChild == null) fail()
 

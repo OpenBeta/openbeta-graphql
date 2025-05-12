@@ -93,13 +93,14 @@ export default class BulkImportDataSource extends MutableAreaDataSource {
           throw new Error(`area with id ${areaNode.uuid.toUUID().toString()} (${areaNode.areaName ?? 'unknown name'}) not found`)
         }
       } else if (areaNode.areaName != null) {
-        area = await this.addAreaWith({
-          user,
-          areaName: areaNode.areaName,
-          countryCode: areaNode.countryCode,
-          parentUuid,
+        area = await this.addAreaWith(user,
+          {
+            areaName: areaNode.areaName,
+            countryCode: areaNode.countryCode,
+            parentUuid
+          },
           session
-        }).then(async (area) => {
+        ).then(async (area) => {
           return await this.updateArea(user, area.metadata.area_id, {
             description: areaNode.description,
             leftRightIndex: areaNode.leftRightIndex,

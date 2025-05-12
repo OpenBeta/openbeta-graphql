@@ -34,15 +34,15 @@ import { getAreaModel } from '../db/AreaSchema.js'
 
 isoCountries.registerLocale(enJson)
 
-export interface AddAreaOptions {
-  user: MUUID
+interface AddAreaOptions {
   areaName: string
-  parentUuid?: MUUID | null
+  parentUuid?: MUUID
   countryCode?: string
   experimentalAuthor?: ExperimentalAuthorType
   isLeaf?: boolean
   isBoulder?: boolean
-  session?: ClientSession
+  lat?: number
+  lng?: number
 }
 
 export interface UpdateAreaOptions {
@@ -158,17 +158,10 @@ export default class MutableAreaDataSource extends AreaDataSource {
     throw new Error('Error inserting ' + countryCode)
   }
 
-  async addAreaWith ({
-    user,
-    areaName,
-    parentUuid = null,
-    countryCode,
-    experimentalAuthor,
-    isLeaf,
-    isBoulder,
-    session
-  }: AddAreaOptions): Promise<AreaType> {
-    return await this.addArea(user, areaName, parentUuid, countryCode, experimentalAuthor, isLeaf, isBoulder, session)
+  async addAreaWith (user: MUUID, props: AddAreaOptions, session?: ClientSession): Promise<AreaType> {
+    return await this.addArea(
+      user, props, session
+    )
   }
 
   /**
@@ -178,14 +171,13 @@ export default class MutableAreaDataSource extends AreaDataSource {
    * @param parentUuid
    * @param countryCode
    */
-  async addArea (user: MUUID,
-    areaName: string,
-    parentUuid: MUUID | null,
-    countryCode?: string,
-    experimentalAuthor?: ExperimentalAuthorType,
-    isLeaf?: boolean,
-    isBoulder?: boolean,
-    sessionCtx?: ClientSession): Promise<AreaType> {
+  async addArea (
+    user: MUUID,
+    props: AddAreaOptions,
+    sessionCtx?: ClientSession
+  ): Promise<AreaType> {
+    const { parentUuid, countryCode, areaName } = props
+
     if (parentUuid == null && countryCode == null) {
       throw new Error(`Adding area "${areaName}" failed. Must provide parent Id or country code`)
     }
@@ -199,12 +191,15 @@ export default class MutableAreaDataSource extends AreaDataSource {
       throw new Error(`Adding area "${areaName}" failed. Unable to determine parent id or country code`)
     }
 
+    // We can update the prop in place and pass it on to the rest of the logic
+    props.parentUuid = parentId
+
     const session = sessionCtx ?? await this.areaModel.startSession()
     try {
       if (session.inTransaction()) {
-        return await this._addArea(session, user, areaName, parentId, experimentalAuthor, isLeaf, isBoulder)
+        return await this._addArea(session, user, props)
       } else {
-        return await withTransaction(session, async () => await this._addArea(session, user, areaName, parentId, experimentalAuthor, isLeaf, isBoulder))
+        return await withTransaction(session, async () => await this._addArea(session, user, props))
       }
     } finally {
       if (sessionCtx == null) {
@@ -213,13 +208,18 @@ export default class MutableAreaDataSource extends AreaDataSource {
     }
   }
 
-  async _addArea (session, user: MUUID, areaName: string, parentUuid: MUUID, experimentalAuthor?: ExperimentalAuthorType, isLeaf?: boolean, isBoulder?: boolean): Promise<any> {
+  async _addArea (session, user: MUUID, props: AddAreaOptions): Promise<any> {
+    const { areaName, parentUuid, isLeaf, isBoulder, experimentalAuthor } = props
     const parentFilter = { 'metadata.area_id': parentUuid }
-    const parent = await this.areaModel.findOne(parentFilter).session(session).orFail(new GraphQLError(`[${areaName}]: Expecting country or area parent, found none with id ${parentUuid.toString()}`, {
-      extensions: {
-        code: ApolloServerErrorCode.BAD_USER_INPUT
-      }
-    }))
+    const parent = await this
+      .areaModel
+      .findOne(parentFilter)
+      .session(session)
+      .orFail(new GraphQLError(`[${areaName}]: Expecting country or area parent, found none with id ${(parentUuid ?? 0).toString()}`, {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      }))
 
     if (parent.metadata.leaf || (parent.metadata?.isBoulder ?? false)) {
       if (parent.children.length > 0 || parent.climbs.length > 0) {
