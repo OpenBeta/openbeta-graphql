@@ -3,7 +3,6 @@ import { geojsonPointToLatitude, geojsonPointToLongitude } from '../../utils/hel
 import { DataSourcesType } from '../../types.js'
 
 const MediaResolvers = {
-
   MediaByUsers: {
     userUuid: (node: MediaByUsers) => node.userUuid.toUUID().toString(),
     username:
@@ -20,6 +19,11 @@ const MediaResolvers = {
       const { users } = dataSources as DataSourcesType
       const u = await users.getUsername(node.userUuid)
       return u?.username ?? null
+    },
+    user: async (node: MediaObject, _: any, { dataSources }) => {
+      const { users } = dataSources as DataSourcesType
+      const u = await users.getUserPublicProfileByUuid(node.userUuid)
+      return u ?? null
     },
     uploadTime: (node: MediaObject) => node.createdAt
   },

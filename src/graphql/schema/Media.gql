@@ -192,6 +192,7 @@ type EntityTag {
 type MediaWithTags implements IMediaMetadata {
   id: ID!
   username: String
+  user: UserPublicProfile
   mediaUrl: String!
   width: Int!
   height: Int!
