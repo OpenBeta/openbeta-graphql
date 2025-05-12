@@ -2,8 +2,9 @@ import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
 import { TagsLeaderboardType, MediaObject, MediaByUsers, UserMediaQueryInput, AreaMediaQueryInput, ClimbMediaQueryInput, MediaForFeedInput } from '../../db/MediaObjectTypes.js'
 import { GQLContext } from '../../types.js'
+import { IResolvers } from '@graphql-tools/utils'
 
-const MediaQueries = {
+const MediaQueries: IResolvers<any, MediaObject> = {
 
   media: async (_: any, { input }, { dataSources }: GQLContext): Promise<MediaObject> => {
     const { media } = dataSources

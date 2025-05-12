@@ -1,7 +1,8 @@
 import muid from 'uuid-mongodb'
 import { ClimbChangeInputType, ClimbType } from '../../db/ClimbTypes.js'
-import { sanitizeDisciplines } from '../../GradeUtils.js'
 import { dataFixtures as it } from '../../__tests__/fixtures/data.fixtures'
+import { sanitizeDisciplines, validDisciplines } from '../../GradeUtils.js'
+import assert from 'assert'
 
 const newSportClimb1: ClimbChangeInputType = {
   name: 'Cool route 1',
@@ -144,6 +145,12 @@ describe('Climb CRUD', () => {
     // Validate all climbs were added, and in the order we expect
     for (const [i, climbIn] of newClimbsToAdd.entries()) {
       const climbOut = await climbs.findOneClimbByMUUID(muid.from(newIDs[i]))
+
+      assert(climbOut !== null)
+      for (const key of validDisciplines) {
+        expect(climbOut.type[key]).not.toBeNull()
+        expect(climbOut.type[key]).not.toBeUndefined()
+      }
 
       // Validate new climb
       expect(climbOut).toMatchObject({

@@ -220,6 +220,31 @@ export default class UserDataSource extends MongoDataSource<User> {
   }
 
   /**
+   * I don't have a solid insight into how many external services are still querying
+   * by username, so we support it as a failover keying strategy in the resolvers
+   */
+  async uuidFromUsername (username: string): Promise<MUUID> {
+    if (typeof username !== 'string' || username === '') {
+      throw new Error('You must provide some positive username, or use a full UUID instead')
+    }
+
+    if (!isValidUsername(username)) {
+      throw new Error('Invalid username')
+    }
+
+    return (await this.userModel.findOne<UserPublicProfile>(
+      {
+        'usernameInfo.username': {
+          $exists: true, $eq: username
+        }
+      },
+      {
+        _id: 1
+      }
+    ).orFail().lean())._id
+  }
+
+  /**
    * Get user profile data by user name
    * @param username username
    */
