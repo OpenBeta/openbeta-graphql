@@ -149,7 +149,7 @@ jobs:
           docker container restart mongodb
 
       - name: Run tests
-        run: yarn test --ci
+        run: CI=true yarn test
 
       - name: Build sources
         run: yarn build-release --noEmit

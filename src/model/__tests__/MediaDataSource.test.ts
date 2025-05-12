@@ -1,10 +1,5 @@
 import mongoose from 'mongoose'
-import muuid, { MUUID } from 'uuid-mongodb'
-import MutableMediaDataSource from '../MutableMediaDataSource.js'
-import AreaDataSource from '../MutableAreaDataSource.js'
-import ClimbDataSource from '../MutableClimbDataSource.js'
-
-import { createIndexes } from '../../db/index.js'
+import muuid from 'uuid-mongodb'
 import { AreaType } from '../../db/AreaTypes.js'
 import {
   AddTagEntityInput,
@@ -15,119 +10,76 @@ import {
   AreaMediaQueryInput,
   ClimbMediaQueryInput
 } from '../../db/MediaObjectTypes.js'
-import { newSportClimb1 } from './MutableClimbDataSource.js'
-import inMemoryDB from '../../utils/inMemoryDB.js'
+import { gqlTest } from '../../__tests__/fixtures/gql.fixtures.js'
+import { muuidToString } from '../../utils/helpers.js'
 
-const TEST_MEDIA: MediaObjectGQLInput = {
-  userUuid: 'a2eb6353-65d1-445f-912c-53c6301404bd',
-  mediaUrl: '/u/a2eb6353-65d1-445f-912c-53c6301404bd/photo1.jpg',
-  width: 800,
-  height: 600,
-  format: 'jpeg',
-  size: 45000
+interface LocalContext {
+  mediaInput: MediaObjectGQLInput
+  mediaObject: MediaObject
+  otherArea: AreaType
+
+  areaTag1: AddTagEntityInput
+  areaTag2: AddTagEntityInput
+  climbTag: AddTagEntityInput
 }
 
+const it = gqlTest.extend<LocalContext>({
+  mediaInput: async ({ task, userUuid }, use) => await use({
+    userUuid,
+    mediaUrl: `/u/${userUuid}/${task.id}.jpg`,
+    width: 800,
+    height: 600,
+    format: 'jpeg',
+    size: 45000
+  }),
+  otherArea: async ({ addArea }, use) => await use(await addArea()),
+  mediaObject: async ({ media, mediaInput }, use) => await use((await media.addMediaObjects([mediaInput]))[0]),
+
+  areaTag1: async ({ area, mediaObject }, use) => await use({
+    mediaId: mediaObject._id,
+    entityType: 1,
+    entityUuid: area.metadata.area_id
+  }),
+
+  areaTag2: async ({ otherArea, mediaObject }, use) => await use({
+    mediaId: mediaObject._id,
+    entityType: 1,
+    entityUuid: otherArea.metadata.area_id,
+    topoData: { name: 'AA', value: '1234' }
+  }),
+
+  climbTag: async ({ climb, mediaObject }, use) => await use({
+    mediaId: mediaObject._id,
+    entityType: 0,
+    entityUuid: climb._id
+  })
+})
+
 describe('MediaDataSource', () => {
-  let media: MutableMediaDataSource
-  let areas: AreaDataSource
-  let climbs: ClimbDataSource
-
-  let areaForTagging1: AreaType
-  let areaForTagging2: AreaType
-  let areaForTagging3: AreaType
-  let climbIdForTagging: MUUID
-
-  let areaTag1: AddTagEntityInput
-  let areaTag2: AddTagEntityInput
-  let climbTag: AddTagEntityInput
-
-  let testMediaObject: MediaObject
-
-  beforeAll(async () => {
-    await inMemoryDB.connect()
-
-    areas = AreaDataSource.getInstance()
-    climbs = ClimbDataSource.getInstance()
-    media = MutableMediaDataSource.getInstance()
-  })
-
-  beforeEach(async () => {
-    try {
-      await areas.areaModel.collection.drop()
-      await climbs.climbModel.collection.drop()
-      await media.mediaObjectModel.collection.drop()
-    } catch (e) {
-      console.log('Cleaning up db before test')
-    }
-
-    await createIndexes()
-
-    await areas.addCountry('USA')
-    areaForTagging1 = await areas.addArea(muuid.v4(), 'Yosemite NP', null, 'USA')
-    areaForTagging2 = await areas.addArea(muuid.v4(), 'Lake Tahoe', null, 'USA')
-    areaForTagging3 = await areas.addArea(muuid.v4(), 'Shelf Road', null, 'USA')
-    if (areaForTagging1 == null || areaForTagging2 == null || areaForTagging3 == null) fail('Fail to pre-seed test areas')
-
-    const rs = await climbs.addOrUpdateClimbs(muuid.v4(), areaForTagging1.metadata.area_id, [newSportClimb1])
-    if (rs == null) fail('Fail to pre-seed test climbs')
-    climbIdForTagging = muuid.from(rs[0])
-
-    const rs2 = await media.addMediaObjects([TEST_MEDIA])
-    testMediaObject = rs2[0]
-    if (testMediaObject == null) {
-      fail('Fail to create test media')
-    }
-
-    areaTag1 = {
-      mediaId: testMediaObject._id,
-      entityType: 1,
-      entityUuid: areaForTagging1.metadata.area_id
-    }
-
-    areaTag2 = {
-      mediaId: testMediaObject._id,
-      entityType: 1,
-      entityUuid: areaForTagging2.metadata.area_id,
-      topoData: { name: 'AA', value: '1234' }
-    }
-
-    climbTag = {
-      mediaId: testMediaObject._id,
-      entityType: 0,
-      entityUuid: climbIdForTagging
-    }
-  })
-
-  afterAll(async () => {
-    await inMemoryDB.close()
-  })
-
-  it('should not tag a nonexistent area', async () => {
+  it('should not tag a nonexistent area', async ({ media, mediaObject }) => {
     const badAreaTag: AddTagEntityInput = {
-      mediaId: testMediaObject._id,
+      mediaId: mediaObject._id,
       entityType: 1,
       entityUuid: muuid.v4() // some random area
     }
     await expect(media.upsertEntityTag(badAreaTag)).rejects.toThrow(/area .* not found/i)
   })
 
-  it('should not tag a nonexistent *climb*', async () => {
+  it('should not tag a nonexistent *climb*', async ({ media, mediaObject }) => {
     const badClimbTag: AddTagEntityInput = {
-      mediaId: testMediaObject._id,
+      mediaId: mediaObject._id,
       entityType: 0,
       entityUuid: muuid.v4() // some random climb
     }
     await expect(media.upsertEntityTag(badClimbTag)).rejects.toThrow(/climb .* not found/i)
   })
 
-  it('should tag & remove an area tag', async () => {
-    if (areaForTagging1 == null) fail('Pre-seeded test area not found')
-
+  it('should tag & remove an area tag', async ({ media, mediaInput, areaTag1, climbTag, area, climb }) => {
     // verify the number tags before test
-    let mediaObjects = await media.getOneUserMedia(TEST_MEDIA.userUuid, 10)
+    let mediaObjects = await media.getOneUserMedia(mediaInput.userUuid, 10)
     expect(mediaObjects[0].entityTags).toHaveLength(0)
 
-    // add 1st tag
+    // add 1climbNamest tag
     await media.upsertEntityTag(areaTag1)
 
     // add 2nd tag
@@ -136,14 +88,14 @@ describe('MediaDataSource', () => {
     expect(tag).toMatchObject<Partial<EntityTag>>({
       targetId: climbTag.entityUuid,
       type: climbTag.entityType,
-      areaName: areaForTagging1.area_name,
-      ancestors: areaForTagging1.ancestors,
-      climbName: newSportClimb1.name,
-      lnglat: areaForTagging1.metadata.lnglat
+      areaName: area.area_name,
+      ancestors: area.ancestors,
+      climbName: climb.name,
+      lnglat: area.metadata.lnglat
     })
 
     // verify the number tags
-    mediaObjects = await media.getOneUserMedia(TEST_MEDIA.userUuid, 10)
+    mediaObjects = await media.getOneUserMedia(mediaInput.userUuid, 10)
     expect(mediaObjects[0].entityTags).toHaveLength(2)
 
     // remove tag
@@ -151,14 +103,14 @@ describe('MediaDataSource', () => {
     expect(res).toBe(true)
 
     // verify the number tags
-    mediaObjects = await media.getOneUserMedia(TEST_MEDIA.userUuid, 10)
+    mediaObjects = await media.getOneUserMedia(mediaInput.userUuid, 10)
     expect(mediaObjects[0].entityTags).toHaveLength(1)
   })
 
-  it('should handle delete tag errors gracefully', async () => {
+  it('should handle delete tag errors gracefully', async ({ media, mediaObject }) => {
     // with invalid id format
     await expect(media.removeEntityTag({
-      mediaId: testMediaObject._id,
+      mediaId: mediaObject._id,
       // @ts-expect-error
       tagId: 'abc' // bad ObjectId format
     })).rejects.toThrowError(/Cast to ObjectId failed/i)
@@ -170,28 +122,26 @@ describe('MediaDataSource', () => {
     })).rejects.toThrowError(/not found/i)
   })
 
-  it('should not add a duplicate tag', async () => {
+  it('should not add a duplicate tag', async ({ areaTag2, media }) => {
     const updating = { ...areaTag2, topoData: { name: 'ZZ' } }
     const newTag = await media.upsertEntityTag(updating)
     expect(newTag.targetId).toEqual(areaTag2.entityUuid)
     expect(newTag.topoData).toEqual(updating.topoData)
   })
 
-  it('should not add media with the same url', async () => {
+  it('should not add media with the same url', async ({ mediaInput, media }) => {
     const mediaObj = {
-      ...TEST_MEDIA,
+      ...mediaInput,
       mediaUrl: 'photoAAA.jpg'
     }
     await media.addMediaObjects([mediaObj])
 
-    const rs2 = await expect(media.addMediaObjects([mediaObj])).rejects.toThrowError(/duplicate key error collection/i)
-
-    expect(rs2).toBeUndefined()
+    await expect(async () => await media.addMediaObjects([mediaObj])).rejects.toThrowError('duplicate key error collection')
   })
 
-  it('should delete media', async () => {
+  it('should delete media', async ({ mediaInput, media }) => {
     const rs = await media.addMediaObjects([{
-      ...TEST_MEDIA,
+      ...mediaInput,
       mediaUrl: 'u/a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5/photo100.jpg'
     }])
 
@@ -200,24 +150,24 @@ describe('MediaDataSource', () => {
     const rs2 = await media.deleteMediaObject(rs[0]._id)
     expect(rs2).toBe(true)
 
-    await expect(media.deleteMediaObject(rs[0]._id)).rejects.toThrowError(/not found/i)
+    await expect(async () => await media.deleteMediaObject(rs[0]._id)).rejects.toThrowError('not found')
   })
 
-  it('should not delete media with non-empty tags', async () => {
+  it('should not delete media with non-empty tags', async ({ mediaInput, media, climb }) => {
     const rs = await media.addMediaObjects([{
-      ...TEST_MEDIA,
+      ...mediaInput,
       mediaUrl: 'photo101.jpg',
-      entityTag: { entityType: 0, entityId: climbIdForTagging.toUUID().toString() }
+      entityTag: { entityType: 0, entityId: climb._id.toUUID().toString() }
     }
     ])
 
-    await expect(media.deleteMediaObject(rs[0]._id)).rejects.toThrowError(/Cannot delete media object with non-empty tags./i)
+    await expect(async () => await media.deleteMediaObject(rs[0]._id)).rejects.toThrowError('Cannot delete media object with non-empty tags.')
   })
 
-  it('should return paginated user media results', async () => {
+  it('should return paginated user media results', async ({ mediaInput, media }) => {
     const ITEMS_PER_PAGE = 3
     const MEDIA_TEMPLATE: MediaObjectGQLInput = {
-      ...TEST_MEDIA,
+      ...mediaInput,
       userUuid: 'a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5'
     }
 
@@ -233,9 +183,7 @@ describe('MediaDataSource', () => {
 
     const expectedMedia = await media.addMediaObjects(newMediaListInput)
 
-    if (expectedMedia == null) {
-      fail('Seeding test media fail')
-    }
+    assert(expectedMedia != null, 'seeding test media fail')
 
     // reverse because getOneUserMediaPagination() returns most recent first
     expectedMedia.reverse()
@@ -270,10 +218,10 @@ describe('MediaDataSource', () => {
     verifyPageData(page3, MEDIA_TEMPLATE.userUuid, 'userUuid', expectedMedia.slice(6, 7), mediaCount, 1, false)
   })
 
-  it('should return paginated area media results', async () => {
+  it('should return paginated area media results', async ({ mediaInput, area, media }) => {
     const ITEMS_PER_PAGE = 3
     const MEDIA_TEMPLATE: MediaObjectGQLInput = {
-      ...TEST_MEDIA,
+      ...mediaInput,
       userUuid: 'a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a6'
     }
 
@@ -289,54 +237,52 @@ describe('MediaDataSource', () => {
         mediaUrl: `/areaPhoto${i}.jpg`,
         entityTag: {
           entityType: 1,
-          entityId: areaForTagging3.metadata.area_id.toUUID().toString()
+          entityId: area.metadata.area_id.toUUID().toString()
         }
       })
     }
 
     const expectedMedia = await media.addMediaObjects(newMediaListInput)
 
-    if (expectedMedia == null) {
-      fail('Seeding test media fail')
-    }
+    assert(expectedMedia !== null)
 
     // reverse because getOneAreaMediaPagination() returns most recent first
     expectedMedia.reverse()
 
     const input: AreaMediaQueryInput = {
-      areaUuid: muuid.from(areaForTagging3.metadata.area_id),
+      areaUuid: muuid.from(area.metadata.area_id),
       first: ITEMS_PER_PAGE
     }
 
     const page1 = await media.getOneAreaMediaPagination(input)
 
-    verifyPageData(page1, areaForTagging3.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page1, area.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(0, 3), mediaCount, ITEMS_PER_PAGE, true)
 
     const page1Edges = page1.mediaConnection.edges
     const input2: AreaMediaQueryInput = {
-      areaUuid: muuid.from(areaForTagging3.metadata.area_id),
+      areaUuid: muuid.from(area.metadata.area_id),
       first: ITEMS_PER_PAGE,
       after: page1Edges[page1Edges.length - 1].cursor
     }
     const page2 = await media.getOneAreaMediaPagination(input2)
 
-    verifyPageData(page2, areaForTagging3.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page2, area.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(3, 6), mediaCount, ITEMS_PER_PAGE, true)
 
     const page2Edges = page2.mediaConnection.edges
     const input3: AreaMediaQueryInput = {
-      areaUuid: muuid.from(areaForTagging3.metadata.area_id),
+      areaUuid: muuid.from(area.metadata.area_id),
       first: ITEMS_PER_PAGE,
       after: page2Edges[page2Edges.length - 1].cursor
     }
     const page3 = await media.getOneAreaMediaPagination(input3)
 
-    verifyPageData(page3, areaForTagging3.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(6, 7), mediaCount, 1, false)
+    verifyPageData(page3, area.metadata.area_id.toString(), 'areaUuid', expectedMedia.slice(6, 7), mediaCount, 1, false)
   })
 
-  it('should return paginated climb media results', async () => {
+  it('should return paginated climb media results', async ({ mediaInput, climb, media }) => {
     const ITEMS_PER_PAGE = 4
     const MEDIA_TEMPLATE: MediaObjectGQLInput = {
-      ...TEST_MEDIA,
+      ...mediaInput,
       userUuid: 'a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a7'
     }
 
@@ -352,48 +298,46 @@ describe('MediaDataSource', () => {
         mediaUrl: `/climbPhoto${i}.jpg`,
         entityTag: {
           entityType: 0,
-          entityId: climbIdForTagging.toUUID().toString()
+          entityId: climb._id.toUUID().toString()
         }
       })
     }
 
     const expectedMedia = await media.addMediaObjects(newMediaListInput)
 
-    if (expectedMedia == null) {
-      fail('Seeding test media fail')
-    }
+    assert(expectedMedia !== null)
 
     // reverse because getOneClimbMediaPagination() returns most recent first
     expectedMedia.reverse()
 
     const input: ClimbMediaQueryInput = {
-      climbUuid: muuid.from(climbIdForTagging),
+      climbUuid: muuid.from(climb._id),
       first: ITEMS_PER_PAGE
     }
 
     const page1 = await media.getOneClimbMediaPagination(input)
 
-    verifyPageData(page1, climbIdForTagging.toString(), 'climbUuid', expectedMedia.slice(0, 4), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page1, muuidToString(climb._id), 'climbUuid', expectedMedia.slice(0, 4), mediaCount, ITEMS_PER_PAGE, true)
 
     const page1Edges = page1.mediaConnection.edges
     const input2: ClimbMediaQueryInput = {
-      climbUuid: muuid.from(climbIdForTagging),
+      climbUuid: climb._id,
       first: ITEMS_PER_PAGE,
       after: page1Edges[page1Edges.length - 1].cursor
     }
     const page2 = await media.getOneClimbMediaPagination(input2)
 
-    verifyPageData(page2, climbIdForTagging.toString(), 'climbUuid', expectedMedia.slice(4, 8), mediaCount, ITEMS_PER_PAGE, true)
+    verifyPageData(page2, muuidToString(climb._id), 'climbUuid', expectedMedia.slice(4, 8), mediaCount, ITEMS_PER_PAGE, true)
 
     const page2Edges = page2.mediaConnection.edges
     const input3: ClimbMediaQueryInput = {
-      climbUuid: muuid.from(climbIdForTagging),
+      climbUuid: climb._id,
       first: ITEMS_PER_PAGE,
       after: page2Edges[page2Edges.length - 1].cursor
     }
     const page3 = await media.getOneClimbMediaPagination(input3)
 
-    verifyPageData(page3, climbIdForTagging.toString(), 'climbUuid', expectedMedia.slice(8, 11), mediaCount, 3, false)
+    verifyPageData(page3, muuidToString(climb._id), 'climbUuid', expectedMedia.slice(8, 11), mediaCount, 3, false)
   })
 })
 

@@ -13,5 +13,5 @@ const setupLogFlare = (apiKey?: string, sourceToken?: string): any | undefined =
 
 export const logger = pino({
   name: 'openbeta-graphql',
-  level: 'info'
+  level: process.env.LOG_LEVEL ?? 'info'
 }, setupLogFlare(process.env.LOGFLARE_API_KEY, process.env.LOGFLARE_SOURCE_TOKEN))

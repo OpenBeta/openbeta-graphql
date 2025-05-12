@@ -1,5 +1,5 @@
-import { DisciplineType } from '../db/ClimbTypes.js'
-import { sanitizeDisciplines, createGradeObject, gradeContextToGradeScales } from '../GradeUtils.js'
+import { DisciplineType } from '../../db/ClimbTypes.js'
+import { sanitizeDisciplines, createGradeObject, gradeContextToGradeScales } from '../../GradeUtils.js'
 
 describe('Test grade utilities', () => {
   it('sanitizes bad discipline object', () => {
@@ -42,7 +42,7 @@ describe('Test grade utilities', () => {
 
   it('creates grade object correctly in US context', () => {
     const context = gradeContextToGradeScales.US
-    if (context == null) fail('Bad grade context.  Should not happen.')
+    assert(context != null, 'Bad grade context, should not happen')
 
     let actual = createGradeObject('5.9', sanitizeDisciplines({ sport: true }), context)
     expect(actual).toEqual({
@@ -88,9 +88,9 @@ describe('Test grade utilities', () => {
     expect(actual).toBeUndefined()
   })
 
-  it.failing('can alpine ice grades to climbs with discipline ice', () => {
+  it.fails('can alpine ice grades to climbs with discipline ice', () => {
     const context = gradeContextToGradeScales.US
-    if (context == null) fail('Bad grade context.  Should not happen.')
+    assert(context != null, 'Bad grade context, should not happen')
 
     const actual = createGradeObject('AI2', sanitizeDisciplines({ ice: true }), context)
     expect(actual).toEqual({
@@ -100,7 +100,7 @@ describe('Test grade utilities', () => {
 
   it('creates grade object correctly in AU context', () => {
     const context = gradeContextToGradeScales.AU
-    if (context == null) fail('Bad grade context.  Should not happen.')
+    assert(context != null, 'Bad grade context, should not happen')
 
     let actual = createGradeObject('5', sanitizeDisciplines({ sport: true }), context)
     expect(actual).toEqual({
@@ -139,7 +139,7 @@ describe('Test grade utilities', () => {
 
   it('creates grade object correctly in FR context', () => {
     const context = gradeContextToGradeScales.FR
-    if (context == null) fail('Bad grade context.  Should not happen.')
+    assert(context != null, 'Bad grade context, should not happen')
 
     let actual = createGradeObject('5a', sanitizeDisciplines({ sport: true }), context)
     expect(actual).toEqual({
@@ -178,7 +178,8 @@ describe('Test grade utilities', () => {
 
   it('creates grade object correctly in BRZ context', () => {
     const context = gradeContextToGradeScales.BRZ
-    if (context == null) { fail('Bad grade context.  Should not happen.') }
+    assert(context != null, 'Bad grade context, should not happen')
+
     let actual = createGradeObject('V', sanitizeDisciplines({ sport: true }), context)
     expect(actual).toEqual({
       brazilian_crux: 'V'

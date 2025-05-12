@@ -23,7 +23,7 @@ describe('area resolvers', () => {
       }
     ]
 
-    function assertNameResolver (areaName: string | undefined, expected: string) {
+    function assertNameResolver (areaName: string | undefined, expected: string): void {
       expect(resolveAreaFileName({ area_name: areaName })).toBe(expected)
     }
 
@@ -42,7 +42,7 @@ describe('area resolvers', () => {
       { name: 'should ignore slashes in names', input: ['test/', 'test2\\'], expected: path.join('test', 'test2') }
     ]
 
-    function assertSubPathResolver (path: string[], expected: string) {
+    function assertSubPathResolver (path: string[], expected: string): void {
       expect(resolveAreaSubPath({ pathTokens: path })).toBe(expected)
     }
 

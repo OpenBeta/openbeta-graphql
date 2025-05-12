@@ -77,39 +77,16 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Debug Jest Tests",
+            // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
             "type": "node",
             "request": "launch",
-            "env": {
-                "NODE_OPTIONS": "--experimental-vm-modules"
-            },
-            "runtimeArgs": [
-                "--inspect-brk",
-                "${workspaceRoot}/node_modules/.bin/jest",
-                "--runInBand",
-                "history"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "type": "node",
-            "name": "vscode-jest-tests.v2",
-            "request": "launch",
-            "env": {
-                "NODE_OPTIONS": "--experimental-vm-modules"
-            },
-            "args": [
-                "${workspaceRoot}/node_modules/.bin/jest",
-                "--runInBand",
-                "--watchAll=false",
-                "--testNamePattern",
-                "${jest.testNamePattern}",
-                "--runTestsByPath",
-                "${jest.testFile}"
-            ],
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "name": "Debug Tests",
+            "autoAttachChildProcesses": true,
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+            "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+            "args": ["run"],
+            "smartStep": true,
+            "console": "integratedTerminal"
         }
     ]
 }

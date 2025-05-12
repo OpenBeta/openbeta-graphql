@@ -2,7 +2,7 @@
   "compilerOptions": {
     "types": [
       "node",
-      "jest",
+      "vitest/globals",
     ],
     "allowJs": true,
     "skipLibCheck": true,
@@ -19,5 +19,6 @@
   },
   "include": [
     "src/**/*.ts",
+    "vite.config.ts"
   ]
 }

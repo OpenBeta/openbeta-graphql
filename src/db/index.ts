@@ -81,7 +81,7 @@ export const gracefulExit = async (exitCode: number = 0): Promise<void> => {
 }
 
 export const defaultPostConnect = async (changeStreamListener = streamListener): Promise<ChangeStream> => {
-  console.log('Kudos!')
+  logger.debug('defaultPostConnect- Kudos!')
   await createIndexes()
   return await changeStreamListener()
 }

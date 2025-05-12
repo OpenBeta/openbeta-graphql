@@ -1,19 +1,10 @@
 import muid from 'uuid-mongodb'
-import { ChangeStream } from 'mongodb'
-
-import MutableClimbDataSource from '../MutableClimbDataSource.js'
-import MutableAreaDataSource from '../MutableAreaDataSource.js'
-
-import { createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
-import { logger } from '../../logger.js'
 import { ClimbChangeInputType, ClimbType } from '../../db/ClimbTypes.js'
+import { dataFixtures as it } from '../../__tests__/fixtures/data.fixtures'
 import { sanitizeDisciplines, validDisciplines } from '../../GradeUtils.js'
-import streamListener from '../../db/edit/streamListener.js'
-import ChangeLogDataSource from '../ChangeLogDataSource.js'
-import inMemoryDB from '../../utils/inMemoryDB.js'
 import assert from 'assert'
 
-export const newSportClimb1: ClimbChangeInputType = {
+const newSportClimb1: ClimbChangeInputType = {
   name: 'Cool route 1',
   disciplines: {
     sport: true
@@ -25,11 +16,6 @@ export const newSportClimb1: ClimbChangeInputType = {
 }
 
 describe('Climb CRUD', () => {
-  let climbs: MutableClimbDataSource
-  let areas: MutableAreaDataSource
-  let stream: ChangeStream
-  const testUser = muid.v4()
-
   const newClimbsToAdd: ClimbChangeInputType[] = [
     {
       name: 'Sport 1',
@@ -140,44 +126,16 @@ describe('Climb CRUD', () => {
     ]
   }
 
-  beforeAll(async () => {
-    await inMemoryDB.connect()
-    stream = await streamListener()
-
-    try {
-      await getAreaModel().collection.drop()
-      await getClimbModel().collection.drop()
-    } catch (e) {
-      logger.info('Expected exception')
-    }
-
-    await createIndexes()
-
-    climbs = MutableClimbDataSource.getInstance()
-    areas = MutableAreaDataSource.getInstance()
-    await ChangeLogDataSource.getInstance()._testRemoveAll()
-    await areas.addCountry('fr')
-  })
-
-  afterAll(async () => {
-    try {
-      await stream.close()
-      await inMemoryDB.close()
-    } catch (e) {
-      console.log('closing mongoose', e)
-    }
-  })
-
-  it('can add new climbs', async () => {
+  it('can add new climbs', async ({ areas, climbs, user }) => {
     await areas.addCountry('usa')
 
-    const newDestination = await areas.addArea(testUser, 'California', null, 'usa')
-    if (newDestination == null) fail('Expect new area to be created')
+    const newDestination = await areas.addArea(user, 'California', null, 'usa')
+    expect(newDestination).toBeTruthy()
 
-    const routesArea = await areas.addArea(testUser, 'Sport & Trad', newDestination.metadata.area_id)
+    const routesArea = await areas.addArea(user, 'Sport & Trad', newDestination.metadata.area_id)
 
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
+      user,
       routesArea.metadata.area_id,
       newClimbsToAdd
     )
@@ -215,11 +173,11 @@ describe('Climb CRUD', () => {
 
     // California contains subareas.  Should fail.
     await expect(
-      climbs.addOrUpdateClimbs(testUser, newDestination.metadata.area_id, [newBoulderProblem1])
+      climbs.addOrUpdateClimbs(user, newDestination.metadata.area_id, [newBoulderProblem1])
     ).rejects.toThrowError(/You can only add climbs to a crag/)
 
     // Route-only area should accept new boulder problems
-    const [newBoulderID] = await climbs.addOrUpdateClimbs(testUser, routesArea.metadata.area_id, [newBoulderProblem1])
+    const [newBoulderID] = await climbs.addOrUpdateClimbs(user, routesArea.metadata.area_id, [newBoulderProblem1])
     // Should come after existing climbs
     expect(await climbs.findOneClimbByMUUID(muid.from(newBoulderID))).toMatchObject({
       metadata: {
@@ -228,18 +186,18 @@ describe('Climb CRUD', () => {
     })
   })
 
-  it('can add new boulder problems', async () => {
+  it('can add new boulder problems', async ({ areas, climbs, user }) => {
     await areas.addCountry('esp')
 
-    const newDestination = await areas.addArea(testUser, 'Valencia', null, 'esp')
-    if (newDestination == null) fail('Expect new area to be created')
+    const newDestination = await areas.addArea(user, 'Valencia', null, 'esp')
+    expect(newDestination).toBeTruthy()
 
-    const boulderingArea = await areas.addArea(testUser, 'Bouldering only', newDestination.metadata.area_id)
+    const boulderingArea = await areas.addArea(user, 'Bouldering only', newDestination.metadata.area_id)
 
     expect(boulderingArea.metadata.isBoulder).toBeFalsy()
 
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
+      user,
       boulderingArea.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
 
@@ -247,16 +205,14 @@ describe('Climb CRUD', () => {
 
     const newClimb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
 
-    if (newClimb == null) fail('Expecting new boulder problem to be added, but didn\'t find one')
+    assert(newClimb != null)
     expect(newClimb.name).toBe(newBoulderProblem1.name)
   })
 
-  it('can delete new boulder problems', async () => {
-    const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'fr')
-    if (newBoulderingArea == null) fail('Expect new area to be created')
-
+  it('can delete new boulder problems', async ({ areas, climbs, user, addArea }) => {
+    const newBoulderingArea = await addArea('Bouldering area 1')
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
+      user,
       newBoulderingArea.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
 
@@ -264,20 +220,20 @@ describe('Climb CRUD', () => {
 
     // delete a random (non-existing) climb
     const count0 = await climbs.deleteClimbs(
-      testUser,
+      user,
       newBoulderingArea.metadata.area_id,
       [muid.v4()])
     expect(count0).toEqual(0)
 
     // try delete a correct climb and a non-existent one
     const count1 = await climbs.deleteClimbs(
-      testUser,
+      user,
       newBoulderingArea.metadata.area_id,
       [muid.from(newIDs[0]), muid.v4()])
 
     // immediately delete a previously deleted climb.  Should be a no op.
     const count2 = await climbs.deleteClimbs(
-      testUser,
+      user,
       newBoulderingArea.metadata.area_id,
       [muid.from(newIDs[0]), muid.v4()])
 
@@ -294,7 +250,7 @@ describe('Climb CRUD', () => {
 
     // expect one to remain
     rs = await climbs.findOneClimbByMUUID(muid.from(newIDs[1]))
-    if (rs == null) fail('Expect climb 2 to exist')
+    assert(rs != null)
     expect(rs._id.toUUID().toString()).toEqual(newIDs[1])
 
     const areaRs = await areas.findOneAreaByUUID(newBoulderingArea.metadata.area_id)
@@ -302,13 +258,13 @@ describe('Climb CRUD', () => {
     expect((areaRs.climbs[0] as ClimbType)._id.toUUID().toString()).toEqual(newIDs[1])
   })
 
-  it('handles mixed grades and disciplines correctly', async () => {
+  it('handles mixed grades and disciplines correctly', async ({ areas, climbs, user }) => {
     await areas.addCountry('can')
-    const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'can')
-    if (newBoulderingArea == null) fail('Expect new area to be created')
+    const newBoulderingArea = await areas.addArea(user, 'Bouldering area 1', null, 'can')
+    expect(newBoulderingArea).toBeTruthy()
 
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
+      user,
       newBoulderingArea.metadata.area_id,
       [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
         { ...newBoulderProblem2, grade: '5.9' }]) // invalid grade (YDS grade for a boulder problem)
@@ -322,13 +278,13 @@ describe('Climb CRUD', () => {
     expect(climb2?.grades).toEqual(undefined)
   })
 
-  it('handles Australian grade context correctly', async () => {
+  it('handles Australian grade context correctly', async ({ areas, climbs, user }) => {
     await areas.addCountry('aus')
 
     {
       // A roped climbing area
-      const newClimbingArea = await areas.addArea(testUser, 'Climbing area 1', null, 'aus')
-      if (newClimbingArea == null) fail('Expect new area to be created')
+      const newClimbingArea = await areas.addArea(user, 'Climbing area 1', null, 'aus')
+      expect(newClimbingArea).toBeTruthy()
 
       const newclimbs = [
         { ...newSportClimb1, grade: '17' }, // good sport grade
@@ -339,7 +295,7 @@ describe('Climb CRUD', () => {
       ]
 
       const newIDs = await climbs.addOrUpdateClimbs(
-        testUser,
+        user,
         newClimbingArea.metadata.area_id,
         newclimbs
       )
@@ -374,11 +330,11 @@ describe('Climb CRUD', () => {
 
     {
       // A bouldering area
-      const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'aus')
-      if (newBoulderingArea == null) fail('Expect new area to be created')
+      const newBoulderingArea = await areas.addArea(user, 'Bouldering area 1', null, 'aus')
+      expect(newBoulderingArea).toBeTruthy()
 
       const newIDs = await climbs.addOrUpdateClimbs(
-        testUser,
+        user,
         newBoulderingArea.metadata.area_id,
         [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
           { ...newBoulderProblem2, grade: '23' }, // bad boulder grade
@@ -397,13 +353,13 @@ describe('Climb CRUD', () => {
     }
   })
 
-  it('handles Brazilian grade context correctly', async () => {
+  it('handles Brazilian grade context correctly', async ({ areas, climbs, user }) => {
     await areas.addCountry('bra')
 
     {
       // A roped climbing area
-      const newClimbingArea = await areas.addArea(testUser, 'Climbing area in Brazil', null, 'bra')
-      if (newClimbingArea == null) fail('Expect new area to be created in Brazil')
+      const newClimbingArea = await areas.addArea(user, 'Climbing area in Brazil', null, 'bra')
+      expect(newClimbingArea).toBeTruthy()
 
       const newclimbs = [
         { ...newSportClimb1, grade: 'VIsup' }, // good sport grade
@@ -414,7 +370,7 @@ describe('Climb CRUD', () => {
       ]
 
       const newIDs = await climbs.addOrUpdateClimbs(
-        testUser,
+        user,
         newClimbingArea.metadata.area_id,
         newclimbs
       )
@@ -449,11 +405,11 @@ describe('Climb CRUD', () => {
 
     {
       // A bouldering area
-      const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'bra')
-      if (newBoulderingArea == null) fail('Expect new area to be created')
+      const newBoulderingArea = await areas.addArea(user, 'Bouldering area 1', null, 'bra')
+      expect(newBoulderingArea).toBeTruthy()
 
       const newIDs = await climbs.addOrUpdateClimbs(
-        testUser,
+        user,
         newBoulderingArea.metadata.area_id,
         [{ ...newBoulderProblem1, grade: 'V3' }, // good grade
           { ...newBoulderProblem2, grade: '23' }, // bad boulder grade
@@ -472,15 +428,15 @@ describe('Climb CRUD', () => {
     }
   })
 
-  it('handles UIAA grades correctly', async () => {
+  it('handles UIAA grades correctly', async ({ areas, climbs, user }) => {
     await areas.addCountry('deu') // Assuming Germany since UIAA is dominant grading system
 
     // A roped climbing area
-    const newClimbingArea = await areas.addArea(testUser, 'Climbing area 1', null, 'deu')
-    if (newClimbingArea == null) fail('Expect new area to be created')
+    const newClimbingArea = await areas.addArea(user, 'Climbing area 1', null, 'deu')
+    expect(newClimbingArea).toBeTruthy()
 
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
+      user,
       newClimbingArea.metadata.area_id,
       [{ ...newSportClimb1, grade: '6+' }, // good UIAA grade
         { ...newSportClimb2, grade: '7-' }, // good UIAA grade
@@ -502,31 +458,28 @@ describe('Climb CRUD', () => {
     expect(climb4?.grades).toEqual(undefined)
   })
 
-  it('can update boulder problems', async () => {
-    const newDestination = await areas.addArea(testUser, 'Bouldering area A100', null, 'fr')
-
-    if (newDestination == null) fail('Expect new area to be created')
-
+  it('can update boulder problems', async ({ climbs, user, area, randomGrade, gradeSystemFor }) => {
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
-      newDestination.metadata.area_id,
+      user,
+      area.metadata.area_id,
       [newBoulderProblem1, newBoulderProblem2])
 
     const actual0 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+    assert(actual0 != null)
 
     expect(actual0).toMatchObject({
       name: newBoulderProblem1.name,
       type: sanitizeDisciplines(newBoulderProblem1.disciplines)
     })
 
-    expect(actual0?.createdBy?.toUUID().toString()).toEqual(testUser.toString())
+    expect(actual0?.createdBy?.toUUID().toString()).toEqual(user.toString())
     expect(actual0?.updatedBy).toBeUndefined()
 
     const changes: ClimbChangeInputType[] = [
       {
         id: newIDs[0],
         name: 'new name A100',
-        grade: '6b',
+        grade: randomGrade(actual0),
         disciplines: sanitizeDisciplines({ bouldering: true })
       },
       {
@@ -536,17 +489,15 @@ describe('Climb CRUD', () => {
     ]
 
     const otherUser = muid.v4()
-
-    const updated = await climbs.addOrUpdateClimbs(otherUser, newDestination.metadata.area_id, changes)
+    const updated = await climbs.addOrUpdateClimbs(otherUser, area.metadata.area_id, changes)
 
     expect(updated).toHaveLength(2)
 
-    const actual1 = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
-
-    expect(actual1).toMatchObject({
+    const climbInDatabase = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
+    expect(climbInDatabase).toMatchObject({
       name: changes[0].name,
       grades: {
-        font: changes[0].grade
+        [gradeSystemFor(actual0)]: changes[0].grade
       },
       // Make sure update doesn't touch other fields
       type: sanitizeDisciplines(changes[0].disciplines),
@@ -557,17 +508,15 @@ describe('Climb CRUD', () => {
       }
     })
 
-    expect(actual1?.createdBy?.toUUID().toString()).toEqual(testUser.toUUID().toString())
-    expect(actual1?.updatedBy?.toUUID().toString()).toEqual(otherUser.toUUID().toString())
+    expect(climbInDatabase?.createdBy?.toUUID().toString()).toEqual(user.toUUID().toString())
+    expect(climbInDatabase?.updatedBy?.toUUID().toString()).toEqual(otherUser.toUUID().toString())
   })
 
-  it('can update climb length, boltsCount & fa', async () => {
-    const newDestination = await areas.addArea(testUser, 'Sport area Z100', null, 'fr')
-
-    if (newDestination == null) fail('Expect new area to be created')
+  it('can update climb length, boltsCount & fa', async ({ areas, climbs, user, addArea }) => {
+    const newDestination = await addArea('Sport area Z100')
 
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
+      user,
       newDestination.metadata.area_id,
       newClimbsToAdd
     )
@@ -579,9 +528,10 @@ describe('Climb CRUD', () => {
       boltsCount: 5
     }
 
-    await climbs.addOrUpdateClimbs(testUser,
+    await climbs.addOrUpdateClimbs(user,
       newDestination.metadata.area_id,
-      [change])
+      [change]
+    )
 
     const actual = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
 
@@ -596,17 +546,17 @@ describe('Climb CRUD', () => {
     })
   })
 
-  it('can add multi-pitch climbs', async () => {
+  it('can add multi-pitch climbs', async ({ areas, climbs, user }) => {
     await areas.addCountry('aut')
 
-    const newDestination = await areas.addArea(testUser, 'Some Location with Multi-Pitch Climbs', null, 'aut')
-    if (newDestination == null) fail('Expect new area to be created')
+    const newDestination = await areas.addArea(user, 'Some Location with Multi-Pitch Climbs', null, 'aut')
+    expect(newDestination).toBeTruthy()
 
-    const routesArea = await areas.addArea(testUser, 'Sport & Trad Multi-Pitches', newDestination.metadata.area_id)
+    const routesArea = await areas.addArea(user, 'Sport & Trad Multi-Pitches', newDestination.metadata.area_id)
 
     // create new climb with individual pitches
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
+      user,
       routesArea.metadata.area_id,
       [newClimbWithPitches]
     )
@@ -626,25 +576,23 @@ describe('Climb CRUD', () => {
       },
       pitches: newClimbWithPitches.pitches
     })
-    // Validate each pitch
-    if (climb?.pitches != null) {
-      climb.pitches.forEach((pitch) => {
-        expect(pitch).toHaveProperty('_id')
-        expect(pitch).toHaveProperty('parentId')
-        expect(pitch).toHaveProperty('pitchNumber')
-      })
-    } else {
-      fail('Pitches are missing either of required attributes id, parentId, pitchNumber')
-    }
+
+    assert(climb?.pitches != null)
+
+    climb.pitches.forEach((pitch) => {
+      expect(pitch).toHaveProperty('_id')
+      expect(pitch).toHaveProperty('parentId')
+      expect(pitch).toHaveProperty('pitchNumber')
+    })
   })
 
-  it('can update multi-pitch problems', async () => {
-    const newDestination = await areas.addArea(testUser, 'Some Multi-Pitch Area to be Updated', null, 'deu')
+  it('can update multi-pitch problems', async ({ areas, climbs, user }) => {
+    const newDestination = await areas.addArea(user, 'Some Multi-Pitch Area to be Updated', null, 'deu')
 
-    if (newDestination == null) fail('Expect new area to be created')
+    expect(newDestination).toBeTruthy()
 
     const newIDs = await climbs.addOrUpdateClimbs(
-      testUser,
+      user,
       newDestination.metadata.area_id,
       [newClimbWithPitches]
     )
@@ -652,11 +600,9 @@ describe('Climb CRUD', () => {
     // Fetch the original climb
     const original = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
 
-    // Check if 'original' is not null before accessing its properties
-    if ((original == null) || (original.pitches == null) || original.pitches.length < 2) {
-      fail('Original climb is null or does not have at least two pitches (as defined in the test case)')
-      return
-    }
+    assert(original !== null)
+    assert(original.pitches !== undefined)
+    expect(original.pitches.length).not.toBeLessThan(2)
 
     // Store original pitch IDs and parent IDs
     const originalPitch1ID = original.pitches[0]._id.toUUID().toString()
@@ -695,7 +641,7 @@ describe('Climb CRUD', () => {
     ]
 
     // update climb
-    await climbs.addOrUpdateClimbs(testUser, newDestination.metadata.area_id, changes)
+    await climbs.addOrUpdateClimbs(user, newDestination.metadata.area_id, changes)
 
     // Fetch the updated climb
     const updatedClimb = await climbs.findOneClimbByMUUID(muid.from(newIDs[0]))
@@ -724,12 +670,11 @@ describe('Climb CRUD', () => {
       }
 
       // Check that the createdBy and updatedBy fields are not undefined before accessing their properties
-      if ((updatedClimb.createdBy != null) && (updatedClimb.updatedBy != null)) {
-        expect(updatedClimb.createdBy.toUUID().toString()).toEqual(testUser.toString())
-        expect(updatedClimb.updatedBy.toUUID().toString()).toEqual(testUser.toString())
-      } else {
-        fail('createdBy or updatedBy is undefined')
-      }
+      assert(updatedClimb.createdBy !== undefined)
+      assert(updatedClimb.updatedBy !== undefined)
+
+      expect(updatedClimb.createdBy.toUUID().toString()).toEqual(user.toString())
+      expect(updatedClimb.updatedBy.toUUID().toString()).toEqual(user.toString())
     }
   })
 })

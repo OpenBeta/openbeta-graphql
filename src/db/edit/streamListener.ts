@@ -85,7 +85,7 @@ const onChange = async (change: ChangeStreamDocument): Promise<void> => {
         fullDocument: fullDocument as SupportedCollectionTypes,
         updateDescription,
         dbOp
-      })
+      }).catch(console.error)
     }
     case 'insert': {
       const dbOp = 'insert'

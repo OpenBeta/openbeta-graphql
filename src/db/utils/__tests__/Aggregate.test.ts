@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals'
 import { logger } from '../../../logger'
 import { aggregateCragStats, merge } from '../Aggregate'
 import { AggregateType } from '../../AreaTypes'
@@ -40,7 +39,7 @@ describe('Aggregate merge', () => {
 
 describe('Aggregate Crag Stats', () => {
   it('Provides crag stat aggregates in US grade context', () => {
-    jest.spyOn(logger, 'warn').mockImplementation(() => {})
+    vi.spyOn(logger, 'warn').mockImplementation(() => {})
     const crag = {
       gradeContext: 'US',
       climbs: [

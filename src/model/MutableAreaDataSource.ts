@@ -147,6 +147,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     } else {
       // account for a few new/unofficial countries without lat,lng in the lookup table
       logger.warn(`Missing lnglat for ${countryName}`)
+      throw Error(`Missing lnglat for ${countryName}`)
     }
 
     await this.validateUniqueAreaName(countryName, null)

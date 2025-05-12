@@ -1,58 +1,55 @@
-import { ApolloServer } from '@apollo/server'
-import muuid from 'uuid-mongodb'
-import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
-import MutableOrganizationDataSource from '../model/MutableOrganizationDataSource.js'
-import { AreaType } from '../db/AreaTypes.js'
-import { OperationType, OrganizationEditableFieldsType, OrganizationType, OrgType } from '../db/OrganizationTypes.js'
-import ChangeLogDataSource from '../model/ChangeLogDataSource.js'
-import { queryAPI, setUpServer } from '../utils/testUtils.js'
-import { muuidToString } from '../utils/helpers.js'
+import { OperationType, OrganizationEditableFieldsType, OrganizationType, OrgType } from '../../db/OrganizationTypes.js'
+import ChangeLogDataSource from '../../model/ChangeLogDataSource.js'
+import { muuidToString } from '../../utils/helpers.js'
 import { validate as validateMuuid } from 'uuid'
-import { InMemoryDB } from '../utils/inMemoryDB.js'
-import express from 'express'
+import { gqlTest } from '../../__tests__/fixtures/gql.fixtures.js'
+import { AreaType } from '../../db/AreaTypes.js'
+
+interface LocalContext {
+  ca: AreaType
+  wa: AreaType
+  orgData: OrganizationEditableFieldsType[]
+  orgs: OrganizationType[]
+}
+
+const it = gqlTest.extend<LocalContext >({
+  ca: async ({ addArea }, use) => await use(await addArea()),
+  wa: async ({ addArea }, use) => await use(await addArea()),
+  orgData: async ({ wa, ca, task }, use) => {
+    await use([
+      {
+        displayName: `${task.id} Alpha OpenBeta Club`,
+        associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
+        email: 'admin@alphaopenbeta.com',
+        facebookLink: 'https://www.facebook.com/alphaopenbeta',
+        instagramLink: 'https://www.instagram.com/alphaopenbeta',
+        hardwareReportLink: 'https://alphaopenbeta.com/reporthardware'
+      },
+      {
+        displayName: `${task.id} Delta OpenBeta Club`,
+        email: 'admin@deltaopenbeta.com'
+      },
+      {
+        displayName: `${task.id}Delta Gamma OpenBeta Club`,
+        description: 'We are an offshoot of the delta club.\nSee our website for more details.',
+        excludedAreaIds: [wa.metadata.area_id]
+      }
+    ])
+  },
+  orgs: async ({ organizations, user, orgData }, use) => {
+    const orgs = await Promise.all(orgData.map(async fields => await organizations.addOrganization(user, OrgType.localClimbingOrganization, fields)))
+    await use(orgs)
+    await Promise.all(orgs.map(async (org) => await organizations.deleteFromCacheById(org._id)))
+  }
+})
 
 describe('organizations API', () => {
-  let server: ApolloServer
-  let user: muuid.MUUID
-  let userUuid: string
-  let app: express.Application
-  let inMemoryDB: InMemoryDB
-
-  // Mongoose models for mocking pre-existing state.
-  let areas: MutableAreaDataSource
-  let organizations: MutableOrganizationDataSource
-  let usa: AreaType
-  let ca: AreaType
-  let wa: AreaType
-
-  beforeAll(async () => {
-    ({ server, inMemoryDB, app } = await setUpServer())
-    // Auth0 serializes uuids in "relaxed" mode, resulting in this hex string format
-    // "59f1d95a-627d-4b8c-91b9-389c7424cb54" instead of base64 "WfHZWmJ9S4yRuTicdCTLVA==".
-    user = muuid.mode('relaxed').v4()
-    userUuid = muuidToString(user)
-  })
-
-  beforeEach(async () => {
-    await inMemoryDB.clear()
-    areas = MutableAreaDataSource.getInstance()
-    organizations = MutableOrganizationDataSource.getInstance()
-    usa = await areas.addCountry('usa')
-    ca = await areas.addArea(user, 'CA', usa.metadata.area_id)
-    wa = await areas.addArea(user, 'WA', usa.metadata.area_id)
-  })
-
-  afterAll(async () => {
-    await server?.stop()
-    await inMemoryDB?.close()
-  })
-
   describe('mutations', () => {
     const createQuery = `
       mutation addOrganization($input: AddOrganizationInput!) {
         organization: addOrganization(input: $input) {
           orgId
-          orgType 
+          orgType
           displayName
           associatedAreaIds
           excludedAreaIds
@@ -81,14 +78,14 @@ describe('organizations API', () => {
       }
     `
 
-    it('creates and updates an organization', async () => {
-      const createResponse = await queryAPI({
+    it('creates and updates an organization', async ({ query, userUuid, country, addArea }) => {
+      const areaToExclude = await addArea()
+      const createResponse = await query({
         query: createQuery,
         operationName: 'addOrganization',
         variables: { input: { displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION' } },
         userUuid,
-        roles: ['user_admin'],
-        app
+        roles: ['user_admin']
       })
 
       expect(createResponse.statusCode).toBe(200)
@@ -102,14 +99,14 @@ describe('organizations API', () => {
       expect(createResponse.body.data.organization.createdBy).toBe(userUuid)
       expect(createResponse.body.data.organization.updatedBy).toBe(userUuid)
 
-      const updateResponse = await queryAPI({
+      const updateResponse = await query({
         query: updateQuery,
         operationName: 'updateOrganization',
         variables: {
           input: {
             orgId,
-            associatedAreaIds: [muuidToString(usa.metadata.area_id)],
-            excludedAreaIds: [muuidToString(wa.metadata.area_id)],
+            associatedAreaIds: [muuidToString(country.metadata.area_id)],
+            excludedAreaIds: [muuidToString(areaToExclude.metadata.area_id)],
             displayName: 'Allies of Openbeta',
             website: 'https://alliesofopenbeta.com',
             email: 'admin@alliesofopenbeta.com',
@@ -121,15 +118,14 @@ describe('organizations API', () => {
           }
         },
         userUuid,
-        roles: ['user_admin'],
-        app
+        roles: ['user_admin']
       })
       expect(updateResponse.statusCode).toBe(200)
       expect(updateResponse.body.errors).toBeUndefined()
       const orgResult = updateResponse.body.data.organization
       expect(orgResult.orgId).toBe(orgId)
-      expect(orgResult.associatedAreaIds).toEqual([muuidToString(usa.metadata.area_id)])
-      expect(orgResult.excludedAreaIds).toEqual([muuidToString(wa.metadata.area_id)])
+      expect(orgResult.associatedAreaIds).toEqual([muuidToString(country.metadata.area_id)])
+      expect(orgResult.excludedAreaIds).toEqual([muuidToString(areaToExclude.metadata.area_id)])
       expect(orgResult.displayName).toBe('Allies of Openbeta')
       expect(orgResult.content.website).toBe('https://alliesofopenbeta.com')
       expect(orgResult.content.email).toBe('admin@alliesofopenbeta.com')
@@ -142,7 +138,11 @@ describe('organizations API', () => {
       // eslint-disable-next-line
       await new Promise(res => setTimeout(res, 1000))
 
-      const orgHistory = await ChangeLogDataSource.getInstance().getOrganizationChangeSets()
+      const orgHistory = await ChangeLogDataSource
+        .getInstance()
+        .getOrganizationChangeSets()
+        .then(sets => sets.filter(i => i.editedBy.toString() === userUuid))
+
       expect(orgHistory).toHaveLength(2)
 
       // verify changes in most recent order
@@ -161,14 +161,13 @@ describe('organizations API', () => {
       expect(createRecord[0].fullDocument.displayName).toBe('Friends of Openbeta')
     })
 
-    it('throws an error if a non-user_admin tries to add an organization', async () => {
-      const response = await queryAPI({
+    it('throws an error if a non-user_admin tries to add an organization', async ({ query, userUuid }) => {
+      const response = await query({
         query: createQuery,
         operationName: 'addOrganization',
         variables: { input: { displayName: 'Friends of Openbeta', orgType: 'LOCAL_CLIMBING_ORGANIZATION' } },
         userUuid,
-        roles: ['editor'],
-        app
+        roles: ['editor']
       })
       expect(response.statusCode).toBe(200)
       expect(response.body.data.organization).toBeNull()
@@ -205,140 +204,92 @@ describe('organizations API', () => {
         }
       }
     `
-    let alphaFields: OrganizationEditableFieldsType
-    let deltaFields: OrganizationEditableFieldsType
-    let gammaFields: OrganizationEditableFieldsType
-    let alphaOrg: OrganizationType
-    let deltaOrg: OrganizationType
-    let gammaOrg: OrganizationType
 
-    beforeEach(async () => {
-      alphaFields = {
-        displayName: 'Alpha OpenBeta Club',
-        associatedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],
-        email: 'admin@alphaopenbeta.com',
-        facebookLink: 'https://www.facebook.com/alphaopenbeta',
-        instagramLink: 'https://www.instagram.com/alphaopenbeta',
-        hardwareReportLink: 'https://alphaopenbeta.com/reporthardware'
-      }
-      alphaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, alphaFields)
-        .then((res: OrganizationType | null) => {
-          if (res === null) throw new Error('Failure mocking organization.')
-          return res
-        })
-
-      deltaFields = {
-        displayName: 'Delta OpenBeta Club',
-        email: 'admin@deltaopenbeta.com'
-      }
-      deltaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, deltaFields)
-        .then((res: OrganizationType | null) => {
-          if (res === null) throw new Error('Failure mocking organization.')
-          return res
-        })
-
-      gammaFields = {
-        displayName: 'Delta Gamma OpenBeta Club',
-        description: 'We are an offshoot of the delta club.\nSee our website for more details.',
-        excludedAreaIds: [wa.metadata.area_id]
-      }
-      gammaOrg = await organizations.addOrganization(user, OrgType.localClimbingOrganization, gammaFields)
-        .then((res: OrganizationType | null) => {
-          if (res === null) throw new Error('Failure mocking organization.')
-          return res
-        })
-    })
-
-    it('retrieves an organization with an MUUID', async () => {
-      const response = await queryAPI({
+    it('retrieves an organization with an MUUID', async ({ query, userUuid, orgs, orgData, ca, wa }) => {
+      const response = await query({
         query: organizationQuery,
         operationName: 'organization',
-        variables: { input: muuidToString(alphaOrg.orgId) },
-        userUuid,
-        app
+        variables: { input: muuidToString(orgs[0].orgId) },
+        userUuid
       })
       expect(response.statusCode).toBe(200)
       const orgResult = response.body.data.organization
-      expect(orgResult.orgId).toBe(muuidToString(alphaOrg.orgId))
-      expect(orgResult.displayName).toBe(alphaFields.displayName)
+      expect(orgResult.orgId).toBe(muuidToString(orgs[0].orgId))
+      expect(orgResult.displayName).toBe(orgs[0].displayName)
       expect(orgResult.associatedAreaIds.sort()).toEqual([muuidToString(ca.metadata.area_id), muuidToString(wa.metadata.area_id)].sort())
-      expect(orgResult.content.email).toBe(alphaFields.email)
-      expect(orgResult.content.instagramLink).toBe(alphaFields.instagramLink)
-      expect(orgResult.content.facebookLink).toBe(alphaFields.facebookLink)
-      expect(orgResult.content.hardwareReportLink).toBe(alphaFields.hardwareReportLink)
+      expect(orgResult.content.email).toBe(orgData[0].email)
+      expect(orgResult.content.instagramLink).toBe(orgData[0].instagramLink)
+      expect(orgResult.content.facebookLink).toBe(orgData[0].facebookLink)
+      expect(orgResult.content.hardwareReportLink).toBe(orgData[0].hardwareReportLink)
     })
 
-    it('retrieves organizations using an exactMatch displayName filter', async () => {
-      const response = await queryAPI({
+    it('retrieves organizations using an exactMatch displayName filter', async ({ query, userUuid, orgs }) => {
+      const response = await query({
         query: organizationsQuery,
         operationName: 'organizations',
-        variables: { filter: { displayName: { match: 'Delta OpenBeta Club', exactMatch: true } } },
-        userUuid,
-        app
+        variables: { filter: { displayName: { match: orgs[1].displayName, exactMatch: true } } },
+        userUuid
       })
 
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
       expect(dataResult.length).toBe(1)
-      expect(dataResult[0].orgId).toBe(muuidToString(deltaOrg.orgId))
+      expect(dataResult[0].orgId).toBe(muuidToString(orgs[1].orgId))
     })
 
-    it('retrieves organizations using a non-exactMatch displayName filter', async () => {
-      const response = await queryAPI({
+    it('retrieves organizations using a non-exactMatch displayName filter', async ({ query, userUuid, orgs, task }) => {
+      const response = await query({
         query: organizationsQuery,
         operationName: 'organizations',
-        variables: { filter: { displayName: { match: 'delta', exactMatch: false } } },
-        userUuid,
-        app
+        variables: { filter: { displayName: { match: task.id, exactMatch: false } } },
+        userUuid
       })
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
-      expect(dataResult.length).toBe(2)
-      expect(dataResult.map(o => o.orgId).sort()).toEqual([muuidToString(deltaOrg.orgId), muuidToString(gammaOrg.orgId)].sort())
+      expect(dataResult.map(o => o.orgId).sort())
+        .toEqual([muuidToString(orgs[0].orgId), muuidToString(orgs[1].orgId), muuidToString(orgs[2].orgId)].sort())
     })
 
-    it('limits organizations returned', async () => {
-      const response = await queryAPI({
+    it('limits organizations returned', async ({ userUuid, query }) => {
+      const response = await query({
         query: organizationsQuery,
         operationName: 'organizations',
         variables: {
           limit: 1
         },
-        userUuid,
-        app
+        userUuid
       })
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
       expect(dataResult.length).toBe(1) // Three matching orgs, but only return one.
     })
 
-    it('retrieves organizations using an associatedAreaIds filter', async () => {
-      const response = await queryAPI({
+    it('retrieves organizations using an associatedAreaIds filter', async ({ userUuid, query, ca, orgs, wa }) => {
+      const response = await query({
         query: organizationsQuery,
         operationName: 'organizations',
         variables: { filter: { associatedAreaIds: { includes: [muuidToString(ca.metadata.area_id)] } } },
-        userUuid,
-        app
+        userUuid
       })
+
       // Graphql should convert `includes` from a string[] to MUUID[]
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
       expect(dataResult.length).toBe(1)
-      expect(dataResult[0].orgId).toBe(muuidToString(alphaOrg.orgId))
+      expect(dataResult[0].orgId).toBe(muuidToString(orgs[0].orgId))
     })
 
-    it('excludes organizations using an excludedAreaIds filter', async () => {
-      const response = await queryAPI({
+    it('excludes organizations using an excludedAreaIds filter', async ({ userUuid, query, wa, orgs }) => {
+      const response = await query({
         query: organizationsQuery,
         operationName: 'organizations',
         variables: { filter: { excludedAreaIds: { excludes: [muuidToString(wa.metadata.area_id)] } } },
-        userUuid,
-        app
+        userUuid
       })
       expect(response.statusCode).toBe(200)
       const dataResult = response.body.data.organizations
-      expect(dataResult.length).toBe(2)
-      expect(dataResult.map((o: OrganizationType) => o.orgId).includes(muuidToString(gammaOrg.orgId))).toBeFalsy()
+      // We want the org that explicitly excludes wa to be absent from this array.
+      expect(dataResult.map((o: OrganizationType) => o.orgId).includes(muuidToString(orgs[2].orgId))).toBeFalsy()
     })
   })
 })

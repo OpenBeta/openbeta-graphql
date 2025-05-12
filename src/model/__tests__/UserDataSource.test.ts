@@ -1,36 +1,14 @@
-import mongoose from 'mongoose'
 import muuid from 'uuid-mongodb'
-import { jest } from '@jest/globals'
-
-import { getUserModel } from '../../db/index.js'
 import UserDataSource from '../UserDataSource.js'
 import { UpdateProfileGQLInput } from '../../db/UserTypes.js'
-import inMemoryDB from '../../utils/inMemoryDB.js'
+import { dataFixtures as it } from '../../__tests__/fixtures/data.fixtures.js'
 
 describe('UserDataSource', () => {
-  let users: UserDataSource
-
-  beforeAll(async () => {
-    await inMemoryDB.connect()
-    const userModel = getUserModel()
-    try {
-      await userModel.collection.drop()
-    } catch (e) {
-      console.log('Cleaning up db before test')
-    }
-    await userModel.ensureIndexes()
-    users = new UserDataSource({ modelOrCollection: mongoose.connection.db.collection('users') })
-  })
-
-  afterAll(async () => {
-    await inMemoryDB.close()
-  })
-
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
-  it('should create a new user with just username', async () => {
+  it('should create a new user with just username', async ({ users }) => {
     const userUuid = muuid.v4()
     const updater = muuid.v4()
     const input: UpdateProfileGQLInput = {
@@ -53,7 +31,7 @@ describe('UserDataSource', () => {
     expect(u?.updatedAt.getTime()).toBeLessThan(Date.now())
   })
 
-  it('should create a new user from username and other updatable fields', async () => {
+  it('should create a new user from username and other updatable fields', async ({ users }) => {
     const updater = muuid.v4()
     const userUuid = muuid.v4()
     const username = 'new-test-profile'
@@ -100,7 +78,7 @@ describe('UserDataSource', () => {
     })
   })
 
-  it('should require an email when creating new profile', async () => {
+  it('should require an email when creating new profile', async ({ users }) => {
     const updater = muuid.v4()
     const userUuid = muuid.v4()
     const input: UpdateProfileGQLInput = {
@@ -113,7 +91,7 @@ describe('UserDataSource', () => {
     ).rejects.toThrowError(/Email is required/i)
   })
 
-  it('should enforce a waiting period for username update', async () => {
+  it('should enforce a waiting period for username update', async ({ users }) => {
     const updater = muuid.v4()
     const userUuid = muuid.v4()
     const input: UpdateProfileGQLInput = {
@@ -134,7 +112,7 @@ describe('UserDataSource', () => {
     // Mock implementation with a function
     // that correctly tracks call count
     let callCount = 0
-    jest.spyOn(UserDataSource, 'calculateLastUpdatedInDays')
+    vitest.spyOn(UserDataSource, 'calculateLastUpdatedInDays')
       .mockImplementation(() => {
       // For both calls in the third update operation:
       // First call (account age) - return 15 days (older than 14 days)
@@ -158,7 +136,7 @@ describe('UserDataSource', () => {
     expect(errorThrown).toBe(true)
   })
 
-  it('should reject invalid website url', async () => {
+  it('should reject invalid website url', async ({ users }) => {
     const updater = muuid.v4()
     const userUuid = muuid.v4()
     const input: UpdateProfileGQLInput = {
