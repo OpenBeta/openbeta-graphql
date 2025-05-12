@@ -79,6 +79,15 @@ type Area {
   authorMetadata: AuthorMetadata!
   "Organizations associated with this area or its parent areas"
   organizations: [Organization]
+  
+  """
+  If you were to sum all approximate image sizes for this area, you get
+  a kind of picture of what the cost to cache all of the media in a given
+  area might be. You could use this to indicate a recommended compression
+  ratio or maybe know ahead of time if a given cache exercise would exceed
+  current storage capacity.
+  """
+  imageByteSum: Int!
 }
 
 """
