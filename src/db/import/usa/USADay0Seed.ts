@@ -45,7 +45,6 @@ const main = async (): Promise<void> => {
       const fAreas = `${contentDir}/${code}-areas.jsonlines`
 
       if (fs.existsSync(fRoutes) && fs.existsSync(fAreas)) {
-        /* eslint-disable-next-line */
         return limiter(seedState, rootNode, code, fRoutes, fAreas)
       }
       return await Promise.resolve()

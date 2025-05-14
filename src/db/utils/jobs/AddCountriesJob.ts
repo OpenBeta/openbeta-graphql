@@ -1,8 +1,7 @@
-import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
-
 import { connectDB, gracefulExit } from '../../index.js'
 import MutableAreaDataSource from '../../../model/MutableAreaDataSource.js'
 import { logger } from '../../../logger.js'
+import countries from 'i18n-iso-countries'
 
 const onConnected = async (): Promise<void> => {
   logger.info('Adding all countries (except USA)')
@@ -14,7 +13,7 @@ const onConnected = async (): Promise<void> => {
 const insertAllCountries = async (): Promise<void> => {
   const areaDS = MutableAreaDataSource.getInstance()
   await Promise.all(
-    Object.keys(enJson.countries).map(async code => {
+    Object.keys(countries).map(async code => {
       if (code === 'US') return null
       return await areaDS.addCountry(code)
     })
