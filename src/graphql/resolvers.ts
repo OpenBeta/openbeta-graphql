@@ -189,10 +189,10 @@ const resolvers = {
 
     content: (node: ClimbGQLQueryType) => node.content == null
       ? {
-          description: '',
-          location: '',
-          protection: ''
-        }
+        description: '',
+        location: '',
+        protection: ''
+      }
       : node.content,
 
     authorMetadata: getAuthorMetadataFromBaseNode,

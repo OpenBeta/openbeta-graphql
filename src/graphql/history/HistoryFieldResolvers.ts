@@ -24,10 +24,10 @@ const resolvers = {
     updateDescription: ({ updateDescription }: BaseChangeRecordType) =>
       updateDescription == null
         ? ({
-            updatedFields: [],
-            removedFields: [],
-            truncatedArrays: []
-          })
+          updatedFields: [],
+          removedFields: [],
+          truncatedArrays: []
+        })
         : updateDescription
   },
 

@@ -196,13 +196,13 @@ export default class UserDataSource extends MongoDataSource<User> {
      */
     const rs = await this.userModel
       .find<GetUsernameReturn>(
-      { _id: userUuid },
-      {
-        _id: 1,
-        username: '$usernameInfo.username',
-        updatedAt: '$usernameInfo.updatedAt'
-      }
-    ).lean()
+        { _id: userUuid },
+        {
+          _id: 1,
+          username: '$usernameInfo.username',
+          updatedAt: '$usernameInfo.updatedAt'
+        }
+      ).lean()
 
     if (rs?.length === 1) {
       // @ts-expect-error

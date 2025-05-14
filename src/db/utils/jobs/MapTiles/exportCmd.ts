@@ -52,9 +52,9 @@ async function exportLeafCrags (): Promise<void> {
   const cursor = model
     .find({ 'metadata.leaf': true, 'metadata.lnglat': { $ne: null } })
     .populate<{ climbs: ClimbType[] }>({
-    path: 'climbs',
-    model: getClimbModel()
-  })
+      path: 'climbs',
+      model: getClimbModel()
+    })
     .batchSize(10)
     .allowDiskUse(true)
     .lean()
@@ -195,9 +195,9 @@ async function exportAreas (): Promise<void> {
   ])
 
   const features: Array<
-  Feature<
-  Polygon
-  >
+    Feature<
+      Polygon
+    >
   > = []
 
   for await (const doc of rs) {
@@ -267,13 +267,13 @@ async function exportLCOs (): Promise<void> {
   }])
 
   const features: Array<
-  Feature<
-  Polygon,
-  {
-    id: string
-    name: string
-  }
-  >
+    Feature<
+      Polygon,
+      {
+        id: string
+        name: string
+      }
+    >
   > = []
 
   // for each organization

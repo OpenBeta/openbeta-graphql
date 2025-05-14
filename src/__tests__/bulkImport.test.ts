@@ -1,14 +1,14 @@
-import {ApolloServer} from "@apollo/server";
-import muuid from "uuid-mongodb";
-import express from "express";
-import {InMemoryDB} from "../utils/inMemoryDB.js";
-import {queryAPI, setUpServer} from "../utils/testUtils.js";
-import {muuidToString} from "../utils/helpers.js";
+import {ApolloServer} from '@apollo/server'
+import muuid from 'uuid-mongodb'
+import express from 'express'
+import {InMemoryDB} from '../utils/inMemoryDB.js'
+import {queryAPI, setUpServer} from '../utils/testUtils.js'
+import {muuidToString} from '../utils/helpers.js'
 import exampleImportData from './import-example.json'
-import {AreaType} from "../db/AreaTypes.js";
-import {BulkImportResultType} from "../db/BulkImportTypes.js";
-import MutableClimbDataSource from "../model/MutableClimbDataSource.js";
-import BulkImportDataSource from "../model/BulkImportDataSource.js";
+import {AreaType} from '../db/AreaTypes.js'
+import {BulkImportResultType} from '../db/BulkImportTypes.js'
+import MutableClimbDataSource from '../model/MutableClimbDataSource.js'
+import BulkImportDataSource from '../model/BulkImportDataSource.js'
 
 describe('bulkImportAreas', () => {
   const query = `
@@ -56,7 +56,7 @@ describe('bulkImportAreas', () => {
   beforeEach(async () => {
     await inMemoryDB.clear()
     await bulkImport.addCountry('usa')
-    testArea = await bulkImport.addArea(user, "Test Area", null, "us")
+    testArea = await bulkImport.addArea(user, 'Test Area', null, 'us')
   })
 
   afterAll(async () => {
@@ -112,25 +112,25 @@ describe('bulkImportAreas', () => {
             ...exampleImportData.areas,
             {
               uuid: testArea.metadata.area_id,
-              areaName: "Updated Test Area",
+              areaName: 'Updated Test Area'
             }
           ]
         }
       }
-    });
+    })
     expect(res.body.errors).toBeFalsy()
 
     const result = res.body.data.bulkImportAreas as BulkImportResultType
     expect(result.addedAreas.length).toBe(4)
 
-    const committedAreas = await Promise.all(result.addedAreas.map((area) => bulkImport.findOneAreaByUUID(muuid.from(area.metadata.area_id))));
-    expect(committedAreas.length).toBe(4);
+    const committedAreas = await Promise.all(result.addedAreas.map((area) => bulkImport.findOneAreaByUUID(muuid.from(area.metadata.area_id))))
+    expect(committedAreas.length).toBe(4)
 
-    const committedClimbs = await Promise.all(result.addedOrUpdatedClimbs.map((climb) => climbs.findOneClimbByMUUID(climb._id)));
-    expect(committedClimbs.length).toBe(2);
+    const committedClimbs = await Promise.all(result.addedOrUpdatedClimbs.map((climb) => climbs.findOneClimbByMUUID(climb._id)))
+    expect(committedClimbs.length).toBe(2)
 
-    const updatedAreas = await Promise.all(result.updatedAreas.map((area) => bulkImport.findOneAreaByUUID(muuid.from(area.metadata.area_id))));
-    expect(updatedAreas.length).toBe(1);
-    expect(updatedAreas[0].area_name).toBe("Updated Test Area");
+    const updatedAreas = await Promise.all(result.updatedAreas.map((area) => bulkImport.findOneAreaByUUID(muuid.from(area.metadata.area_id))))
+    expect(updatedAreas.length).toBe(1)
+    expect(updatedAreas[0].area_name).toBe('Updated Test Area')
   })
-});
+})

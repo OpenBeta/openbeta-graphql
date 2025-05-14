@@ -74,7 +74,7 @@ export default class TickDataSource extends MongoDataSource<TickType> {
       const res: TickType[] = await this.tickModel.insertMany(ticks)
       return res
     } else {
-      throw new Error("Can't import an empty tick list, check your import url or mutation")
+      throw new Error('Can\'t import an empty tick list, check your import url or mutation')
     }
   }
 

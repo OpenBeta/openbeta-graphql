@@ -45,7 +45,7 @@ async function validateTokenAndExtractUser (req: Request): Promise<CustomContext
       }
     } catch (e) {
       logger.error(`Can't verify JWT token ${e.toString() as string}`)
-      throw new Error("Unauthorized. Can't verify JWT token")
+      throw new Error('Unauthorized. Can\'t verify JWT token')
     }
   }
 

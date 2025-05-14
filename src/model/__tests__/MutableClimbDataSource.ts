@@ -204,12 +204,12 @@ describe('Climb CRUD', () => {
         ...climbIn.description === undefined
           ? {}
           : {
-              content: {
-                description: climbIn.description,
-                location: climbIn.location,
-                protection: climbIn.protection
-              }
+            content: {
+              description: climbIn.description,
+              location: climbIn.location,
+              protection: climbIn.protection
             }
+          }
       })
     }
 

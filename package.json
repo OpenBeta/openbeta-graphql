@@ -7,6 +7,7 @@
   "author": "<openbeta@noreply>",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
+    "@stylistic/eslint-plugin-ts": "^4.2.0",
     "@types/auth0": "^3.3.2",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.13.0",

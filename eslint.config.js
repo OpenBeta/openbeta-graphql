@@ -1,23 +1,31 @@
 // @ts-check
 
-import tseslint from 'typescript-eslint';
+import tseslint from 'typescript-eslint'
 import love from 'eslint-config-love'
+import stylisticTs from '@stylistic/eslint-plugin-ts'
 
 export default tseslint.config(
   {
-    ignores: ['./hacks', './db-migrations', './build', 'jest.config.cjs'],
+    ignores: ['./hacks', './db-migrations', './build', 'jest.config.cjs']
   },
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts']
   },
   tseslint.configs.strictTypeChecked,
   tseslint.configs.stylisticTypeChecked,
   love,
   {
+    plugins: {
+      '@stylistic/ts': stylisticTs
+    },
     rules: {
+      '@stylistic/ts/quotes': ['error', 'single'],
+      '@stylistic/ts/indent': ['error', 2],
+      '@stylistic/ts/semi': ['error', 'never'],
+      'comma-dangle': ['error', 'never'],
       'promise/avoid-new': 'off',
       'dot-notation': 'off',
-      '@typescript-eslint/dot-notation': "error",
+      '@typescript-eslint/dot-notation': 'error',
       'prefer-const': 'off',
       'no-console': 'off',
       'max-nested-callbacks': 'off',
@@ -26,7 +34,7 @@ export default tseslint.config(
       'guard-for-in': 'off',
       'eslint-comments/require-description': 'off',
       'eslint-comments/no-unlimited-disable': 'off',
-      'complexity': 'off',
+      complexity: 'off',
       'arrow-body-style': 'off',
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/switch-exhaustiveness-check': 'off',
@@ -70,13 +78,13 @@ export default tseslint.config(
       '@typescript-eslint/class-methods-use-this': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/await-thenable': 'off',
-      '@typescript-eslint/array-type': 'off',
+      '@typescript-eslint/array-type': 'off'
     },
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.json',
-      },
-    },
+        project: './tsconfig.json'
+      }
+    }
   }
 )
