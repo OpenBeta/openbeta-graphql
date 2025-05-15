@@ -7,12 +7,18 @@
   "author": "<openbeta@noreply>",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
+    "@stylistic/eslint-plugin-ts": "^4.2.0",
     "@types/auth0": "^3.3.2",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.13.0",
     "@types/supertest": "^2.0.12",
     "@types/underscore": "^1.11.4",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
     "cross-env": "^7.0.3",
+    "eslint": "^9.26.0",
+    "eslint-config-love": "^119.0.0",
+    "eslint-plugin-import": "^2.31.0",
     "husky": "^8.0.1",
     "jest": "^29.7.0",
     "jest-extended": "^4.0.2",
@@ -21,7 +27,8 @@
     "supertest": "^6.3.3",
     "ts-jest": "^29.2.5",
     "ts-standard": "^12.0.0",
-    "typescript": "4.9.5",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1",
     "wait-for-expect": "^3.0.2"
   },
   "dependencies": {
@@ -71,13 +78,13 @@
     "yup": "^1.1.1"
   },
   "scripts": {
-    "lint": "yarn ts-standard",
-    "fix": "yarn ts-standard --fix",
+    "lint": "yarn eslint",
+    "fix": "yarn eslint --fix",
     "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --runInBand",
     "build": "tsc -p tsconfig.json",
     "build-release": "tsc  -p tsconfig.release.json",
     "clean": "tsc -b --clean && rm -rf build/*",
-    "serve": "yarn build && node --experimental-json-modules build/main.js",
+    "serve": "yarn build && node build/main.js",
     "serve-dev": "echo \"🚨 LOCAL_DEV_BYPASS_AUTH enabled 🚨\" && LOCAL_DEV_BYPASS_AUTH=true yarn serve",
     "seed-db": "./seed-db.sh",
     "add-countries": "yarn build && node build/db/utils/jobs/AddCountriesJob.js",
@@ -93,22 +100,8 @@
     "maptiles:upload": "./scripts/upload-tiles.sh",
     "maptiles:full": "yarn build && yarn maptiles:export-db && yarn maptiles:upload"
   },
-  "standard": {
-    "plugins": [
-      "html"
-    ],
-    "parser": "babel-eslint"
-  },
-  "ts-standard": {
-    "ignore": [
-      "build",
-      "hacks",
-      "**/*.test.ts",
-      "db-migrations"
-    ]
-  },
   "type": "module",
   "engines": {
-    "node": ">=18.20.0 <19"
+    "node": ">=22.14.0 <= 24"
   }
 }

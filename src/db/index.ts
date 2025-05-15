@@ -58,7 +58,7 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
       { autoIndex: true }
     )
   } catch (e) {
-    logger.error("Can't connect to db")
+    logger.error('Can\'t connect to db')
     process.exit(1)
   }
 }

@@ -40,7 +40,7 @@ export class Tree {
     } else {
       // find this new node's parent
       const parent = this.getParent(key)
-      if (parent === undefined) assert(false, "Parent path exists but parent node doesn't")
+      if (parent === undefined) assert(false, 'Parent path exists but parent node doesn\'t')
       parent?.linkChild(newNode)
       newNode.setParent(parent)
     }

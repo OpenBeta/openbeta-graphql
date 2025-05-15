@@ -78,7 +78,6 @@ async function postOrderVisit (node: AreaMongoType): Promise<StatsSummary> {
   const results = await Promise.all(
     nodeWithSubAreas.children.map(async entry => {
       const area: any = entry
-      /* eslint-disable-next-line */
       return limiter(postOrderVisit, (area as AreaMongoType))
     }
     ))

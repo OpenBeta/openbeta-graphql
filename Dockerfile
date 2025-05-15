@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/openbeta/openbeta-nodejs-docker:18
+FROM node:22-alpine
 
 ENV APP_DIR=/apps/openbeta-graphql
 
@@ -13,4 +13,4 @@ COPY . *.env ./
 RUN yarn install --no-progress && \
     yarn build-release
 
-CMD node --experimental-json-modules build/main.js
+CMD ["node", "build/main.js"]

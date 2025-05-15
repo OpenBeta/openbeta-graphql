@@ -124,16 +124,16 @@ export default class MutableMediaDataSource extends MediaDataSource {
   async removeEntityTag ({ mediaId, tagId }: EntityTagDeleteInput): Promise<boolean> {
     const rs = await this.mediaObjectModel
       .updateOne<MediaObject>(
-      {
-        _id: mediaId,
-        'entityTags._id': tagId
-      },
-      {
-        $pull: {
-          entityTags: { _id: tagId }
-        }
-      },
-      { multi: true })
+        {
+          _id: mediaId,
+          'entityTags._id': tagId
+        },
+        {
+          $pull: {
+            entityTags: { _id: tagId }
+          }
+        },
+        { multi: true })
       .orFail(new GraphQLError('Tag not found', {
         extensions: {
           code: ApolloServerErrorCode.BAD_USER_INPUT

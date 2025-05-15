@@ -129,14 +129,17 @@ export const createGradeObject = (gradeStr: string, disciplines: DisciplineType 
     if (disciplines[curr] === true) {
       const scaleTxt = context[curr]
       const scaleApi = getScale(scaleTxt)
-      if (scaleApi != null && !(scaleApi.getScore(gradeStr) < 0)) {
-        // only assign valid grade
-        if (acc == null) {
-          acc = {
-            [scaleTxt]: gradeStr
+      if (scaleApi != null) {
+        const grade = scaleApi.getScore(gradeStr)
+        if ((typeof grade === 'number' && grade > 0) || grade[0] > 0 || grade[1] > 0) {
+          // only assign valid grade
+          if (acc == null) {
+            acc = {
+              [scaleTxt]: gradeStr
+            }
+          } else {
+            acc[scaleTxt] = gradeStr
           }
-        } else {
-          acc[scaleTxt] = gradeStr
         }
       }
     }

@@ -1,14 +1,11 @@
 import mongoose from 'mongoose'
 import { geometry, Point } from '@turf/helpers'
 import isoCountries from 'i18n-iso-countries'
-import enJson from 'i18n-iso-countries/langs/en.json' assert { type: 'json' }
 
 import { getAreaModel } from '../../AreaSchema.js'
 import { AreaType } from '../../AreaTypes'
 import { Tree, AreaNode, createRootNode } from './AreaTree.js'
 import { MUUID } from 'uuid-mongodb'
-
-isoCountries.registerLocale(enJson)
 
 export const createRoot = async (countryCode: string, shortCode?: string): Promise<AreaNode> => {
   if (!isoCountries.isValid(countryCode)) {
@@ -33,7 +30,6 @@ export const createAreas = async (root: AreaNode, areas: any[], areaModel: mongo
   const tree = new Tree(root)
   areas.forEach(record => {
     const { path }: { path: string } = record
-    /* eslint-disable-next-line */
     const fullPath = `${record.us_state}|${path}` // 'path' doesn't have a parent (a US state)
     tree.insertMany(fullPath, record)
   })
