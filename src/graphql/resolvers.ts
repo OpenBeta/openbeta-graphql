@@ -221,9 +221,10 @@ const resolvers = {
       return []
     },
 
-    aggregate: async (node: AreaType) => {
-      return node.aggregate
-    },
+    aggregate: async (node: AreaType) => node.aggregate,
+
+    imageByteSum: async (node: AreaType, _, { dataSources: { areas } }: GQLContext) =>
+      await areas.computeImageByteSum(node.metadata.area_id),
 
     ancestors: async (parent) => parent.ancestors?.split(',') ?? [],
 

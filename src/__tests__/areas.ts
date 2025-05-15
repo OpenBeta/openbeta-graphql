@@ -98,6 +98,27 @@ describe('areas API', () => {
         })
     })
 
+    it('retrieves an area and its cumulative media weight', async () => {
+      const response = await queryAPI({
+        query: `
+          query area($input: ID) {
+            area(uuid: $input) {
+              uuid
+              imageByteSum
+            }
+          }
+        `,
+        operationName: 'area',
+        variables: { input: ca.metadata.area_id },
+        userUuid,
+        app
+      })
+      expect(response.statusCode).toBe(200)
+      const areaResult = response.body.data.area
+      expect(areaResult.uuid).toBe(muuidToString(ca.metadata.area_id))
+      expect(areaResult.imageByteSum).toBe(0)
+    })
+
     it('retrieves an area omitting organizations that exclude it', async () => {
       const response = await queryAPI({
         query: areaQuery,

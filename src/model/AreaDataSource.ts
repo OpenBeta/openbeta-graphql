@@ -133,6 +133,30 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return rs
   }
 
+  async computeImageByteSum (uuid: muuid.MUUID): Promise<number> {
+    const descendantUuids = await this.areaModel.find({
+      ancestors: { $regex: new RegExp(`(?:^|,)${uuid.toString()}(?:,|$)`) }
+    }, { 'metadata.area_id': 1, climbs: 1 })
+
+    return await this.mediaObjectModal.aggregate([
+      {
+        $match: {
+          'entityTags.targetId': {
+            $in: [...descendantUuids.map(i => i.metadata.area_id),
+              ...descendantUuids.reduce((prev, curr) => [...prev, ...curr.climbs], [])
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalSize: { $sum: '$size' }
+        }
+      }
+    ]).then(d => d[0]?.totalSize) ?? 0
+  }
+
   /**
    * Find a climb by uuid.  Also return the parent area object (crag or boulder).
    *
