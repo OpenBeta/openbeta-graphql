@@ -4,7 +4,7 @@ import MutableMediaDataSource from '../MutableMediaDataSource.js'
 import AreaDataSource from '../MutableAreaDataSource.js'
 import ClimbDataSource from '../MutableClimbDataSource.js'
 
-import { createIndexes } from '../../db/index.js'
+import { createIndexes, getUserModel } from '../../db/index.js'
 import { AreaType } from '../../db/AreaTypes.js'
 import {
   AddTagEntityInput,
@@ -17,6 +17,11 @@ import {
 } from '../../db/MediaObjectTypes.js'
 import { newSportClimb1 } from './MutableClimbDataSource.js'
 import inMemoryDB from '../../utils/inMemoryDB.js'
+import { mediaAdded } from '../../google-cloud/adapter-interface.js'
+import { safeRandomFilename } from '../../google-cloud/bucket.js'
+import { muuidToString } from '../../utils/helpers.js'
+import UserDataSource from '../UserDataSource.js'
+import assert from 'node:assert'
 
 const TEST_MEDIA: MediaObjectGQLInput = {
   userUuid: 'a2eb6353-65d1-445f-912c-53c6301404bd',
@@ -49,6 +54,14 @@ describe('MediaDataSource', () => {
     areas = AreaDataSource.getInstance()
     climbs = ClimbDataSource.getInstance()
     media = MutableMediaDataSource.getInstance()
+    const userModel = getUserModel()
+    await userModel.insertMany([{
+      _id: TEST_MEDIA.userUuid,
+      usernameInfo: {
+        username: 'test_user',
+        canonicalName: 'test_user'
+      }
+    }])
   })
 
   beforeEach(async () => {
@@ -100,6 +113,227 @@ describe('MediaDataSource', () => {
 
   afterAll(async () => {
     await inMemoryDB.close()
+  })
+
+  describe('Pending media logic', () => {
+    // When you create media that has no extant mediaUrl it will be made as a
+    // pending media object.
+    const pendingPattern: MediaObjectGQLInput = {
+      userUuid: TEST_MEDIA.userUuid,
+      width: 100,
+      height: 100,
+      size: 100 * 100,
+      format: 'jpeg'
+    }
+
+    it('Should create a pending media object with random filename', async () => {
+      const [pending] = await media.addMediaObjects([{ ...pendingPattern }])
+      expect(pending.expiresAt).not.toBe(undefined)
+      expect(pending.uploadTo).not.toBe(undefined)
+      expect(pending.expiresAt).not.toBe(null)
+      expect(pending.uploadTo).not.toBe(null)
+    })
+
+    it('Should create a non-pending media object', async () => {
+      const [pending] = await media.addMediaObjects([{ ...pendingPattern, mediaUrl: safeRandomFilename() + '.jpeg' }])
+      expect(pending.expiresAt).toBe(undefined)
+      expect(pending.uploadTo).toBe(undefined)
+    })
+
+    it('Pending media object should be deleted by mongodb after its expiry time', async () => {
+      const [pending] = await media.addMediaObjects([pendingPattern])
+
+      // media expires in 10ms
+      await media.mediaObjectModel.updateOne({ _id: pending._id }, { expiresAt: Date.now() + 10 })
+      while (await media.mediaObjectModel.findOne({ _id: pending._id }) !== null) {
+        await new Promise((resolve) => setTimeout(resolve, 500))
+      }
+    })
+
+    it('Pending media object should mask filename by default', async () => {
+      // at this point the media is pending
+      const filename = safeRandomFilename() + '.jpeg'
+      const [pending] = await media.addMediaObjects([{
+        ...pendingPattern,
+        filename
+      }])
+
+      expect(pending.mediaUrl.split('/')).not.toContain(filename)
+      expect(pending.mediaUrl).not.toContain(filename)
+    })
+
+    it('Pending media object should throw error if mask suppression is requested but no filename is specified', async () => {
+      // at this point the media is pending
+      await expect(media.addMediaObjects([{
+        ...pendingPattern,
+        maskFilename: false
+      }])).rejects.toThrow()
+    })
+
+    it('Pending media object should mask filename if requested', async () => {
+      // at this point the media is pending
+      const filename = safeRandomFilename() + 'jpeg'
+      const [pending] = await media.addMediaObjects([{
+        filename,
+        ...pendingPattern,
+        maskFilename: true
+      }])
+
+      expect(pending.mediaUrl.split('/')).not.toContain(filename)
+      expect(pending.mediaUrl).not.toContain(filename)
+    })
+
+    it('Pending media object should use original filename if requested', async () => {
+      // at this point the media is pending
+      const filename = safeRandomFilename() + 'jpeg'
+      const [pending] = await media.addMediaObjects([{
+        ...pendingPattern,
+        filename,
+        maskFilename: false
+      }])
+
+      expect(pending.mediaUrl.split('/')).toContain(filename)
+      expect(pending.mediaUrl).toContain(filename)
+    })
+
+    it('Identical pending media calls should not cause unique-key issues when an identifier is present', async () => {
+      // at this point the media is pending
+      const filename = safeRandomFilename() + 'jpeg'
+      let [pending] = await media.addMediaObjects([{
+        filename,
+        ...pendingPattern,
+        maskFilename: false
+      }])
+
+      expect(pending.mediaUrl.split('/')).toContain(filename)
+      expect(pending.mediaUrl).toContain(filename)
+
+      pending = await media.addMediaObjects([{
+        filename,
+        ...pendingPattern,
+        maskFilename: false
+      }]).then(x => x[0])
+
+      expect(pending.mediaUrl.split('/')).toContain(filename)
+      expect(pending.mediaUrl).toContain(filename)
+    })
+
+    it('Identical pending media calls SHOULD throw unique-key error when key collision appears accidental', async () => {
+      // at this point the media is pending
+      const filename = safeRandomFilename() + 'jpeg'
+      const [pending] = await media.addMediaObjects([{
+        filename,
+        ...pendingPattern,
+        maskFilename: false
+      }])
+      await mediaAdded({ objectId: pending.mediaUrl })
+
+      await expect(media.addMediaObjects([{
+        filename,
+        ...pendingPattern,
+        maskFilename: false
+      }]).then(x => x[0]))
+        .rejects
+        .toThrow('E11000 duplicate key error collection: openbeta.media_objects index: mediaUrl_1 dup key:')
+    })
+
+    it('Pending media object should be reified if hook is called', async () => {
+      const [pending] = await media.addMediaObjects([{
+        ...pendingPattern,
+        format: 'jpeg'
+      }])
+
+      await mediaAdded({ objectId: pending.mediaUrl })
+
+      expect((await media.mediaObjectModel.findOne({ _id: pending._id }).orFail()).expiresAt).toBe(undefined)
+    })
+    it('Pending media should be elided when resolving climb photos', async () => {
+      await media.findMediaByClimbId(climbIdForTagging)
+      await media.getOneClimbMediaPagination({ climbUuid: climbIdForTagging })
+    })
+    it('Pending media should be elided when resolving area photos', async () => {
+      await media.getOneAreaMediaPagination({ areaUuid: areaForTagging1.metadata.area_id })
+    })
+
+    it('Pending media should be elided when resolving user photos', async () => {
+      const [pending] = await media.addMediaObjects([{
+        ...pendingPattern,
+        format: 'jpeg'
+      }])
+
+      expect(await media.getOneUserMedia(TEST_MEDIA.userUuid, 1_000).then(i => i.map(i => i.mediaUrl))).not.toContain(pending.mediaUrl)
+
+      expect(
+        await media.getOneUserMediaPagination({ userUuid: muuid.from(TEST_MEDIA.userUuid) })
+          .then(i => i.mediaConnection.edges
+            .map(i => i.node.mediaUrl))
+      )
+        .not
+        .toContain(pending.mediaUrl)
+    })
+
+    it('Pending media should be elided from tags leaderboard', async () => {
+      const userDs = UserDataSource.getInstance()
+
+      const users = [muuid.v4(), muuid.v4()]
+      await Promise.all(users.map(async (userUuid) =>
+        await userDs.createOrUpdateUserProfile(
+          userUuid, {
+            email: `${userUuid.toString()}@openbeta.io`,
+            username: `user-${process.uptime()}`,
+            userUuid: userUuid.toString()
+          })
+      ))
+
+      const entityTag = { entityId: muuidToString(climbIdForTagging), entityType: 0 }
+      await Promise.all(users.map(i => muuidToString(i)).map(async (userUuid) =>
+        await media.addMediaObjects([
+          { ...pendingPattern, userUuid, mediaUrl: `/u/${userUuid.toString()}/${safeRandomFilename()}.jpeg`, entityTag }
+        ]).then((media) => media.forEach(i => {
+          expect(i.uploadTo).toBeUndefined()
+          expect(i.expiresAt).toBeUndefined()
+        }))
+      ))
+
+      const userTags = await media.getTagsLeaderboard().then(l => l.allTime.byUsers.find(i => i.userUuid.toString() === users[0].toString()))
+      assert(userTags !== undefined)
+      // create a new pending media object for the present leader
+      await media.addMediaObjects([{
+        ...pendingPattern,
+        userUuid: muuidToString(userTags.userUuid)
+      }])
+
+      expect(userTags.total).toBe(1)
+
+      const [pending] = await media.addMediaObjects([{
+        ...pendingPattern,
+        userUuid: muuidToString(userTags.userUuid),
+        entityTag: {
+          entityId: areaForTagging1.metadata.area_id.toString(),
+          entityType: 1
+        }
+      }]).then((media) => media.map(mediaObject => {
+        expect(mediaObject.uploadTo).not.toBeUndefined()
+        expect(mediaObject.expiresAt).not.toBeUndefined()
+        expect(mediaObject.entityTags).toHaveLength(1)
+        return mediaObject
+      }))
+
+      // This should not change the count, since the media is unreified
+      expect(
+        await media.getTagsLeaderboard()
+          .then(x => x.allTime.byUsers.find(u => u.userUuid.toString() === userTags.userUuid.toString()))
+          .then(i => i?.total)
+      ).toBe(userTags.total)
+
+      // reification of this item should make the count increment by 1
+      await mediaAdded({ objectId: pending.mediaUrl })
+      expect(
+        await media.getTagsLeaderboard()
+          .then(x => x.allTime.byUsers.find(u => u.userUuid.toString() === userTags.userUuid.toString()))
+          .then(i => i?.total)
+      ).toBe(userTags.total + 1)
+    })
   })
 
   it('should not tag a nonexistent area', async () => {

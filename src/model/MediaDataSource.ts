@@ -1,15 +1,23 @@
-import { MongoDataSource } from 'apollo-datasource-mongodb'
+import { MongoDataSource, MongoDataSourceConfig } from 'apollo-datasource-mongodb'
 import muid, { MUUID } from 'uuid-mongodb'
 import mongoose from 'mongoose'
 import { logger } from '../logger.js'
 import { getMediaObjectModel } from '../db/index.js'
 import { TagsLeaderboardType, UserMediaQueryInput, AreaMediaQueryInput, ClimbMediaQueryInput, AllTimeTagStats, MediaByUsers, MediaForFeedInput, MediaObject, UserMedia, AreaMedia, ClimbMedia } from '../db/MediaObjectTypes.js'
+import { BucketStorage } from '../google-cloud/bucket.js'
+import { GoogleStorage, mediaAdded } from '../google-cloud/adapter-interface.js'
 
 const HARD_MAX_FILES = 1000
 const HARD_MAX_USERS = 100
 
 export default class MediaDataSource extends MongoDataSource<MediaObject> {
   mediaObjectModel = getMediaObjectModel()
+  bucket: BucketStorage
+
+  constructor (args: MongoDataSourceConfig<MediaObject> & { bucket?: BucketStorage }) {
+    super(args)
+    this.bucket = args.bucket ?? new GoogleStorage()
+  }
 
   /**
    * A reusable filter to exclude documents with empty entityTags
@@ -19,6 +27,25 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       entityTags: { $exists: true, $type: 4, $ne: [] }
     }
   }]
+
+  /**
+   * This may ultimately not be necessary, since really the google GCS integration should be solid,
+   * but the image callback hook is designed to be idempotent and this extra work is not too painful
+   * since most of the time it shouldn't really be doing anything
+  */
+  async elideUnreifiedMedia <T extends { expiresAt?: Date, mediaUrl: string }> (input: T[]): Promise<T[]> {
+    const pending = input.filter(i => i.expiresAt !== undefined)
+    if (pending.length !== 0) {
+      const status = await this.bucket.fileExists(pending.map(i => i.mediaUrl))
+      const sinceReified = pending.filter((item, idx) => status[idx])
+      await Promise.all(sinceReified.map(async i => await mediaAdded({ objectId: i.mediaUrl })))
+      input.filter((_, idx) => status[idx]).forEach((media, idx) => {
+        input[idx].expiresAt = undefined
+      })
+    }
+
+    return input.filter(i => i.expiresAt === undefined)
+  }
 
   /**
    * Find one media object by id.  Throw an exception if not found.
@@ -99,7 +126,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
         }
       }
     ])
-    return rs
+    return await Promise.all(rs.map(async (i) => ({ ...i, mediaWithTags: await this.elideUnreifiedMedia(i.mediaWithTags) })))
   }
 
   /**
@@ -112,7 +139,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       logger.error(`Expecting 1 user in result set but got ${rs.length}`)
       return []
     }
-    return rs[0].mediaWithTags
+    return await this.elideUnreifiedMedia(rs[0].mediaWithTags)
   }
 
   /**
@@ -128,7 +155,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
   async getOneUserMediaPagination (input: UserMediaQueryInput): Promise<UserMedia> {
     const { userUuid, first = 6, after } = input
     const filters = this.mediaFilters(after, userUuid, 'user')
-    const filteredMedia = await this.aggregateMedia(filters, first)
+    const filteredMedia: MediaObject[] = await this.elideUnreifiedMedia(await this.aggregateMedia(filters, first))
     const itemCount = await this.mediaObjectModel.countDocuments(this.getMatchClause(userUuid, 'user'))
     let hasNextPage = false
     if (filteredMedia.length > first) {
@@ -151,8 +178,9 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
   async getOneAreaMediaPagination (input: AreaMediaQueryInput): Promise<AreaMedia> {
     const { areaUuid, first = 6, after } = input
     const filters = this.mediaFilters(after, areaUuid, 'area')
-    const filteredMedia = await this.aggregateMedia(filters, first)
+    const filteredMedia: MediaObject[] = await this.aggregateMedia(filters, first)
     const itemCount = await this.mediaObjectModel.countDocuments(this.getMatchClause(areaUuid, 'area'))
+
     let hasNextPage = false
     if (filteredMedia.length > first) {
       filteredMedia.pop()
@@ -193,8 +221,15 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
    * @returns Array of TagsLeaderboardType
    */
   async getTagsLeaderboard (limit = 30): Promise<TagsLeaderboardType> {
-    const rs = await this.mediaObjectModel.aggregate<AllTimeTagStats>([
+    const resultSet = await this.mediaObjectModel.aggregate<AllTimeTagStats>([
+      // Do not count media that has not been tagged
       ...this.entityTagsNotEmptyFilter,
+      // When counting media for leaderboard we need not look at pending media
+      {
+        $match: {
+          expiresAt: { $exists: false }
+        }
+      },
       {
         $group: {
           _id: '$userUuid',
@@ -233,10 +268,12 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
       readPreference: 'secondaryPreferred'
     })
 
-    if (rs?.length !== 1) throw new Error('Unexpected leaderboard query error')
+    if (resultSet === undefined) throw new Error('tag leaderboard returned with no data')
+    if (resultSet.length === 0) throw new Error('Tag leaderboard had zero sets (which is weird)')
+    if (resultSet.length > 1) throw new Error('Unexpected leaderboard query error - multiple result sets')
 
     return {
-      allTime: rs[0]
+      allTime: resultSet[0]
     }
   }
 
@@ -246,7 +283,7 @@ export default class MediaDataSource extends MongoDataSource<MediaObject> {
    * @param climbId
    * @returns `MediaWithTags` array
    */
-  async findMediaByClimbId (climbId: MUUID, climbName: string): Promise<MediaObject[]> {
+  async findMediaByClimbId (climbId: MUUID, climbName?: string): Promise<MediaObject[]> {
     const rs = await this.mediaObjectModel.find({
       'entityTags.targetId': climbId
     }).lean()

@@ -14,6 +14,7 @@ export interface MediaObject {
   createdAt: Date
   size: number
   entityTags?: EntityTag[]
+  expiresAt?: Date
 }
 
 export interface EntityTag {
@@ -103,9 +104,12 @@ export interface EntityTagDeleteInput {
 /**
  * GQL user input type for add media mutation
  */
-export type MediaObjectGQLInput = Pick<MediaObject, 'mediaUrl' | 'width' | 'height' | 'format' | 'size'> & {
+export type MediaObjectGQLInput = Pick<MediaObject, 'width' | 'height' | 'format' | 'size'> & {
   userUuid: string
+  mediaUrl?: string
   entityTag?: Omit<AddEntityTagGQLInput, 'mediaId'>
+  filename?: string
+  maskFilename?: boolean
 }
 
 /**
