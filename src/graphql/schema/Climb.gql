@@ -96,6 +96,7 @@ type ClimbMetadata {
   leftRightIndex: Int
   "If this climb originated from Mountain Project, this is the ID"
   mp_id: String
+  wikidata_id: String!
   climb_id: ID!
   climbId: ID!
 }

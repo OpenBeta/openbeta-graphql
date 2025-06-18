@@ -51,6 +51,7 @@ const MetadataSchema = new Schema<IClimbMetadata>({
   left_right_index: { type: Number, required: true, default: -1 },
   mp_id: { type: String, required: false },
   mp_crag_id: { type: String, required: true },
+  wikidata_id: { type: String, required: false },
   areaRef: {
     type: Schema.Types.Mixed,
     value: { type: 'Buffer' },

@@ -127,6 +127,7 @@ export interface DisciplineType {
   /** https://en.wikipedia.org/wiki/Top_rope_climbing */
   tr?: boolean
 }
+
 export interface IClimbMetadata {
   lnglat?: Point
   left_right_index?: number
@@ -137,6 +138,8 @@ export interface IClimbMetadata {
    * for its crag to also be available
    */
   mp_crag_id?: string
+  /** The Wikidata identifier for the route */
+  wikidata_id?: string
   /** the parent Area in which this climb appears */
   areaRef: MUUID
 }

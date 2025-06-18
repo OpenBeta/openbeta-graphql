@@ -149,6 +149,13 @@ export interface IAreaMetadata {
    * this field will record their external relation.
    * */
   ext_id?: string
+
+  /**
+   * Some areas have an identifier on https://www.wikidata.org
+   * This identifier matches the regex `^Q\d+$`
+   * */
+  wikidata_id?: string
+
   /**
    * All external IDs for areas are expressed as UUIDs. As such, when resolving ids at the
    * GQL layer use these values for querying and identification of areas.
