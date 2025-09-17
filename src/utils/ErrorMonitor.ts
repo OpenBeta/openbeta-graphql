@@ -88,7 +88,7 @@ export class ErrorMonitor {
     }
 
     if (this.stats.totalErrors >= this.alertThresholds.totalErrors) {
-      console.error(`🚨 HIGH TOTAL ERROR COUNT: ${this.stats.totalErrors} total errors since ${this.stats.lastReset}`)
+      console.error(`🚨 HIGH TOTAL ERROR COUNT: ${this.stats.totalErrors} total errors since ${this.stats.lastReset.toISOString()}`)
     }
   }
 
