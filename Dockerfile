@@ -13,4 +13,4 @@ COPY . *.env ./
 RUN yarn install --no-progress && \
     yarn build-release
 
-CMD node --experimental-json-modules build/main.js
+CMD node --max-old-space-size=512 --experimental-json-modules build/main.js
