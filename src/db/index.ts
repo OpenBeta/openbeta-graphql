@@ -49,9 +49,18 @@ export const connectDB = async (onConnected: () => any = defaultFn): Promise<voi
     mongoose.connection.on(
       'error', (e) => {
         logger.error('MongoDB connection error', e)
-        process.exit(1)
+        // Don't exit immediately, let the app try to reconnect
+        // process.exit(1)
       }
     )
+
+    mongoose.connection.on('disconnected', () => {
+      logger.warn('MongoDB disconnected. Attempting to reconnect...')
+    })
+
+    mongoose.connection.on('reconnected', () => {
+      logger.info('MongoDB reconnected successfully')
+    })
 
     await mongoose.connect(
       `${scheme}://${user}:${pass}@${server}/${dbName}?authSource=${authDb}&tls=${tlsFlag}&replicaSet=${rsName}`,
