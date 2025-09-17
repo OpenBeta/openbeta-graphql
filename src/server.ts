@@ -49,7 +49,8 @@ export async function createServer (): Promise<{ app: express.Application, serve
     schema,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
     cache: new InMemoryLRUCache({
-      max: 100
+      max: 50,
+      maxSize: 1024 * 1024 * 10
     })
   })
   // server must be started before applying middleware
@@ -57,8 +58,22 @@ export async function createServer (): Promise<{ app: express.Application, serve
 
   const context = process.env.LOCAL_DEV_BYPASS_AUTH === 'true' ? localDevBypassAuthContext : createContext
 
+  app.get('/health', (req, res) => {
+    const memUsage = process.memoryUsage()
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      memory: {
+        rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
+        heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
+        heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+        external: `${Math.round(memUsage.external / 1024 / 1024)}MB`
+      }
+    })
+  })
+
   app.use('/',
-    bodyParser.json({ limit: '10mb' }),
+    bodyParser.json({ limit: '5mb' }),
     cors<cors.CorsRequest>(),
     express.json(),
     expressMiddleware(server, {
