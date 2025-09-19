@@ -7,7 +7,7 @@ export function resolveAreaFileName (area: Partial<AreaType>): string {
 }
 
 export function resolveAreaSubPath (area: Partial<AreaType>): string {
-  const paths: string[] = area.pathTokens?.map(normalizeName)
+  const paths: string[] = area?.embeddedRelations?.ancestors.map((a) => normalizeName(a.name))
     .map(token => token ?? '')
     .filter(token => token !== '') ?? []
   return path.join(...paths)

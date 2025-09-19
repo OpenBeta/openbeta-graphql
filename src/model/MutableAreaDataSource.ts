@@ -9,7 +9,6 @@ import mongoose, { ClientSession } from 'mongoose'
 import { NIL, v5 as uuidv5 } from 'uuid'
 import muuid, { MUUID } from 'uuid-mongodb'
 
-import { GradeContexts } from '../GradeUtils.js'
 import CountriesLngLat from '../data/countries-with-lnglat.json' assert {type: 'json'}
 import {
   AreaDocumnent,
@@ -20,8 +19,6 @@ import {
 } from '../db/AreaTypes.js'
 import { ChangeRecordMetadataType } from '../db/ChangeLogType.js'
 import { ExperimentalAuthorType } from '../db/UserTypes.js'
-import { makeDBArea } from '../db/import/usa/AreaTransformer.js'
-import { createRootNode } from '../db/import/usa/AreaTree.js'
 import { leafReducer, nodesReducer, StatsSummary } from '../db/utils/jobs/TreeUpdaters/updateAllAreas.js'
 import { bboxFrom } from '../geo-utils.js'
 import { logger } from '../logger.js'
@@ -29,8 +26,10 @@ import ExperimentalUserDataSource from '../model/ExperimentalUserDataSource.js'
 import { sanitizeStrict } from '../utils/sanitize.js'
 import AreaDataSource from './AreaDataSource.js'
 import ChangeLogDataSource from './ChangeLogDataSource.js'
-import { withTransaction } from '../utils/helpers.js'
+import { muuidToString, resolveTransaction, withTransaction } from '../utils/helpers.js'
 import { getAreaModel } from '../db/AreaSchema.js'
+import { AreaRelationsEmbeddings, AreaStructureError } from './AreaRelationsEmbeddings'
+import { getCountriesDefaultGradeContext, GradeContexts } from '../GradeUtils'
 
 isoCountries.registerLocale(enJson)
 
@@ -52,8 +51,39 @@ export interface UpdateAreaOptions {
   session?: ClientSession
 }
 
+const defaultArea = {
+  shortCode: '',
+  metadata: {
+    isDestination: false,
+    leaf: false,
+    leftRightIndex: -1,
+    ext_id: ''
+  },
+  climbs: [],
+  embeddedRelations: {
+    children: []
+  },
+  aggregate: {
+    byGrade: [],
+    byDiscipline: {},
+    byGradeBand: {
+      unknown: 0,
+      beginner: 0,
+      intermediate: 0,
+      advanced: 0,
+      expert: 0
+    }
+  },
+  density: 0,
+  totalClimbs: 0,
+  content: {
+    description: ''
+  }
+}
+
 export default class MutableAreaDataSource extends AreaDataSource {
   experimentalUserDataSource = ExperimentalUserDataSource.getInstance()
+  relations = new AreaRelationsEmbeddings(this.areaModel)
 
   private areaNameCompare (name: string): string {
     return name.trim().toLocaleLowerCase().split(' ').filter(i => i !== '').join(' ')
@@ -64,19 +94,20 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // that the name is unique for this context
     let neighbours: string[]
 
-    if (parent !== null) {
-      neighbours = (await this.areaModel.find({ _id: parent.children })).map(i => i.area_name)
-    } else {
-      neighbours = (await this.areaModel.find({ pathTokens: { $size: 1 } })).map(i => i.area_name)
+    const common = {
+      _deleting: { $exists: false }
     }
 
-    neighbours = neighbours.map(i => this.areaNameCompare(i))
+    if (parent !== null) {
+      neighbours = (await this.areaModel.find({ parent: parent._id, ...common })).map(i => i.area_name)
+    } else {
+      // locate nodes with no direct parent (roots)
+      neighbours = (await this.areaModel.find({ parent: { $exists: false }, ...common })).map(i => i.area_name)
+    }
+
+    neighbours = neighbours.map(neighbour => this.areaNameCompare(neighbour))
     if (neighbours.includes(this.areaNameCompare(areaName))) {
-      throw new GraphQLError(`[${areaName}]: This name already exists for some other area in this parent`, {
-        extensions: {
-          code: ApolloServerErrorCode.BAD_USER_INPUT
-        }
-      })
+      throw new AreaStructureError(`[${areaName}]: This name already exists for some other area in this parent`)
     }
   }
 
@@ -128,19 +159,35 @@ export default class MutableAreaDataSource extends AreaDataSource {
     // Country code can be either alpha2 or 3. Let's convert it to alpha3.
     const alpha3 = countryCode.length === 2 ? isoCountries.toAlpha3(countryCode) : countryCode
     const countryName = isoCountries.getName(countryCode, 'en')
+
     if (alpha3 == null || countryName == null) {
       throw new GraphQLError(`Invalid country code ${countryCode}`)
     }
-    const countryNode = createRootNode(alpha3, countryName)
-
-    // Build the Mongo document to be inserted
-    const doc = makeDBArea(countryNode)
-    doc.shortCode = alpha3
+    const _id = new mongoose.Types.ObjectId()
+    const uuid = countryCode2Uuid(countryCode)
+    const country: AreaType = {
+      ...defaultArea,
+      area_name: countryName,
+      shortCode: alpha3,
+      embeddedRelations: {
+        ...defaultArea.embeddedRelations,
+        ancestors: [{ _id, uuid, name: countryName }]
+      },
+      metadata: {
+        ...defaultArea.metadata,
+        lnglat: CountriesLngLat[alpha3]?.lnglat,
+        area_id: uuid
+      },
+      _id,
+      uuid,
+      gradeContext: getCountriesDefaultGradeContext()[alpha3] ?? GradeContexts.US
+    }
 
     // Look up the country lat,lng
     const entry = CountriesLngLat[alpha3]
+
     if (entry != null) {
-      doc.metadata.lnglat = {
+      country.metadata.lnglat = {
         type: 'Point',
         coordinates: entry.lnglat
       }
@@ -151,7 +198,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     await this.validateUniqueAreaName(countryName, null)
 
-    const rs = await this.areaModel.insertMany(doc)
+    const rs = await this.areaModel.insertMany(country)
     if (rs.length === 1) {
       return await rs[0].toObject()
     }
@@ -222,7 +269,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
     }))
 
     if (parent.metadata.leaf || (parent.metadata?.isBoulder ?? false)) {
-      if (parent.children.length > 0 || parent.climbs.length > 0) {
+      if (parent.embeddedRelations.children.length > 0 || parent.climbs.length > 0) {
         throw new GraphQLError(`[${areaName}]: Adding new areas to a leaf or boulder area is not allowed.`, {
           extensions: {
             code: ApolloServerErrorCode.BAD_USER_INPUT
@@ -255,10 +302,8 @@ export default class MutableAreaDataSource extends AreaDataSource {
       draft.prevHistoryId = parent._change?.historyId
     })
 
-    const parentAncestors = parent.ancestors
-    const parentPathTokens = parent.pathTokens
-    const parentGradeContext = parent.gradeContext
-    const newArea = newAreaHelper(areaName, parentAncestors, parentPathTokens, parentGradeContext)
+    const newArea = this.subAreaHelper(areaName, parent)
+
     if (isLeaf != null) {
       newArea.metadata.leaf = isLeaf
     }
@@ -279,8 +324,12 @@ export default class MutableAreaDataSource extends AreaDataSource {
     const rs1 = await this.areaModel.insertMany(newArea, { session })
 
     // Make sure parent knows about this new area
-    parent.children.push(newArea._id)
-    parent.updatedBy = experimentaAuthorId ?? user
+    if (parent.embeddedRelations.children === null) {
+      parent.embeddedRelations.children = [newArea._id]
+    } else {
+      parent.embeddedRelations.children.push(newArea._id)
+    }
+
     await parent.save({ timestamps: false })
     return rs1[0].toObject()
   }
@@ -307,7 +356,11 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
     const area = await this.areaModel.findOne(filter).session(session).orFail()
 
-    if (area?.children?.length > 0) {
+    if (area == null) {
+      throw new Error('Delete area error.  Reason: area not found.')
+    }
+
+    if (area?.embeddedRelations.children?.length > 0) {
       throw new Error('Delete area error.  Reason: subareas not empty.')
     }
 
@@ -323,28 +376,13 @@ export default class MutableAreaDataSource extends AreaDataSource {
       operation: OperationType.deleteArea,
       seq: 0
     }
-    // Remove this area id from the parent.children[]
-    await this.areaModel.updateOne(
+
+    // Remove this area id from the parents denormalized children
+    await this.areaModel.updateMany(
+      { _id: area.parent },
       {
-        children: area._id
-      },
-      [{
-        $set: {
-          children: {
-            $filter: {
-              input: '$children',
-              as: 'child',
-              cond: { $ne: ['$$child', area._id] }
-            }
-          },
-          updatedBy: user,
-          '_change.prevHistoryId': '$_change.historyId',
-          _change: produce(_change, draft => {
-            draft.seq = 0
-          })
-        }
-      }]
-      , {
+        $pull: { 'embeddedRelations.children': area._id }
+      }, {
         timestamps: false
       }).orFail().session(session)
 
@@ -373,6 +411,87 @@ export default class MutableAreaDataSource extends AreaDataSource {
 
   async updateAreaWith ({ user, areaUuid, document, session }: UpdateAreaOptions): Promise<AreaType | null> {
     return await this.updateArea(user, areaUuid, document, session)
+  }
+
+  /**
+   * Modify an areas parent. This will mutate the areas parent reference, so all of its children
+   * will come along with it (Same as if you were to move a directory with files in it to another directory)
+   *
+   * Note:
+   *  If you are a bolder free-soloist than I, you could try and merge this function into the updateArea
+   *  function so that parent is a mutable field in the same way that areaName is. However: it is harder.
+   *  Simple as that, you will have to deal with substantially more complex effects than simply treating
+   *  it as its own sequential operation.
+  */
+  async setAreaParent (user: MUUID, areaUuid: MUUID, newParent: MUUID, sessionCtx?: ClientSession): Promise<AreaType> {
+    if (muuidToString(areaUuid) === muuidToString(newParent)) {
+      throw new AreaStructureError('You cannot set self as a parent')
+    }
+
+    return await resolveTransaction(this.areaModel, sessionCtx, async (session) => {
+      const area = await this.areaModel.findOne({ 'metadata.area_id': areaUuid })
+        .orFail()
+        .session(session)
+
+      if (area._deleting !== undefined) {
+        throw new Error('This area is slated for deletion and cannot be edited')
+      }
+
+      if (area.parent === undefined) {
+        // This is a root node (country, likely) and so this is an operation with
+        // high level privliges that are currently not enumerated.
+        throw new AreaStructureError('You cannot migrate, what appears to be, a country.')
+      }
+
+      // Retrieve the current parent for this area.
+      const oldParent = await this.areaModel.findOne({
+        _id: area.parent
+      }).lean()
+        .session(session)
+        .orFail()
+
+      if (muuidToString(oldParent.metadata.area_id) === muuidToString(newParent)) {
+        // The request is a no-op, waste no time. nothing has changed
+        // we notify the user that this change has already been acknowledged with an error
+        // so that we are absolutely clear that nothing has changed.
+        throw new AreaStructureError('no-op, the requested parent is ALREADY the parent.')
+      }
+
+      const nextParent = await this.areaModel.findOne({ 'metadata.area_id': newParent }).orFail().session(session)
+
+      // We need to validate that a circular reference has not been invoked.
+      // Essentially, we cannot specify a parent reference if we have that parent somewhere in our decendants.
+      if (
+        area.embeddedRelations.children.includes(nextParent._id) ||
+        await this.relations.hasDescendent(area._id, nextParent._id, session)
+      ) {
+        throw new AreaStructureError('CIRCULAR STRUCTURE: The requested parent is already a descendant, and so cannot also be a parent.')
+      }
+
+      // the name of the area being moved into this area must be unique in its new context
+      await this.validateUniqueAreaName(area.area_name, nextParent)
+
+      // By this point we are satisfied that there are no obvious reasons to reject this request, so we can begin saving
+      // and producing effects in the context of this transaction.
+      area.parent = nextParent._id
+
+      const change = await ChangeLogDataSource.getInstance().create(session, user, OperationType.changeAreaParent)
+
+      area.set({
+        _change: {
+          user,
+          historyId: change._id,
+          prevHistoryId: area._change?.historyId._id,
+          operation: OperationType.changeAreaParent,
+          seq: 0
+        } satisfies ChangeRecordMetadataType,
+        updatedBy: user
+      })
+
+      await area.save({ session })
+      await this.relations.computeEmbeddedAncestors(area, session)
+      return await this.areaModel.findById(area._id).orFail()
+    })
   }
 
   /**
@@ -420,7 +539,7 @@ export default class MutableAreaDataSource extends AreaDataSource {
       // area names must be unique in a document area structure context, so if the name has changed we need to check
       // that the name is unique for this context
       if (areaName !== undefined && this.areaNameCompare(areaName) !== this.areaNameCompare(area.area_name)) {
-        await this.validateUniqueAreaName(areaName, await this.areaModel.findOne({ children: area._id }).session(session))
+        await this.validateUniqueAreaName(areaName, await this.areaModel.findOne({ _id: area.parent }).session(session))
       }
 
       const opType = OperationType.updateArea
@@ -436,20 +555,20 @@ export default class MutableAreaDataSource extends AreaDataSource {
       area.set({ _change })
       area.updatedBy = experimentalAuthorId ?? user
 
-      if (area.pathTokens.length === 1) {
+      // If this is a root area we disallow typical editing of it, as it is likely a country.
+      if (area.parent === undefined) {
         if (areaName != null || shortCode != null) throw new Error(`[${area.area_name}]: Area update error. Reason: Updating country name or short code is not allowed.`)
       }
 
-      if (area.children.length > 0 && (isLeaf != null || isBoulder != null)) {
+      if (area.embeddedRelations.children.length > 0 && (isLeaf != null || isBoulder != null)) {
         throw new Error(`[${area.area_name}]: Area update error.  Reason: Updating leaf or boulder status of an area with subareas is not allowed.`)
       }
 
       if (areaName != null) {
         const sanitizedName = sanitizeStrict(areaName)
         area.set({ area_name: sanitizedName })
-
-        // change our pathTokens
-        await this.updatePathTokens(session, _change, area, sanitizedName)
+        // sync names in all relevant references to this area.
+        await this.relations.syncNamesInEmbeddings(area, session)
       }
 
       if (shortCode != null) area.set({ shortCode: shortCode.toUpperCase() })
@@ -502,38 +621,6 @@ export default class MutableAreaDataSource extends AreaDataSource {
       if (sessionCtx == null) {
         await session.endSession()
       }
-    }
-  }
-
-  /**
-   * Update path tokens
-   * @param session Mongoose session
-   * @param changeRecord Changeset metadata
-   * @param area area to update
-   * @param newAreaName new area name
-   * @param depth tree depth
-   */
-  async updatePathTokens (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, newAreaName: string, changeIndex: number = -1): Promise<void> {
-    if (area.pathTokens.length > 1) {
-      if (changeIndex === -1) {
-        changeIndex = area.pathTokens.length - 1
-      }
-
-      const newPath = [...area.pathTokens]
-      newPath[changeIndex] = newAreaName
-      area.set({ pathTokens: newPath })
-      area.set({ _change: changeRecord })
-      await area.save({ session })
-
-      // hydrate children_ids array with actual area documents
-      await area.populate('children')
-
-      await Promise.all(area.children.map(async childArea => {
-        // TS complains about ObjectId type
-        // Fix this when we upgrade Mongoose library
-        // @ts-expect-error
-        await this.updatePathTokens(session, changeRecord, childArea, newAreaName, changeIndex)
-      }))
     }
   }
 
@@ -592,6 +679,36 @@ export default class MutableAreaDataSource extends AreaDataSource {
     return ret
   }
 
+  private subAreaHelper (areaName: string, parent: AreaType): AreaType {
+    const _id = new mongoose.Types.ObjectId()
+    const uuid = muuid.v4()
+
+    return {
+      ...defaultArea,
+      _id,
+      uuid,
+      parent: parent._id,
+      area_name: areaName,
+      gradeContext: parent.gradeContext,
+      metadata: {
+        ...defaultArea.metadata,
+        area_id: uuid
+      },
+      embeddedRelations: {
+        ...defaultArea.embeddedRelations,
+        // Initialize the ancestors by extending the parent's denormalized data
+        ancestors: [
+          ...parent.embeddedRelations.ancestors,
+          {
+            _id,
+            uuid,
+            name: areaName
+          }
+        ]
+      }
+    } satisfies AreaType
+  }
+
   /**
    * Update area stats and geo data for a given leaf node and its ancestors.
    * @param session
@@ -604,26 +721,28 @@ export default class MutableAreaDataSource extends AreaDataSource {
      * Update function.  For each node, recalculate stats and recursively update its acenstors until we reach the country node.
      */
     const updateFn = async (session: ClientSession, changeRecord: ChangeRecordMetadataType, area: AreaDocumnent, childSummary?: StatsSummary): Promise<void> => {
-      if (area.pathTokens.length <= 1) {
+      if (area.parent === undefined) {
         // we're at the root country node
         return
       }
 
-      const ancestors = area.ancestors.split(',')
-      const parentUuid = muuid.from(ancestors[ancestors.length - 2])
       const parentArea =
-        await this.areaModel.findOne({ 'metadata.area_id': parentUuid })
+        await this.areaModel.findOne({ _id: area.parent })
           .batchSize(10)
-          .populate<{ children: AreaDocumnent[] }>({ path: 'children', model: this.areaModel })
+          .populate<{ embeddedRelations: { children: AreaDocumnent[] } }>({
+          path: 'embeddedRelations.children',
+          model: this.areaModel
+        })
           .allowDiskUse(true)
           .session(session)
           .orFail()
 
       const acc: StatsSummary[] = []
+
       /**
        * Collect existing stats from all children. For affected node, use the stats from previous calculation.
        */
-      for (const childArea of parentArea.children) {
+      for (const childArea of parentArea.embeddedRelations.children) {
         if (childArea._id.equals(area._id)) {
           if (childSummary != null) acc.push(childSummary)
         } else {
@@ -657,54 +776,6 @@ export default class MutableAreaDataSource extends AreaDataSource {
       MutableAreaDataSource.instance = new MutableAreaDataSource({ modelOrCollection: getAreaModel() })
     }
     return MutableAreaDataSource.instance
-  }
-}
-
-export const newAreaHelper = (areaName: string, parentAncestors: string, parentPathTokens: string[], parentGradeContext: GradeContexts): AreaType => {
-  const _id = new mongoose.Types.ObjectId()
-  const uuid = muuid.v4()
-
-  const pathTokens = produce(parentPathTokens, draft => {
-    draft.push(areaName)
-  })
-
-  const ancestors = parentAncestors + ',' + uuid.toUUID().toString()
-  return {
-    _id,
-    uuid,
-    shortCode: '',
-    area_name: areaName,
-    children: [],
-    metadata: {
-      isDestination: false,
-      leaf: false,
-      area_id: uuid,
-      leftRightIndex: -1,
-      ext_id: '',
-      bbox: undefined,
-      polygon: undefined
-    },
-    ancestors,
-    climbs: [],
-    pathTokens,
-    gradeContext: parentGradeContext,
-    aggregate: {
-      byGrade: [],
-      byDiscipline: {},
-      byGradeBand: {
-        unknown: 0,
-        beginner: 0,
-        intermediate: 0,
-        advanced: 0,
-        expert: 0
-      }
-    },
-    density: 0,
-    totalClimbs: 0,
-    content: {
-      description: '',
-      areaLocation: ''
-    }
   }
 }
 

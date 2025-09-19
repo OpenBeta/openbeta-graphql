@@ -22,7 +22,7 @@ export interface QueryAPIProps {
   body?: any
 }
 
-/*
+/**
  * Helper function for querying the locally-served API. It mocks JWT verification
  * so we can pretend to have an role we want when calling the API.
  */

@@ -144,26 +144,32 @@ describe('bulk import e2e', () => {
         addedAreas: [
           {
             area_name: 'Test Area',
-            pathTokens: ['United States of America', 'Test Area'],
+            embeddedRelations: { ancestors: ['United States of America', 'Test Area']
+              .map(name => ({ name }))
+          },
           },
           {
             area_name: 'Test Area 2',
-            pathTokens: [
+            embeddedRelations: {  ancestors: [
               'United States of America',
               'Test Area',
               'Test Area 2',
-            ],
+            ]
+            .map(name => ({ name }))
+          },
           },
           {
             area_name: 'Test Area 3',
-            pathTokens: [
+            embeddedRelations: { ancestors: [
               'United States of America',
               'Test Area',
               'Test Area 2',
               'Test Area 3',
-            ],
+            ]
+            .map(name => ({ name }))
           },
-        ] as Partial<AreaType>[],
+          },
+        ],
       });
     });
 

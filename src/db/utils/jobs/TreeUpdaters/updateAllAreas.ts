@@ -49,7 +49,7 @@ export const updateAllAreas = async (): Promise<void> => {
   for await (const countryNode of iterator) {
     const stateNodes = await countryNode.populate('children')
     const results = await Promise.all(
-      stateNodes.children.map(async entry => {
+      stateNodes.embeddedRelations.children.map(async entry => {
         const area: any = entry
         return leafReducer((area.toObject() as AreaType))
       })
@@ -68,7 +68,7 @@ export interface StatsSummary {
 }
 
 async function postOrderVisit (node: AreaMongoType): Promise<StatsSummary> {
-  if (node.metadata.leaf || node.children.length === 0) {
+  if (node.metadata.leaf || node.embeddedRelations.children.length === 0) {
     return leafReducer((node.toObject() as AreaType))
   }
 
@@ -76,7 +76,7 @@ async function postOrderVisit (node: AreaMongoType): Promise<StatsSummary> {
   const nodeWithSubAreas = await node.populate('children')
 
   const results = await Promise.all(
-    nodeWithSubAreas.children.map(async entry => {
+    nodeWithSubAreas.embeddedRelations.children.map(async entry => {
       const area: any = entry
       /* eslint-disable-next-line */
       return limiter(postOrderVisit, (area as AreaMongoType))

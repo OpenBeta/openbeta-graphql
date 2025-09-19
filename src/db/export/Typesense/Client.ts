@@ -8,6 +8,7 @@ import { DBOperation } from '../../ChangeLogType.js'
 import Config from '../../../Config.js'
 import { ClimbExtType, ClimbType } from '../../ClimbTypes.js'
 import MutableAreaDataSource from '../../../model/MutableAreaDataSource.js'
+import { muuidToString } from '../../../utils/helpers.js'
 
 /**
  * Return a Typesense client.
@@ -69,12 +70,12 @@ export const updateClimbIndex = async (climb: ClimbType | null, op: DBOperation)
     }
 
     // Look up additional attrs required by Climb index in Typesense.
-    const { pathTokens, ancestors } = await MutableAreaDataSource.getInstance().findOneAreaByUUID(climb.metadata.areaRef)
+    const { ancestors } = (await MutableAreaDataSource.getInstance().findOneAreaByUUID(climb.metadata.areaRef)).embeddedRelations
 
     const climbExt: ClimbExtType = {
       ...climb,
-      pathTokens,
-      ancestors
+      pathTokens: ancestors.map(i => i.name),
+      ancestors: ancestors.map(i => muuidToString(i.uuid)).join(',')
     }
 
     switch (op) {

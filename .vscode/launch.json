@@ -90,7 +90,7 @@
                 "history"
             ],
             "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "internalConsoleOptions": "neverOpen",
         },
         {
             "type": "node",
@@ -110,6 +110,12 @@
             ],
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach to Jest (Yarn)",
+            "port": 9229,
         }
     ]
 }

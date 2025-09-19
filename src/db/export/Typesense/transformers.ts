@@ -13,7 +13,7 @@ export function mongoAreaToTypeSense (doc: AreaType): AreaTypeSenseItem {
     id: doc.metadata.area_id.toUUID().toString(),
     areaUUID: doc.metadata.area_id.toUUID().toString(),
     name: doc.area_name ?? '',
-    pathTokens: doc.pathTokens,
+    pathTokens: doc.embeddedRelations.ancestors.map(i => i.name),
     areaLatLng: geoToLatLng(doc.metadata.lnglat),
     leaf: doc.metadata.leaf,
     isDestination: doc.metadata.isDestination,

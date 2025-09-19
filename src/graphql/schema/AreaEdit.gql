@@ -5,6 +5,24 @@ type Mutation {
   addArea(input: AreaInput): Area
 
   """
+  Move an area from one parent to another.
+
+  When areas are created, an initial parent must be assigned. this is to prevent a buildup of floating orphan
+  nodes that haven't been organized. Nevertheless, you may find that an area and its children may need to be
+  re-organized. This could happen for any number of reasons, but when it does need to happen you will need to
+  tap this mutation to update the areas parent.
+
+  When you migrate an area, it will move (along with all the sub-areas inside it) to the targeted area.
+  The best way to conceptualize this is as a directory, so the usual rules will apply. If you could not
+  create the area as a child of the target (for example, because a name is already taken), then you should
+  not reasonably be able to move the area into this new parent.
+
+  Caveats
+    - This mutation does not affect countries
+  """
+  setAreaParent(area: ID!, newParent: ID!): Area
+
+  """
   Update area attributes
   """
   updateArea(input: AreEditableFieldsInput): Area

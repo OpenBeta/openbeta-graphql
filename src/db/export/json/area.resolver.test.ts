@@ -1,5 +1,7 @@
+import mongoose from 'mongoose'
 import { resolveAreaFileName, resolveAreaSubPath } from './area.resolver'
 import path from 'path'
+import muid from 'uuid-mongodb'
 
 describe('area resolvers', () => {
   describe('area name resolver', () => {
@@ -43,13 +45,16 @@ describe('area resolvers', () => {
     ]
 
     function assertSubPathResolver (path: string[], expected: string) {
-      expect(resolveAreaSubPath({ pathTokens: path })).toBe(expected)
+      const uuid = muid.v4()
+      const _id = new mongoose.Types.ObjectId()
+      expect(resolveAreaSubPath({ embeddedRelations: { children: [], ancestors: path.map(name => ({ name, _id, uuid }))} }))
+      .toBe(expected)
     }
 
     testCases.forEach(testCase => {
       it(testCase.name, () => {
         assertSubPathResolver(testCase.input, testCase.expected)
-      })
+    })
     })
   })
 })

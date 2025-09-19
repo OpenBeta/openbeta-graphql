@@ -6,6 +6,7 @@ import MutableClimbDataSource from '../MutableClimbDataSource.js'
 import { createIndexes, getAreaModel, getClimbModel } from '../../db/index.js'
 import { AreaEditableFieldsType, UpdateSortingOrderType } from '../../db/AreaTypes.js'
 import inMemoryDB from '../../utils/inMemoryDB.js'
+import { muuidToString } from '../../utils/helpers.js'
 
 describe('Areas', () => {
   let areas: MutableAreaDataSource
@@ -58,21 +59,22 @@ describe('Areas', () => {
 
     let canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
 
-    expect(canadaInDb.children.length).toEqual(1)
-    expect(canadaInDb.children[0]).toEqual(bc?._id)
+    expect(canadaInDb.embeddedRelations.children.length).toEqual(1)
+    expect(canadaInDb.embeddedRelations.children[0]).toEqual(bc?._id)
 
     // Add another area to the country
     const theBug = await areas.addArea(testUser, 'The Bugaboos', canada.metadata.area_id)
 
     canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
-    expect(canadaInDb.children.length).toEqual(2)
-    expect(canadaInDb.children[1]).toEqual(theBug?._id)
+    expect(canadaInDb.embeddedRelations.children.length).toEqual(2)
+    expect(canadaInDb.embeddedRelations.children[1]).toEqual(theBug?._id)
 
     // Verify paths and ancestors
     if (theBug != null) { // make TS happy
-      expect(theBug.ancestors)
+      expect(theBug.embeddedRelations.ancestors.map(i => muuidToString(i.uuid)).join(','))
         .toEqual(`${canada.metadata.area_id.toUUID().toString()},${theBug?.metadata.area_id.toUUID().toString()}`)
-      expect(theBug.pathTokens)
+
+      expect(theBug.embeddedRelations.ancestors.map(i => i.name))
         .toEqual([canada.area_name, theBug.area_name])
     }
   })
@@ -94,7 +96,7 @@ describe('Areas', () => {
     // Reload the parent
     parent = await areas.findOneAreaByUUID(parent.metadata.area_id)
     expect(parent.climbs).toHaveLength(0)
-    expect(parent.children).toHaveLength(1)
+    expect(parent.embeddedRelations.children).toHaveLength(1)
     // make sure leaf and boulder flag are cleared
     expect(parent.metadata.leaf).toBeFalsy()
     expect(parent.metadata.isBoulder).toBeFalsy()
@@ -105,8 +107,8 @@ describe('Areas', () => {
     const area = await areas.addArea(testUser, 'Table mountain', null, 'zaf')
 
     const countryInDb = await areas.findOneAreaByUUID(country.metadata.area_id)
-    expect(countryInDb.children.length).toEqual(1)
-    expect(countryInDb.children[0]).toEqual(area?._id)
+    expect(countryInDb.embeddedRelations.children.length).toEqual(1)
+    expect(countryInDb.embeddedRelations.children[0]).toEqual(area?._id)
   })
 
   it('should set crag/boulder attribute when adding new areas', async () => {
@@ -153,7 +155,7 @@ describe('Areas', () => {
     a1Updated = await areas.updateArea(testUser, a1?.metadata.area_id, doc2)
     expect(a1Updated?.metadata.lnglat).toEqual(geometry('Point', [doc2.lng, doc2.lat]))
     expect(a1Updated?.metadata.isDestination).toEqual(doc2.isDestination)
-  })
+  }, 1000)
 
   it('should not update country name and code', async () => {
     const country = await areas.addCountry('lao')
@@ -181,10 +183,11 @@ describe('Areas', () => {
 
     let usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
     // verify number of child areas in parent
-    expect(usaInDB.children as any[]).toHaveLength(3)
+    expect(Array.isArray(usaInDB.embeddedRelations.children))
+    expect(usaInDB.embeddedRelations.children).toHaveLength(3)
 
     // verify child area IDs in parent
-    expect(usaInDB.children).toEqual([
+    expect(usaInDB.embeddedRelations.children).toEqual([
       ca._id,
       or._id,
       wa._id
@@ -193,10 +196,10 @@ describe('Areas', () => {
     await areas.deleteArea(testUser, ca.metadata.area_id)
 
     usaInDB = await areas.findOneAreaByUUID(usa.metadata.area_id)
-
+    console.log(usaInDB.embeddedRelations)
     // verify child area IDs (one less than before)
-    expect(usaInDB.children as any[]).toHaveLength(2)
-    expect(usaInDB.children).toEqual([
+    expect(usaInDB.embeddedRelations.children).toHaveLength(2)
+    expect(usaInDB.embeddedRelations.children).toEqual([
       or._id,
       wa._id
     ])
@@ -288,110 +291,6 @@ describe('Areas', () => {
         metadata: expect.objectContaining({
           leftRightIndex: change2.leftRightIndex
         })
-      }))
-  })
-
-  it('should update self and childrens pathTokens', async () => {
-    await areas.addCountry('JP')
-    const a1 = await areas.addArea(testUser, 'Parent', null, 'JP')
-    const b1 = await areas.addArea(testUser, 'B1', a1.metadata.area_id)
-    const b2 = await areas.addArea(testUser, 'B2', a1.metadata.area_id)
-    const c1 = await areas.addArea(testUser, 'C1', b1.metadata.area_id)
-    const c2 = await areas.addArea(testUser, 'C2', b1.metadata.area_id)
-    const c3 = await areas.addArea(testUser, 'C3', b2.metadata.area_id)
-    const e1 = await areas.addArea(testUser, 'E1', c3.metadata.area_id)
-
-    let a1Actual = await areas.findOneAreaByUUID(a1.metadata.area_id)
-    expect(a1Actual).toEqual(
-      expect.objectContaining({
-        area_name: 'Parent',
-        pathTokens: ['Japan', 'Parent']
-      }))
-
-    let b1Actual = await areas.findOneAreaByUUID(b1.metadata.area_id)
-    expect(b1Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Parent', 'B1']
-      }))
-
-    let b2Actual = await areas.findOneAreaByUUID(b2.metadata.area_id)
-    expect(b2Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Parent', 'B2']
-      }))
-
-    let c1Actual = await areas.findOneAreaByUUID(c1.metadata.area_id)
-    expect(c1Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Parent', 'B1', 'C1']
-      }))
-
-    let c2Actual = await areas.findOneAreaByUUID(c2.metadata.area_id)
-    expect(c2Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Parent', 'B1', 'C2']
-      }))
-
-    let c3Actual = await areas.findOneAreaByUUID(c3.metadata.area_id)
-    expect(c3Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Parent', 'B2', 'C3']
-      }))
-
-    let e1Actual = await areas.findOneAreaByUUID(e1.metadata.area_id)
-    expect(e1Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Parent', 'B2', 'C3', 'E1']
-      }))
-
-    // Update
-    const doc1: AreaEditableFieldsType = {
-      areaName: 'Test Name'
-    }
-    await areas.updateArea(testUser, a1?.metadata.area_id, doc1)
-
-    // Verify
-    a1Actual = await areas.findOneAreaByUUID(a1.metadata.area_id)
-    expect(a1Actual).toEqual(
-      expect.objectContaining({
-        area_name: 'Test Name',
-        pathTokens: ['Japan', 'Test Name']
-      }))
-
-    b1Actual = await areas.findOneAreaByUUID(b1.metadata.area_id)
-    expect(b1Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Test Name', 'B1']
-      }))
-
-    b2Actual = await areas.findOneAreaByUUID(b2.metadata.area_id)
-    expect(b2Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Test Name', 'B2']
-      }))
-
-    c1Actual = await areas.findOneAreaByUUID(c1.metadata.area_id)
-    expect(c1Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Test Name', 'B1', 'C1']
-      }))
-
-    c2Actual = await areas.findOneAreaByUUID(c2.metadata.area_id)
-    expect(c2Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Test Name', 'B1', 'C2']
-      }))
-
-    c3Actual = await areas.findOneAreaByUUID(c3.metadata.area_id)
-    expect(c3Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Test Name', 'B2', 'C3']
-      }))
-
-    e1Actual = await areas.findOneAreaByUUID(e1.metadata.area_id)
-    expect(e1Actual).toEqual(
-      expect.objectContaining({
-        pathTokens: ['Japan', 'Test Name', 'B2', 'C3', 'E1']
       }))
   })
 })

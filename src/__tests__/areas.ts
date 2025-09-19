@@ -1,5 +1,5 @@
 import { ApolloServer } from '@apollo/server'
-import muuid from 'uuid-mongodb'
+import muuid, { MUUID } from 'uuid-mongodb'
 import { jest } from '@jest/globals'
 import MutableAreaDataSource from '../model/MutableAreaDataSource.js'
 import MutableMediaDataSource from '../model/MutableMediaDataSource.js'
@@ -152,10 +152,93 @@ describe('areas API', () => {
     })
   })
 
-  it('returns paginated Media when requested', async () => {
-    await insertMediaObjectsForArea(usa.metadata.area_id.toString(), 11)
+  describe('area structure API', () => {
+    const structureQuery = `
+        query structure($parent: ID!) {
+          structure(parent: $parent) {
+            parent
+            uuid
+            area_name
+            climbs
+          }
+        }
+    `
 
-    const areaQueryWithPaginatedMedia = `
+    // Structure queries do not do write operations so we can build this once
+    beforeEach(async () => {
+      const maxDepth = 4
+      const maxBreadth = 3
+
+      // So for the purposes of this test we will do a simple tree
+      async function grow (from: MUUID, depth: number = 0): Promise<void> {
+        if (depth >= maxDepth) return
+        for (const idx of Array.from({ length: maxBreadth }, (_, i) => i + 1)) {
+          const newArea = await areas.addArea(user, `${depth}-${idx}`, from)
+          await grow(newArea.metadata.area_id, depth + 1)
+        }
+      }
+
+      await grow(usa.metadata.area_id)
+    })
+
+    it('retrieves the structure of a given area', async () => {
+      const response = await queryAPI({
+        query: structureQuery,
+        operationName: 'structure',
+        variables: { parent: usa.metadata.area_id },
+        userUuid,
+        app
+      })
+
+      expect(response.statusCode).toBe(200)
+    })
+
+    it('should allow no parent to be supplied and get a shallow result', async () => {
+      const response = await queryAPI({
+        query: `
+        query structure {
+          structure {
+            parent
+            uuid
+            area_name
+            climbs
+          }
+        }
+    `,
+        operationName: 'structure',
+        userUuid,
+        app
+      })
+
+      expect(response.statusCode).toBe(200)
+    })
+
+    it('should allow calling of the setAreaParent gql endpoint.', async () => {
+      const testArea = await areas.addArea(muuid.from(userUuid), 'A Rolling Stone', usa.metadata.area_id)
+
+      const response = await queryAPI({
+        query: `
+          mutation SetAreaParent($area: ID!, $newParent: ID!) {
+            setAreaParent(area: $area, newParent: $newParent) {
+              areaName
+              area_name
+            }
+          }
+        `,
+        operationName: 'SetAreaParent',
+        userUuid,
+        app,
+        // Move it to canada
+        variables: { area: testArea.metadata.area_id, newParent: ca.metadata.area_id }
+      })
+
+      console.log(response.body)
+      expect(response.statusCode).toBe(200)
+    })
+    it('returns paginated Media when requested', async () => {
+      await insertMediaObjectsForArea(usa.metadata.area_id.toString(), 11)
+
+      const areaQueryWithPaginatedMedia = `
       query area($uuid: ID!, $input: EmbeddedAreaMediaInput) {
         area(uuid: $uuid) {
           mediaPagination(input: $input) {
@@ -178,23 +261,24 @@ describe('areas API', () => {
         }
       }
     `
-    const response = await queryAPI({
-      query: areaQueryWithPaginatedMedia,
-      operationName: 'area',
-      variables: {
-        uuid: usa.metadata.area_id,
-        input: {
-          first: 5,
-          after: null
-        }
-      },
-      userUuid,
-      app
+      const response = await queryAPI({
+        query: areaQueryWithPaginatedMedia,
+        operationName: 'area',
+        variables: {
+          uuid: usa.metadata.area_id,
+          input: {
+            first: 5,
+            after: null
+          }
+        },
+        userUuid,
+        app
+      })
+      expect(response.statusCode).toBe(200)
+      const areaResult = response.body.data.area
+      expect(areaResult.mediaPagination.mediaConnection.edges).toHaveLength(5)
+      expect(areaResult.mediaPagination.mediaConnection.pageInfo.totalItems).toBe(11)
+      expect(areaResult.mediaPagination.mediaConnection.pageInfo.hasNextPage).toBe(true)
     })
-    expect(response.statusCode).toBe(200)
-    const areaResult = response.body.data.area
-    expect(areaResult.mediaPagination.mediaConnection.edges).toHaveLength(5)
-    expect(areaResult.mediaPagination.mediaConnection.pageInfo.totalItems).toBe(11)
-    expect(areaResult.mediaPagination.mediaConnection.pageInfo.hasNextPage).toBe(true)
   })
 })

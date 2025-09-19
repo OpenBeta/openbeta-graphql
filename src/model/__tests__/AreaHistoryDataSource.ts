@@ -67,8 +67,8 @@ describe('Area history', () => {
     expect(nvAreaHistory[1].dbOp).toEqual('update') // add area to country.children[]
     expect(nvAreaHistory[1].fullDocument.area_name).toEqual(usa?.area_name)
 
-    expect(nvAreaHistory[1].fullDocument.children).toHaveLength(2)
-    expect(nvAreaHistory[1].fullDocument.children[1]).toEqual(nv?._id) // area added to parent.children[]?
+    expect(nvAreaHistory[1].fullDocument.embeddedRelations.children).toHaveLength(2)
+    expect(nvAreaHistory[1].fullDocument.embeddedRelations.children[1]).toEqual(nv?._id) // area added to parent.children[]?
 
     // verify change history linking
     // 2nd change record: parent (country)

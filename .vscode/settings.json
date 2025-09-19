@@ -17,5 +17,6 @@
   "javascript.format.semicolons": "remove",
   "typescript.format.enable": false,
   "prettier.enable": false,
-  "editor.defaultFormatter": "standard.vscode-standard"
+  "editor.defaultFormatter": "standard.vscode-standard",
+  "bashBeautify.tabSize": 2
 }

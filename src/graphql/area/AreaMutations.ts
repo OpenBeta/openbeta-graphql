@@ -4,6 +4,8 @@ import { AreaType } from '../../db/AreaTypes.js'
 import { ContextWithAuth } from '../../types.js'
 import type MutableAreaDataSource from '../../model/MutableAreaDataSource.js'
 import { BulkImportInputType, BulkImportResultType } from '../../db/BulkImportTypes.js'
+import { GraphQLError } from 'graphql'
+import { ApolloServerErrorCode } from '@apollo/server/errors'
 
 const AreaMutations = {
 
@@ -67,6 +69,36 @@ const AreaMutations = {
       user.uuid,
       areaUuid,
       input
+    )
+  },
+
+  setAreaParent: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<AreaType | null> => {
+    const { areas } = dataSources
+
+    if (user?.uuid == null) throw new Error('No user context')
+
+    if (input?.area == null) {
+      throw new GraphQLError('area was not supplied', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      })
+    }
+    if (input?.newParent == null) {
+      throw new GraphQLError('A new parent for this area was not supplied', {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      })
+    }
+
+    const areaUuid = muuid.from(input.uuid)
+    const newParentUuid = muuid.from(input.newParent)
+
+    return await areas.setAreaParent(
+      user.uuid,
+      areaUuid,
+      newParentUuid
     )
   },
 

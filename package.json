@@ -74,6 +74,7 @@
     "lint": "yarn ts-standard",
     "fix": "yarn ts-standard --fix",
     "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules\" jest --runInBand",
+    "test:dbg": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --inspect-brk\" jest --runInBand",
     "build": "tsc -p tsconfig.json",
     "build-release": "tsc  -p tsconfig.release.json",
     "clean": "tsc -b --clean && rm -rf build/*",

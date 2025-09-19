@@ -18,6 +18,7 @@ type Query {
   ): [CragsNear]
   cragsWithin(filter: SearchWithinFilter): [Area]
   countries: [Area]
+  structure(parent: ID, filter: StructureQuery): [AreaShadow!]!
 }
 
 "A climbing area, wall or crag"
@@ -216,6 +217,16 @@ input Filter {
   field_compare: [ComparisonFilter]
 }
 
+"""
+When performing a query about area structure some limits must be specified to prevent
+output cutoff. Selecting the entire area structure in one go is unreasonable, and the
+query will cut off if it looks like it's about to deliver some rediculous number of
+records.
+"""
+input StructureQuery {
+  maxDepth: Int
+}
+
 enum Field {
   density
   totalClimbs
@@ -258,4 +269,24 @@ type CragsNear {
   placeId: String!
   count: Int!
   crags: [Area]
+}
+
+
+"""
+Some graph queries are simply too heavy to allow full area types to be selected
+in the process, so we specify a new type that is expressly for the purpose of
+querying large relationship patterns from the database.
+"""
+type AreaShadow {
+  uuid: ID!
+  area_name: String!
+  """
+  If this are has a parent it can be referenced here.
+  """
+  parent: ID
+  """
+  If this area has climbs as its direct descendents then we can loop in ONLY a pointer
+  to these climbs, otherwise it will be null.
+  """
+  climbs: [ID!]
 }

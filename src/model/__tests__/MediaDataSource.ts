@@ -17,6 +17,7 @@ import {
 } from '../../db/MediaObjectTypes.js'
 import { newSportClimb1 } from './MutableClimbDataSource.js'
 import inMemoryDB from '../../utils/inMemoryDB.js'
+import { muuidToString } from '../../utils/helpers.js'
 
 const TEST_MEDIA: MediaObjectGQLInput = {
   userUuid: 'a2eb6353-65d1-445f-912c-53c6301404bd',
@@ -137,7 +138,7 @@ describe('MediaDataSource', () => {
       targetId: climbTag.entityUuid,
       type: climbTag.entityType,
       areaName: areaForTagging1.area_name,
-      ancestors: areaForTagging1.ancestors,
+      ancestors: areaForTagging1.embeddedRelations.ancestors.map(i => muuidToString(i.uuid)).join(','),
       climbName: newSportClimb1.name,
       lnglat: areaForTagging1.metadata.lnglat
     })

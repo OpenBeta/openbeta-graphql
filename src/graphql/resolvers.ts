@@ -214,8 +214,8 @@ const resolvers = {
     areaName: async (node: AreaType) => node.area_name,
 
     children: async (parent: AreaType, _: any, { dataSources: { areas } }: GQLContext) => {
-      if (parent.children.length > 0) {
-        const rs = await areas.findManyByIds(parent.children)
+      if (parent.embeddedRelations.children.length > 0) {
+        const rs = await areas.findManyByIds(parent.embeddedRelations.children)
         return rs
       }
       return []
@@ -280,7 +280,7 @@ const resolvers = {
 
     organizations: async (node: AreaType, args: any, { dataSources }: GQLContext) => {
       const { organizations } = dataSources
-      const areaIdsToSearch = [node.metadata.area_id, ...node.ancestors.split(',').map(s => muid.from(s))]
+      const areaIdsToSearch = [node.metadata.area_id, ...node.embeddedRelations.ancestors.map(i => i.uuid)]
       const associatedOrgsCursor = await organizations.findOrganizationsByFilter({
         associatedAreaIds: { includes: areaIdsToSearch },
         // Remove organizations that explicitly request not to be associated with this area.

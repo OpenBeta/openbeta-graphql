@@ -1,12 +1,12 @@
 import { GraphQLError } from 'graphql'
 import { ApolloServerErrorCode } from '@apollo/server/errors'
 import { MongoDataSource } from 'apollo-datasource-mongodb'
-import { Filter } from 'mongodb'
+import { Filter, Document } from 'mongodb'
 import muuid from 'uuid-mongodb'
 import bboxPolygon from '@turf/bbox-polygon'
 
 import { getAreaModel, getMediaObjectModel } from '../db/index.js'
-import { AreaType } from '../db/AreaTypes'
+import { AreaType, IAreaProps, ShadowArea } from '../db/AreaTypes'
 import {
   AreaFilterParams,
   BBoxType,
@@ -47,15 +47,19 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
           // Add score conversion to climbs
           case 'path_tokens': {
             const pathFilter = filter as PathTokenParams
+            // In the event that we need an exact match we will filter on { name }[] for some path
+            // that matches exactly.
             if (pathFilter.exactMatch === true) {
-              acc.pathTokens = pathFilter.tokens
+              acc['embeddedRelations.ancestors'] = pathFilter.tokens.map(name => ({ name }))
             } else {
               const filter: Record<string, any> = {}
-              filter.$all = pathFilter.tokens
+              filter.$all = pathFilter.tokens.map(name => ({ name }))
+
               if (pathFilter.size !== undefined) {
                 filter.$size = pathFilter.size
               }
-              acc.pathTokens = filter
+
+              acc['embeddedRelations.ancestors'] = filter
             }
             break
           }
@@ -227,6 +231,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return await data.toArray()
   }
 
+  uuid
   /**
    * Get whole db stats
    * @returns
@@ -317,6 +322,127 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return await this.areaModel.find(filter).lean()
   }
 
+  /**
+   * Using the child relations we can do a graph lookup and flatten that result.
+   * I've put a leniant timeout of 500ms on the query to encourage proper loading
+   * patterns from api users.
+   *
+   * The timeout is a heuristic, sufficiently fast hardware may munch up a fair quantity
+   * of memory, but the docs say that this should be 100mb in the worst case?
+   * https://www.mongodb.com/docs/manual/reference/operator/aggregation/graphLookup/#memory
+   * someone more familair with mongo may want to double check that.
+   */
+  async descendants (ofArea?: muuid.MUUID, filter?: {
+    projection?: Record<keyof Partial<IAreaProps & { parent: '' }>, boolean>
+    filter?: Partial<DescendantQuery>
+  }): Promise<ShadowArea[]> {
+    function shadowArea (doc: Document): ShadowArea {
+      return {
+        area_name: doc.area_name,
+        uuid: doc.uuid,
+        parent: doc.parent,
+        climbs: doc.climbs
+      }
+    }
+
+    const pipeline: Document[] = []
+
+    if (ofArea === undefined) {
+      // in this case we can filter on the max depth
+    }
+
+    pipeline.push(...[
+      {
+        $match: {
+          ...(ofArea !== undefined ? { 'metadata.area_id': ofArea } : {}),
+          ...(filter?.filter?.maxDepth !== undefined ? { $expr: { $lte: [{ $size: '$pathTokens' }, filter?.filter?.maxDepth] } } : {}),
+          _deleting: { $exists: false }
+        }
+      },
+      {
+        $project:
+        {
+          // We need these two fields to make the structure query,
+          // all else are optional.
+          _id: 1,
+          children: 1,
+
+          'metadata.area_id': filter?.projection?.uuid,
+          ...filter?.projection
+        }
+      },
+      {
+        $graphLookup: {
+          from: this.collection.collectionName,
+          startWith: '$_id',
+          connectFromField: 'children',
+          connectToField: '_id',
+          as: 'descendants',
+          // We can pass in a max depth if it is supplied to us.
+          ...(typeof filter?.filter?.maxDepth === 'number'
+            ? {
+                maxDepth: filter?.filter?.maxDepth
+              }
+            : {})
+        }
+      },
+      {
+        $unwind: {
+          path: '$descendants'
+        }
+      },
+      {
+        $replaceRoot:
+        {
+          newRoot: '$descendants'
+        }
+      },
+      {
+        $project:
+        {
+          // We need these two fields to make the structure query,
+          // all else are optional.
+          _id: 1,
+          'metadata.area_id': filter?.projection?.uuid,
+          ...filter?.projection
+        }
+      }
+    ])
+
+    if (filter?.projection?.parent ?? false) {
+      pipeline.push(
+        // Sadly we need to duplicate work previously done to now look up the immediate parent of
+        // the area
+        {
+          $lookup:
+          {
+            from: 'areas',
+            localField: '_id',
+            foreignField: 'children',
+            as: 'parent'
+          }
+        }
+      )
+    }
+
+    pipeline.push({
+      $addFields:
+      {
+        uuid: '$metadata.area_id',
+        parent: {
+          $first: '$parent.metadata.area_id'
+        }
+      }
+    })
+
+    return await this
+      .collection
+      .aggregate(pipeline)
+      .maxTimeMS(900)
+      .map(shadowArea)
+      .toArray()
+  }
+
   async bulkDownloadAreas (ancestors: string[]): Promise<AreaType[]> {
     if (ancestors.length < 2) {
       throw new GraphQLError('Must provide at least 2 ancestors.', {
@@ -332,4 +458,8 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     ])
     return nonLeafAreas.concat(leafAreas)
   }
+}
+
+export interface DescendantQuery {
+  maxDepth: number
 }
