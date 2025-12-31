@@ -145,9 +145,11 @@ export default class TickDataSource extends MongoDataSource<TickType> {
   /**
    * Retrieve ticks of a user given their details
    * @param userSelectors Attributes that can be used to identify the user
+   * @param limit maximum number of results (default 50)
+   * @param offset number of results to skip (default 0)
    * @returns
    */
-  async ticksByUser (userSelectors: TickUserSelectors): Promise<TickType[]> {
+  async ticksByUser (userSelectors: Omit<TickUserSelectors, 'limit' | 'offset'>, limit: number = 50, offset: number = 0): Promise<TickType[]> {
     const { userId: requestedUserId, username } = userSelectors
     if (requestedUserId == null && username == null) {
       throw new Error('Username or userId must be supplied')
@@ -174,18 +176,24 @@ export default class TickDataSource extends MongoDataSource<TickType> {
     return await this.tickModel
       .find({ userId: userIdObject._id.toUUID().toString() })
       .sort({ dateClimbed: -1 })
+      .skip(offset)
+      .limit(limit)
       .lean()
   }
 
   /**
    * Get all ticks by climb uuid and optional user uuid
-   * @param userId Optional user uuid
    * @param climbId climb uuid
+   * @param userId Optional user uuid
+   * @param limit maximum number of results (default 50)
+   * @param offset number of results to skip (default 0)
    */
-  async ticksByUserIdAndClimb (climbId: string, userId?: string): Promise<TickType[]> {
+  async ticksByUserIdAndClimb (climbId: string, userId?: string, limit: number = 50, offset: number = 0): Promise<TickType[]> {
     return await this.tickModel
       .find({ ...(userId != null && { userId }), climbId })
       .sort({ dateClimbed: -1 })
+      .skip(offset)
+      .limit(limit)
       .lean()
   }
 

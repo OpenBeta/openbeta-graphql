@@ -262,4 +262,6 @@ export enum OperationType {
 
 export interface BulkAreasGQLQueryInput {
   ancestors: string[]
+  limit?: number
+  offset?: number
 }

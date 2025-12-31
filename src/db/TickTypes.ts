@@ -111,4 +111,13 @@ export interface TickEditFilterType {
 export interface TickUserSelectors {
   userId?: MUUID
   username?: string
+  limit?: number
+  offset?: number
+}
+
+export interface TickByClimbSelectors {
+  climbId: string
+  userId?: string
+  limit?: number
+  offset?: number
 }

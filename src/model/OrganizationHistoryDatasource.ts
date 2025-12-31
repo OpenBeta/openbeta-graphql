@@ -6,7 +6,7 @@ import { getChangeLogModel } from '../db/index.js'
 export class OrganizationHistoryDataSource extends MongoDataSource<OrganizationChangeLogType> {
   changelogModel = getChangeLogModel()
 
-  async getChangeSetsByOrgId (orgId?: MUUID): Promise<OrganizationChangeLogType[]> {
+  async getChangeSetsByOrgId (orgId?: MUUID, limit: number = 50, offset: number = 0): Promise<OrganizationChangeLogType[]> {
     let rs
     if (orgId == null) {
       // No orgId specified: return all changes
@@ -22,6 +22,12 @@ export class OrganizationHistoryDataSource extends MongoDataSource<OrganizationC
           $sort: {
             createdAt: -1
           }
+        },
+        {
+          $skip: offset
+        },
+        {
+          $limit: limit
         }
       ])
       return rs as OrganizationChangeLogType[]
@@ -53,6 +59,12 @@ export class OrganizationHistoryDataSource extends MongoDataSource<OrganizationC
             $sort: {
               createdAt: -1
             }
+          },
+          {
+            $skip: offset
+          },
+          {
+            $limit: limit
           }
         ])
       return rs2

@@ -71,12 +71,18 @@ export interface GetHistoryInputFilterType {
   userUuid: string
   fromDate: Date
   toDate: Date
+  limit?: number
+  offset?: number
 }
 
 export interface GetAreaHistoryInputFilterType {
   areaId: string
+  limit?: number
+  offset?: number
 }
 
 export interface GetOrganizationHistoryInputFilterType {
   orgId: MUUID
+  limit?: number
+  offset?: number
 }

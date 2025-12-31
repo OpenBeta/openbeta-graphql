@@ -1,6 +1,6 @@
 type Query {
   organization(muuid: MUUID): Organization
-  organizations(filter: OrgFilter, sort: OrgSort, limit: Int): [Organization]
+  organizations(filter: OrgFilter, sort: OrgSort, limit: Int, offset: Int): [Organization]
 }
 
 "A climbing area, wall or crag"

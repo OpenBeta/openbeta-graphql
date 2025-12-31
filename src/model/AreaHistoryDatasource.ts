@@ -6,7 +6,7 @@ import { getChangeLogModel } from '../db/index.js'
 export class AreaHistoryDataSource extends MongoDataSource<ChangeLogType> {
   changelogModel = getChangeLogModel()
 
-  async getChangeSetsByUuid (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
+  async getChangeSetsByUuid (areaUuid?: MUUID, limit: number = 50, offset: number = 0): Promise<AreaChangeLogType[]> {
     let rs
     if (areaUuid == null) {
       // No area id specified: return all changes
@@ -22,6 +22,12 @@ export class AreaHistoryDataSource extends MongoDataSource<ChangeLogType> {
           $sort: {
             createdAt: -1
           }
+        },
+        {
+          $skip: offset
+        },
+        {
+          $limit: limit
         }
       ])
       return rs as AreaChangeLogType[]
@@ -53,6 +59,12 @@ export class AreaHistoryDataSource extends MongoDataSource<ChangeLogType> {
             $sort: {
               createdAt: -1
             }
+          },
+          {
+            $skip: offset
+          },
+          {
+            $limit: limit
           }
         ])
       return rs2

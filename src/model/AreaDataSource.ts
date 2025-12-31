@@ -317,7 +317,7 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
     return await this.areaModel.find(filter).lean()
   }
 
-  async bulkDownloadAreas (ancestors: string[]): Promise<AreaType[]> {
+  async bulkDownloadAreas (ancestors: string[], limit: number = 500, offset: number = 0): Promise<AreaType[]> {
     if (ancestors.length < 2) {
       throw new GraphQLError('Must provide at least 2 ancestors.', {
         extensions: {
@@ -326,10 +326,23 @@ export default class AreaDataSource extends MongoDataSource<AreaType> {
       })
     }
     const ancestorsCSV = ancestors.join(',')
-    const [leafAreas, nonLeafAreas] = await Promise.all([
-      this.findDescendantsByPath(ancestorsCSV, true),
-      this.findDescendantsByPath(ancestorsCSV, false)
-    ])
-    return nonLeafAreas.concat(leafAreas)
+    return await this.findDescendantsByPathPaginated(ancestorsCSV, limit, offset)
+  }
+
+  /**
+   * Find all descendants (inclusive) starting from path with pagination
+   * @param path comma-separated _id's of area
+   * @param limit maximum number of results
+   * @param offset number of results to skip
+   * @returns array of areas
+   */
+  async findDescendantsByPathPaginated (path: string, limit: number = 500, offset: number = 0): Promise<AreaType[]> {
+    const regex = new RegExp(`^${path}`)
+    const filter: any = { ancestors: regex, _deleting: { $eq: null } }
+    return await this.collection
+      .find(filter)
+      .skip(offset)
+      .limit(limit)
+      .toArray()
   }
 }
