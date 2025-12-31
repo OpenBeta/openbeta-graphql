@@ -75,12 +75,16 @@ const resolvers = {
 
     areas: async (
       _,
-      { filter, sort }: { filter?: GQLFilter, sort?: Sort },
+      { filter, sort, limit, offset }: { filter?: GQLFilter, sort?: Sort, limit?: number, offset?: number },
       { dataSources }: GQLContext
     ) => {
       const { areas } = dataSources
+      const DEFAULT_LIMIT = 50
+      const MAX_LIMIT = 500
+      const safeLimit = Math.min(limit ?? DEFAULT_LIMIT, MAX_LIMIT)
+      const safeOffset = offset ?? 0
       const filtered = await areas.findAreasByFilter(filter)
-      return filtered.collation({ locale: 'en' }).sort(sort).toArray()
+      return filtered.collation({ locale: 'en' }).sort(sort).skip(safeOffset).limit(safeLimit).toArray()
     },
 
     area: async (_: any,

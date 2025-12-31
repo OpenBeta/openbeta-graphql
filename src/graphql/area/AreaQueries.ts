@@ -15,8 +15,12 @@ const AreaQueries = {
 
   bulkAreas: async (_: any, params, { dataSources }: GQLContext): Promise<AreaType[]> => {
     const { areas } = dataSources
-    const { ancestors } = params as BulkAreasGQLQueryInput
-    return await areas.bulkDownloadAreas(ancestors)
+    const { ancestors, limit, offset } = params as BulkAreasGQLQueryInput
+    const DEFAULT_LIMIT = 500
+    const MAX_LIMIT = 2000
+    const safeLimit = Math.min(limit ?? DEFAULT_LIMIT, MAX_LIMIT)
+    const safeOffset = offset ?? 0
+    return await areas.bulkDownloadAreas(ancestors, safeLimit, safeOffset)
   }
 }
 

@@ -3,14 +3,20 @@ input AllHistoryFilter {
   userUuid: ID
   fromDate: Date
   toDate: Date
+  limit: Int
+  offset: Int
 }
 
 input AreaHistoryFilter {
   areaId: ID
+  limit: Int
+  offset: Int
 }
 
 input OrganizationHistoryFilter {
   orgId: MUUID
+  limit: Int
+  offset: Int
 }
 
 type UpdateDescription {

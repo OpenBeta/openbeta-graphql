@@ -63,27 +63,35 @@ export default class ChangeLogDataSource extends MongoDataSource<ChangeLogType> 
     return this
   }
 
-  async getAreaChangeSets (areaUuid?: MUUID): Promise<AreaChangeLogType[]> {
-    return await AreaHistoryDataSource.getInstance().getChangeSetsByUuid(areaUuid)
+  async getAreaChangeSets (areaUuid?: MUUID, limit: number = 50, offset: number = 0): Promise<AreaChangeLogType[]> {
+    return await AreaHistoryDataSource.getInstance().getChangeSetsByUuid(areaUuid, limit, offset)
   }
 
-  async getOrganizationChangeSets (orgId?: MUUID): Promise<OrganizationChangeLogType[]> {
-    return await OrganizationHistoryDataSource.getInstance().getChangeSetsByOrgId(orgId)
+  async getOrganizationChangeSets (orgId?: MUUID, limit: number = 50, offset: number = 0): Promise<OrganizationChangeLogType[]> {
+    return await OrganizationHistoryDataSource.getInstance().getChangeSetsByOrgId(orgId, limit, offset)
   }
 
   /**
    * Return all changes.  For now just handle Area type.
    * @param uuidList optional filter
+   * @param limit maximum number of results (default 50)
+   * @param offset number of results to skip (default 0)
    * @returns change sets
    */
-  async getChangeSets (uuidList: MUUID[]): Promise<Array<AreaChangeLogType | ClimbChangeLogType | OrganizationChangeLogType>> {
+  async getChangeSets (uuidList: MUUID[], limit: number = 50, offset: number = 0): Promise<Array<AreaChangeLogType | ClimbChangeLogType | OrganizationChangeLogType>> {
     return await this.changeLogModel.aggregate([
       {
         $sort: {
           createdAt: -1
         }
+      },
+      {
+        $skip: offset
+      },
+      {
+        $limit: limit
       }
-    ]).limit(500)
+    ])
   }
 
   async _testRemoveAll (): Promise<void> {

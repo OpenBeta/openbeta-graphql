@@ -15,15 +15,17 @@ const OrganizationQueries = {
 
   organizations: async (
     _,
-    { filter, sort, limit = 40 }: { filter?: OrganizationGQLFilter, sort?: Sort, limit?: number },
+    { filter, sort, limit = 40, offset = 0 }: { filter?: OrganizationGQLFilter, sort?: Sort, limit?: number, offset?: number },
     { dataSources }: GQLContext
   ) => {
     const { organizations }: { organizations: OrganizationDataSource } = dataSources
+    const MAX_LIMIT = 500
+    const safeLimit = Math.min(limit, MAX_LIMIT)
     const filtered = await organizations.findOrganizationsByFilter(filter)
     if (sort != null) {
-      return await filtered.collation({ locale: 'en' }).sort(sort).limit(limit).toArray()
+      return await filtered.collation({ locale: 'en' }).sort(sort).skip(offset).limit(safeLimit).toArray()
     } else {
-      return await filtered.limit(limit).toArray()
+      return await filtered.skip(offset).limit(safeLimit).toArray()
     }
   }
 }
