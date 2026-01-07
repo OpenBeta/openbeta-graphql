@@ -1,5 +1,6 @@
 import muid, { MUUID } from 'uuid-mongodb'
 import { ContextWithAuth } from '../../types.js'
+import { ClimbType } from '../../db/ClimbTypes.js'
 
 const ClimbMutations = {
   updateClimbs: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<string[]> => {
@@ -9,6 +10,15 @@ const ClimbMutations = {
     if (user?.uuid == null) throw new Error('Missing user uuid')
 
     return await ds.addOrUpdateClimbs(user.uuid, muid.from(parentId), changes)
+  },
+
+  updateClimb: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<ClimbType | null> => {
+    const { climbs: ds } = dataSources
+    const { id, ...changes } = input
+
+    if (user?.uuid == null) throw new Error('Missing user uuid')
+
+    return await ds.updateClimbById(user.uuid, muid.from(id), changes)
   },
 
   deleteClimbs: async (_, { input }, { dataSources, user }: ContextWithAuth): Promise<number> => {

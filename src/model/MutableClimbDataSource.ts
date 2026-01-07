@@ -286,6 +286,39 @@ export default class MutableClimbDataSource extends ClimbDataSource {
   }
 
   /**
+   * Update a single climb by its ID. Unlike addOrUpdateClimbs, this doesn't require the parent area ID.
+   * @param userId User performing the action
+   * @param climbId The climb's own ID
+   * @param changes The fields to update
+   * @returns The updated climb, or null if not found
+   */
+  async updateClimbById (userId: MUUID, climbId: MUUID, changes: Omit<ClimbChangeInputType, 'id'>): Promise<ClimbType | null> {
+    // Look up the climb to get its parent area ID
+    const climb = await this.climbModel.findOne({ _id: climbId, _deleting: { $eq: null } }).lean()
+
+    if (climb == null) {
+      throw new GraphQLError(`Climb with id: ${climbId.toUUID().toString()} not found`, {
+        extensions: {
+          code: ApolloServerErrorCode.BAD_USER_INPUT
+        }
+      })
+    }
+
+    const parentId = climb.metadata.areaRef
+
+    // Use existing logic with the climb ID included
+    const changeWithId: ClimbChangeInputType = {
+      ...changes,
+      id: climbId.toUUID().toString()
+    }
+
+    await this.addOrUpdateClimbs(userId, parentId, [changeWithId])
+
+    // Return the updated climb
+    return await this.climbModel.findOne({ _id: climbId }).lean()
+  }
+
+  /**
    * Delete one or more climbs by climb ID.
    * @param userId User performing the action
    * @param parentId Parent area ID
