@@ -64,18 +64,18 @@ describe('bulkImportAreas', () => {
     await inMemoryDB.close()
   })
 
-  it('should return 403 if no user', async () => {
+  it('should return 401 if no user', async () => {
     const res = await queryAPI({
       app,
       query,
       operationName: 'bulkImportAreas',
       variables: {input: exampleImportData}
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(401)
     expect(res.body.errors[0].message).toBe('Not Authorised!')
   })
 
-  it('should return 403 if user is not an editor', async () => {
+  it('should return 401 if user is not an editor', async () => {
     const res = await queryAPI({
       app,
       userUuid,
@@ -83,7 +83,7 @@ describe('bulkImportAreas', () => {
       operationName: 'bulkImportAreas',
       variables: {input: exampleImportData}
     })
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(401)
     expect(res.body.errors[0].message).toBe('Not Authorised!')
   })
 

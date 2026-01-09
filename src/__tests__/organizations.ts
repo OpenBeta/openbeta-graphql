@@ -170,7 +170,7 @@ describe('organizations API', () => {
         roles: ['editor'],
         app
       })
-      expect(response.statusCode).toBe(200)
+      expect(response.statusCode).toBe(401)
       expect(response.body.data.organization).toBeNull()
       expect(response.body.errors[0].message).toBe('Not Authorised!')
     })

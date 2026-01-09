@@ -45,7 +45,9 @@ async function validateTokenAndExtractUser (req: Request): Promise<CustomContext
       }
     } catch (e) {
       logger.error(`Can't verify JWT token ${e.toString() as string}`)
-      throw new Error("Unauthorized. Can't verify JWT token")
+      // Return empty user instead of throwing - allows public queries to work
+      // Mutations will be blocked by graphql-shield permissions
+      return { user: EMTPY_USER }
     }
   }
 
