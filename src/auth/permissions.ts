@@ -1,3 +1,4 @@
+import { GraphQLError } from 'graphql'
 import { allow, and, or, shield } from 'graphql-shield'
 import { isEditor, isMediaOwner, isOwner, isUserAdmin, isValidEmail } from './rules.js'
 
@@ -24,7 +25,13 @@ const permissions = shield({
 },
 {
   allowExternalErrors: true,
-  fallbackRule: allow
+  fallbackRule: allow,
+  fallbackError: new GraphQLError('Not Authorised!', {
+    extensions: {
+      code: 'FORBIDDEN',
+      http: { status: 401 }
+    }
+  })
 })
 
 export default permissions
