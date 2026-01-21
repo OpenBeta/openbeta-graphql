@@ -34,12 +34,12 @@ describe("Test area mutations", () => {
 
         return areas.addArea(
             testUser,
-            name,
-            parent ?? rootCountry.metadata.area_id,
-            undefined,
-            undefined,
-            extra?.leaf,
-            extra?.boulder
+            {
+            areaName: name,
+            parentUuid: parent ?? rootCountry.metadata.area_id,
+            isLeaf: extra?.leaf,
+            isBoulder: extra?.boulder,
+        }
         )
     }
 
@@ -57,7 +57,7 @@ describe("Test area mutations", () => {
 
       describe("Add area param cases", () => {
         test("Add a simple area with no specifications using a parent UUID", () => areas
-            .addArea(testUser, 'Texas2', rootCountry.metadata.area_id)
+            .addArea(testUser, { areaName: 'Texas2', parentUuid: rootCountry.metadata.area_id })
             .then(area => {
                 expect(area?._change).toMatchObject({
                     user: testUser,
@@ -66,10 +66,12 @@ describe("Test area mutations", () => {
             }))
 
         test("Add an area with an unknown UUID parent should fail",
-                async () => await expect(() => areas.addArea(testUser, 'Texas', muid.v4())).rejects.toThrow())
+                async () => await expect(() => areas.addArea(testUser, { areaName: 'Texas', parentUuid: muid.v4() })).rejects.toThrow())
 
-        test("Add a simple area with no specifications using a country code", () => areas.addArea(testUser, 'Texas part 2', null, 'USA')
-            .then(texas => areas.addArea(testUser, 'Texas Child', texas.metadata.area_id)))
+        test("Add a simple area with no specifications using a country code", () =>
+            areas.addArea(testUser, { areaName: 'Texas part 2', countryCode: 'USA' })
+                .then(texas => areas.addArea(testUser, { areaName: 'Texas Child', parentUuid: texas.metadata.area_id }))
+        )
 
         test("Add a simple area, then specify a new child one level deep", () => addArea('California')
             .then(async parent => {

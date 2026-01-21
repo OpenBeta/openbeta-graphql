@@ -28,8 +28,8 @@ describe('Organization', () => {
     organizations = MutableOrganizationDataSource.getInstance()
     areas = MutableAreaDataSource.getInstance()
     usa = await areas.addCountry('usa')
-    ca = await areas.addArea(testUser, 'CA', usa.metadata.area_id)
-    wa = await areas.addArea(testUser, 'WA', usa.metadata.area_id)
+    ca = await areas.addArea(testUser, { areaName: 'CA', parentUuid: usa.metadata.area_id })
+    wa = await areas.addArea(testUser, { areaName: 'WA', parentUuid: usa.metadata.area_id })
     fullOrg = {
       associatedAreaIds: [usa.metadata.area_id],
       excludedAreaIds: [ca.metadata.area_id, wa.metadata.area_id],

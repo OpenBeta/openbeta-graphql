@@ -38,8 +38,8 @@ describe('organizations API', () => {
     areas = MutableAreaDataSource.getInstance()
     organizations = MutableOrganizationDataSource.getInstance()
     usa = await areas.addCountry('usa')
-    ca = await areas.addArea(user, 'CA', usa.metadata.area_id)
-    wa = await areas.addArea(user, 'WA', usa.metadata.area_id)
+    ca = await areas.addArea(user, { areaName: 'CA', parentUuid: usa.metadata.area_id })
+    wa = await areas.addArea(user, { areaName: 'WA', parentUuid: usa.metadata.area_id })
   })
 
   afterAll(async () => {

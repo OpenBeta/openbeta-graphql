@@ -46,7 +46,7 @@ describe('Areas', () => {
   it('should create a country and 2 subareas', async () => {
     const canada = await areas.addCountry('can')
     // Add 1st area to the country
-    const bc = await areas.addArea(testUser, 'British Columbia', canada.metadata.area_id)
+    const bc = await areas.addArea(testUser, { areaName: 'British Columbia', parentUuid: canada.metadata.area_id })
 
     if (bc == null || canada == null) {
       fail()
@@ -62,7 +62,7 @@ describe('Areas', () => {
     expect(canadaInDb.children[0]).toEqual(bc?._id)
 
     // Add another area to the country
-    const theBug = await areas.addArea(testUser, 'The Bugaboos', canada.metadata.area_id)
+    const theBug = await areas.addArea(testUser, { areaName: 'The Bugaboos', parentUuid: canada.metadata.area_id })
 
     canadaInDb = await areas.findOneAreaByUUID(canada.metadata.area_id)
     expect(canadaInDb.children.length).toEqual(2)
@@ -78,18 +78,19 @@ describe('Areas', () => {
   })
 
   it('should allow adding child areas to empty leaf area', async () => {
-    let parent = await areas.addArea(testUser, 'My house', null, 'can')
+    let parent = await areas.addArea(testUser, { areaName: 'My house', countryCode: 'can' })
     await areas.updateArea(testUser, parent.metadata.area_id, { isLeaf: true, isBoulder: true })
 
     const newClimb = await climbs.addOrUpdateClimbs(testUser, parent.metadata.area_id, [{ name: 'Big Mac' }])
 
     // Try to add a new area when there's already a climb
-    await expect(areas.addArea(testUser, 'Kitchen', parent.metadata.area_id)).rejects.toThrow(/Adding new areas to a leaf or boulder area is not allowed/)
+    await expect(areas.addArea(testUser, { areaName: 'Kitchen', parentUuid: parent.metadata.area_id }))
+      .rejects.toThrow(/Adding new areas to a leaf or boulder area is not allowed/)
 
     // Now remove the climb to see if we can add the area
 
     await climbs.deleteClimbs(testUser, parent.metadata.area_id, [muuid.from(newClimb[0])])
-    await areas.addArea(testUser, 'Kitchen', parent.metadata.area_id)
+    await areas.addArea(testUser, { areaName: 'Kitchen', parentUuid: parent.metadata.area_id })
 
     // Reload the parent
     parent = await areas.findOneAreaByUUID(parent.metadata.area_id)
@@ -102,7 +103,7 @@ describe('Areas', () => {
 
   it('should create an area using only country code (without parent id)', async () => {
     const country = await areas.addCountry('za')
-    const area = await areas.addArea(testUser, 'Table mountain', null, 'zaf')
+    const area = await areas.addArea(testUser, { areaName: 'Table mountain', countryCode: 'zaf' })
 
     const countryInDb = await areas.findOneAreaByUUID(country.metadata.area_id)
     expect(countryInDb.children.length).toEqual(1)
@@ -110,18 +111,18 @@ describe('Areas', () => {
   })
 
   it('should set crag/boulder attribute when adding new areas', async () => {
-    let parent = await areas.addArea(testUser, 'Boulder A', null, 'can', undefined, false, true)
+    let parent = await areas.addArea(testUser, { areaName: 'Boulder A', countryCode: 'can', isBoulder: true, isLeaf: false })
     expect(parent.metadata.isBoulder).toBe(true)
     expect(parent.metadata.leaf).toBe(true)
 
-    parent = await areas.addArea(testUser, 'Sport A', null, 'can', undefined, true, undefined)
+    parent = await areas.addArea(testUser, { areaName: 'Sport A', countryCode: 'can', isLeaf: true })
     expect(parent.metadata.isBoulder).toBe(false)
     expect(parent.metadata.leaf).toBe(true)
   })
 
   it('should update multiple fields', async () => {
     await areas.addCountry('au')
-    const a1 = await areas.addArea(testUser, 'One', null, 'au')
+    const a1 = await areas.addArea(testUser, { areaName: 'One', countryCode: 'au' })
 
     if (a1 == null) {
       fail()
@@ -168,9 +169,9 @@ describe('Areas', () => {
 
   it('should delete a subarea', async () => {
     const usa = await areas.addCountry('usa')
-    const ca = await areas.addArea(testUser, 'CA', usa.metadata.area_id)
-    const or = await areas.addArea(testUser, 'OR', usa.metadata.area_id)
-    const wa = await areas.addArea(testUser, 'WA', usa.metadata.area_id)
+    const ca = await areas.addArea(testUser, { areaName: 'CA', parentUuid: usa.metadata.area_id })
+    const or = await areas.addArea(testUser, { areaName: 'OR', parentUuid: usa.metadata.area_id })
+    const wa = await areas.addArea(testUser, { areaName: 'WA', parentUuid: usa.metadata.area_id })
 
     if (ca == null || or == null || wa == null) {
       fail('Child area is null')
@@ -206,11 +207,11 @@ describe('Areas', () => {
 
   it('should not delete a subarea containing children', async () => {
     const gr = await areas.addCountry('grc')
-    const kali = await areas.addArea(testUser, 'Kalymnos', gr.metadata.area_id)
+    const kali = await areas.addArea(testUser, { areaName: 'Kalymnos', parentUuid: gr.metadata.area_id })
 
     if (kali == null) fail()
 
-    const arhi = await areas.addArea(testUser, 'Arhi', kali.metadata.area_id)
+    const arhi = await areas.addArea(testUser, { areaName: 'Arhi', parentUuid: kali.metadata.area_id })
 
     if (arhi == null) fail()
 
@@ -232,32 +233,32 @@ describe('Areas', () => {
 
   it('should not create duplicate sub-areas', async () => {
     const fr = await areas.addCountry('fra')
-    await areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id)
-    await expect(areas.addArea(testUser, 'Verdon Gorge', fr.metadata.area_id))
+    await areas.addArea(testUser, { areaName: 'Verdon Gorge', parentUuid: fr.metadata.area_id })
+    await expect(areas.addArea(testUser, { areaName: 'Verdon Gorge', parentUuid: fr.metadata.area_id }))
       .rejects.toThrowError('This name already exists for some other area in this parent')
   })
 
   it('should fail when adding without a parent country', async () => {
-    await expect(areas.addArea(testUser, 'Peak District ', null, 'GB'))
+    await expect(areas.addArea(testUser, { areaName: 'Peak District ', countryCode: 'GB' }))
       .rejects.toThrowError()
   })
 
   it('should fail when adding with a non-existent parent id', async () => {
     const notInDb = muuid.from('abf6cb8b-8461-45c3-b46b-5997444be867')
-    await expect(areas.addArea(testUser, 'Land\'s End ', notInDb))
+    await expect(areas.addArea(testUser, { areaName: 'Land\'s End ', parentUuid: notInDb }))
       .rejects.toThrowError()
   })
 
   it('should fail when adding with null parents', async () => {
-    await expect(areas.addArea(testUser, 'Land\'s End ', null, '1q1'))
+    await expect(areas.addArea(testUser, { areaName: 'Land\'s End ', countryCode: '1q1' }))
       .rejects.toThrowError()
   })
 
   it('should update areas sorting order', async () => {
     // Setup
     await areas.addCountry('MX')
-    const a1 = await areas.addArea(testUser, 'A1', null, 'MX')
-    const a2 = await areas.addArea(testUser, 'A2', null, 'MX')
+    const a1 = await areas.addArea(testUser, { areaName: 'A1', countryCode: 'MX' })
+    const a2 = await areas.addArea(testUser, { areaName: 'A2', countryCode: 'MX' })
 
     const change1: UpdateSortingOrderType = {
       areaId: a1.metadata.area_id.toUUID().toString(),
@@ -293,13 +294,13 @@ describe('Areas', () => {
 
   it('should update self and childrens pathTokens', async () => {
     await areas.addCountry('JP')
-    const a1 = await areas.addArea(testUser, 'Parent', null, 'JP')
-    const b1 = await areas.addArea(testUser, 'B1', a1.metadata.area_id)
-    const b2 = await areas.addArea(testUser, 'B2', a1.metadata.area_id)
-    const c1 = await areas.addArea(testUser, 'C1', b1.metadata.area_id)
-    const c2 = await areas.addArea(testUser, 'C2', b1.metadata.area_id)
-    const c3 = await areas.addArea(testUser, 'C3', b2.metadata.area_id)
-    const e1 = await areas.addArea(testUser, 'E1', c3.metadata.area_id)
+    const a1 = await areas.addArea(testUser, { areaName: 'Parent', countryCode: 'JP' })
+    const b1 = await areas.addArea(testUser, { areaName: 'B1', parentUuid: a1.metadata.area_id })
+    const b2 = await areas.addArea(testUser, { areaName: 'B2', parentUuid: a1.metadata.area_id })
+    const c1 = await areas.addArea(testUser, { areaName: 'C1', parentUuid: b1.metadata.area_id })
+    const c2 = await areas.addArea(testUser, { areaName: 'C2', parentUuid: b1.metadata.area_id })
+    const c3 = await areas.addArea(testUser, { areaName: 'C3', parentUuid: b2.metadata.area_id })
+    const e1 = await areas.addArea(testUser, { areaName: 'E1', parentUuid: c3.metadata.area_id })
 
     let a1Actual = await areas.findOneAreaByUUID(a1.metadata.area_id)
     expect(a1Actual).toEqual(

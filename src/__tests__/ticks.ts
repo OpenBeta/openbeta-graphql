@@ -74,8 +74,8 @@ describe('ticks API', () => {
 
     // Add climbs because add/update tick requires type validation
     await areas.addCountry('usa')
-    const newDestination = await areas.addArea(user, 'California', null, 'usa')
-    const routesArea = await areas.addArea(user, 'Sport & Trad', newDestination.metadata.area_id)
+    const newDestination = await areas.addArea(user, { areaName: 'California', countryCode: 'usa' })
+    const routesArea = await areas.addArea(user, { areaName: 'Sport & Trad', parentUuid: newDestination.metadata.area_id })
 
     const newIDs = await climbs.addOrUpdateClimbs(user, routesArea.metadata.area_id, newClimbsToAdd)
     // Update tick inputs with generated climb IDs

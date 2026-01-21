@@ -63,9 +63,9 @@ describe('MediaDataSource', () => {
     await createIndexes()
 
     await areas.addCountry('USA')
-    areaForTagging1 = await areas.addArea(muuid.v4(), 'Yosemite NP', null, 'USA')
-    areaForTagging2 = await areas.addArea(muuid.v4(), 'Lake Tahoe', null, 'USA')
-    areaForTagging3 = await areas.addArea(muuid.v4(), 'Shelf Road', null, 'USA')
+    areaForTagging1 = await areas.addArea(muuid.v4(), { areaName: 'Yosemite NP', countryCode: 'USA' })
+    areaForTagging2 = await areas.addArea(muuid.v4(), { areaName: 'Lake Tahoe', countryCode: 'USA' })
+    areaForTagging3 = await areas.addArea(muuid.v4(), { areaName: 'Shelf Road', countryCode: 'USA' })
     if (areaForTagging1 == null || areaForTagging2 == null || areaForTagging3 == null) fail('Fail to pre-seed test areas')
 
     const rs = await climbs.addOrUpdateClimbs(muuid.v4(), areaForTagging1.metadata.area_id, [newSportClimb1])

@@ -171,10 +171,10 @@ describe('Climb CRUD', () => {
   it('can add new climbs', async () => {
     await areas.addCountry('usa')
 
-    const newDestination = await areas.addArea(testUser, 'California', null, 'usa')
+    const newDestination = await areas.addArea(testUser, { areaName: 'California', countryCode: 'usa' })
     if (newDestination == null) fail('Expect new area to be created')
 
-    const routesArea = await areas.addArea(testUser, 'Sport & Trad', newDestination.metadata.area_id)
+    const routesArea = await areas.addArea(testUser, { areaName: 'Sport & Trad', parentUuid: newDestination.metadata.area_id })
 
     const newIDs = await climbs.addOrUpdateClimbs(
       testUser,
@@ -231,10 +231,10 @@ describe('Climb CRUD', () => {
   it('can add new boulder problems', async () => {
     await areas.addCountry('esp')
 
-    const newDestination = await areas.addArea(testUser, 'Valencia', null, 'esp')
+    const newDestination = await areas.addArea(testUser, { areaName: 'Valencia', countryCode: 'esp' })
     if (newDestination == null) fail('Expect new area to be created')
 
-    const boulderingArea = await areas.addArea(testUser, 'Bouldering only', newDestination.metadata.area_id)
+    const boulderingArea = await areas.addArea(testUser, { areaName: 'Bouldering only', parentUuid: newDestination.metadata.area_id })
 
     expect(boulderingArea.metadata.isBoulder).toBeFalsy()
 
@@ -252,7 +252,7 @@ describe('Climb CRUD', () => {
   })
 
   it('can delete new boulder problems', async () => {
-    const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'fr')
+    const newBoulderingArea = await areas.addArea(testUser, { areaName: 'Bouldering area 1', countryCode: 'fr' })
     if (newBoulderingArea == null) fail('Expect new area to be created')
 
     const newIDs = await climbs.addOrUpdateClimbs(
@@ -304,7 +304,7 @@ describe('Climb CRUD', () => {
 
   it('handles mixed grades and disciplines correctly', async () => {
     await areas.addCountry('can')
-    const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'can')
+    const newBoulderingArea = await areas.addArea(testUser, { areaName: 'Bouldering area 1', countryCode: 'can' })
     if (newBoulderingArea == null) fail('Expect new area to be created')
 
     const newIDs = await climbs.addOrUpdateClimbs(
@@ -327,7 +327,7 @@ describe('Climb CRUD', () => {
 
     {
       // A roped climbing area
-      const newClimbingArea = await areas.addArea(testUser, 'Climbing area 1', null, 'aus')
+      const newClimbingArea = await areas.addArea(testUser, { areaName: 'Climbing area 1', countryCode: 'aus' })
       if (newClimbingArea == null) fail('Expect new area to be created')
 
       const newclimbs = [
@@ -374,7 +374,7 @@ describe('Climb CRUD', () => {
 
     {
       // A bouldering area
-      const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'aus')
+      const newBoulderingArea = await areas.addArea(testUser, { areaName: 'Bouldering area 1', countryCode: 'aus' })
       if (newBoulderingArea == null) fail('Expect new area to be created')
 
       const newIDs = await climbs.addOrUpdateClimbs(
@@ -402,7 +402,7 @@ describe('Climb CRUD', () => {
 
     {
       // A roped climbing area
-      const newClimbingArea = await areas.addArea(testUser, 'Climbing area in Brazil', null, 'bra')
+      const newClimbingArea = await areas.addArea(testUser, { areaName: 'Climbing area in Brazil', countryCode: 'bra' })
       if (newClimbingArea == null) fail('Expect new area to be created in Brazil')
 
       const newclimbs = [
@@ -449,7 +449,7 @@ describe('Climb CRUD', () => {
 
     {
       // A bouldering area
-      const newBoulderingArea = await areas.addArea(testUser, 'Bouldering area 1', null, 'bra')
+      const newBoulderingArea = await areas.addArea(testUser, { areaName: 'Bouldering Area 1', countryCode: 'bra' })
       if (newBoulderingArea == null) fail('Expect new area to be created')
 
       const newIDs = await climbs.addOrUpdateClimbs(
@@ -476,7 +476,7 @@ describe('Climb CRUD', () => {
     await areas.addCountry('deu') // Assuming Germany since UIAA is dominant grading system
 
     // A roped climbing area
-    const newClimbingArea = await areas.addArea(testUser, 'Climbing area 1', null, 'deu')
+    const newClimbingArea = await areas.addArea(testUser, { areaName: 'Climbing area 1', countryCode: 'deu' })
     if (newClimbingArea == null) fail('Expect new area to be created')
 
     const newIDs = await climbs.addOrUpdateClimbs(
@@ -503,7 +503,7 @@ describe('Climb CRUD', () => {
   })
 
   it('can update boulder problems', async () => {
-    const newDestination = await areas.addArea(testUser, 'Bouldering area A100', null, 'fr')
+    const newDestination = await areas.addArea(testUser, { areaName: 'Bouldering area A100', countryCode: 'fr' })
 
     if (newDestination == null) fail('Expect new area to be created')
 
@@ -562,7 +562,7 @@ describe('Climb CRUD', () => {
   })
 
   it('can update climb length, boltsCount & fa', async () => {
-    const newDestination = await areas.addArea(testUser, 'Sport area Z100', null, 'fr')
+    const newDestination = await areas.addArea(testUser, { areaName: 'Sport area Z100', countryCode: 'fr' })
 
     if (newDestination == null) fail('Expect new area to be created')
 
@@ -599,10 +599,10 @@ describe('Climb CRUD', () => {
   it('can add multi-pitch climbs', async () => {
     await areas.addCountry('aut')
 
-    const newDestination = await areas.addArea(testUser, 'Some Location with Multi-Pitch Climbs', null, 'aut')
+    const newDestination = await areas.addArea(testUser, { areaName: 'Some Location with Multi-Pitch Climbs', countryCode: 'aut' })
     if (newDestination == null) fail('Expect new area to be created')
 
-    const routesArea = await areas.addArea(testUser, 'Sport & Trad Multi-Pitches', newDestination.metadata.area_id)
+    const routesArea = await areas.addArea(testUser, { areaName: 'Sport & Trad Multi-Pitches', parentUuid: newDestination.metadata.area_id })
 
     // create new climb with individual pitches
     const newIDs = await climbs.addOrUpdateClimbs(
@@ -639,7 +639,7 @@ describe('Climb CRUD', () => {
   })
 
   it('can update multi-pitch problems', async () => {
-    const newDestination = await areas.addArea(testUser, 'Some Multi-Pitch Area to be Updated', null, 'deu')
+    const newDestination = await areas.addArea(testUser, { areaName: 'Some Multi-Pitch Area to be Updated', countryCode: 'deu' })
 
     if (newDestination == null) fail('Expect new area to be created')
 

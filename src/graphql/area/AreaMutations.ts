@@ -36,12 +36,15 @@ const AreaMutations = {
     if (user?.uuid == null) throw new Error('Missing user uuid')
 
     return await areas.addArea(
-      user.uuid, name,
-      parentUuid == null ? null : muuid.from(parentUuid),
-      countryCode,
-      experimentalAuthor,
-      isLeaf,
-      isBoulder
+      user.uuid,
+      {
+        areaName: name,
+        countryCode,
+        experimentalAuthor,
+        isLeaf,
+        isBoulder,
+        parentUuid: parentUuid == null ? undefined : muuid.from(parentUuid)
+      }
     )
   },
 
