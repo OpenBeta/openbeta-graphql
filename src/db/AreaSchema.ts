@@ -51,6 +51,7 @@ const MetadataSchema = new Schema<IAreaMetadata>({
   bbox: [{ type: Number, required: false }],
   leftRightIndex: { type: Number, required: false },
   ext_id: { type: String, required: false, index: true },
+  wikidata_id: { type: String, required: false, index: true },
   area_id: {
     type: 'object',
     value: { type: 'Buffer' },

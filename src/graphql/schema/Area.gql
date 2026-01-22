@@ -131,6 +131,7 @@ type AreaMetadata {
 
   "Mountainproject ID (if associated)"
   mp_id: String!
+  wikidata_id: String!
   area_id: ID!
   areaId: ID!
 
