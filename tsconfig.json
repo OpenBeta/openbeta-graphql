@@ -3,6 +3,15 @@
     "rootDirs": [
       "src"
     ],
+    "baseUrl": "./src",
+    "paths": {
+      "@gql": [
+        "./gql/generated/graphql.ts"
+      ],
+      "@db": [
+        "./db"
+      ]
+    },
     "outDir": "dist",
     "lib": [
       "es2023"
