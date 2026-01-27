@@ -14,7 +14,7 @@ input AreaHistoryFilter {
 }
 
 input OrganizationHistoryFilter {
-  orgId: MUUID
+  orgId: UUID
   limit: Int
   offset: Int
 }

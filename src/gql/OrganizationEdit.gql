@@ -13,8 +13,8 @@ type Mutation {
 input AddOrganizationInput {
   displayName: String!
   orgType: String!
-  associatedAreaIds: [MUUID]
-  excludedAreaIds: [MUUID]
+  associatedAreaIds: [UUID]
+  excludedAreaIds: [UUID]
   website: String
   email: String
   donationLink: String
@@ -25,9 +25,9 @@ input AddOrganizationInput {
 }
 
 input OrganizationEditableFieldsInput {
-  orgId: MUUID!
-  associatedAreaIds: [MUUID]
-  excludedAreaIds: [MUUID]
+  orgId: UUID!
+  associatedAreaIds: [UUID]
+  excludedAreaIds: [UUID]
   displayName: String
   website: String
   email: String

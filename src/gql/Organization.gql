@@ -1,5 +1,5 @@
 type Query {
-  organization(muuid: MUUID): Organization
+  organization(muuid: UUID): Organization
   organizations(filter: OrgFilter, sort: OrgSort, limit: Int, offset: Int): [Organization]
 }
 
@@ -14,18 +14,18 @@ type Organization {
   """
   orgType: String!
   "We use orgId for identification of organizations. The id field is used in internal database relations."
-  orgId: MUUID!
+  orgId: UUID!
 
-  associatedAreaIds: [MUUID]
-  excludedAreaIds: [MUUID]
+  associatedAreaIds: [UUID]
+  excludedAreaIds: [UUID]
 
   "Name of organization to be displayed on the site."
   displayName: String!
   content: OrganizationContent
   createdAt: Date
-  createdBy: MUUID
+  createdBy: UUID
   updatedAt: Date
-  updatedBy: MUUID
+  updatedBy: UUID
 }
 
 type OrganizationContent {
@@ -56,10 +56,10 @@ input DisplayNameFilter {
 
 "Filter for organizations that are associated with an area."
 input AssociatedAreaIdsFilter {
-  includes: [MUUID]
+  includes: [UUID]
 }
 
 "Filter for organizations that have not excluded themselves from an area."
 input ExcludedAreaIdsFilter {
-  excludes: [MUUID]
+  excludes: [UUID]
 }

@@ -1,0 +1,34 @@
+{
+  "typescript": {
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "quoteStyle": "alwaysSingle",
+    "arrowFunction.useParentheses": "force",
+    "enumDeclaration.memberSpacing": "newLine",
+    "binaryExpression.linePerExpression": true,
+    "memberExpression.linePerExpression": true
+  },
+  "json": {},
+  "markdown": {},
+  "toml": {},
+  "dockerfile": {},
+  "malva": {},
+  "markup": {},
+  "yaml": {},
+  "graphql": {},
+  "excludes": [
+    "**/node_modules",
+    "**/*-lock.json"
+  ],
+  "plugins": [
+    "https://plugins.dprint.dev/typescript-0.95.13.wasm",
+    "https://plugins.dprint.dev/json-0.21.1.wasm",
+    "https://plugins.dprint.dev/markdown-0.20.0.wasm",
+    "https://plugins.dprint.dev/toml-0.7.0.wasm",
+    "https://plugins.dprint.dev/dockerfile-0.3.3.wasm",
+    "https://plugins.dprint.dev/g-plane/malva-v0.15.2.wasm",
+    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.25.3.wasm",
+    "https://plugins.dprint.dev/g-plane/pretty_yaml-v0.6.0.wasm",
+    "https://plugins.dprint.dev/g-plane/pretty_graphql-v0.2.3.wasm"
+  ]
+}
