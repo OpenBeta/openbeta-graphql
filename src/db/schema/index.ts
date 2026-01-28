@@ -1,7 +1,9 @@
-import { entityKind } from 'drizzle-orm';
+import { InferSelectModel, Table } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { PgTransaction } from 'drizzle-orm/pg-core';
 import { areaTable } from './areaTable';
 import { climbTable, safetyEnum } from './climbTable';
-import { entityTable } from './entitiy';
+import { entityKind, entityTable } from './entitiy';
 import { disciplineEnum, gradeSystemTable, gradeTable } from './gradeTable';
 import { mediaTable } from './mediaTable';
 import { organizationTable } from './organizationTable';
@@ -23,6 +25,11 @@ const enums = {
   Discipline: disciplineEnum,
 };
 
+const tables = {
+  area: areaTable,
+  climb: climbTable,
+};
+
 export {
   areaTable as area,
   climbTable as climb,
@@ -36,3 +43,9 @@ export {
   tickTable as tick,
   userTable as user,
 };
+
+export type Database = ReturnType<typeof drizzle>;
+export type Transaction = Parameters<
+  Parameters<Database['transaction']>[0]
+>[0];
+export type EntityKind = (typeof entityKind.enumValues)[number];

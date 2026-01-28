@@ -10,6 +10,9 @@ export const areaMutations: MutationResolvers = {
   removeArea: async () => {
     throw 'not implemented';
   },
+  setDestinationFlag: async () => {
+    throw new Error('Not implemented');
+  },
   updateArea: async () => {
     throw 'not implemented';
   },

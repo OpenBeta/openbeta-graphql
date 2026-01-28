@@ -6,7 +6,8 @@
     "graphql": "^16.12.0",
     "graphql-scalars": "^1.25.0",
     "pg": "^8.17.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "uuid": "^13.0.0"
   },
   "name": "openbeta-graphql",
   "module": "index.ts",
@@ -19,6 +20,7 @@
     "@graphql-codegen/typescript-resolvers": "5.1.5",
     "@types/bun": "latest",
     "@types/pg": "^8.16.0",
+    "@types/uuid": "^11.0.0",
     "drizzle-kit": "^0.31.8",
     "tsx": "^4.21.0"
   },

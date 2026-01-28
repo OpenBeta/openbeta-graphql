@@ -1,7 +1,7 @@
 import { QueryResolvers } from '@gql';
 
 const query: QueryResolvers = {
-  climb: async () => {
+  getTags: async () => {
     throw new Error('Not implemented');
   },
 };
