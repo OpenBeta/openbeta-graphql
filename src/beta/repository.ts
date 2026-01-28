@@ -1,24 +1,12 @@
 import { entity, EntityKind, Transaction } from '@schema';
 import { entityTable } from 'db/schema/entitiy';
+import { eq, InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { Actor, ActorError } from './actor';
 import {
-  Column,
-  ColumnBaseConfig,
-  ColumnDataType,
-  eq,
-  InferInsertModel,
-  InferSelectModel,
-  or,
-  Table,
-  TableConfig,
-} from 'drizzle-orm';
-import { UUIDTypes } from 'uuid';
-import { ActorIdentifiable } from './actor';
-import { EntityIdentifiable } from './entity_model';
-
-export type EntityAddressable = number | UUIDTypes | EntityIdentifiable;
-export type TableWithId = Table & {
-  id: Column;
-};
+  EntityAddressable,
+  EntityIdentifiable,
+  TableWithId,
+} from './entity_model';
 
 function matchOnAddressable(ent: EntityAddressable) {
   if (typeof ent == 'number') {
@@ -43,11 +31,11 @@ export abstract class EntityRepository<Ent extends EntityIdentifiable> {
   abstract table: TableWithId;
 
   tx: Transaction;
-  actor: ActorIdentifiable;
+  actor: Actor;
 
   constructor(
     db: Transaction,
-    actor: ActorIdentifiable,
+    actor: Actor,
   ) {
     this.tx = db;
     this.actor = actor;
@@ -82,8 +70,23 @@ export abstract class EntityRepository<Ent extends EntityIdentifiable> {
     );
   }
 
-  async update(ent: Ent): Promise<void> {
-    throw new Error('Not Implemented');
+  async update(
+    ent: EntityAddressable,
+    changes: InferInsertModel<typeof this.table>,
+  ): Promise<void> {
+    if (!await this.actor.mayEdit(ent)) {
+      throw new ActorError(
+        `This user is not permitted to alter this entity`,
+      );
+    }
+
+    // This is where document history can be easily inserted
+
+    await this
+      .tx
+      .update(this.table)
+      .set(changes)
+      .where(matchOnAddressable(ent));
   }
 
   async get(ent: EntityAddressable): Promise<Ent> {
@@ -102,6 +105,12 @@ export abstract class EntityRepository<Ent extends EntityIdentifiable> {
   }
 
   async setLock(ent: EntityAddressable, locked: boolean): Promise<void> {
+    if (!await this.actor.maySetLock(ent)) {
+      throw new ActorError(
+        `This user is not permitted to set lock state of entity`,
+      );
+    }
+
     throw new Error('Not Implemented');
   }
 

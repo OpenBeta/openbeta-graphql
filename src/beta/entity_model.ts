@@ -1,4 +1,4 @@
-import { PgUUID } from 'drizzle-orm/pg-core';
+import { Column, Table } from 'drizzle-orm';
 import { UUIDTypes } from 'uuid';
 
 export type EntityId = number;
@@ -15,3 +15,9 @@ export interface Entity extends EntityIdentifiable, EntityStructure {
   name: string | null;
   deleted: boolean;
 }
+
+export type EntityAddressable = number | UUIDTypes | EntityIdentifiable;
+
+export type TableWithId = Table & {
+  id: Column;
+};
