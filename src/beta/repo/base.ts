@@ -27,6 +27,18 @@ function matchOnAddressable(ent: EntityAddressable) {
   );
 }
 
+/**
+The repository model is intended to reinforce the consistency of a handful of
+shared behaviors between entities of different kinds.
+
+The shared behaviors may include
+  1. Permissions
+  2. History / Audit trail
+  3. Backed entity reification
+  4. Entity Heirarchies (especially for those that are composed
+      of different KINDS of parents and children)
+  5. deletion and restoration logic.
+ */
 export abstract class EntityRepository<
   Ent extends EntityIdentifiable,
   EntTable extends EntityCompBaseTable,
@@ -46,9 +58,28 @@ export abstract class EntityRepository<
     this.actor = actor;
   }
 
-  abstract captureBaseFields(
+  /**
+  Sometimes, though not necessarily always, you may want to forward some
+  fields directly from the entity creation request into the backing
+  `entity` table. in this instance, you can extend this function in your
+  subclass such that any fields you like can be forwarded to the entity
+  reification.
+
+  Note than under no circumstances should you be trying to set an id
+  or an entity type here, the id is supposed to be generated and the entity
+  type is supposed to be contextually locked.
+  */
+  captureBaseFields(
     from: EntCreation,
-  ): Partial<Omit<EntityRecord, 'entityType'>>;
+  ): Partial<Omit<EntityRecord, 'entityType'>> {
+    if ('name' in from) {
+      return {
+        name: from['name'] as string,
+      };
+    }
+
+    return {};
+  }
 
   abstract mapJoinedToCombined(
     result: { entity: EntityRecord; parts: EntSelection },
@@ -57,6 +88,12 @@ export abstract class EntityRepository<
   private insertionCTE(
     using: Omit<InferInsertModel<typeof entity>, 'entityType'>,
   ) {
+    if ('id' in using || 'entityType' in using) {
+      throw new Error(
+        'You may not set ID or EntityType fields on an entity when reifing.',
+      );
+    }
+
     return this.db.$with('reify_entity').as(
       this
         .db

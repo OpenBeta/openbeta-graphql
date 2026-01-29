@@ -1,25 +1,33 @@
-import { QueryResolvers } from '@gql';
+import { Area, Resolvers } from '@gql';
+import { Context } from 'server/context';
 
-const query: QueryResolvers = {
-  area: async () => {
+function require<T>(x: T | undefined | null) {
+  if (x === undefined || x === null) {
+    throw new Error('require failure: the value was nullish');
+  }
+
+  return x;
+}
+const query: Resolvers['Query'] = {
+  area: async (parent, args, context, info) => {
+    return await context.repo.area.get(require(args.uuid));
+  },
+  areas: async (parent, args, context, info) => {
     throw new Error('Not implemented');
   },
-  areas: async () => {
+  bulkAreas: async (parent, args, context, info) => {
     throw new Error('Not implemented');
   },
-  bulkAreas: async () => {
+  stats: async (parent, args, context, info) => {
     throw new Error('Not implemented');
   },
-  stats: async () => {
+  cragsNear: async (parent, args, context, info) => {
     throw new Error('Not implemented');
   },
-  cragsNear: async () => {
+  cragsWithin: async (parent, args, context, info) => {
     throw new Error('Not implemented');
   },
-  cragsWithin: async () => {
-    throw new Error('Not implemented');
-  },
-  countries: async () => {
+  countries: async (parent, args, context, info) => {
     throw new Error('Not implemented');
   },
 };

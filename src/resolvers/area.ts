@@ -1,9 +1,7 @@
 import { QueryResolvers, Resolvers } from '@gql';
 
 export const areaResolvers: Resolvers['Area'] = {
-  // Area field resolvers will be implemented here
-};
-
-export const areaQResolvers: QueryResolvers = {
-  // Area field resolvers will be implemented here
+  id: async (parent) => parent.uuid,
+  area_name: async (parent) => parent.name,
+  areaName: async (parent) => parent.name,
 };

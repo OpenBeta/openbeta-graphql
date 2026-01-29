@@ -7,7 +7,11 @@ const config: CodegenConfig = {
     'src/gql/generated/graphql.ts': {
       plugins: ['typescript', 'typescript-resolvers'],
       config: {
-        context: './src/server/context#Context',
+        useIndexSignature: true,
+        contextType: '../../server/context#Context',
+        mappers: {
+          Area: '../../beta/repo/area#AreaPrimitive',
+        },
       },
     },
   },

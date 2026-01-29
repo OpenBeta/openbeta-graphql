@@ -4,10 +4,10 @@ import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { EntityRepository } from './base';
 
 type AreaTable = typeof area;
-type Area = InferSelectModel<AreaTable> & Entity;
 type AreaSelect = InferSelectModel<AreaTable>;
+export type AreaPrimitive = InferSelectModel<AreaTable> & Entity;
 
-export class AreaRepo extends EntityRepository<Area, AreaTable> {
+export class AreaRepo extends EntityRepository<AreaPrimitive, AreaTable> {
   readonly kind = 'area';
   readonly table = area;
 
@@ -16,15 +16,7 @@ export class AreaRepo extends EntityRepository<Area, AreaTable> {
       entity: EntityRecord;
       parts: AreaSelect;
     },
-  ): Area {
+  ): AreaPrimitive {
     return { ...entity, ...parts };
-  }
-
-  captureBaseFields(
-    from: InferInsertModel<AreaTable>,
-  ): Partial<Omit<EntityRecord, 'entityType'>> {
-    return {
-      name: from.name,
-    };
   }
 }
