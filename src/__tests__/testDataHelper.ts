@@ -1,4 +1,4 @@
-import { Database, entity, area } from '@schema';
+import { area, Database, entity } from '@schema';
 import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -31,21 +31,29 @@ export class TestDataHelper {
     const areaData = { ...defaultArea, ...overrides };
 
     // First create the entity
-    const [entityResult] = await this.db.insert(entity).values({
-      entityType: 'area',
-      name: areaData.name,
-      parent: areaData.parent,
-      uuid: uuidv4(),
-    }).returning({ id: entity.id, uuid: entity.uuid });
+    const [entityResult] = await this
+      .db
+      .insert(entity)
+      .values({
+        entityType: 'area',
+        name: areaData.name,
+        parent: areaData.parent,
+        uuid: uuidv4(),
+      })
+      .returning({ id: entity.id, uuid: entity.uuid });
 
     // Then create the area
-    const [areaResult] = await this.db.insert(area).values({
-      id: entityResult.id,
-      name: areaData.area_name,
-      gradeContext: areaData.gradeContext,
-      density: areaData.density,
-      totalClimbs: areaData.totalClimbs,
-    }).returning();
+    const [areaResult] = await this
+      .db
+      .insert(area)
+      .values({
+        id: entityResult.id,
+        name: areaData.area_name,
+        gradeContext: areaData.gradeContext,
+        density: areaData.density,
+        totalClimbs: areaData.totalClimbs,
+      })
+      .returning();
 
     return {
       id: entityResult.id,
@@ -87,7 +95,8 @@ export class TestDataHelper {
   }
 
   async getAreaByUuid(uuid: string) {
-    return this.db
+    return this
+      .db
       .select({
         entity: entity,
         area: area,

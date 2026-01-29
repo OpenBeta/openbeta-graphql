@@ -1,12 +1,12 @@
-import { test as base } from 'vitest';
 import { ApolloServer } from '@apollo/server';
-import { Context, context } from '../server/context';
+import { Database } from '@schema';
+import { test as base } from 'vitest';
 import { Actor } from '../beta/actor';
 import { AreaRepo } from '../beta/repo/area';
-import { Database } from '@schema';
-import { testDb } from './setup';
 import typeDefs from '../gql';
 import { resolvers } from '../resolvers';
+import { Context, context } from '../server/context';
+import { testDb } from './setup';
 
 interface TestFixtures {
   db: Database;
@@ -19,7 +19,7 @@ export const test = base.extend<TestFixtures>({
   db: async ({}, use) => {
     await use(testDb);
   },
-  
+
   testContext: async ({ db }, use) => {
     const testActor: Actor | null = null; // No auth for now
     const testContext: Context = {
@@ -29,7 +29,7 @@ export const test = base.extend<TestFixtures>({
     };
     await use(testContext);
   },
-  
+
   server: async ({}, use) => {
     const server = new ApolloServer<Context>({
       typeDefs,
@@ -37,7 +37,7 @@ export const test = base.extend<TestFixtures>({
     });
     await use(server);
   },
-  
+
   areaRepo: async ({ db, testContext }, use) => {
     await use(testContext.repo.area);
   },
