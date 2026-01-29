@@ -6,8 +6,7 @@
     "graphql": "^16.12.0",
     "graphql-scalars": "^1.25.0",
     "pg": "^8.17.2",
-    "typescript": "^5.9.3",
-    "uuid": "^13.0.0"
+    "typescript": "^5"
   },
   "name": "openbeta-graphql",
   "module": "index.ts",
@@ -25,9 +24,14 @@
     "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
+    "@vitest/ui": "^4.0.18",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
-    "tsx": "^4.21.0"
+    "graphql-tag": "^2.12.6",
+    "tsx": "^4.21.0",
+    "uuid": "^13.0.0",
+    "vite-tsconfig-paths": "^6.0.5",
+    "vitest": "^4.0.18"
   },
   "peerDependencies": {
     "typescript": "^5"
