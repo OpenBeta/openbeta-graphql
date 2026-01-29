@@ -1,0 +1,156 @@
+import { Database, entity, EntityKind, Transaction } from '@schema';
+import { EntityCompBaseTable, entityTable } from 'db/schema/entitiy';
+import { eq, type InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { PgUpdateSetSource } from 'drizzle-orm/pg-core';
+import { Actor, ActorError } from '../actor';
+import {
+  EntityAddressable,
+  EntityIdentifiable,
+  EntityRecord,
+} from '../entity_model';
+
+function matchOnAddressable(ent: EntityAddressable) {
+  if (typeof ent == 'number') {
+    return eq(entity.id, ent);
+  }
+
+  if (typeof ent === 'object' && 'id' in ent) {
+    return matchOnAddressable(ent.id);
+  }
+
+  if (typeof ent == 'string') {
+    return eq(entity.uuid, ent);
+  }
+
+  throw new Error(
+    `we don't have a code path to collapse < ${ent} > into an sql match clause`,
+  );
+}
+
+export abstract class EntityRepository<
+  Ent extends EntityIdentifiable,
+  EntTable extends EntityCompBaseTable,
+  EntSelection extends InferSelectModel<EntTable> = InferSelectModel<EntTable>,
+  EntCreation extends InferInsertModel<EntTable> = InferInsertModel<EntTable>,
+> {
+  abstract readonly kind: EntityKind;
+  abstract readonly table: EntTable;
+  private readonly db: Transaction | Database;
+  private readonly actor: Actor | null;
+
+  constructor(
+    db: Transaction | Database,
+    actor: Actor | null,
+  ) {
+    this.db = db;
+    this.actor = actor;
+  }
+
+  abstract captureBaseFields(
+    from: EntCreation,
+  ): Partial<Omit<EntityRecord, 'entityType'>>;
+
+  abstract mapJoinedToCombined(
+    result: { entity: EntityRecord; parts: EntSelection },
+  ): Ent;
+
+  private insertionCTE(
+    using: Omit<InferInsertModel<typeof entity>, 'entityType'>,
+  ) {
+    return this.db.$with('reify_entity').as(
+      this
+        .db
+        .insert(entity)
+        .values({ ...using, entityType: this.kind })
+        .returning(),
+    );
+  }
+  private requireActor(): Actor {
+    if (this.actor == null) {
+      throw new Error('You MUST be logged in and authenticated to do this');
+    }
+
+    return this.actor;
+  }
+
+  async create(ent: EntCreation): Promise<Ent> {
+    // if there were any constraints you wanted to check here that are infeasible for
+    // our sql engine they could go nicely here in your subclassing.
+
+    let reified = await this
+      .db
+      .with(this.insertionCTE(this.captureBaseFields(ent)))
+      .insert(this.table)
+      .values(ent)
+      .returning({ id: entity.id })
+      .then((x) => x[0].id);
+
+    return await this.get(reified);
+  }
+
+  async update(
+    ent: EntityAddressable,
+    changes: PgUpdateSetSource<EntTable>,
+  ): Promise<void> {
+    if (!await this.requireActor().mayEdit(ent)) {
+      throw new ActorError(
+        `This user is not permitted to alter this entity`,
+      );
+    }
+
+    // This is where document history would be taken care of.
+    // because we are inside a transaction the order is not super
+    // important because exceptions anywhere in the stack
+    // would cause rollback.
+
+    await this
+      .db
+      .update(this.table)
+      .set(changes)
+      .where(matchOnAddressable(ent));
+  }
+
+  async get(ent: EntityAddressable): Promise<Ent> {
+    return this.mapJoinedToCombined(
+      await this
+        .db
+        .select({
+          entity: entityTable,
+          parts: this.table,
+        })
+        .from(entityTable)
+        .innerJoin(
+          entityTable,
+          eq(entityTable.id, this.table.id),
+        )
+        .where(matchOnAddressable(ent))
+        .limit(1)
+        .then((r) => r[0]),
+    );
+  }
+
+  async setLock(ent: EntityAddressable, locked: boolean): Promise<void> {
+    if (!await this.requireActor().maySetLock(ent)) {
+      throw new ActorError(
+        `This user is not permitted to set lock-state of entity`,
+      );
+    }
+
+    throw new Error('Not Implemented');
+  }
+
+  async setParent(
+    ent: EntityAddressable,
+    parent: EntityAddressable,
+  ): Promise<void> {
+    throw new Error('Not Implemented');
+  }
+
+  async softDelete(ent: EntityAddressable): Promise<void> {
+    throw new Error('Not Implemented');
+  }
+
+  async unDelete(ent: EntityAddressable): Promise<void> {
+    throw new Error('Not Implemented');
+  }
+}

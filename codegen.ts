@@ -6,6 +6,9 @@ const config: CodegenConfig = {
   generates: {
     'src/gql/generated/graphql.ts': {
       plugins: ['typescript', 'typescript-resolvers'],
+      config: {
+        context: './src/server/context#Context',
+      },
     },
   },
 };

@@ -26,6 +26,8 @@
           shellHook = ''
             echo "Bun development environment ready"
             bun --version
+
+            alias schema-reset='dropdb openbeta && createdb openbeta --owner=openbeta'
           '';
         };
       }

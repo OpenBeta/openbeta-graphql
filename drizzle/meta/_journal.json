@@ -1,13 +1,5 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1769531309036,
-      "tag": "0000_freezing_jetstream",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }

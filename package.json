@@ -14,9 +14,11 @@
   "type": "module",
   "private": true,
   "devDependencies": {
-    "@graphql-codegen/cli": "6.1.1",
+    "@graphql-codegen/cli": "^6.1.1",
+    "@graphql-codegen/client-preset": "^5.2.2",
     "@graphql-codegen/introspection": "5.0.0",
-    "@graphql-codegen/typescript": "5.0.7",
+    "@graphql-codegen/typescript": "^5.0.7",
+    "@graphql-codegen/typescript-operations": "^5.0.7",
     "@graphql-codegen/typescript-resolvers": "5.1.5",
     "@types/bun": "latest",
     "@types/pg": "^8.16.0",

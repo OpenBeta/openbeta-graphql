@@ -1,13 +1,23 @@
-import { sql } from 'drizzle-orm';
-import { check } from 'drizzle-orm/gel-core';
 import {
+  ColumnBaseConfig,
+  InferSelectModel,
+  type IsPrimaryKey,
+  type NotNull,
+  sql,
+  TableConfig,
+} from 'drizzle-orm';
+import {
+  AnyPgTable,
   boolean,
+  check,
   integer,
   PgColumn,
+  PgColumnBuilder,
   pgEnum,
+  type PgIntegerBuilder,
   pgTable,
+  PgTableWithColumns,
   timestamp,
-  unique,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -19,6 +29,8 @@ export const entityKind = pgEnum('entity_type', [
   'pitch',
   'content',
 ]);
+
+export type EntityKind = InferSelectModel<typeof entityTable>['entityType'];
 
 /**
  * 'Entities' within the openbeta system are principally data that we
@@ -43,8 +55,27 @@ export const entityTable = pgTable('entity', {
       onDelete: 'restrict',
     }),
 }, (table) => [
+  // We disallow an entity from telling us that IT is its own parent
   check(
     Constraint.NoEntitySelfReference,
-    sql`${table.parent} is null or {table.id} != ${table.parent}`,
+    sql`${table.parent} is null or ${table.id} != ${table.parent}`,
   ),
 ]);
+
+export const entityCompositionColumns = {
+  id: integer('id')
+    .primaryKey()
+    .references(() => entityTable.id, {
+      onDelete: 'cascade',
+      onUpdate: 'cascade',
+    }),
+};
+
+export type EntityCompBaseTable<N extends string = string> = PgTableWithColumns<
+  {
+    name: N;
+    schema: undefined;
+    dialect: 'pg';
+    columns: { 'id': PgColumn<ColumnBaseConfig<'number', 'PgInteger'>> };
+  }
+>;

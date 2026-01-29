@@ -1,4 +1,11 @@
-import { Column, Table } from 'drizzle-orm';
+import { entity } from '@schema';
+import {
+  Column,
+  ColumnBaseConfig,
+  InferSelectModel,
+  Table,
+  TableConfig,
+} from 'drizzle-orm';
 import { UUIDTypes } from 'uuid';
 
 export type EntityId = number;
@@ -11,13 +18,9 @@ export interface EntityStructure extends EntityIdentifiable {
   parent: EntityId | null;
 }
 
-export interface Entity extends EntityIdentifiable, EntityStructure {
-  name: string | null;
-  deleted: boolean;
-}
+export interface Entity
+  extends EntityIdentifiable, InferSelectModel<typeof entity>
+{}
 
 export type EntityAddressable = number | UUIDTypes | EntityIdentifiable;
-
-export type TableWithId = Table & {
-  id: Column;
-};
+export type EntityRecord = InferSelectModel<typeof entity>;

@@ -9,7 +9,6 @@ export interface Actor extends ActorIdentifiable {
   mayEdit: (ent: EntityAddressable) => Promise<boolean>;
   mayDelete: (ent: EntityAddressable) => Promise<boolean>;
   mayRestore: (ent: EntityAddressable) => Promise<boolean>;
-  mayCreate: (ent: EntityAddressable) => Promise<boolean>;
   maySetLock: (ent: EntityAddressable) => Promise<boolean>;
 }
 
