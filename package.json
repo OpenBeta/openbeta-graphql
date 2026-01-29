@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@apollo/server": "^5.3.0",
+    "@faker-js/faker": "^10.2.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "graphql": "^16.12.0",
@@ -20,12 +21,15 @@
     "@graphql-codegen/typescript-operations": "^5.0.7",
     "@graphql-codegen/typescript-resolvers": "5.1.5",
     "@types/bun": "latest",
+    "@types/cli-progress": "^3.11.6",
     "@types/pg": "^8.16.0",
     "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "@vitest/ui": "^4.0.18",
+    "cli-progress": "^3.12.0",
     "drizzle-kit": "^0.31.8",
+    "duckdb": "^1.4.3",
     "eslint": "^9.39.2",
     "graphql-tag": "^2.12.6",
     "tsx": "^4.21.0",
