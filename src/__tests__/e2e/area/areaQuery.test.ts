@@ -1,13 +1,13 @@
-import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import { ApolloServer } from '@apollo/server';
-import { Context, context } from 'server/context';
+import { Database } from '@schema';
 import { Actor } from 'beta/actor';
 import { AreaRepo } from 'beta/repo/area';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { Database } from '@schema';
 import typeDefs from 'gql';
-import { resolvers } from 'resolvers';
 import gql from 'graphql-tag';
+import { resolvers } from 'resolvers';
+import { Context, context } from 'server/context';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { TestDataHelper } from '../../testDataHelper';
 
 const AREA_QUERY = gql`
@@ -98,7 +98,8 @@ describe('Area Query by UUID', () => {
 
   beforeAll(async () => {
     // Setup database connection
-    const testDatabaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+    const testDatabaseUrl = process.env.TEST_DATABASE_URL
+      || process.env.DATABASE_URL;
     if (!testDatabaseUrl) {
       throw new Error('Database URL not provided');
     }
@@ -135,7 +136,7 @@ describe('Area Query by UUID', () => {
         query: AREA_QUERY,
         variables: { uuid: testCrag.uuid },
       },
-      { contextValue: testContext }
+      { contextValue: testContext },
     );
 
     expect(response.body.kind).toBe('single');
@@ -160,7 +161,7 @@ describe('Area Query by UUID', () => {
         query: AREA_QUERY,
         variables: { uuid: '00000000-0000-0000-0000-000000000000' },
       },
-      { contextValue: testContext }
+      { contextValue: testContext },
     );
 
     expect(response.body.kind).toBe('single');
@@ -176,7 +177,7 @@ describe('Area Query by UUID', () => {
         query: AREA_QUERY,
         variables: { uuid: 'invalid-uuid' },
       },
-      { contextValue: testContext }
+      { contextValue: testContext },
     );
 
     expect(response.body.kind).toBe('single');
@@ -192,7 +193,7 @@ describe('Area Query by UUID', () => {
         query: AREA_QUERY,
         variables: { uuid: testCrag.uuid },
       },
-      { contextValue: testContext }
+      { contextValue: testContext },
     );
 
     expect(response.body.kind).toBe('single');
@@ -213,7 +214,7 @@ describe('Area Query by UUID', () => {
         query: AREA_QUERY,
         variables: { uuid: testCrag.uuid },
       },
-      { contextValue: testContext }
+      { contextValue: testContext },
     );
 
     expect(response.body.kind).toBe('single');

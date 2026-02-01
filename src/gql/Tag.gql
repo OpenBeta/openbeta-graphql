@@ -2,8 +2,7 @@ type Query {
   getTags(input: GetTagInput): GetTagResponse
 }
 
-"Input for adding a new tag input."
-input AddTagInput {
+"Input for adding a new tag input." input AddTagInput {
   mediaUrl: String!
   mediaUuid: ID!
   destinationId: ID!

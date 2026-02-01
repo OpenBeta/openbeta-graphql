@@ -7,7 +7,12 @@ type Query {
   Gets all of the users current ticks for a specific climb by their
   Auth-0 userId and Open-Beta ClimbId
   """
-  userTicksByClimbId(userId: String, climbId: String, limit: Int, offset: Int): [TickType]
+  userTicksByClimbId(
+    userId: String
+    climbId: String
+    limit: Int
+    offset: Int
+  ): [TickType]
 }
 
 type Mutation {
@@ -45,8 +50,7 @@ which stand for Mountain Project, or Open Beta respectively
 """
 type TickType {
   _id: ID
-  "User that this tick belongs to "
-  userId: String
+  "User that this tick belongs to " userId: String
   """
   The name of this climb.
 
@@ -112,50 +116,31 @@ type TickType {
   climb: Climb
 }
 
-"The tick sources that openbeta supports."
-enum TickSource {
-  "OpenBeta (native tick)"
-  OB
-  "MountainProject (imported tick)"
-  MP
+"The tick sources that openbeta supports." enum TickSource {
+  "OpenBeta (native tick)" OB
+  "MountainProject (imported tick)" MP
 }
 
 """The type of attempt the user wants to tick for a route."""
 enum TickAttemptType {
-  "Onsight: Sending a route fist try with no prior knowledge"
-  Onsight
-  "Flash: Sending a route first try with prior knowledge"
-  Flash
-  "Pinkpoint: Sending a route with no falls on pre-placed gear"
-  Pinkpoint
-  "French Free: Doing the route with pulling on gear or draws"
-  Frenchfree
-  "Attempt"
-  Attempt
-  "Send: Sending a route with no falls"
-  Send
-  "Redpoint"
-  Redpoint
-  "Repeat"
-  Repeat
+  "Onsight: Sending a route fist try with no prior knowledge" Onsight
+  "Flash: Sending a route first try with prior knowledge" Flash
+  "Pinkpoint: Sending a route with no falls on pre-placed gear" Pinkpoint
+  "French Free: Doing the route with pulling on gear or draws" Frenchfree
+  "Attempt" Attempt
+  "Send: Sending a route with no falls" Send
+  "Redpoint" Redpoint
+  "Repeat" Repeat
 }
 
 enum TickStyle {
-  "Lead"
-  Lead
-  "Solo"
-  Solo
-  "tr"
-  TR
-  "Follow"
-  Follow
-  "Aid"
-  Aid
-  "Boulder"
-  Boulder
+  "Lead" Lead
+  "Solo" Solo
+  "tr" TR
+  "Follow" Follow
+  "Aid" Aid
+  "Boulder" Boulder
 }
-
-
 
 """
 This is our tick type input, containing the name,

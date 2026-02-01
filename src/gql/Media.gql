@@ -11,7 +11,6 @@ type Mutation {
   """
   deleteMediaObject(input: MediaDeleteInput!): Boolean!
 
-
   """
   Add an entity tag to a media.  Calling this function with the same
   mediaId, entityUuid, and entityType will update the topo data.
@@ -105,19 +104,15 @@ Media edge.
 See https://graphql.org/learn/pagination/
 """
 type MediaEdge {
-  "Media object"
-  node: MediaWithTags
+  "Media object" node: MediaWithTags
   "Current node cursor.  The frontend can pass this value to the `after` input parameter to fetch the next page."
   cursor: ID!
 }
 
 type PageInfo {
-  "True if there are more data after the last cursor."
-  hasNextPage: Boolean!
-  "Total number of items."
-  totalItems: Int!
-  "Not yet supported."
-  endCursor: String
+  "True if there are more data after the last cursor." hasNextPage: Boolean!
+  "Total number of items." totalItems: Int!
+  "Not yet supported." endCursor: String
 }
 
 type TagsByUser {
@@ -135,8 +130,7 @@ type TagsLeaderboard {
   allTime: AllTimeTags
 }
 
-"Media object metadata"
-interface IMediaMetadata {
+"Media object metadata" interface IMediaMetadata {
   """Unique id"""
   id: ID!
 
@@ -156,8 +150,7 @@ interface IMediaMetadata {
   size: Int!
 }
 
-"All tags by an author"
-type MediaByUsers {
+"All tags by an author" type MediaByUsers {
   username: String
   userUuid: ID!
   mediaWithTags: [MediaWithTags]
@@ -178,18 +171,14 @@ type EntityTag {
   """Target type: 0: climb, 1: area"""
   type: Int!
 
-  "Longitude"
-  lng: Float!
+  "Longitude" lng: Float!
 
-  "Latitude"
-  lat: Float!
+  "Latitude" lat: Float!
 
-  "Topo data"
-  topoData: JSONObject
+  "Topo data" topoData: JSONObject
 }
 
-"Represent a media object"
-type MediaWithTags implements IMediaMetadata {
+"Represent a media object" type MediaWithTags implements IMediaMetadata {
   id: ID!
   username: String
   user: UserPublicProfile
@@ -213,72 +202,53 @@ input NewMediaObjectInput {
 }
 
 input EmbeddedEntityInput {
-  "What this tag is pointing to (a climb/area)"
-  entityId: ID!
-  "0: climb, 1: area"
-  entityType: Int!
+  "What this tag is pointing to (a climb/area)" entityId: ID!
+  "0: climb, 1: area" entityType: Int!
 }
 
-"Input parameters for querying a single media object"
-input MediaInput {
+"Input parameters for querying a single media object" input MediaInput {
   id: ID!
 }
 
-"Input parameters for creating a new tag"
-input MediaEntityTagInput {
-  "Target media id"
-  mediaId: ID!
-  "What this tag is pointing to (a climb/area)"
-  entityId: ID!
-  "0: climb, 1: area"
-  entityType: Int!
-  "Optional topo data"
-  topoData: JSONObject
+"Input parameters for creating a new tag" input MediaEntityTagInput {
+  "Target media id" mediaId: ID!
+  "What this tag is pointing to (a climb/area)" entityId: ID!
+  "0: climb, 1: area" entityType: Int!
+  "Optional topo data" topoData: JSONObject
 }
 
-"Input parameters for deleting a tag"
-input EntityTagDeleteInput {
+"Input parameters for deleting a tag" input EntityTagDeleteInput {
   mediaId: ID!
   tagId: ID!
 }
 
-"Input parameters for deleting a media"
-input MediaDeleteInput {
+"Input parameters for deleting a media" input MediaDeleteInput {
   mediaId: ID!
 }
 
-"Input parameters for user media queries."
-input UserMediaInput {
-  "User UUID.  Ex: a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5"
-  userUuid: ID!
+"Input parameters for user media queries." input UserMediaInput {
+  "User UUID.  Ex: a0ca9ebb-aa3b-4bb0-8ddd-7c8b2ed228a5" userUuid: ID!
   "Max number of objects return.  Ignore when using with pagination query."
   maxFiles: Int
-  "Number of objects per page (Default = 6)."
-  first: Int
+  "Number of objects per page (Default = 6)." first: Int
   "Returning page data after this cursor (exclusive).  Return the first page if omitted."
   after: ID
 }
 
-"Input parameters for area and climb media queries."
-input AreaMediaInput {
-  "Area UUID   Ex: 5f5b4b4b-0b3b-4b3b-8b3b-7b3b2b3b2b3b"
-  areaUuid: ID!
+"Input parameters for area and climb media queries." input AreaMediaInput {
+  "Area UUID   Ex: 5f5b4b4b-0b3b-4b3b-8b3b-7b3b2b3b2b3b" areaUuid: ID!
   "Max number of objects return.  Ignore when using with pagination query."
   maxFiles: Int
-  "Number of objects per page (Default = 6)."
-  first: Int
+  "Number of objects per page (Default = 6)." first: Int
   "Returning page data after this cursor (exclusive).  Return the first page if omitted."
   after: ID
 }
 
-"Input parameters for climb media queries."
-input ClimbMediaInput {
-  "Climb UUID   Ex: 5f5b4b4b-0b3b-4b3b-8b3b-7b3b2b3b2b3b"
-  climbUuid: ID!
+"Input parameters for climb media queries." input ClimbMediaInput {
+  "Climb UUID   Ex: 5f5b4b4b-0b3b-4b3b-8b3b-7b3b2b3b2b3b" climbUuid: ID!
   "Max number of objects return.  Ignore when using with pagination query."
   maxFiles: Int
-  "Number of objects per page (Default = 6)."
-  first: Int
+  "Number of objects per page (Default = 6)." first: Int
   "Returning page data after this cursor (exclusive).  Return the first page if omitted."
   after: ID
 }

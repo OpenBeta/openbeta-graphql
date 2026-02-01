@@ -2,8 +2,7 @@ type Query {
   climb(uuid: ID): Climb
 }
 
-"A climbing route or a boulder problem"
-type Climb {
+"A climbing route or a boulder problem" type Climb {
   id: ID!
   """
   The UUID of the climb is the field used for identification.
@@ -11,16 +10,13 @@ type Climb {
   queries will use the uuid field.
   """
   uuid: ID!
-  "The name that this climb is commonly identified by"
-  name: String!
+  "The name that this climb is commonly identified by" name: String!
   "First ascent, if known. Who was the first person to climb this route?"
   fa: String
 
-  "Total length in meters if known (-1 otherwise)"
-  length: Int!
+  "Total length in meters if known (-1 otherwise)" length: Int!
 
-  "Number of bolts/permanent anchors, if known (-1 otherwise)"
-  boltsCount: Int
+  "Number of bolts/permanent anchors, if known (-1 otherwise)" boltsCount: Int
 
   "List of Pitch objects representing individual pitches of a multi-pitch climb"
   pitches: [Pitch]
@@ -57,22 +53,20 @@ type Climb {
   """
   ancestors: [String!]
 
-  "Media associated with this climb"
-  media: [MediaWithTags]
+  "Media associated with this climb" media: [MediaWithTags]
 
-  "Paginated media for this climb"
-  mediaPagination(input: EmbeddedClimbMediaInput): ClimbMedia
+  "Paginated media for this climb" mediaPagination(
+    input: EmbeddedClimbMediaInput
+  ): ClimbMedia
 
   yds: String @deprecated(reason: "Migrating to 'grades' field")
 
-  "The parent area object"
-  parent: Area!
+  "The parent area object" parent: Area!
 
   "Metadata about creation & update of this climb"
   authorMetadata: AuthorMetadata!
 
-  "User ticks of this climb"
-  ticks: [TickType]
+  "User ticks of this climb" ticks: [TickType]
 }
 
 """
@@ -83,19 +77,17 @@ the climbUuid is already included in top level of the query.
 input EmbeddedClimbMediaInput {
   "Max number of objects return.  Ignore when using with pagination query."
   maxFiles: Int
-  "Number of objects per page (Default = 6)."
-  first: Int
+  "Number of objects per page (Default = 6)." first: Int
   "Returning page data after this cursor (exclusive).  Return the first page if omitted."
   after: ID
- }
+}
 
 type ClimbMetadata {
   lat: Float
   lng: Float
   left_right_index: Int
   leftRightIndex: Int
-  "If this climb originated from Mountain Project, this is the ID"
-  mp_id: String
+  "If this climb originated from Mountain Project, this is the ID" mp_id: String
   climb_id: ID!
   climbId: ID!
 }
@@ -130,25 +122,16 @@ this is not an enumeration.
 For example, a route may be a sport route, but also a top rope route.
 """
 type ClimbType {
-  "https://en.wikipedia.org/wiki/Traditional_climbing"
-  trad: Boolean
-  "https://en.wikipedia.org/wiki/Sport_climbing"
-  sport: Boolean
-  "https://en.wikipedia.org/wiki/Bouldering"
-  bouldering: Boolean
-  "https://en.wikipedia.org/wiki/Deep-water_soloing"
-  deepwatersolo: Boolean
-  "https://en.wikipedia.org/wiki/Alpine_climbing"
-  alpine: Boolean
-  "https://en.wikipedia.org/wiki/Ice_climbing"
-  snow: Boolean
-  "https://en.wikipedia.org/wiki/Ice_climbing"
-  ice: Boolean
+  "https://en.wikipedia.org/wiki/Traditional_climbing" trad: Boolean
+  "https://en.wikipedia.org/wiki/Sport_climbing" sport: Boolean
+  "https://en.wikipedia.org/wiki/Bouldering" bouldering: Boolean
+  "https://en.wikipedia.org/wiki/Deep-water_soloing" deepwatersolo: Boolean
+  "https://en.wikipedia.org/wiki/Alpine_climbing" alpine: Boolean
+  "https://en.wikipedia.org/wiki/Ice_climbing" snow: Boolean
+  "https://en.wikipedia.org/wiki/Ice_climbing" ice: Boolean
   mixed: Boolean
-  "https://en.wikipedia.org/wiki/Aid_climbing"
-  aid: Boolean
-  "https://en.wikipedia.org/wiki/Top_rope_climbing"
-  tr: Boolean
+  "https://en.wikipedia.org/wiki/Aid_climbing" aid: Boolean
+  "https://en.wikipedia.org/wiki/Top_rope_climbing" tr: Boolean
 }
 
 """
@@ -201,10 +184,8 @@ protection ratings are based on the American system for movie ratings:
 """
 enum SafetyEnum {
   UNSPECIFIED
-  "Generally good protection with a few sections of poor protection"
-  PG
-  "Fair protection that may result in long, potentially dangerous falls"
-  PG13
+  "Generally good protection with a few sections of poor protection" PG
+  "Fair protection that may result in long, potentially dangerous falls" PG13
   """
   a part of a route where there isn’t any protection for a while below you.
   It happens when a route is sparsely bolted or there isn’t be anywhere to
@@ -215,10 +196,8 @@ enum SafetyEnum {
   runout
 
   terrain
-  "where there's limited protection and the possibility of serious injury"
-  R
-  "No protection and overall the route is extremely dangerous."
-  X
+  "where there's limited protection and the possibility of serious injury" R
+  "No protection and overall the route is extremely dangerous." X
 }
 
 type Pitch {

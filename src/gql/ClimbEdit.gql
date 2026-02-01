@@ -24,18 +24,15 @@ input DeleteManyClimbsInput {
 Create/update climbs input parameter.
 """
 input UpdateClimbsInput {
-  "Parent area ID"
-  parentId: ID!
-  "Array of change records"
-  changes: [SingleClimbChangeInput]
+  "Parent area ID" parentId: ID!
+  "Array of change records" changes: [SingleClimbChangeInput]
 }
 
 """
 Climb change record.  If the climb ID is omitted or does not exist in the database, a new climb will be created.
 """
 input SingleClimbChangeInput {
-  "Climb UUID"
-  id: ID
+  "Climb UUID" id: ID
   name: String
   disciplines: DisciplineType
   grade: String
@@ -43,12 +40,9 @@ input SingleClimbChangeInput {
   description: String
   location: String
   protection: String
-  "Legacy FA data"
-  fa: String
-  "Length in meters"
-  length: Int
-  "Number of fixed anchors"
-  boltsCount: Int
+  "Legacy FA data" fa: String
+  "Length in meters" length: Int
+  "Number of fixed anchors" boltsCount: Int
   "List of Pitch objects representing individual pitches of a multi-pitch climb"
   pitches: [PitchInput]
   experimentalAuthor: ExperimentalAuthorType
@@ -58,8 +52,7 @@ input SingleClimbChangeInput {
 Input for updating a single climb by its ID. The climb must already exist.
 """
 input SingleClimbInput {
-  "Climb UUID (required)"
-  id: ID!
+  "Climb UUID (required)" id: ID!
   name: String
   disciplines: DisciplineType
   grade: String
@@ -67,12 +60,9 @@ input SingleClimbInput {
   description: String
   location: String
   protection: String
-  "Legacy FA data"
-  fa: String
-  "Length in meters"
-  length: Int
-  "Number of fixed anchors"
-  boltsCount: Int
+  "Legacy FA data" fa: String
+  "Length in meters" length: Int
+  "Number of fixed anchors" boltsCount: Int
   "List of Pitch objects representing individual pitches of a multi-pitch climb"
   pitches: [PitchInput]
   experimentalAuthor: ExperimentalAuthorType

@@ -20,13 +20,11 @@ type Query {
   countries: [Area]
 }
 
-"A climbing area, wall or crag"
-type Area {
+"A climbing area, wall or crag" type Area {
   id: ID!
   "We use UUID for identification of areas. The id field is used in internal database relations."
   uuid: ID!
-  "The name that this area is commonly identified by"
-  area_name: String!
+  "The name that this area is commonly identified by" area_name: String!
 
   areaName: String!
 
@@ -51,12 +49,10 @@ type Area {
   "areaNames of this areas parents, traversing up the heirarchy to the root area."
   pathTokens: [String]!
 
-  "statistics about this area"
-  aggregate: AggregateType
+  "statistics about this area" aggregate: AggregateType
   content: AreaContent
 
-  "pathTokens hashed into a single string"
-  pathHash: String
+  "pathTokens hashed into a single string" pathHash: String
 
   """
   Grade systems have minor variations between countries.
@@ -67,19 +63,17 @@ type Area {
   """
   gradeContext: String!
 
-  "total climbs per km sq"
-  density: Float!
-  "The total number of climbs in this area"
-  totalClimbs: Int!
-  "Media associated with this area, or its child climbs"
-  media: [MediaWithTags]
-  "Paginated media for this area"
-  mediaPagination(input: EmbeddedAreaMediaInput): AreaMedia
+  "total climbs per km sq" density: Float!
+  "The total number of climbs in this area" totalClimbs: Int!
+  "Media associated with this area, or its child climbs" media: [MediaWithTags]
+  "Paginated media for this area" mediaPagination(
+    input: EmbeddedAreaMediaInput
+  ): AreaMedia
   "Metadata about creation & update of this area"
   authorMetadata: AuthorMetadata!
   "Organizations associated with this area or its parent areas"
   organizations: [Organization]
-  
+
   """
   If you were to sum all approximate image sizes for this area, you get
   a kind of picture of what the cost to cache all of the media in a given
@@ -98,11 +92,10 @@ the areaUuid is already included in top level of the query
 input EmbeddedAreaMediaInput {
   "Max number of objects return.  Ignore when using with pagination query."
   maxFiles: Int
-  "Number of objects per page (Default = 6)."
-  first: Int
+  "Number of objects per page (Default = 6)." first: Int
   "Returning page data after this cursor (exclusive).  Return the first page if omitted."
   after: ID
- }
+}
 
 type AreaMetadata {
   isDestination: Boolean!
@@ -119,18 +112,14 @@ type AreaMetadata {
   "If this is true, this area is a bouldering area or an individual boulder."
   isBoulder: Boolean
 
-  "centroid latitude of this areas bounding box"
-  lat: Float
-  "centroid longitude of this areas bounding box"
-  lng: Float
-  "NE and SW corners of the bounding box for this area"
-  bbox: [Float]
+  "centroid latitude of this areas bounding box" lat: Float
+  "centroid longitude of this areas bounding box" lng: Float
+  "NE and SW corners of the bounding box for this area" bbox: [Float]
 
   "Left-to-right sorting index.  Undefined or -1 or unsorted area."
   leftRightIndex: Int
 
-  "Mountainproject ID (if associated)"
-  mp_id: String!
+  "Mountainproject ID (if associated)" mp_id: String!
   area_id: ID!
   areaId: ID!
 

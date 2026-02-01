@@ -12,7 +12,14 @@ export type ClimbPrimitive =
 
 type ClimbCreation = Pick<
   ClimbPrimitive,
-  'name' | 'parent' | 'fa' | 'length' | 'boltsCount' | 'type' | 'safety' | 'canonicalGrade'
+  | 'name'
+  | 'parent'
+  | 'fa'
+  | 'length'
+  | 'boltsCount'
+  | 'type'
+  | 'safety'
+  | 'canonicalGrade'
 >;
 
 export class ClimbRepo extends EntityRepository<

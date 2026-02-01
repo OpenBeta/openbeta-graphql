@@ -63,8 +63,7 @@ Bulk input for adding or updating areas.
 Provide either a `uuid` to UPDATE an existing area, or `areaName` to ADD a new area.
 """
 input BulkImportAreaInput {
-  "The area UUID"
-  uuid: ID
+  "The area UUID" uuid: ID
   "The name of the new area (or, if provided together with a uuid, the updated name of the area)"
   areaName: String
   "The name that this area is commonly identified by within the climbing community."
@@ -81,8 +80,7 @@ input BulkImportAreaInput {
   lat: Float
   "An optional bounding box that can be displayed on maps, using GeoJSON bbox (see https://datatracker.ietf.org/doc/html/rfc7946#section-5)."
   bbox: [Float]
-  "A list of child areas. Can be deeply nested."
-  children: [BulkImportAreaInput]
+  "A list of child areas. Can be deeply nested." children: [BulkImportAreaInput]
   """
   A list of climbs that are directly associated with this area.
   An area that has climbs cannot have child areas and automatically becomes a leaf node.
@@ -97,8 +95,7 @@ Provide a `uuid` to UPDATE a climb, and `name` to ADD a new climb.
 Make sure to update all climbs if the leftRightIndex of a climb is updated.
 """
 input BulkImportClimbInput {
-  "The climb UUID"
-  uuid: ID
+  "The climb UUID" uuid: ID
   "The name that this climb is commonly identified by (or if provided together with a uuid, the updated name of the climb)."
   name: String
   "The difficulty grade of the climb. Must be coherent with the area's gradeContext. I. e. gradeContext = 'US' requires denomination in yds/vscale (climbing/bouldering), so '5.11'/'V14', 'FR' would be french/font '9c+'/'9a', 'UIIA' would be uiaa/font '9+'/'9a'. (see https://github.com/OpenBeta/sandbag)."
@@ -121,10 +118,8 @@ input BulkImportClimbInput {
   protection: String
   "The first ascent information of the climb. Usually formatted as: name(s) (year)."
   fa: String
-  "Total length in meters if known (-1 otherwise)"
-  length: Int
-  "The number of bolts (fixed anchors) on the climb."
-  boltsCount: Int
+  "Total length in meters if known (-1 otherwise)" length: Int
+  "The number of bolts (fixed anchors) on the climb." boltsCount: Int
   "The experimental author of the climb."
   experimentalAuthor: ExperimentalAuthorType
   "A list of pitches that are directly associated with this climb (applies only to multi-pitch climbs)."
@@ -137,20 +132,14 @@ Provide `id` to UPDATE an existing pitch.
 Make sure to update all pitches if the pitchNumber of one pitch is changed.
 """
 input BulkImportPitchesInput {
-  "The pitch UUID (if provided, the pitch data will be UPDATED)."
-  id: ID
-  "The number of the pitch in the sequence."
-  pitchNumber: Int!
-  "The difficulty grade of the pitch (see Climb.grade)."
-  grade: String!
+  "The pitch UUID (if provided, the pitch data will be UPDATED)." id: ID
+  "The number of the pitch in the sequence." pitchNumber: Int!
+  "The difficulty grade of the pitch (see Climb.grade)." grade: String!
   "The climbing disciplines applicable to the pitch (see Climb.disciplines)."
   disciplines: DisciplineType
-  "The description of the pitch."
-  description: String
-  "The length of the pitch in meters."
-  length: Int
-  "The number of bolts (fixed anchors) on the pitch."
-  boltsCount: Int
+  "The description of the pitch." description: String
+  "The length of the pitch in meters." length: Int
+  "The number of bolts (fixed anchors) on the pitch." boltsCount: Int
 }
 
 type BulkImportResult {
@@ -178,10 +167,8 @@ input AreEditableFieldsInput {
   leftRightIndex: Int
 }
 
-"Area sorting input param"
-input AreaSortingInput {
-  "Area UUID"
-  areaId: String!
+"Area sorting input param" input AreaSortingInput {
+  "Area UUID" areaId: String!
   "Left-to-right sorting index. The backend enforces uniqueness for value >= 0.  Use -1 to indicate unsorted order."
   leftRightIndex: Int!
 }

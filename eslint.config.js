@@ -1,6 +1,6 @@
-import js from '@eslint/js'
-import typescript from '@typescript-eslint/eslint-plugin'
-import typescriptParser from '@typescript-eslint/parser'
+import js from '@eslint/js';
+import typescript from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
 
 export default [
   js.configs.recommended,
@@ -26,4 +26,4 @@ export default [
       '@typescript-eslint/no-empty-function': 'off',
     },
   },
-]
+];

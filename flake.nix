@@ -2,7 +2,7 @@
   description = "Openbeta  Back-end Development environment";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -19,15 +19,14 @@
       in
       {
         devShells.default = pkgs.mkShell {
-          buildInputs = [
-            pkgs.bun
-            pkgs.duckdb
+          buildInputs = with pkgs; [
+            bun
+            duckdb
           ];
 
           shellHook = ''
             echo "Bun development environment ready"
             bun --version
-
             alias schema-reset='dropdb openbeta && createdb openbeta --owner=openbeta && bunx drizzle-kit push'
           '';
         };

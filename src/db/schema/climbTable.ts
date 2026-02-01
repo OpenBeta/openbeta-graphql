@@ -17,6 +17,7 @@ export const safetyEnum = pgEnum('climb_safety_enum', [
 
 export const climbTable = pgTable('climb', {
   ...entityCompositionColumns,
+  name: varchar({ length: 255 }).notNull(),
   fa: varchar({ length: 255 }),
   length: integer().notNull(),
   boltsCount: integer(),

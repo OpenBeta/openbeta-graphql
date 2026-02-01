@@ -1,35 +1,59 @@
 import { faker } from '@faker-js/faker';
-import { AreaContent } from '@gql';
 import * as schema from '@schema';
-import { EntityKind } from '@schema';
-import {
-  enumerateLinearPegMap,
-  GradeDisiplineMap,
-  GradeSystemName,
-  gradeSystems,
-  range,
-} from '__tests__/faker';
+import { range } from '__tests__/faker';
 import {
   initializeGradeSystemsInDatabase,
   TestActor,
 } from '__tests__/faker/seed';
-import { Actor, ActorError } from 'beta/actor';
-import { EntityAddressable, EntityId } from 'beta/entity_model';
-import { AreaPrimitive, AreaRepo } from 'beta/repo/area';
+import { EntityId } from 'beta/entity_model';
+import { AreaRepo } from 'beta/repo/area';
 import { ClimbRepo } from 'beta/repo/climb';
-import {
-  continents,
-  countries,
-  ICountry,
-  languages,
-  TCountryCode,
-} from 'countries-list';
-import { disciplineEnum } from 'db/schema/gradeTable';
-import { InferInsertModel, InferSelectModel, sql } from 'drizzle-orm';
+import { countries, ICountry, TCountryCode } from 'countries-list';
+import { InferSelectModel } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { UUIDTypes } from 'uuid';
+import ora from 'ora';
+import process from 'process';
+
+const useGraph = process.argv.includes('--graph');
+const verbose = process.argv.includes('--verbose');
+const depth = process.argv.includes('--depth')
+  ? parseInt(process.argv[process.argv.indexOf('--depth') + 1])
+  : 5;
+const randomness = process.argv.includes('--randomness')
+  ? parseFloat(process.argv[process.argv.indexOf('--randomness') + 1])
+  : 0.7;
+const port = process.argv.includes('--port')
+  ? parseInt(process.argv[process.argv.indexOf('--port') + 1])
+  : 3000;
+const bredth = process.argv.includes('--bredth')
+  ? parseInt(process.argv[process.argv.indexOf('--bredth') + 1])
+  : 10;
+const countryLimit = process.argv.includes('--countries')
+  ? parseInt(process.argv[process.argv.indexOf('--countries') + 1])
+  : null;
+const alphabeticalCountries = process.argv.includes('--alphabetical');
+
+function log(message: string) {
+  if (!useGraph && verbose) {
+    console.log(message);
+  }
+}
 
 const db = drizzle(process.env.DATABASE_URL!);
+
+export type GraphNode = {
+  id: EntityId;
+  name: string;
+  type: 'area' | 'climb';
+  children: GraphNode[];
+};
+
+export const graph: GraphNode = {
+  id: -1,
+  name: 'world',
+  type: 'area',
+  children: [],
+};
 
 async function generateUsers(number: number) {
   return await db
@@ -55,26 +79,32 @@ async function generateUsers(number: number) {
 }
 
 const users: TestActor[] = await generateUsers(20);
+log(`Generated ${users.length} users.`);
 const skipCountries = ['Antarctica', 'Israel'];
 
 function choose<T>(from: T[]): T {
   return from[Math.floor(Math.random() * from.length)];
 }
 
-async function entityReify(entityType: schema.EntityKind, name?: string) {
-  return await db
-    .insert(schema.entity)
-    .values({ entityType, name })
-    .returning()
-    .then((d) => d[0].id);
-}
-
 async function buildAreaTree(countryData: ICountry) {
   type AreaSelect = InferSelectModel<typeof schema.area>;
-  const depth = Math.floor(Math.random() * 10);
-  if (skipCountries.includes(countryData.name)) return;
+  const maxDepth = depth;
+  if (skipCountries.includes(countryData.name)) {
+    throw new Error('Skipped country');
+  }
 
-  console.log(`seeding country ${countryData.name} depth ${depth}`);
+  async function entityReify(entityType: schema.EntityKind, name?: string) {
+    return await db
+      .insert(schema.entity)
+      .values({ entityType, name })
+      .returning()
+      .then((d) => {
+        log(
+          `Reified entity ${d[0].id} of type ${entityType} with name ${name}`,
+        );
+        return d[0].id;
+      });
+  }
 
   const [country] = await db
     .insert(schema.area)
@@ -84,39 +114,58 @@ async function buildAreaTree(countryData: ICountry) {
     })
     .returning();
 
-  async function branch(from: AreaSelect, currentDepth: number) {
-    for (const _ in range(Math.floor(Math.random() * 10))) {
+  const countryNode: GraphNode = { ...country, children: [], type: 'area' };
+  graph.children.push(countryNode);
+  log(`Added country node: ${country.name}`);
+
+  async function branch(
+    node: GraphNode,
+    from: AreaSelect,
+    currentDepth: number,
+  ) {
+    for (const _ in range(Math.floor(Math.random() * bredth))) {
       const repo = new AreaRepo(db, choose(users));
 
-      repo
+      await repo
         .create({
           name: faker.food.adjective() + ' ' + faker.food.ingredient(),
           parent: from.id,
         })
-        .then((child) => {
+        .then(async (child) => {
+          log(`⛰️ Created area: ${child.name} with parent ${from.name}`);
+          const nextNode: GraphNode = { // FIX: Corrected nextNode creation to use `child` properties
+            id: child.id,
+            name: child.name,
+            children: [],
+            type: 'area',
+          };
+          node.children.push(nextNode);
+
           // to create depths of various depths, we include some randomness
           // here in terms of early-exit
-          if (Math.random() > 0.7) return;
+          if (Math.random() > randomness) return;
+
           // always stop if we exceed the max depth
-          if (currentDepth >= depth) {
-            addClimbs(child.id).catch(console.error);
+          if (currentDepth >= maxDepth) {
+            await addClimbs(nextNode, child.id);
+            return;
           }
 
-          branch(child, currentDepth + 1).catch(console.error);
+          await branch(nextNode, child, currentDepth + 1);
         })
         .catch(console.error);
     }
   }
 
-  await branch(country, 0);
+  await branch(countryNode, country, 0);
 }
 
-async function addClimbs(area: EntityId) {
-  for (const _ in range(Math.random() * 10)) {
+async function addClimbs(node: GraphNode, area: EntityId) {
+  for (const _ in range(Math.random() * bredth)) {
     let repo = new ClimbRepo(db, choose(users));
     let climbType = choose(schema.enums.Discipline.enumValues);
 
-    repo
+    await repo
       .create({
         parent: area,
         name: faker.animal.petName(),
@@ -131,17 +180,92 @@ async function addClimbs(area: EntityId) {
         safety: null,
         canonicalGrade: null,
       })
+      .then((climb) => {
+        log(`🧗 Created climb: ${climb.name} in area ${area}`);
+        node.children.push({
+          ...climb,
+          name: climb.name,
+          children: [],
+          type: 'climb',
+        });
+      })
       .catch(console.error);
   }
 }
 
 async function main() {
   await initializeGradeSystemsInDatabase(db);
+  log('Initialized grade systems in database.');
 
-  for (const countryCode in countries) {
+  if (useGraph) {
+    // @ts-ignore
+    Bun.serve({
+      port: port,
+      // @ts-ignore
+      fetch(request) {
+        const url = new URL(request.url);
+
+        if (url.pathname === '/') {
+          // @ts-ignore
+          return new Response(Bun.file('./scripts/seed/index.html'));
+        }
+
+        if (url.pathname === '/seed-graph-client.js') {
+          // @ts-ignore
+          return new Response(Bun.file('./scripts/seed/seed-graph-client.js'));
+        }
+
+        if (url.pathname === '/graph-data') {
+          // Serve the graph data as JSON
+          return new Response(JSON.stringify(graph), {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+        }
+
+        return new Response('Not Found', { status: 404 });
+      },
+    });
+
+    console.log(
+      `Graph visualizer running at http://localhost:${port}. Open this URL in your browser manually to see the graph.`,
+    );
+  }
+
+  let countryCodes = Object.keys(countries) as TCountryCode[];
+
+  if (alphabeticalCountries) {
+    countryCodes.sort((a, b) =>
+      countries[a].name.localeCompare(countries[b].name)
+    );
+  } else {
+    // Randomize if not alphabetical
+    countryCodes = countryCodes.sort(() => Math.random() - 0.5);
+  }
+
+  if (countryLimit !== null) {
+    countryCodes = countryCodes.slice(0, countryLimit);
+  }
+
+  for (const countryCode of countryCodes) {
     const country = countries[countryCode as TCountryCode];
-    await buildAreaTree(country);
+    log(`Building area tree for country: ${country.name}`);
+    const spinner = ora(`🌱 Seeding ${country.name}...`).start();
+
+    await buildAreaTree(country)
+      .then(() =>
+        spinner.succeed(
+          `Finished ${country.name} ${choose(['🌳', '🌲', '🪴', '🌿', '🌵'])}`,
+        )
+      )
+      .catch((err) => {
+        spinner.fail(`${country.name} ${String(err)}`);
+      });
   }
 }
 
-await main().finally(process.exit);
+await main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

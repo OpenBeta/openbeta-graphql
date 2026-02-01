@@ -49,7 +49,6 @@ export class TestDataHelper {
       .values({
         id: entityResult.id,
         name: areaData.area_name,
-        gradeContext: areaData.gradeContext,
         density: areaData.density,
         totalClimbs: areaData.totalClimbs,
       })

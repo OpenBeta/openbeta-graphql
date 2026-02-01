@@ -1,10 +1,14 @@
 type Query {
   organization(muuid: UUID): Organization
-  organizations(filter: OrgFilter, sort: OrgSort, limit: Int, offset: Int): [Organization]
+  organizations(
+    filter: OrgFilter
+    sort: OrgSort
+    limit: Int
+    offset: Int
+  ): [Organization]
 }
 
-"A climbing area, wall or crag"
-type Organization {
+"A climbing area, wall or crag" type Organization {
   id: ID!
   """
   Type of organization. Currently we only support local climbing organizations, which
@@ -19,8 +23,7 @@ type Organization {
   associatedAreaIds: [UUID]
   excludedAreaIds: [UUID]
 
-  "Name of organization to be displayed on the site."
-  displayName: String!
+  "Name of organization to be displayed on the site." displayName: String!
   content: OrganizationContent
   createdAt: Date
   createdBy: UUID
