@@ -1,10 +1,18 @@
 import { Database, entity, EntityKind, Transaction } from '@schema';
 import { EntityCompBaseTable, entityTable } from 'db/schema/entitiy';
-import { eq, type InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import { PgUpdateSetSource } from 'drizzle-orm/pg-core';
+import {
+  eq,
+  getTableColumns,
+  type InferInsertModel,
+  InferSelectModel,
+  sql,
+  SQLChunk,
+} from 'drizzle-orm';
+import { AnyPgTable, PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import { Actor, ActorError } from '../actor';
 import {
   EntityAddressable,
+  EntityId,
   EntityIdentifiable,
   EntityRecord,
 } from '../entity_model';
@@ -43,7 +51,12 @@ export abstract class EntityRepository<
   Ent extends EntityIdentifiable,
   EntTable extends EntityCompBaseTable,
   EntSelection extends InferSelectModel<EntTable> = InferSelectModel<EntTable>,
-  EntCreation extends InferInsertModel<EntTable> = InferInsertModel<EntTable>,
+  EntCreation extends
+    & Record<string, unknown>
+    & Omit<InferInsertModel<EntTable>, 'id'>
+    & Partial<InferInsertModel<typeof entity>> = InferInsertModel<
+      EntTable
+    >,
 > {
   abstract readonly kind: EntityKind;
   abstract readonly table: EntTable;
@@ -85,23 +98,6 @@ export abstract class EntityRepository<
     result: { entity: EntityRecord; parts: EntSelection },
   ): Ent;
 
-  private insertionCTE(
-    using: Omit<InferInsertModel<typeof entity>, 'entityType'>,
-  ) {
-    if ('id' in using || 'entityType' in using) {
-      throw new Error(
-        'You may not set ID or EntityType fields on an entity when reifing.',
-      );
-    }
-
-    return this.db.$with('reify_entity').as(
-      this
-        .db
-        .insert(entity)
-        .values({ ...using, entityType: this.kind })
-        .returning(),
-    );
-  }
   private requireActor(): Actor {
     if (this.actor == null) {
       throw new Error('You MUST be logged in and authenticated to do this');
@@ -110,19 +106,41 @@ export abstract class EntityRepository<
     return this.actor;
   }
 
-  async create(ent: EntCreation): Promise<Ent> {
+  async create(data: EntCreation): Promise<Ent> {
     // if there were any constraints you wanted to check here that are infeasible for
     // our sql engine they could go nicely here in your subclassing.
+    const columns: SQLChunk[] = [];
+    const values: SQLChunk[] = [];
+    const entityColumns = [entity.entityType, entity.name].map((col) =>
+      sql.identifier(col.name)
+    );
 
-    let reified = await this
-      .db
-      .with(this.insertionCTE(this.captureBaseFields(ent)))
-      .insert(this.table)
-      .values(ent)
-      .returning({ id: entity.id })
-      .then((x) => x[0].id);
+    //
+    columns.push(sql.identifier(this.table.id.name));
+    values.push(sql`"reify_entity"."id"`);
 
-    return await this.get(reified);
+    for (const column in getTableColumns(this.table)) {
+      if (column in data && data[column] !== undefined) {
+        columns.push(sql.identifier(column));
+        values.push(sql`${data[column]}`);
+      }
+    }
+
+    const query = sql`
+      with reify_entity as (
+        insert into "entity" ${entityColumns}
+        values (${this.kind}, ${data.name ?? null})
+        returning id
+      ),
+      insert_extra as (insert into ${this.table} ${columns}
+      select ${sql.join(values, sql`, `)} from "reify_entity"
+      )
+      select * from reify_entity
+    `;
+
+    let reified = await this.db.execute<Pick<EntSelection, 'id'>>(query);
+
+    return await this.get({ id: reified.rows[0].id as EntityId });
   }
 
   async update(
@@ -157,7 +175,7 @@ export abstract class EntityRepository<
         })
         .from(entityTable)
         .innerJoin(
-          entityTable,
+          this.table as AnyPgTable,
           eq(entityTable.id, this.table.id),
         )
         .where(matchOnAddressable(ent))

@@ -28,7 +28,7 @@
             echo "Bun development environment ready"
             bun --version
 
-            alias schema-reset='dropdb openbeta && createdb openbeta --owner=openbeta'
+            alias schema-reset='dropdb openbeta && createdb openbeta --owner=openbeta && bunx drizzle-kit push'
           '';
         };
       }

@@ -1,14 +1,14 @@
-import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import { ApolloServer } from '@apollo/server';
-import { Context, context } from '../../server/context';
-import { Actor } from '../../beta/actor';
-import { AreaRepo } from '../../beta/repo/area';
-import { drizzle } from 'drizzle-orm/node-postgres';
 import { Database } from '@schema';
-import typeDefs from '../../gql';
-import { resolvers } from '../../resolvers';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import gql from 'graphql-tag';
-import { TestDataHelper } from '../testDataHelper';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import { Actor } from '../../../beta/actor';
+import { AreaRepo } from '../../../beta/repo/area';
+import typeDefs from '../../../gql';
+import { resolvers } from '../../../resolvers';
+import { Context, context } from '../../../server/context';
+import { TestDataHelper } from '../../testDataHelper';
 
 const COUNTRIES_QUERY = gql`
   query GetCountries {
@@ -90,27 +90,28 @@ describe('Countries Query', () => {
   let testCountry2: any;
 
   beforeAll(async () => {
-    const testDatabaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+    const testDatabaseUrl = process.env.TEST_DATABASE_URL
+      || process.env.DATABASE_URL;
     if (!testDatabaseUrl) {
       throw new Error('Database URL not provided');
     }
-    
+
     db = drizzle(testDatabaseUrl);
-    
+
     const testActor: Actor | null = null;
     testContext = {
       db,
       actor: testActor,
       repo: { area: new AreaRepo(db, testActor) },
     };
-    
+
     server = new ApolloServer<Context>({
       typeDefs,
       resolvers,
     });
-    
+
     testDataHelper = new TestDataHelper(db);
-    
+
     // Create test data
     testCountry1 = await testDataHelper.createTestCountry('USA');
     testCountry2 = await testDataHelper.createTestCountry('Canada');
@@ -125,14 +126,16 @@ describe('Countries Query', () => {
       {
         query: COUNTRIES_QUERY,
       },
-      { contextValue: testContext }
+      { contextValue: testContext },
     );
 
     expect(response.body.kind).toBe('single');
     if (response.body.kind === 'single') {
       // Since countries query is not implemented yet, expect an error
       expect(response.body.singleResult.errors).toBeDefined();
-      expect(response.body.singleResult.errors?.[0].message).toContain('Not implemented');
+      expect(response.body.singleResult.errors?.[0].message).toContain(
+        'Not implemented',
+      );
     }
   });
 });

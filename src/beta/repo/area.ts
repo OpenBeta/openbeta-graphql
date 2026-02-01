@@ -1,13 +1,23 @@
 import { area } from '@schema';
-import { Entity, EntityRecord } from 'beta/entity_model';
+import { Entity, EntityRecord, EntityStructure } from 'beta/entity_model';
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { EntityRepository } from './base';
 
 type AreaTable = typeof area;
 type AreaSelect = InferSelectModel<AreaTable>;
-export type AreaPrimitive = InferSelectModel<AreaTable> & Entity;
+export type AreaPrimitive =
+  & InferSelectModel<AreaTable>
+  & Entity
+  & EntityStructure;
 
-export class AreaRepo extends EntityRepository<AreaPrimitive, AreaTable> {
+type AreaCreation = Pick<AreaPrimitive, 'name' | 'parent' | 'gradeContext'>;
+
+export class AreaRepo extends EntityRepository<
+  AreaPrimitive,
+  AreaTable,
+  AreaPrimitive,
+  AreaCreation
+> {
   readonly kind = 'area';
   readonly table = area;
 
