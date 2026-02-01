@@ -3,7 +3,7 @@ import { check } from 'drizzle-orm/gel-core';
 import { integer, jsonb, pgEnum, pgTable, varchar } from 'drizzle-orm/pg-core';
 import { Constraint } from './constraints';
 import { entityCompositionColumns, entityTable } from './entitiy';
-import { gradeTable } from './gradeTable';
+import { disciplineEnum, gradeTable } from './gradeTable';
 
 export const safetyEnum = pgEnum('climb_safety_enum', [
   'UNSPECIFIED',
@@ -20,7 +20,7 @@ export const climbTable = pgTable('climb', {
   fa: varchar({ length: 255 }),
   length: integer().notNull(),
   boltsCount: integer(),
-  type: jsonb().notNull(),
+  type: disciplineEnum().notNull(),
   safety: safetyEnum(),
   canonicalGrade: integer().references(() => gradeTable.id),
 }, (table) => [

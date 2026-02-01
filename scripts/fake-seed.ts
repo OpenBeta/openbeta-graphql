@@ -2,9 +2,21 @@ import { faker } from '@faker-js/faker';
 import { AreaContent } from '@gql';
 import * as schema from '@schema';
 import { EntityKind } from '@schema';
+import {
+  enumerateLinearPegMap,
+  GradeDisiplineMap,
+  GradeSystemName,
+  gradeSystems,
+  range,
+} from '__tests__/faker';
+import {
+  initializeGradeSystemsInDatabase,
+  TestActor,
+} from '__tests__/faker/seed';
 import { Actor, ActorError } from 'beta/actor';
 import { EntityAddressable, EntityId } from 'beta/entity_model';
 import { AreaPrimitive, AreaRepo } from 'beta/repo/area';
+import { ClimbRepo } from 'beta/repo/climb';
 import {
   continents,
   countries,
@@ -12,56 +24,12 @@ import {
   languages,
   TCountryCode,
 } from 'countries-list';
+import { disciplineEnum } from 'db/schema/gradeTable';
 import { InferInsertModel, InferSelectModel, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { UUIDTypes } from 'uuid';
 
 const db = drizzle(process.env.DATABASE_URL!);
-
-function range(len: number): number[] {
-  return Array(Math.floor(len)).fill(0).map((_, idx) => idx);
-}
-
-class TestActor
-  implements Actor, Omit<InferSelectModel<typeof schema.user>, 'uuid'>
-{
-  uuid: UUIDTypes;
-  id: number;
-  username: string;
-  displayName: string | null;
-  bio: string | null;
-  website: string | null;
-  email: string;
-  avatar: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-
-  constructor(user: InferSelectModel<typeof schema.user>) {
-    this.id = user.id;
-    this.username = user.username;
-    this.displayName = user.displayName;
-    this.bio = user.bio;
-    this.website = user.website;
-    this.email = user.email;
-    this.avatar = user.avatar;
-    this.createdAt = user.createdAt;
-    this.updatedAt = user.updatedAt;
-
-    this.uuid = user.uuid;
-  }
-  async mayEdit(_: EntityAddressable) {
-    return true;
-  }
-  async mayDelete(_: EntityAddressable) {
-    return true;
-  }
-  async mayRestore(_: EntityAddressable) {
-    return true;
-  }
-  async maySetLock(_: EntityAddressable) {
-    return true;
-  }
-}
 
 async function generateUsers(number: number) {
   return await db
@@ -111,7 +79,6 @@ async function buildAreaTree(countryData: ICountry) {
   const [country] = await db
     .insert(schema.area)
     .values({
-      gradeContext: 'VSCALE',
       name: countryData.name,
       id: await entityReify('area', countryData.name),
     })
@@ -125,14 +92,15 @@ async function buildAreaTree(countryData: ICountry) {
         .create({
           name: faker.food.adjective() + ' ' + faker.food.ingredient(),
           parent: from.id,
-          gradeContext: country.gradeContext,
         })
         .then((child) => {
           // to create depths of various depths, we include some randomness
           // here in terms of early-exit
           if (Math.random() > 0.7) return;
           // always stop if we exceed the max depth
-          if (currentDepth >= depth) return;
+          if (currentDepth >= depth) {
+            addClimbs(child.id).catch(console.error);
+          }
 
           branch(child, currentDepth + 1).catch(console.error);
         })
@@ -143,13 +111,33 @@ async function buildAreaTree(countryData: ICountry) {
   await branch(country, 0);
 }
 
-async function addClimbs(climb: EntityId) {
+async function addClimbs(area: EntityId) {
   for (const _ in range(Math.random() * 10)) {
-    // TODO: Add climb repo
+    let repo = new ClimbRepo(db, choose(users));
+    let climbType = choose(schema.enums.Discipline.enumValues);
+
+    repo
+      .create({
+        parent: area,
+        name: faker.animal.petName(),
+        fa: faker.person.fullName(),
+        length: ['trad', 'aid', 'sport', 'top_rope'].includes(climbType)
+          ? faker.number.int({ min: 10, max: 100 })
+          : 0,
+        boltsCount: climbType == 'sport'
+          ? faker.number.int({ min: 0, max: 24 })
+          : null,
+        type: climbType,
+        safety: null,
+        canonicalGrade: null,
+      })
+      .catch(console.error);
   }
 }
 
 async function main() {
+  await initializeGradeSystemsInDatabase(db);
+
   for (const countryCode in countries) {
     const country = countries[countryCode as TCountryCode];
     await buildAreaTree(country);

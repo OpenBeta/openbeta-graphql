@@ -10,7 +10,7 @@ export type AreaPrimitive =
   & Entity
   & EntityStructure;
 
-type AreaCreation = Pick<AreaPrimitive, 'name' | 'parent' | 'gradeContext'>;
+type AreaCreation = Pick<AreaPrimitive, 'name' | 'parent'>;
 
 export class AreaRepo extends EntityRepository<
   AreaPrimitive,

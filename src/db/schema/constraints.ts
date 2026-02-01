@@ -4,4 +4,5 @@ export const Constraint = {
   GradeSystemNameUnique: 'grade_system_name_unique',
   GradeValueDuplicate: 'grade_value_duplicate',
   BoltCountPositive: 'bolt_count_positive',
+  DuplicateGradeContext: 'duplicate_grade_context',
 };

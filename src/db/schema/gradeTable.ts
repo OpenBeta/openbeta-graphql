@@ -11,6 +11,7 @@ import { Constraint } from './constraints';
 export const disciplineEnum = pgEnum('climbing_discipline', [
   'bouldering',
   'sport',
+  'top_rope',
   'trad',
   'dws',
   'ice',
