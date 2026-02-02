@@ -1,5 +1,6 @@
 import { ApolloServer } from '@apollo/server';
 import { Database } from '@schema';
+import { ClimbRepo } from 'beta/repo/climb';
 import { test as base } from 'vitest';
 import { Actor } from '../beta/actor';
 import { AreaRepo } from '../beta/repo/area';
@@ -25,7 +26,10 @@ export const test = base.extend<TestFixtures>({
     const testContext: Context = {
       db,
       actor: testActor,
-      repo: { area: new AreaRepo(db, testActor) },
+      repo: {
+        area: new AreaRepo(db, testActor),
+        climb: new ClimbRepo(db, testActor),
+      },
     };
     await use(testContext);
   },
@@ -39,7 +43,7 @@ export const test = base.extend<TestFixtures>({
   },
 
   areaRepo: async ({ db, testContext }, use) => {
-    await use(testContext.repo.area);
+    await use(new AreaRepo(db, null));
   },
 });
 

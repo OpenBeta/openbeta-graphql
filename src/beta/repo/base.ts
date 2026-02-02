@@ -1,4 +1,5 @@
 import { Database, entity, EntityKind, Transaction } from '@schema';
+import * as schema from '@schema';
 import { EntityCompBaseTable, entityTable } from 'db/schema/entitiy';
 import {
   eq,
@@ -16,6 +17,7 @@ import {
   EntityIdentifiable,
   EntityRecord,
 } from '../entity_model';
+import { MediaRecord } from './media';
 
 function matchOnAddressable(ent: EntityAddressable) {
   if (typeof ent == 'number') {
@@ -104,6 +106,18 @@ export abstract class EntityRepository<
     }
 
     return this.actor;
+  }
+
+  private async collapseAddressable(ent: EntityAddressable): Promise<EntityId> {
+    if (typeof ent == 'number') {
+      return ent;
+    }
+
+    if (typeof ent === 'object' && 'id' in ent) {
+      return ent.id;
+    }
+
+    return await this.get(ent).then((d) => d.id);
   }
 
   async create(data: EntCreation): Promise<Ent> {
@@ -207,5 +221,18 @@ export abstract class EntityRepository<
 
   async unDelete(ent: EntityAddressable): Promise<void> {
     throw new Error('Not Implemented');
+  }
+
+  async media(ent: EntityAddressable): Promise<MediaRecord[]> {
+    return await this
+      .db
+      .select({ ...getTableColumns(schema.media) })
+      .from(schema.tag)
+      .innerJoin(schema.media, eq(schema.media.id, schema.tag.mediaId))
+      .innerJoin(
+        this.table as AnyPgTable,
+        eq(this.table.id, schema.tag.targetId),
+      )
+      .where(eq(schema.tag.targetId, await this.collapseAddressable(ent)));
   }
 }

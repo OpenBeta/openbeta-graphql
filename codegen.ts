@@ -11,6 +11,8 @@ const config: CodegenConfig = {
         contextType: '../../server/context#Context',
         mappers: {
           Area: '../../beta/repo/area#AreaPrimitive',
+          Climb: '../../beta/repo/climb#ClimbPrimitive',
+          MediaWithTags: '../../beta/repo/media#MediaRecord',
         },
       },
     },

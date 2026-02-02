@@ -12,11 +12,40 @@ let d3Nodes = [];
 let d3Edges = [];
 
 let typeData = {
-  'area': { color: '#ee5253', size: 7 },
-  'climb': { color: '#f368e0', size: 5 },
-  'user': { color: '#54a0ff', size: 7 },
-  'world': { color: '#1dd1a1', size: 15 },
+  'area': { charge: -1000, color: '#ee5253', size: 7 },
+  'climb': { charge: -500, color: '#f368e0', size: 5 },
+  'user': { charge: -200, color: '#54a0ff', size: 7 },
+  'world': { charge: -20_000, color: '#1dd1a1', size: 15 },
 };
+
+const enabledNodeTypes = new Set(Object.keys(typeData));
+
+function renderCheckboxes() {
+  const container = d3.select('#nodeTypeCheckboxes');
+  container.selectAll('*').remove(); // Clear existing checkboxes
+
+  Object.keys(typeData).forEach((type) => {
+    const label = container
+      .append('label')
+      .attr('for', `checkbox-${type}`);
+
+    label
+      .append('input')
+      .attr('type', 'checkbox')
+      .attr('id', `checkbox-${type}`)
+      .attr('checked', true)
+      .on('change', (event) => {
+        if (event.target.checked) {
+          enabledNodeTypes.add(type);
+        } else {
+          enabledNodeTypes.delete(type);
+        }
+        ticked(); // Re-render graph with updated filters
+      });
+
+    label.append('span').text(type);
+  });
+}
 
 function userid(node) {
   return `user-${node.author}`
@@ -28,9 +57,9 @@ function convertToD3Data(graphNode) {
   const nodeMap = new Map(); // To ensure unique nodes and easy lookup
 
   const traverse = (node) => {
-    // if (node.name == 'world') {
-    //   return node.children.forEach((child) => traverse(child));
-    // }
+    if (node.name == 'world') {
+      node.type = 'world'
+    }
 
     if (!nodeMap.has(userid(node))) {
       nodeMap.set(userid(node), {
@@ -89,11 +118,23 @@ function updateGraph(graphData) {
   // Update edges - simple replacement for now
   d3Edges = newEdges;
 
+  const nodeTypeMap = new Map(d3Nodes.map((node) => [node.id, node.type]));
+
+  const currentFilteredNodes = d3Nodes.filter((node) =>
+    enabledNodeTypes.has(node.type),
+  );
+  const currentFilteredEdges = d3Edges.filter(
+    (link) =>
+      enabledNodeTypes.has(nodeTypeMap.get(link.source)) &&
+      enabledNodeTypes.has(nodeTypeMap.get(link.target)),
+  );
+
   if (!simulation) {
     simulation = d3
-      .forceSimulation(d3Nodes)
-      .force('link', d3.forceLink(d3Edges).id((d) => d.id).distance(100))
-      .force('charge', d3.forceManyBody().strength(-200))
+      .forceSimulation(currentFilteredNodes)
+      .force('link', d3.forceLink(currentFilteredEdges).id((d) => d.id).distance(100))
+      .force('charge', d3.forceManyBody().strength((node) => typeData[node.type].charge))
+      .force('collide', d3.forceCollide().radius((node) => node.type === 'area' ? typeData[node.type].size * 2 : typeData[node.type].size))
       .force(
         'center',
         d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2),
@@ -101,21 +142,45 @@ function updateGraph(graphData) {
       .on('tick', ticked);
   } else {
     // Update simulation with new data
-    simulation.nodes(d3Nodes);
+    simulation.nodes(currentFilteredNodes);
     simulation.force('link')
-      .links(d3Edges)
-      .strength((d) => d.type == 'user' ? 0.01 : 1);
+      .links(currentFilteredEdges)
+      .strength((d) => {
+        const sourceNodeType = nodeTypeMap.get(d.source.id);
+        const targetNodeType = nodeTypeMap.get(d.target.id);
+        if (sourceNodeType === 'user' || targetNodeType === 'user') {
+          return 0.01;
+        } else if (sourceNodeType === 'world' || targetNodeType === 'world') {
+          return 0.35; // Weaker strength for world connections
+        }
+        return 0.7;
+      });
+    simulation.force('charge')
+      .strength((node) => typeData[node.type].charge);
+    simulation.force('collide')
+      .radius((node) => node.type === 'area' ? typeData[node.type].size * 2 : typeData[node.type].size);
+
     simulation.alpha(1).restart(); // Reheat simulation
   }
+
 }
 
 function ticked() {
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
+  const filteredNodes = d3Nodes.filter((node) =>
+    enabledNodeTypes.has(node.type),
+  );
+  const filteredEdges = d3Edges.filter(
+    (link) =>
+      enabledNodeTypes.has(link.source.type) &&
+      enabledNodeTypes.has(link.target.type),
+  );
+
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
   // Calculate bounding box of all nodes
-  d3Nodes.forEach((node) => {
+  filteredNodes.forEach((node) => {
     minX = Math.min(minX, node.x);
     minY = Math.min(minY, node.y);
     maxX = Math.max(maxX, node.x);
@@ -130,7 +195,7 @@ function ticked() {
   let translateX = 0;
   let translateY = 0;
 
-  if (d3Nodes.length > 0) {
+  if (filteredNodes.length > 0) {
     const scaleX = (window.innerWidth - padding * 2) / graphWidth;
     const scaleY = (window.innerHeight - padding * 2) / graphHeight;
     scale = Math.min(scaleX, scaleY);
@@ -150,7 +215,7 @@ function ticked() {
 
   // Draw links
   ctx.beginPath();
-  d3Edges.forEach((link) => {
+  filteredEdges.forEach((link) => {
     ctx.moveTo(link.source.x, link.source.y);
     ctx.lineTo(link.target.x, link.target.y);
   });
@@ -159,7 +224,7 @@ function ticked() {
   ctx.stroke();
 
   // Draw nodes
-  d3Nodes.forEach((node) => {
+  filteredNodes.forEach((node) => {
     const nodeRadius = typeData[node.type].size / scale;
 
     ctx.beginPath();
@@ -195,6 +260,9 @@ async function fetchGraphData() {
 // Initial fetch and then refresh every 100ms
 fetchGraphData();
 setInterval(fetchGraphData, 100);
+
+// Initial render of checkboxes
+window.addEventListener('DOMContentLoaded', renderCheckboxes);
 
 // Handle window resize
 window.addEventListener('resize', () => {
