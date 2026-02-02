@@ -1,6 +1,14 @@
 import { QueryResolvers, Resolvers } from '@gql';
 import * as schema from '@schema';
+import { AreaPrimitive } from 'beta/repo/area';
 import { and, eq, getTableColumns, not } from 'drizzle-orm';
+import { UUIDTypes } from 'uuid';
+
+export type PartiallyResolvedArea =
+  & AreaPrimitive
+  & Partial<{
+    __cachedLineage: { id: number; uuid: UUIDTypes; name: string }[];
+  }>;
 
 export const areaResolvers: Resolvers['Area'] = {
   id: async (parent) => parent.uuid,
@@ -54,12 +62,15 @@ export const areaResolvers: Resolvers['Area'] = {
   mediaPagination: async () => {
     throw 'not implemented';
   },
+
   authorMetadata: async () => {
     throw 'not implemented';
   },
+
   imageByteSum: async () => {
     throw 'not implemented';
   },
+
   organizations: async () => {
     throw 'not implemented';
   },

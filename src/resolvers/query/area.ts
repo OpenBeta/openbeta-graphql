@@ -1,7 +1,19 @@
 import { Area, Resolvers } from '@gql';
-import { entity } from '@schema';
+import * as schema from '@schema';
 import { areaTable } from 'db/schema/areaTable';
-import { and, eq, ilike, isNull } from 'drizzle-orm';
+import {
+  and,
+  BinaryOperator,
+  eq,
+  getTableColumns,
+  gt,
+  gte,
+  ilike,
+  isNull,
+  lt,
+  lte,
+  sql,
+} from 'drizzle-orm';
 import { Context } from 'server/context';
 
 function require<T>(x: T | undefined | null) {
@@ -11,6 +23,15 @@ function require<T>(x: T | undefined | null) {
 
   return x;
 }
+
+const comparator: Record<string, BinaryOperator> = {
+  'eq': eq,
+  'gt': gt,
+  'gte': gte,
+  'lt': lt,
+  'lte': lte,
+};
+
 const query: Resolvers['Query'] = {
   area: async (parent, args, context, info) =>
     await context.repo.area.get(require(args.uuid)),
@@ -28,9 +49,21 @@ const query: Resolvers['Query'] = {
         }
       }
 
-      if (args.filter.field_compare) {
-        throw new Error('eeeeh');
-      }
+      args.filter.field_compare?.forEach((field) => {
+        const comparison = field?.comparison as string | undefined;
+        const fieldName = field?.field as string | undefined;
+
+        if (!fieldName || !comparison) {
+          throw new Error('That does not look right, check field_compare');
+        }
+
+        filters.push(
+          comparator[comparison](
+            sql.identifier(fieldName),
+            field?.num,
+          ),
+        );
+      });
 
       if (args.filter.leaf_status) {
         filters.push(eq(areaTable.isLeaf, args.filter.leaf_status.isLeaf));
@@ -44,7 +77,16 @@ const query: Resolvers['Query'] = {
         throw new Error('too lazy right now');
       }
     }
-    throw new Error('Not implemented');
+
+    return context
+      .db
+      .select({
+        ...getTableColumns(schema.entity),
+        ...getTableColumns(schema.area),
+      })
+      .from(schema.area)
+      .innerJoin(schema.entity, eq(schema.entity.id, schema.area.id))
+      .where(and(...filters));
   },
 
   bulkAreas: async (parent, args, context, info) => {
@@ -64,23 +106,23 @@ const query: Resolvers['Query'] = {
   },
 
   countries: async (parent, args, context, info) =>
-    // Forgive me for the quick map operation here,
-    // but there only a fixed number of countries you know?
     context
       .db
-      .select({ ent: entity, area: areaTable })
-      .from(entity)
-      .innerJoin(areaTable, eq(entity.id, areaTable.id))
+      .select({
+        ...getTableColumns(schema.entity),
+        ...getTableColumns(schema.area),
+      })
+      .from(schema.entity)
+      .innerJoin(areaTable, eq(schema.entity.id, areaTable.id))
       .where(
         and(
           eq(
-            entity.entityType,
+            schema.entity.entityType,
             'area',
           ),
-          isNull(entity.parent),
+          isNull(schema.entity.parent),
         ),
-      )
-      .then((rows) => rows.map((a) => ({ ...a.ent, ...a.area }))),
+      ),
 };
 
 export default query;

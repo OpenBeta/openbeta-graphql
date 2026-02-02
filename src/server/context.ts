@@ -6,7 +6,7 @@ import { ClimbRepo } from 'beta/repo/climb';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { type IncomingMessage, type ServerResponse } from 'http';
 
-const __db = drizzle(process.env.DATABASE_URL!);
+const __db = drizzle(process.env.DATABASE_URL!, { logger: true });
 
 export interface Context {
   db: Database;

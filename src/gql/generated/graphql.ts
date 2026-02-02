@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import { AreaPrimitive } from '../../beta/repo/area';
+import { PartiallyResolvedArea } from '../../resolvers/area';
 import { ClimbPrimitive } from '../../beta/repo/climb';
 import { MediaRecord } from '../../beta/repo/media';
 import { Context } from '../../server/context';
@@ -1812,7 +1812,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 /** Mapping of union types */
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = ResolversObject<{
   Document:
-    | ( AreaPrimitive )
+    | ( PartiallyResolvedArea )
     | ( ClimbPrimitive )
     | ( Organization )
   ;
@@ -1832,7 +1832,7 @@ export type ResolversTypes = ResolversObject<{
   AllHistoryFilter: AllHistoryFilter;
   AllTimeTags: ResolverTypeWrapper<AllTimeTags>;
   AreEditableFieldsInput: AreEditableFieldsInput;
-  Area: ResolverTypeWrapper<AreaPrimitive>;
+  Area: ResolverTypeWrapper<PartiallyResolvedArea>;
   AreaContent: ResolverTypeWrapper<AreaContent>;
   AreaFilter: AreaFilter;
   AreaHistoryFilter: AreaHistoryFilter;
@@ -1956,7 +1956,7 @@ export type ResolversParentTypes = ResolversObject<{
   AllHistoryFilter: AllHistoryFilter;
   AllTimeTags: AllTimeTags;
   AreEditableFieldsInput: AreEditableFieldsInput;
-  Area: AreaPrimitive;
+  Area: PartiallyResolvedArea;
   AreaContent: AreaContent;
   AreaFilter: AreaFilter;
   AreaHistoryFilter: AreaHistoryFilter;

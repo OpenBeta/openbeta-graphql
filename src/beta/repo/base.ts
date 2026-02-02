@@ -10,6 +10,7 @@ import {
   SQLChunk,
 } from 'drizzle-orm';
 import { AnyPgTable, PgUpdateSetSource } from 'drizzle-orm/pg-core';
+import { printError } from 'graphql';
 import { Actor, ActorError } from '../actor';
 import {
   EntityAddressable,
@@ -24,12 +25,16 @@ function matchOnAddressable(ent: EntityAddressable) {
     return eq(entity.id, ent);
   }
 
+  if (typeof ent == 'string') {
+    return eq(entity.uuid, ent);
+  }
+
   if (typeof ent === 'object' && 'id' in ent) {
     return matchOnAddressable(ent.id);
   }
 
-  if (typeof ent == 'string') {
-    return eq(entity.uuid, ent);
+  if (typeof ent === 'object' && 'uuid' in ent) {
+    return matchOnAddressable(ent.uuid as any);
   }
 
   throw new Error(
@@ -194,7 +199,14 @@ export abstract class EntityRepository<
         )
         .where(matchOnAddressable(ent))
         .limit(1)
-        .then((r) => r[0]),
+        .then(([r]) => {
+          if (!r) {
+            throw new Error(
+              `The database did not resolve an entity for ${ent} (${typeof ent})`,
+            );
+          }
+          return r;
+        }),
     );
   }
 

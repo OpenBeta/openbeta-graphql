@@ -10,7 +10,7 @@ const config: CodegenConfig = {
         useIndexSignature: true,
         contextType: '../../server/context#Context',
         mappers: {
-          Area: '../../beta/repo/area#AreaPrimitive',
+          Area: '../../resolvers/area#PartiallyResolvedArea',
           Climb: '../../beta/repo/climb#ClimbPrimitive',
           MediaWithTags: '../../beta/repo/media#MediaRecord',
         },

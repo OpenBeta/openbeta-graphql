@@ -9,7 +9,7 @@ import { EntityId } from 'beta/entity_model';
 import { AreaRepo } from 'beta/repo/area';
 import { ClimbRepo } from 'beta/repo/climb';
 import { countries, ICountry, TCountryCode } from 'countries-list';
-import { InferSelectModel } from 'drizzle-orm';
+import { InferSelectModel, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import ora from 'ora';
 import process from 'process';
@@ -38,6 +38,11 @@ function log(message: string) {
     console.log(message);
   }
 }
+
+// in open-tacos the UI seems hardcoded to reach out to the USA as default,
+// for now, we will set this up for at least one country
+let arbitraryHardCoding: string | undefined =
+  '1db1e8ba-a40e-587c-88a4-64f5ea814b8e';
 
 const db = drizzle(process.env.DATABASE_URL!);
 
@@ -95,10 +100,16 @@ async function buildAreaTree(countryData: ICountry) {
     throw new Error('Skipped country');
   }
 
+  let extra: { uuid?: string } = {};
+  if (arbitraryHardCoding !== undefined) {
+    extra.uuid = `${arbitraryHardCoding}`;
+    arbitraryHardCoding = undefined;
+  }
+
   async function entityReify(entityType: schema.EntityKind, name?: string) {
     return await db
       .insert(schema.entity)
-      .values({ entityType, name })
+      .values({ entityType, name, ...extra })
       .returning()
       .then((d) => {
         log(
@@ -113,6 +124,7 @@ async function buildAreaTree(countryData: ICountry) {
     .values({
       name: countryData.name,
       id: await entityReify('area', countryData.name),
+      ...extra,
     })
     .returning();
 
