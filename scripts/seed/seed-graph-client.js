@@ -11,15 +11,37 @@ let simulation;
 let d3Nodes = [];
 let d3Edges = [];
 
+let typeData = {
+  'area': { color: '#ee5253', size: 7 },
+  'climb': { color: '#f368e0', size: 5 },
+  'user': { color: '#54a0ff', size: 7 },
+  'world': { color: '#1dd1a1', size: 15 },
+};
+
+function userid(node) {
+  return `user-${node.author}`
+}
+
 // Function to convert GraphNode to D3 Data format
 function convertToD3Data(graphNode) {
-  const nodes = [];
   const links = [];
   const nodeMap = new Map(); // To ensure unique nodes and easy lookup
 
   const traverse = (node) => {
-    if (node.name == 'world') {
-      return node.children.forEach((child) => traverse(child));
+    // if (node.name == 'world') {
+    //   return node.children.forEach((child) => traverse(child));
+    // }
+
+    if (!nodeMap.has(userid(node))) {
+      nodeMap.set(userid(node), {
+        id: userid(node),
+        label: 'user',
+        type: 'user',
+        // Initialize position for new nodes,
+        // if not already set by simulation
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+      });
     }
 
     if (!nodeMap.has(node.id.toString())) {
@@ -33,10 +55,17 @@ function convertToD3Data(graphNode) {
       });
     }
 
+    links.push({
+      source: userid(node),
+      target: node.id.toString(),
+      type: 'user',
+    });
+
     node.children.forEach((child) => {
       links.push({
         source: node.id.toString(),
         target: child.id.toString(),
+        type: 'entity'
       });
       traverse(child);
     });
@@ -64,7 +93,7 @@ function updateGraph(graphData) {
     simulation = d3
       .forceSimulation(d3Nodes)
       .force('link', d3.forceLink(d3Edges).id((d) => d.id).distance(100))
-      .force('charge', d3.forceManyBody().strength(-100))
+      .force('charge', d3.forceManyBody().strength(-200))
       .force(
         'center',
         d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2),
@@ -73,7 +102,9 @@ function updateGraph(graphData) {
   } else {
     // Update simulation with new data
     simulation.nodes(d3Nodes);
-    simulation.force('link').links(d3Edges);
+    simulation.force('link')
+      .links(d3Edges)
+      .strength((d) => d.type == 'user' ? 0.01 : 1);
     simulation.alpha(1).restart(); // Reheat simulation
   }
 }
@@ -129,14 +160,14 @@ function ticked() {
 
   // Draw nodes
   d3Nodes.forEach((node) => {
-    const nodeRadius = (node.type === 'area' ? 5 : 2) / scale;
+    const nodeRadius = typeData[node.type].size / scale;
 
     ctx.beginPath();
     ctx.arc(node.x, node.y, nodeRadius, 0, 2 * Math.PI);
-    ctx.fillStyle = node.type === 'area' ? '#ee5253' : '#f368e0';
+    ctx.fillStyle = typeData[node.type].color;
     ctx.fill();
-    ctx.strokeStyle = '#f368e0'; // Border for nodes
-    ctx.lineWidth = 1 / scale; // Adjust border width based on scale
+    ctx.strokeStyle = '#222f3e';
+    ctx.lineWidth = 1 / scale;
     ctx.stroke();
 
     // Draw node labels
@@ -173,7 +204,7 @@ window.addEventListener('resize', () => {
       'center',
       d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2),
     );
-    // No need to restart simulation here, as ticked() will handle redraw with new dimensions
   }
-  ticked(); // Re-render the graph to apply new scaling and centering
+
+  ticked();
 });

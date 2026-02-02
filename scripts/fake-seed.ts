@@ -42,13 +42,15 @@ function log(message: string) {
 const db = drizzle(process.env.DATABASE_URL!);
 
 export type GraphNode = {
+  author: EntityId;
   id: EntityId;
   name: string;
-  type: 'area' | 'climb';
+  type: 'area' | 'climb' | 'media' | 'content';
   children: GraphNode[];
 };
 
 export const graph: GraphNode = {
+  author: -1,
   id: -1,
   name: 'world',
   type: 'area',
@@ -114,7 +116,12 @@ async function buildAreaTree(countryData: ICountry) {
     })
     .returning();
 
-  const countryNode: GraphNode = { ...country, children: [], type: 'area' };
+  const countryNode: GraphNode = {
+    ...country,
+    author: -1,
+    children: [],
+    type: 'area',
+  };
   graph.children.push(countryNode);
   log(`Added country node: ${country.name}`);
 
@@ -124,7 +131,8 @@ async function buildAreaTree(countryData: ICountry) {
     currentDepth: number,
   ) {
     for (const _ in range(Math.floor(Math.random() * bredth))) {
-      const repo = new AreaRepo(db, choose(users));
+      const user = choose(users);
+      const repo = new AreaRepo(db, user);
 
       await repo
         .create({
@@ -134,6 +142,7 @@ async function buildAreaTree(countryData: ICountry) {
         .then(async (child) => {
           log(`⛰️ Created area: ${child.name} with parent ${from.name}`);
           const nextNode: GraphNode = { // FIX: Corrected nextNode creation to use `child` properties
+            author: user.id,
             id: child.id,
             name: child.name,
             children: [],
@@ -162,7 +171,8 @@ async function buildAreaTree(countryData: ICountry) {
 
 async function addClimbs(node: GraphNode, area: EntityId) {
   for (const _ in range(Math.random() * bredth)) {
-    let repo = new ClimbRepo(db, choose(users));
+    let user = choose(users);
+    let repo = new ClimbRepo(db, user);
     let climbType = choose(schema.enums.Discipline.enumValues);
 
     await repo
@@ -184,6 +194,7 @@ async function addClimbs(node: GraphNode, area: EntityId) {
         log(`🧗 Created climb: ${climb.name} in area ${area}`);
         node.children.push({
           ...climb,
+          author: user.id,
           name: climb.name,
           children: [],
           type: 'climb',
