@@ -10,6 +10,7 @@ import {
   AnyPgTable,
   boolean,
   check,
+  index,
   integer,
   PgColumn,
   PgColumnBuilder,
@@ -18,6 +19,7 @@ import {
   pgTable,
   PgTableWithColumns,
   timestamp,
+  uniqueIndex,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -60,6 +62,9 @@ export const entityTable = pgTable('entity', {
     Constraint.NoEntitySelfReference,
     sql`${table.parent} is null or ${table.id} != ${table.parent}`,
   ),
+  index('parent_idx').on(table.parent),
+  uniqueIndex('uuid_idx').on(table.uuid),
+  index('entity_kind_idx').on(table.entityType),
 ]);
 
 export const entityCompositionColumns = {

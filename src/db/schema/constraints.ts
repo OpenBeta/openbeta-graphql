@@ -6,3 +6,9 @@ export const Constraint = {
   BoltCountPositive: 'bolt_count_positive',
   DuplicateGradeContext: 'duplicate_grade_context',
 };
+
+export const Trigger = {
+  EntityInsert: 'entity_insert_trigger',
+  EntityUpdate: 'entity_update_trigger',
+  EntityDelete: 'entity_delete_trigger',
+};

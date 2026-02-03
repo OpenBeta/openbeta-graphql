@@ -8,4 +8,3 @@ import gql from 'graphql-tag';
 import { resolvers } from 'resolvers';
 import { Context, context } from 'server/context';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { TestDataHelper } from '../../testDataHelper';

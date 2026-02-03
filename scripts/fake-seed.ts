@@ -16,6 +16,7 @@ import process from 'process';
 
 const useGraph = process.argv.includes('--graph');
 const verbose = process.argv.includes('--verbose');
+const queryLog = process.argv.includes('--querylog');
 const depth = process.argv.includes('--depth')
   ? parseInt(process.argv[process.argv.indexOf('--depth') + 1])
   : 5;
@@ -34,7 +35,7 @@ const countryLimit = process.argv.includes('--countries')
 const alphabeticalCountries = process.argv.includes('--alphabetical');
 
 function log(message: string) {
-  if (!useGraph && verbose) {
+  if (verbose) {
     console.log(message);
   }
 }
@@ -44,7 +45,7 @@ function log(message: string) {
 let arbitraryHardCoding: string | undefined =
   '1db1e8ba-a40e-587c-88a4-64f5ea814b8e';
 
-const db = drizzle(process.env.DATABASE_URL!);
+const db = drizzle(process.env.DATABASE_URL!, { logger: queryLog });
 
 export type GraphNode = {
   author: EntityId;
@@ -327,6 +328,7 @@ async function main() {
         )
       )
       .catch((err) => {
+        if (verbose) console.error(err);
         spinner.fail(`${country.name} ${String(err)}`);
       });
   }

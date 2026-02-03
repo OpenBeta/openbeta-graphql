@@ -8,7 +8,6 @@ import { AreaRepo } from '../../../beta/repo/area';
 import typeDefs from '../../../gql';
 import { resolvers } from '../../../resolvers';
 import { Context, context } from '../../../server/context';
-import { TestDataHelper } from '../../testDataHelper';
 
 const COUNTRIES_QUERY = gql`
   query GetCountries {

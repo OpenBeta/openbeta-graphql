@@ -27,7 +27,7 @@
           shellHook = ''
             echo "Bun development environment ready"
             bun --version
-            alias schema-reset='dropdb openbeta && createdb openbeta --owner=openbeta && bunx drizzle-kit push'
+            alias schema-reset='dropdb openbeta && createdb openbeta --owner=openbeta && bunx drizzle-kit migrate'
           '';
         };
       }

@@ -1,7 +1,8 @@
 import { QueryResolvers, Resolvers } from '@gql';
 import * as schema from '@schema';
 import { AreaPrimitive } from 'beta/repo/area';
-import { and, eq, getTableColumns, not } from 'drizzle-orm';
+import { countDescendants } from 'beta/repo/entity_cte';
+import { and, count, eq, getTableColumns, not } from 'drizzle-orm';
 import { UUIDTypes } from 'uuid';
 
 export type PartiallyResolvedArea =
@@ -55,8 +56,8 @@ export const areaResolvers: Resolvers['Area'] = {
         ),
       ),
 
-  ancestors: async (parent, _, context) => [],
-  pathTokens: async (parent, _, context) => [],
+  ancestors: async (parent, _, context) => ['OOPS'],
+  pathTokens: async (parent, _, context) => ['OOPS'],
   gradeContext: async (parent, _, context) => 'OOPS',
 
   mediaPagination: async () => {
@@ -64,7 +65,7 @@ export const areaResolvers: Resolvers['Area'] = {
   },
 
   authorMetadata: async () => {
-    throw 'not implemented';
+    return {};
   },
 
   imageByteSum: async () => {
@@ -72,6 +73,33 @@ export const areaResolvers: Resolvers['Area'] = {
   },
 
   organizations: async () => {
-    throw 'not implemented';
+    return [];
   },
+
+  aggregate: async (parent, info, context) => {
+    return {
+      byGrade: [],
+      byDiscipline: {},
+      byGradeBand: {},
+    };
+  },
+
+  totalClimbs: async (parent, _, context) =>
+    context
+      .db
+      .select({ count: count() })
+      .from(schema.entityAncestors)
+      .innerJoin(
+        schema.entity,
+        eq(
+          schema
+            .entity
+            .id,
+          schema.entityAncestors.entityId,
+        ),
+      )
+      .where(
+        and(not(schema.entity.deleted), eq(schema.entity.entityType, 'climb')),
+      )
+      .then((d) => d[0].count),
 };

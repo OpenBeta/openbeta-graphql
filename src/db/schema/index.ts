@@ -9,6 +9,7 @@ import {
   entityKind,
   entityTable,
 } from './entitiy';
+import { entityAncestorsTable } from './entityAncestors';
 import { disciplineEnum, gradeSystemTable, gradeTable } from './gradeTable';
 import { mediaTable } from './mediaTable';
 import { organizationTable } from './organizationTable';
@@ -34,10 +35,12 @@ type Database = ReturnType<typeof drizzle>;
 type Transaction = Parameters<
   Parameters<Database['transaction']>[0]
 >[0];
+type Discipline = (typeof disciplineEnum.enumValues)[number];
 
 export {
   areaTable as area,
   climbTable as climb,
+  entityAncestorsTable as entityAncestors,
   entityTable as entity,
   enums,
   gradeSystemTable as gradeSystem,
@@ -49,4 +52,10 @@ export {
   userTable as user,
 };
 
-export type { Database, EntityCompBaseTable, EntityKind, Transaction };
+export type {
+  Database,
+  Discipline,
+  EntityCompBaseTable,
+  EntityKind,
+  Transaction,
+};
