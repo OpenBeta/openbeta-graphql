@@ -143,10 +143,20 @@ export abstract class EntityRepository<
     columns.push(sql.identifier(this.table.id.name));
     values.push(sql`"reify_entity"."id"`);
 
-    for (const column in getTableColumns(this.table)) {
-      if (column in data && data[column] !== undefined) {
-        columns.push(sql.identifier(column));
-        values.push(sql`${data[column]}`);
+    const tableColumns = getTableColumns(this.table);
+
+    for (const columnKey in tableColumns) {
+      if (columnKey in data && data[columnKey] !== undefined) {
+        // @ts-ignore
+        const colName = tableColumns[columnKey].name;
+        columns.push(sql.identifier(colName));
+        
+        const val = data[columnKey] as any;
+        if (colName === 'position' && typeof val === 'object' && val !== null && 'x' in val && 'y' in val) {
+             values.push(sql`${JSON.stringify({ type: 'Point', coordinates: [val.x, val.y] })}`);
+        } else {
+             values.push(sql`${val}`);
+        }
       }
     }
 

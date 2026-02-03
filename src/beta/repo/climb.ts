@@ -20,6 +20,7 @@ type ClimbCreation = Pick<
   | 'type'
   | 'safety'
   | 'canonicalGrade'
+  | 'location'
 >;
 
 export class ClimbRepo extends EntityRepository<

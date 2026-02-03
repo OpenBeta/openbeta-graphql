@@ -11,6 +11,60 @@ import { ClimbRepo } from 'beta/repo/climb';
 import { countries, ICountry, TCountryCode } from 'countries-list';
 import { InferSelectModel, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { existsSync } from 'node:fs';
+import { readFile, writeFile } from 'node:fs/promises';
+
+let countryCentroids: Record<string, { x: number; y: number }> = {};
+
+async function ensureCentroids() {
+  const path = './scripts/country-centroids.geojson';
+  if (!existsSync(path)) {
+    console.log('Downloading country centroids...');
+    const response = await fetch(
+      'https://cdn.jsdelivr.net/gh/gavinr/world-countries-centroids@v1/dist/countries.geojson',
+    );
+    const data = await response.text();
+    await writeFile(path, data);
+  }
+  const data = JSON.parse(await readFile(path, 'utf-8'));
+  for (const feature of data.features) {
+    if (feature.properties.ISO) {
+      const [x, y] = feature.geometry.coordinates;
+      countryCentroids[feature.properties.ISO] = { x, y };
+    }
+  }
+  log(
+    `Loaded centroids for ${Object.keys(countryCentroids).length} countries.`,
+  );
+}
+
+function getPointNearby(
+  center: { x: number; y: number },
+  minKm: number,
+  maxKm: number,
+) {
+  const R = 6371; // Earth Radius in km
+  const r = (minKm + Math.random() * (maxKm - minKm)) / R; // Angular distance in radians
+  const t = Math.random() * 2 * Math.PI; // Random bearing
+
+  const lat1 = (center.y * Math.PI) / 180;
+  const lon1 = (center.x * Math.PI) / 180;
+
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(r) + Math.cos(lat1) * Math.sin(r) * Math.cos(t),
+  );
+  const lon2 = lon1
+    + Math.atan2(
+      Math.sin(t) * Math.sin(r) * Math.cos(lat1),
+      Math.cos(r) - Math.sin(lat1) * Math.sin(lat2),
+    );
+
+  return {
+    x: (lon2 * 180) / Math.PI,
+    y: (lat2 * 180) / Math.PI,
+  };
+}
+
 import ora from 'ora';
 import process from 'process';
 
@@ -142,7 +196,7 @@ function choose<T>(from: T[]): T {
   return from[Math.floor(Math.random() * from.length)];
 }
 
-async function buildAreaTree(countryData: ICountry) {
+async function buildAreaTree(countryData: ICountry, countryCode: string) {
   type AreaSelect = InferSelectModel<typeof schema.area>;
   const maxDepth = depth;
   if (skipCountries.includes(countryData.name)) {
@@ -154,6 +208,8 @@ async function buildAreaTree(countryData: ICountry) {
     extra.uuid = `${arbitraryHardCoding}`;
     arbitraryHardCoding = undefined;
   }
+
+  const startLoc = countryCentroids[countryCode] || countryCentroids['US'];
 
   async function entityReify(entityType: schema.EntityKind, name?: string) {
     return await db
@@ -173,6 +229,7 @@ async function buildAreaTree(countryData: ICountry) {
     .values({
       name: countryData.name,
       id: await entityReify('area', countryData.name),
+      location: startLoc,
       ...extra,
     })
     .returning();
@@ -195,10 +252,16 @@ async function buildAreaTree(countryData: ICountry) {
       const user = choose(users);
       const repo = new AreaRepo(db, user);
 
+      const parentLoc = from.location as { x: number; y: number } | null;
+      const myLoc = parentLoc
+        ? getPointNearby(parentLoc, 1, 50)
+        : { x: 0, y: 0 };
+
       await repo
         .create({
           name: faker.food.adjective() + ' ' + faker.food.ingredient(),
           parent: from.id,
+          location: myLoc,
         })
         .then(async (child) => {
           log(`⛰️ Created area: ${child.name} with parent ${from.name}`);
@@ -222,7 +285,7 @@ async function buildAreaTree(countryData: ICountry) {
 
           // always stop if we exceed the max depth
           if (currentDepth >= maxDepth) {
-            await addClimbs(nextNode, child.id);
+            await addClimbs(nextNode, child.id, myLoc);
             return;
           }
 
@@ -235,7 +298,11 @@ async function buildAreaTree(countryData: ICountry) {
   await branch(countryNode, country, 0);
 }
 
-async function addClimbs(node: GraphNode, area: EntityId) {
+async function addClimbs(
+  node: GraphNode,
+  area: EntityId,
+  location: { x: number; y: number },
+) {
   for (const _ in range(Math.random() * bredth)) {
     let user = choose(users);
     let repo = new ClimbRepo(db, user);
@@ -255,6 +322,7 @@ async function addClimbs(node: GraphNode, area: EntityId) {
         type: climbType,
         safety: null,
         canonicalGrade: null,
+        location: getPointNearby(location, 1, 2),
       })
       .then((climb) => {
         log(`🧗 Created climb: ${climb.name} in area ${area}`);
@@ -276,6 +344,7 @@ async function addClimbs(node: GraphNode, area: EntityId) {
 async function main() {
   await initializeGradeSystemsInDatabase(db);
   log('Initialized grade systems in database.');
+  await ensureCentroids();
 
   if (useGraph) {
     // @ts-ignore
@@ -333,7 +402,7 @@ async function main() {
     log(`Building area tree for country: ${country.name}`);
     const spinner = ora(`🌱 Seeding ${country.name}...`).start();
 
-    await buildAreaTree(country)
+    await buildAreaTree(country, countryCode)
       .then(() =>
         spinner.succeed(
           `Finished ${country.name} ${choose(['🌳', '🌲', '🪴', '🌿', '🌵'])}`,

@@ -27,7 +27,8 @@
           shellHook = ''
             echo "Bun development environment ready"
             bun --version
-            alias schema-reset='dropdb openbeta && createdb openbeta --owner=openbeta && bunx drizzle-kit migrate'
+            alias install-postgis='psql -d openbeta -c "CREATE EXTENSION postgis;"'
+            alias schema-reset='dropdb openbeta && createdb openbeta --owner=openbeta && install-postgis && bunx drizzle-kit migrate'
           '';
         };
       }
