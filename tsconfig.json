@@ -24,7 +24,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "types": [
-      "node"
+      "node",
+      "bun"
     ],
     "strict": true,
     "allowJs": false,

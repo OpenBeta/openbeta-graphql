@@ -8,13 +8,52 @@ import {
 import { EntityId } from 'beta/entity_model';
 import { AreaRepo } from 'beta/repo/area';
 import { ClimbRepo } from 'beta/repo/climb';
+import { ContentRepo } from 'beta/repo/content';
 import { countries, ICountry, TCountryCode } from 'countries-list';
 import { InferSelectModel, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
+import ora from 'ora';
+import process from 'process';
+import { GraphNode, graphServer } from '../srcipts/seed/graph/server';
+import { mapServer } from '../srcipts/seed/map/server';
 
 let countryCentroids: Record<string, { x: number; y: number }> = {};
+
+const useGraph = process.argv.includes('--graph');
+const useMap = process.argv.includes('--map');
+
+if (useGraph && useMap) {
+  console.error(
+    'Error: --graph and --map are mutually exclusive. Please use only one.',
+  );
+  process.exit(1);
+}
+const verbose = process.argv.includes('--verbose');
+const queryLog = process.argv.includes('--querylog');
+const alphabeticalCountries = process.argv.includes('--alphabetical');
+
+const depth = process.argv.includes('--depth')
+  ? parseInt(process.argv[process.argv.indexOf('--depth') + 1])
+  : 5;
+const randomness = process.argv.includes('--randomness')
+  ? parseFloat(process.argv[process.argv.indexOf('--randomness') + 1])
+  : 0.7;
+const port = process.argv.includes('--port')
+  ? parseInt(process.argv[process.argv.indexOf('--port') + 1])
+  : 3000;
+const bredth = process.argv.includes('--bredth')
+  ? parseInt(process.argv[process.argv.indexOf('--bredth') + 1])
+  : 10;
+const countryLimit = process.argv.includes('--countries')
+  ? parseInt(process.argv[process.argv.indexOf('--countries') + 1])
+  : null;
+const initialScatterRadius = process.argv.includes('--initial-scatter-radius')
+  ? parseFloat(
+    process.argv[process.argv.indexOf('--initial-scatter-radius') + 1],
+  )
+  : 10_000;
 
 async function ensureCentroids() {
   const path = './scripts/country-centroids.geojson';
@@ -65,30 +104,6 @@ function getPointNearby(
   };
 }
 
-import ora from 'ora';
-import process from 'process';
-
-const useGraph = process.argv.includes('--graph');
-const verbose = process.argv.includes('--verbose');
-const queryLog = process.argv.includes('--querylog');
-const alphabeticalCountries = process.argv.includes('--alphabetical');
-
-const depth = process.argv.includes('--depth')
-  ? parseInt(process.argv[process.argv.indexOf('--depth') + 1])
-  : 5;
-const randomness = process.argv.includes('--randomness')
-  ? parseFloat(process.argv[process.argv.indexOf('--randomness') + 1])
-  : 0.7;
-const port = process.argv.includes('--port')
-  ? parseInt(process.argv[process.argv.indexOf('--port') + 1])
-  : 3000;
-const bredth = process.argv.includes('--bredth')
-  ? parseInt(process.argv[process.argv.indexOf('--bredth') + 1])
-  : 10;
-const countryLimit = process.argv.includes('--countries')
-  ? parseInt(process.argv[process.argv.indexOf('--countries') + 1])
-  : null;
-
 function log(message: string) {
   if (verbose) {
     console.log(message);
@@ -101,14 +116,6 @@ let arbitraryHardCoding: string | undefined =
   '1db1e8ba-a40e-587c-88a4-64f5ea814b8e';
 
 const db = drizzle(process.env.DATABASE_URL!, { logger: queryLog });
-
-export type GraphNode = {
-  author: EntityId;
-  id: EntityId | string;
-  name: string;
-  type: 'area' | 'climb' | 'media' | 'content';
-  children: GraphNode[];
-};
 
 export const graph: GraphNode = {
   author: -1,
@@ -161,6 +168,28 @@ async function addMedia(
       type: 'media',
       author: img.author,
       children: [],
+    });
+  }
+}
+
+async function addContent(forEntity: EntityId) {
+  new ContentRepo(db, choose(users)).create({
+    parent: forEntity,
+    name: 'Description',
+    text: faker.lorem.paragraph(),
+  });
+  if (Math.random() > 0.5) {
+    new ContentRepo(db, choose(users)).create({
+      parent: forEntity,
+      name: 'Location',
+      text: faker.lorem.paragraph(),
+    });
+  }
+  if (Math.random() > 0.5) {
+    new ContentRepo(db, choose(users)).create({
+      parent: forEntity,
+      name: 'Protection',
+      text: faker.lorem.paragraph(),
     });
   }
 }
@@ -247,6 +276,7 @@ async function buildAreaTree(countryData: ICountry, countryCode: string) {
     node: GraphNode,
     from: AreaSelect,
     currentDepth: number,
+    initialScatterRadius: number,
   ) {
     for (const _ in range(Math.floor(Math.random() * bredth))) {
       const user = choose(users);
@@ -254,7 +284,9 @@ async function buildAreaTree(countryData: ICountry, countryCode: string) {
 
       const parentLoc = from.location as { x: number; y: number } | null;
       const myLoc = parentLoc
-        ? getPointNearby(parentLoc, 1, 50)
+        ? (currentDepth === 0
+          ? getPointNearby(parentLoc, 1, initialScatterRadius)
+          : getPointNearby(parentLoc, 1, 10))
         : { x: 0, y: 0 };
 
       await repo
@@ -279,6 +311,10 @@ async function buildAreaTree(countryData: ICountry, countryCode: string) {
             await addMedia(child.id, 'area', node);
           }
 
+          if (Math.random() > 0.5) {
+            await addContent(child.id);
+          }
+
           // to create depths of various depths, we include some randomness
           // here in terms of early-exit
           if (Math.random() > randomness) return;
@@ -289,13 +325,13 @@ async function buildAreaTree(countryData: ICountry, countryCode: string) {
             return;
           }
 
-          await branch(nextNode, child, currentDepth + 1);
+          await branch(nextNode, child, currentDepth + 1, initialScatterRadius);
         })
         .catch(console.error);
     }
   }
 
-  await branch(countryNode, country, 0);
+  await branch(countryNode, country, 0, initialScatterRadius);
 }
 
 async function addClimbs(
@@ -324,7 +360,7 @@ async function addClimbs(
         canonicalGrade: null,
         location: getPointNearby(location, 1, 2),
       })
-      .then((climb) => {
+      .then(async (climb) => {
         log(`🧗 Created climb: ${climb.name} in area ${area}`);
         const nextNode: GraphNode = {
           ...climb,
@@ -335,7 +371,8 @@ async function addClimbs(
         };
 
         node.children.push(nextNode);
-        return addMedia(climb.id, 'climb', nextNode);
+        await addContent(climb.id);
+        await addMedia(climb.id, 'climb', nextNode);
       })
       .catch(console.error);
   }
@@ -347,39 +384,9 @@ async function main() {
   await ensureCentroids();
 
   if (useGraph) {
-    // @ts-ignore
-    Bun.serve({
-      port: port,
-      // @ts-ignore
-      fetch(request) {
-        const url = new URL(request.url);
-
-        if (url.pathname === '/') {
-          // @ts-ignore
-          return new Response(Bun.file('./scripts/seed/index.html'));
-        }
-
-        if (url.pathname === '/seed-graph-client.js') {
-          // @ts-ignore
-          return new Response(Bun.file('./scripts/seed/seed-graph-client.js'));
-        }
-
-        if (url.pathname === '/graph-data') {
-          // Serve the graph data as JSON
-          return new Response(JSON.stringify(graph), {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-        }
-
-        return new Response('Not Found', { status: 404 });
-      },
-    });
-
-    console.log(
-      `Graph visualizer running at http://localhost:${port}. Open this URL in your browser manually to see the graph.`,
-    );
+    graphServer(port, graph);
+  } else if (useMap) {
+    mapServer(port, db);
   }
 
   let countryCodes = Object.keys(countries) as TCountryCode[];

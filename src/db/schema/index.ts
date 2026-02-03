@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { PgTransaction } from 'drizzle-orm/pg-core';
 import { areaTable } from './areaTable';
 import { climbTable, safetyEnum } from './climbTable';
+import { contentTable } from './content';
 import {
   EntityCompBaseTable,
   EntityKind,
@@ -11,6 +12,7 @@ import {
 } from './entitiy';
 import { entityAncestorsTable } from './entityAncestors';
 import { disciplineEnum, gradeSystemTable, gradeTable } from './gradeTable';
+import { historyTable } from './history';
 import { mediaTable } from './mediaTable';
 import { organizationTable } from './organizationTable';
 import { tagTable } from './tagTable';
@@ -40,11 +42,13 @@ type Discipline = (typeof disciplineEnum.enumValues)[number];
 export {
   areaTable as area,
   climbTable as climb,
+  contentTable as content,
   entityAncestorsTable as entityAncestors,
   entityTable as entity,
   enums,
   gradeSystemTable as gradeSystem,
   gradeTable as grade,
+  historyTable as history,
   mediaTable as media,
   organizationTable as organization,
   tagTable as tag,
