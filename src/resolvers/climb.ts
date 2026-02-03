@@ -21,6 +21,7 @@ export const climbResolvers: Resolvers['Climb'] = {
       protection: '',
     };
   },
+  media: async (parent, _, context) => context.repo.area.media(parent),
   ancestors: async (parent, _, context) =>
     await requireAncestry(parent, context).then((d) =>
       d.map((o) => String(o.uuid))
@@ -30,4 +31,11 @@ export const climbResolvers: Resolvers['Climb'] = {
     await requireAncestry(parent, context).then((d) =>
       d.map((o) => String(o.name))
     ),
+
+  parent: async (parent, _, context) => context.repo.area.get(parent.parent!),
+
+  authorMetadata: async () => {
+    // Author metadata will have common implementation for all entities
+    return {};
+  },
 };
