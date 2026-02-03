@@ -1,5 +1,16 @@
 import { Resolvers } from '@gql';
+import * as schema from '@schema';
+import { eq } from 'drizzle-orm';
+import { context } from 'server/context';
 
 export const mediaResolvers: Resolvers['MediaWithTags'] = {
-  // Media field resolvers will be implemented here
+  uploadTime: async (parent) => parent.createdAt,
+  entityTags: async (parent, _, context) =>
+    context
+      .db
+      .select()
+      .from(schema.tag)
+      .where(
+        eq(schema.tag.mediaId, parent.id),
+      ),
 };

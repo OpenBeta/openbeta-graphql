@@ -130,9 +130,14 @@ export abstract class EntityRepository<
     // our sql engine they could go nicely here in your subclassing.
     const columns: SQLChunk[] = [];
     const values: SQLChunk[] = [];
-    const entityColumns = [entity.entityType, entity.name].map((col) =>
-      sql.identifier(col.name)
-    );
+    const entityColumns = [
+      entity.entityType,
+      entity.name,
+      entity.parent,
+    ]
+      .map((
+        col,
+      ) => sql.identifier(col.name));
 
     //
     columns.push(sql.identifier(this.table.id.name));
@@ -145,10 +150,16 @@ export abstract class EntityRepository<
       }
     }
 
+    if (data.parent === undefined || data.parent === null) {
+      throw new Error(
+        'For now, we are assuming that entities must have parents',
+      );
+    }
+
     const query = sql`
       with reify_entity as (
         insert into "entity" ${entityColumns}
-        values (${this.kind}, ${data.name ?? null})
+        values (${this.kind}, ${data.name}, ${data.parent})
         returning id
       ),
       insert_extra as (insert into ${this.table} ${columns}

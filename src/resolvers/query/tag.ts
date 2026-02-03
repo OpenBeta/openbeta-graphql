@@ -1,6 +1,6 @@
-import { QueryResolvers } from '@gql';
+import { QueryResolvers, Resolvers } from '@gql';
 
-const query: QueryResolvers = {
+const query: Resolvers['Query'] = {
   getTags: async () => {
     throw new Error('Not implemented');
   },

@@ -36,6 +36,13 @@
       "when": 1770105680742,
       "tag": "0004_woozy_invaders",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1770115355066,
+      "tag": "0005_whole_maginty",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { integer, pgTable, timestamp } from 'drizzle-orm/pg-core';
-import { entityTable } from './entitiy';
+import { entityKind, entityTable } from './entitiy';
 import { mediaTable } from './mediaTable';
 
 /**
@@ -16,5 +16,6 @@ export const tagTable = pgTable('tag', {
   targetId: integer().notNull().references(() => entityTable.id, {
     onDelete: 'cascade',
   }),
+  targetEntityKind: entityKind().notNull(),
   createdAt: timestamp().notNull().defaultNow(),
 });

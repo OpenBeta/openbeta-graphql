@@ -17,6 +17,8 @@ import process from 'process';
 const useGraph = process.argv.includes('--graph');
 const verbose = process.argv.includes('--verbose');
 const queryLog = process.argv.includes('--querylog');
+const alphabeticalCountries = process.argv.includes('--alphabetical');
+
 const depth = process.argv.includes('--depth')
   ? parseInt(process.argv[process.argv.indexOf('--depth') + 1])
   : 5;
@@ -32,7 +34,6 @@ const bredth = process.argv.includes('--bredth')
 const countryLimit = process.argv.includes('--countries')
   ? parseInt(process.argv[process.argv.indexOf('--countries') + 1])
   : null;
-const alphabeticalCountries = process.argv.includes('--alphabetical');
 
 function log(message: string) {
   if (verbose) {
@@ -63,7 +64,11 @@ export const graph: GraphNode = {
   children: [],
 };
 
-async function addMedia(forEntity: EntityId, node: GraphNode) {
+async function addMedia(
+  forEntity: EntityId,
+  forEntityKind: schema.EntityKind,
+  node: GraphNode,
+) {
   const images = await db
     .insert(schema.media)
     .values(
@@ -88,7 +93,11 @@ async function addMedia(forEntity: EntityId, node: GraphNode) {
 
   // create tags for each created image
   await db.insert(schema.tag).values(
-    images.map((i) => ({ mediaId: i.id, targetId: forEntity })),
+    images.map((i) => ({
+      mediaId: i.id,
+      targetId: forEntity,
+      targetEntityKind: forEntityKind,
+    })),
   );
 
   for (const img of images) {
@@ -204,7 +213,7 @@ async function buildAreaTree(countryData: ICountry) {
           node.children.push(nextNode);
 
           if (Math.random() > randomness / 2) {
-            await addMedia(child.id, node);
+            await addMedia(child.id, 'area', node);
           }
 
           // to create depths of various depths, we include some randomness
@@ -249,13 +258,16 @@ async function addClimbs(node: GraphNode, area: EntityId) {
       })
       .then((climb) => {
         log(`🧗 Created climb: ${climb.name} in area ${area}`);
-        node.children.push({
+        const nextNode: GraphNode = {
           ...climb,
           author: user.id,
           name: climb.name,
           children: [],
           type: 'climb',
-        });
+        };
+
+        node.children.push(nextNode);
+        return addMedia(climb.id, 'climb', nextNode);
       })
       .catch(console.error);
   }

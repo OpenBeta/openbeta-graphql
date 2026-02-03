@@ -19,7 +19,6 @@ export const areaTable = pgTable('area', {
   density: real().notNull().default(0),
   totalClimbs: integer().notNull().default(0),
   imageByteSum: integer().notNull().default(0),
-  isLeaf: boolean().notNull().default(true),
   isDestination: boolean().notNull().default(false),
 });
 

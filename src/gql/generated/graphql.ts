@@ -1,5 +1,6 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { PartiallyResolvedArea } from '../../resolvers/area';
+import { EntityTagRecord } from '../../resolvers/tag';
 import { ClimbPrimitive } from '../../beta/repo/climb';
 import { MediaRecord } from '../../beta/repo/media';
 import { Context } from '../../server/context';
@@ -1875,7 +1876,7 @@ export type ResolversTypes = ResolversObject<{
   EmbeddedAreaMediaInput: EmbeddedAreaMediaInput;
   EmbeddedClimbMediaInput: EmbeddedClimbMediaInput;
   EmbeddedEntityInput: EmbeddedEntityInput;
-  EntityTag: ResolverTypeWrapper<EntityTag>;
+  EntityTag: ResolverTypeWrapper<EntityTagRecord>;
   EntityTagDeleteInput: EntityTagDeleteInput;
   ExcludedAreaIdsFilter: ExcludedAreaIdsFilter;
   ExperimentalAuthorType: ExperimentalAuthorType;
@@ -1998,7 +1999,7 @@ export type ResolversParentTypes = ResolversObject<{
   EmbeddedAreaMediaInput: EmbeddedAreaMediaInput;
   EmbeddedClimbMediaInput: EmbeddedClimbMediaInput;
   EmbeddedEntityInput: EmbeddedEntityInput;
-  EntityTag: EntityTag;
+  EntityTag: EntityTagRecord;
   EntityTagDeleteInput: EntityTagDeleteInput;
   ExcludedAreaIdsFilter: ExcludedAreaIdsFilter;
   ExperimentalAuthorType: ExperimentalAuthorType;

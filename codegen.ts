@@ -13,6 +13,7 @@ const config: CodegenConfig = {
           Area: '../../resolvers/area#PartiallyResolvedArea',
           Climb: '../../beta/repo/climb#ClimbPrimitive',
           MediaWithTags: '../../beta/repo/media#MediaRecord',
+          EntityTag: '../../resolvers/tag#EntityTagRecord',
         },
       },
     },

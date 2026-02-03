@@ -12,8 +12,10 @@ import {
   isNull,
   lt,
   lte,
+  not,
   sql,
 } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { Context } from 'server/context';
 
 function require<T>(x: T | undefined | null) {
@@ -38,6 +40,8 @@ const query: Resolvers['Query'] = {
 
   areas: async (parent, args, context, info) => {
     let filters = [];
+    const child = alias(schema.area, 'child');
+
     if (args.filter) {
       if (args.filter.area_name) {
         if (args.filter.area_name.exactMatch) {
@@ -65,8 +69,8 @@ const query: Resolvers['Query'] = {
         );
       });
 
-      if (args.filter.leaf_status) {
-        filters.push(eq(areaTable.isLeaf, args.filter.leaf_status.isLeaf));
+      if (args.filter.leaf_status?.isLeaf) {
+        filters.push(isNull(child.id));
       }
 
       if (args.filter.path_tokens) {
@@ -85,8 +89,20 @@ const query: Resolvers['Query'] = {
         ...getTableColumns(schema.area),
       })
       .from(schema.area)
-      .innerJoin(schema.entity, eq(schema.entity.id, schema.area.id))
-      .where(and(...filters));
+      .innerJoin(
+        schema.entity,
+        eq(schema.entity.id, schema.area.id),
+      )
+      .leftJoin(
+        schema.entity,
+        and(
+          sql`${args.filter?.leaf_status?.isLeaf || false}`,
+          eq(schema.entity.parent, schema.area.id),
+          eq(schema.entity.entityType, 'area'),
+        ),
+      )
+      .where(and(...filters))
+      .groupBy(schema.area.id);
   },
 
   bulkAreas: async (parent, args, context, info) => {
@@ -112,15 +128,12 @@ const query: Resolvers['Query'] = {
         ...getTableColumns(schema.entity),
         ...getTableColumns(schema.area),
       })
-      .from(schema.entity)
-      .innerJoin(areaTable, eq(schema.entity.id, areaTable.id))
+      .from(schema.area)
+      .innerJoin(schema.entity, eq(schema.entity.id, schema.area.id))
       .where(
         and(
-          eq(
-            schema.entity.entityType,
-            'area',
-          ),
           isNull(schema.entity.parent),
+          not(schema.entity.deleted),
         ),
       ),
 };

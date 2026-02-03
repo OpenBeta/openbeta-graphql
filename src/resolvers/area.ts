@@ -1,21 +1,33 @@
 import { QueryResolvers, Resolvers } from '@gql';
 import * as schema from '@schema';
 import { AreaPrimitive } from 'beta/repo/area';
-import { countDescendants } from 'beta/repo/entity_cte';
-import { and, count, eq, getTableColumns, not } from 'drizzle-orm';
-import { UUIDTypes } from 'uuid';
+import { ancestors } from 'beta/repo/entity_cte';
+import { and, count, eq, exists, getTableColumns, not } from 'drizzle-orm';
+import { parseResolveInfo } from 'graphql-parse-resolve-info';
+import { Context } from 'server/context';
 
+import { UUIDTypes } from 'uuid';
 export type PartiallyResolvedArea =
   & AreaPrimitive
   & Partial<{
-    __cachedLineage: { id: number; uuid: UUIDTypes; name: string }[];
+    __cachedLineage: { id: number; uuid: UUIDTypes; name: string | null }[];
   }>;
 
+async function requireAncestry(parent: PartiallyResolvedArea, ctx: Context) {
+  if (parent.__cachedLineage == undefined) {
+    parent.__cachedLineage = await ctx
+      .db
+      .execute(ancestors(ctx.db, parent.id))
+      .then((d) => d.rows as PartiallyResolvedArea['__cachedLineage']);
+  }
+
+  return parent.__cachedLineage!;
+}
 export const areaResolvers: Resolvers['Area'] = {
   id: async (parent) => parent.uuid,
   area_name: async (parent) => parent.name,
   areaName: async (parent) => parent.name,
-  children: async (parent, info, context) =>
+  children: async (doc, info, context) =>
     context
       .db
       .select({
@@ -23,16 +35,50 @@ export const areaResolvers: Resolvers['Area'] = {
         ...getTableColumns(schema.area),
       })
       .from(schema.area)
-      .innerJoin(schema.entity, eq(schema.entity.id, parent.id))
-      .where(and(eq(schema.area.id, parent.id), not(schema.entity.deleted))),
+      .innerJoin(schema.entity, eq(schema.entity.id, schema.area.id))
+      .where(
+        and(
+          eq(schema.entity.parent, doc.id),
+          not(schema.entity.deleted),
+        ),
+      ),
 
-  metadata: async (parent) => ({
-    areaId: parent.uuid,
-    area_id: parent.uuid,
-    leaf: parent.isLeaf,
-    isDestination: parent.isDestination,
-    mp_id: '',
-  }),
+  metadata: async (parent, _, context, info) => {
+    const selection = parseResolveInfo(info);
+    let leaf = false;
+
+    if ('leaf' in (selection?.fieldsByTypeName ?? {})) {
+      leaf = await context
+        .db
+        .select({ exists: exists(schema.entity.id) })
+        .from(
+          schema.entity,
+        )
+        .where(
+          and(
+            eq(
+              schema
+                .entity
+                .parent,
+              parent.id,
+            ),
+            eq(schema.entity.entityType, 'area'),
+          ),
+        )
+        .then(([d]) => d.exists == true);
+    }
+
+    return {
+      areaId: parent.uuid,
+      area_id: parent.uuid,
+      leaf,
+      isDestination: parent.isDestination,
+      mp_id: '',
+      leftRightIndex: 0,
+      lat: 0.0,
+      lng: 0.0,
+    };
+  },
 
   media: async (parent, _, context) => context.repo.area.media(parent),
 
@@ -56,8 +102,14 @@ export const areaResolvers: Resolvers['Area'] = {
         ),
       ),
 
-  ancestors: async (parent, _, context) => ['OOPS'],
-  pathTokens: async (parent, _, context) => ['OOPS'],
+  ancestors: async (parent, _, context) =>
+    await requireAncestry(parent, context).then((d) =>
+      d.map((o) => String(o.uuid))
+    ),
+
+  pathTokens: async (parent, _, context) =>
+    await requireAncestry(parent, context).then((d) => d.map((o) => o.name)),
+
   gradeContext: async (parent, _, context) => 'OOPS',
 
   mediaPagination: async () => {
@@ -102,4 +154,8 @@ export const areaResolvers: Resolvers['Area'] = {
         and(not(schema.entity.deleted), eq(schema.entity.entityType, 'climb')),
       )
       .then((d) => d[0].count),
+
+  content: async (parent, _, context) => ({
+    description: 'no description yet',
+  }),
 };

@@ -8,7 +8,7 @@ import { mediaResolvers } from './media';
 import Mutation from './mutations';
 import { organizationResolvers } from './organization';
 import Query from './query';
-import { tagResolvers } from './tag';
+import { entityTagResolvers } from './tag';
 import { tickResolvers } from './tick';
 import { userResolvers } from './user';
 
@@ -19,7 +19,7 @@ export const resolvers: Resolvers = {
   Organization: organizationResolvers,
   MediaWithTags: mediaResolvers,
   TickType: tickResolvers,
-  Tag: tagResolvers,
+  EntityTag: entityTagResolvers,
   AggregateType: aggregateTypeResolvers,
   GradeType: gradeResolvers,
   History: historyResolvers,
