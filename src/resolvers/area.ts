@@ -47,10 +47,10 @@ export const areaResolvers: Resolvers['Area'] = {
     const selection = parseResolveInfo(info);
     let leaf = false;
 
-    if ('leaf' in (selection?.fieldsByTypeName ?? {})) {
+    if ('leaf' in (selection?.fieldsByTypeName.AreaMetadata ?? {})) {
       leaf = await context
         .db
-        .select({ exists: exists(schema.entity.id) })
+        .select({ id: schema.entity.id })
         .from(
           schema.entity,
         )
@@ -65,7 +65,8 @@ export const areaResolvers: Resolvers['Area'] = {
             eq(schema.entity.entityType, 'area'),
           ),
         )
-        .then(([d]) => d.exists == true);
+        .limit(1)
+        .then((d) => d.length == 0);
     }
 
     return {
@@ -82,7 +83,7 @@ export const areaResolvers: Resolvers['Area'] = {
 
   media: async (parent, _, context) => context.repo.area.media(parent),
 
-  climbs: async (parent, _, context) =>
+  climbs: async (area, _, context) =>
     context
       .db
       .select({
@@ -90,10 +91,10 @@ export const areaResolvers: Resolvers['Area'] = {
         ...getTableColumns(schema.climb),
       })
       .from(schema.climb)
-      .innerJoin(schema.entity, eq(schema.entity.id, parent.id))
+      .innerJoin(schema.entity, eq(schema.entity.id, area.id))
       .where(
         and(
-          eq(schema.entity.parent, parent.id),
+          eq(schema.entity.parent, area.id),
           not(
             schema
               .entity
