@@ -1,4 +1,5 @@
 import {
+  geometry,
   integer,
   pgTable,
   text,
@@ -26,6 +27,7 @@ export const mediaTable = pgTable('media', {
   height: integer().notNull(),
   format: varchar({ length: 10 }).notNull(),
   size: integer().notNull(),
+  location: geometry('position', { mode: 'xy', srid: 4326 }),
 
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),

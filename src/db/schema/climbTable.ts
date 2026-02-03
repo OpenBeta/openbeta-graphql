@@ -1,6 +1,13 @@
 import { gte, sql } from 'drizzle-orm';
 import { check } from 'drizzle-orm/gel-core';
-import { integer, jsonb, pgEnum, pgTable, varchar } from 'drizzle-orm/pg-core';
+import {
+  geometry,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import { Constraint } from './constraints';
 import { entityCompositionColumns, entityTable } from './entitiy';
 import { disciplineEnum, gradeTable } from './gradeTable';
@@ -24,6 +31,7 @@ export const climbTable = pgTable('climb', {
   type: disciplineEnum().notNull(),
   safety: safetyEnum(),
   canonicalGrade: integer().references(() => gradeTable.id),
+  location: geometry('position', { mode: 'xy', srid: 4326 }),
 }, (table) => [
   check(
     Constraint.BoltCountPositive,
