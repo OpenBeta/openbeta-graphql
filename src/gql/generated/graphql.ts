@@ -1,8 +1,8 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import { PartiallyResolvedArea } from '../../resolvers/area';
-import { EntityTagRecord } from '../../resolvers/tag';
-import { ClimbPrimitive } from '../../beta/repo/climb';
+import { PartiallyResolvedClimb } from '../../resolvers/climb';
 import { MediaRecord } from '../../beta/repo/media';
+import { EntityTagRecord } from '../../resolvers/tag';
 import { Context } from '../../server/context';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -1814,7 +1814,7 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = ResolversObject<{
   Document:
     | ( PartiallyResolvedArea )
-    | ( ClimbPrimitive )
+    | ( PartiallyResolvedClimb )
     | ( Organization )
   ;
 }>;
@@ -1851,7 +1851,7 @@ export type ResolversTypes = ResolversObject<{
   BulkImportPitchesInput: BulkImportPitchesInput;
   BulkImportResult: ResolverTypeWrapper<Omit<BulkImportResult, 'addedAreas' | 'addedOrUpdatedClimbs' | 'updatedAreas'> & { addedAreas?: Maybe<Array<Maybe<ResolversTypes['Area']>>>, addedOrUpdatedClimbs?: Maybe<Array<Maybe<ResolversTypes['Climb']>>>, updatedAreas?: Maybe<Array<Maybe<ResolversTypes['Area']>>> }>;
   Change: ResolverTypeWrapper<Omit<Change, 'fullDocument'> & { fullDocument?: Maybe<ResolversTypes['Document']> }>;
-  Climb: ResolverTypeWrapper<ClimbPrimitive>;
+  Climb: ResolverTypeWrapper<PartiallyResolvedClimb>;
   ClimbMedia: ResolverTypeWrapper<Omit<ClimbMedia, 'mediaConnection'> & { mediaConnection: ResolversTypes['MediaConnection'] }>;
   ClimbMediaInput: ClimbMediaInput;
   ClimbMetadata: ResolverTypeWrapper<ClimbMetadata>;
@@ -1975,7 +1975,7 @@ export type ResolversParentTypes = ResolversObject<{
   BulkImportPitchesInput: BulkImportPitchesInput;
   BulkImportResult: Omit<BulkImportResult, 'addedAreas' | 'addedOrUpdatedClimbs' | 'updatedAreas'> & { addedAreas?: Maybe<Array<Maybe<ResolversParentTypes['Area']>>>, addedOrUpdatedClimbs?: Maybe<Array<Maybe<ResolversParentTypes['Climb']>>>, updatedAreas?: Maybe<Array<Maybe<ResolversParentTypes['Area']>>> };
   Change: Omit<Change, 'fullDocument'> & { fullDocument?: Maybe<ResolversParentTypes['Document']> };
-  Climb: ClimbPrimitive;
+  Climb: PartiallyResolvedClimb;
   ClimbMedia: Omit<ClimbMedia, 'mediaConnection'> & { mediaConnection: ResolversParentTypes['MediaConnection'] };
   ClimbMediaInput: ClimbMediaInput;
   ClimbMetadata: ClimbMetadata;

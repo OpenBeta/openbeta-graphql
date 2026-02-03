@@ -11,7 +11,7 @@ const config: CodegenConfig = {
         contextType: '../../server/context#Context',
         mappers: {
           Area: '../../resolvers/area#PartiallyResolvedArea',
-          Climb: '../../beta/repo/climb#ClimbPrimitive',
+          Climb: '../../resolvers/climb#PartiallyResolvedClimb',
           MediaWithTags: '../../beta/repo/media#MediaRecord',
           EntityTag: '../../resolvers/tag#EntityTagRecord',
         },

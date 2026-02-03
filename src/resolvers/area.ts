@@ -1,28 +1,18 @@
 import { QueryResolvers, Resolvers } from '@gql';
 import * as schema from '@schema';
+import { EntityId } from 'beta/entity_model';
+import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
 import { AreaPrimitive } from 'beta/repo/area';
 import { ancestors } from 'beta/repo/entity_cte';
 import { and, count, eq, exists, getTableColumns, not } from 'drizzle-orm';
 import { parseResolveInfo } from 'graphql-parse-resolve-info';
 import { Context } from 'server/context';
-
 import { UUIDTypes } from 'uuid';
+
 export type PartiallyResolvedArea =
   & AreaPrimitive
-  & Partial<{
-    __cachedLineage: { id: number; uuid: UUIDTypes; name: string | null }[];
-  }>;
+  & Partial<HasCacheableLineage>;
 
-async function requireAncestry(parent: PartiallyResolvedArea, ctx: Context) {
-  if (parent.__cachedLineage == undefined) {
-    parent.__cachedLineage = await ctx
-      .db
-      .execute(ancestors(ctx.db, parent.id))
-      .then((d) => d.rows as PartiallyResolvedArea['__cachedLineage']);
-  }
-
-  return parent.__cachedLineage!;
-}
 export const areaResolvers: Resolvers['Area'] = {
   id: async (parent) => parent.uuid,
   area_name: async (parent) => parent.name,
