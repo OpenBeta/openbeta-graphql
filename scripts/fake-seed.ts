@@ -48,7 +48,7 @@ const db = drizzle(process.env.DATABASE_URL!);
 
 export type GraphNode = {
   author: EntityId;
-  id: EntityId;
+  id: EntityId | string;
   name: string;
   type: 'area' | 'climb' | 'media' | 'content';
   children: GraphNode[];
@@ -61,6 +61,45 @@ export const graph: GraphNode = {
   type: 'area',
   children: [],
 };
+
+async function addMedia(forEntity: EntityId, node: GraphNode) {
+  const images = await db
+    .insert(schema.media)
+    .values(
+      range((Math.random() * 10) + 1).map((i) => {
+        const width = faker.number.int({ min: 1, max: 10 }) * 100;
+        const height = faker.number.int({ min: 1, max: 10 }) * 100;
+        const image = faker.image.url;
+
+        return {
+          author: choose(users).id,
+          mediaUrl: faker
+            .image
+            .url(),
+          width,
+          height,
+          format: 'jpg',
+          size: width * height,
+        };
+      }),
+    )
+    .returning();
+
+  // create tags for each created image
+  await db.insert(schema.tag).values(
+    images.map((i) => ({ mediaId: i.id, targetId: forEntity })),
+  );
+
+  for (const img of images) {
+    node.children.push({
+      id: `img-${img.id}`,
+      name: 'image',
+      type: 'media',
+      author: img.author,
+      children: [],
+    });
+  }
+}
 
 async function generateUsers(number: number) {
   return await db
@@ -153,7 +192,8 @@ async function buildAreaTree(countryData: ICountry) {
         })
         .then(async (child) => {
           log(`⛰️ Created area: ${child.name} with parent ${from.name}`);
-          const nextNode: GraphNode = { // FIX: Corrected nextNode creation to use `child` properties
+
+          const nextNode: GraphNode = {
             author: user.id,
             id: child.id,
             name: child.name,
@@ -161,6 +201,10 @@ async function buildAreaTree(countryData: ICountry) {
             type: 'area',
           };
           node.children.push(nextNode);
+
+          if (Math.random() > randomness / 2) {
+            await addMedia(child.id, node);
+          }
 
           // to create depths of various depths, we include some randomness
           // here in terms of early-exit

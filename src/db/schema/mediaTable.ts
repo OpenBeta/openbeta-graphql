@@ -12,6 +12,7 @@ export const mediaTable = pgTable('media', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid().notNull().defaultRandom().unique(),
   author: integer()
+    .notNull()
     .references(() => userTable.id, {
       onDelete: 'cascade',
     }),
