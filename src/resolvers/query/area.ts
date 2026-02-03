@@ -40,7 +40,7 @@ const query: Resolvers['Query'] = {
 
   areas: async (parent, args, context, info) => {
     let filters = [];
-    const child = alias(schema.area, 'child');
+    const child = alias(schema.entity, 'child');
 
     if (args.filter) {
       if (args.filter.area_name) {
@@ -53,6 +53,7 @@ const query: Resolvers['Query'] = {
         }
       }
 
+      const areaColumns = getTableColumns(schema.area);
       args.filter.field_compare?.forEach((field) => {
         const comparison = field?.comparison as string | undefined;
         const fieldName = field?.field as string | undefined;
@@ -61,9 +62,16 @@ const query: Resolvers['Query'] = {
           throw new Error('That does not look right, check field_compare');
         }
 
+        if (!(fieldName in areaColumns)) {
+           throw new Error(`Field ${fieldName} is not valid for filtering`);
+        }
+        
+        // @ts-ignore
+        const col = areaColumns[fieldName];
+
         filters.push(
           comparator[comparison](
-            sql.identifier(fieldName),
+            col,
             field?.num,
           ),
         );
@@ -94,15 +102,14 @@ const query: Resolvers['Query'] = {
         eq(schema.entity.id, schema.area.id),
       )
       .leftJoin(
-        schema.entity,
+        child,
         and(
           sql`${args.filter?.leaf_status?.isLeaf || false}`,
-          eq(schema.entity.parent, schema.area.id),
-          eq(schema.entity.entityType, 'area'),
+          eq(child.parent, schema.area.id),
+          eq(child.entityType, 'area'),
         ),
       )
-      .where(and(...filters))
-      .groupBy(schema.area.id);
+      .where(and(...filters));
   },
 
   bulkAreas: async (parent, args, context, info) => {
