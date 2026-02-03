@@ -91,7 +91,7 @@ export const areaResolvers: Resolvers['Area'] = {
         ...getTableColumns(schema.climb),
       })
       .from(schema.climb)
-      .innerJoin(schema.entity, eq(schema.entity.id, area.id))
+      .innerJoin(schema.entity, eq(schema.entity.id, schema.climb.id))
       .where(
         and(
           eq(schema.entity.parent, area.id),
