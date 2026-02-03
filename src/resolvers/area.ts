@@ -75,8 +75,8 @@ export const areaResolvers: Resolvers['Area'] = {
       isDestination: parent.isDestination,
       mp_id: '',
       leftRightIndex: 0,
-      lat: 0.0,
-      lng: 0.0,
+      lat: parent.location?.x,
+      lng: parent.location?.y,
     };
   },
 
