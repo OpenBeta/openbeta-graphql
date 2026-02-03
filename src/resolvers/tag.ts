@@ -62,6 +62,6 @@ export const entityTagResolvers: Resolvers['EntityTag'] = {
   },
 
   ancestors: async (parent) => {
-    throw new Error('NOT Implemented');
+    return 'no ancestor data';
   },
 };

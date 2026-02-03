@@ -247,15 +247,23 @@ export abstract class EntityRepository<
   }
 
   async media(ent: EntityAddressable): Promise<MediaRecord[]> {
+    // All media in this box, and all of its descendants media
     return await this
       .db
       .select({ ...getTableColumns(schema.media) })
-      .from(schema.tag)
-      .innerJoin(schema.media, eq(schema.media.id, schema.tag.mediaId))
+      .from(schema.entityAncestors)
       .innerJoin(
-        this.table as AnyPgTable,
-        eq(this.table.id, schema.tag.targetId),
+        schema.tag,
+        eq(schema.tag.targetId, schema.entityAncestors.entityId),
       )
-      .where(eq(schema.tag.targetId, await this.collapseAddressable(ent)));
+      .innerJoin(schema.media, eq(schema.media.id, schema.tag.mediaId))
+      .where(
+        eq(
+          schema.entityAncestors.ancestorId,
+          await this.collapseAddressable(ent),
+        ),
+      )
+      .groupBy(schema.media.id)
+      .limit(100);
   }
 }
