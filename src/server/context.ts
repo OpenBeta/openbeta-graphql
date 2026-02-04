@@ -24,8 +24,8 @@ export async function context(
     db: __db,
     actor: null,
     repo: {
-      area: new AreaRepo(__db, null),
-      climb: new ClimbRepo(__db, null),
+      area: new AreaRepo(__db),
+      climb: new ClimbRepo(__db),
     },
   };
 }

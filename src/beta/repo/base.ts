@@ -10,7 +10,6 @@ import {
   SQLChunk,
 } from 'drizzle-orm';
 import { AnyPgTable, PgUpdateSetSource } from 'drizzle-orm/pg-core';
-import { printError } from 'graphql';
 import { Actor, ActorError } from '../actor';
 import {
   EntityAddressable,
@@ -18,29 +17,9 @@ import {
   EntityIdentifiable,
   EntityRecord,
 } from '../entity_model';
+import { createEntity } from './creationLogic';
+import { collapseAddressable, matchOnAddressable } from './entityTools';
 import { MediaRecord } from './media';
-
-function matchOnAddressable(ent: EntityAddressable) {
-  if (typeof ent == 'number') {
-    return eq(entity.id, ent);
-  }
-
-  if (typeof ent == 'string') {
-    return eq(entity.uuid, ent);
-  }
-
-  if (typeof ent === 'object' && 'id' in ent) {
-    return matchOnAddressable(ent.id);
-  }
-
-  if (typeof ent === 'object' && 'uuid' in ent) {
-    return matchOnAddressable(ent.uuid as any);
-  }
-
-  throw new Error(
-    `we don't have a code path to collapse < ${ent} > into an sql match clause`,
-  );
-}
 
 /**
 The repository model is intended to reinforce the consistency of a handful of
@@ -68,126 +47,33 @@ export abstract class EntityRepository<
   abstract readonly kind: EntityKind;
   abstract readonly table: EntTable;
   private readonly db: Transaction | Database;
-  private readonly actor: Actor | null;
 
   constructor(
     db: Transaction | Database,
-    actor: Actor | null,
   ) {
     this.db = db;
-    this.actor = actor;
   }
 
-  /**
-  Sometimes, though not necessarily always, you may want to forward some
-  fields directly from the entity creation request into the backing
-  `entity` table. in this instance, you can extend this function in your
-  subclass such that any fields you like can be forwarded to the entity
-  reification.
-
-  Note than under no circumstances should you be trying to set an id
-  or an entity type here, the id is supposed to be generated and the entity
-  type is supposed to be contextually locked.
-  */
-  captureBaseFields(
-    from: EntCreation,
-  ): Partial<Omit<EntityRecord, 'entityType'>> {
-    if ('name' in from) {
-      return {
-        name: from['name'] as string,
-      };
-    }
-
-    return {};
-  }
-
-  abstract mapJoinedToCombined(
-    result: { entity: EntityRecord; parts: EntSelection },
-  ): Ent;
-
-  private requireActor(): Actor {
-    if (this.actor == null) {
-      throw new Error('You MUST be logged in and authenticated to do this');
-    }
-
-    return this.actor;
-  }
-
-  private async collapseAddressable(ent: EntityAddressable): Promise<EntityId> {
-    if (typeof ent == 'number') {
-      return ent;
-    }
-
-    if (typeof ent === 'object' && 'id' in ent) {
-      return ent.id;
-    }
-
-    return await this.get(ent).then((d) => d.id);
-  }
-
-  async create(data: EntCreation): Promise<Ent> {
-    // if there were any constraints you wanted to check here that are infeasible for
-    // our sql engine they could go nicely here in your subclassing.
-    const columns: SQLChunk[] = [];
-    const values: SQLChunk[] = [];
-    const entityColumns = [
-      entity.entityType,
-      entity.name,
-      entity.parent,
-    ]
-      .map((
-        col,
-      ) => sql.identifier(col.name));
-
-    //
-    columns.push(sql.identifier(this.table.id.name));
-    values.push(sql`"reify_entity"."id"`);
-
-    const tableColumns = getTableColumns(this.table);
-
-    for (const columnKey in tableColumns) {
-      if (columnKey in data && data[columnKey] !== undefined) {
-        // @ts-ignore
-        const colName = tableColumns[columnKey].name;
-        columns.push(sql.identifier(colName));
-        
-        const val = data[columnKey] as any;
-        if (colName === 'position' && typeof val === 'object' && val !== null && 'x' in val && 'y' in val) {
-             values.push(sql`${JSON.stringify({ type: 'Point', coordinates: [val.x, val.y] })}`);
-        } else {
-             values.push(sql`${val}`);
-        }
-      }
-    }
-
-    if (data.parent === undefined || data.parent === null) {
-      throw new Error(
-        'For now, we are assuming that entities must have parents',
-      );
-    }
-
-    const query = sql`
-      with reify_entity as (
-        insert into "entity" ${entityColumns}
-        values (${this.kind}, ${data.name}, ${data.parent})
-        returning id
-      ),
-      insert_extra as (insert into ${this.table} ${columns}
-      select ${sql.join(values, sql`, `)} from "reify_entity"
-      )
-      select * from reify_entity
-    `;
-
-    let reified = await this.db.execute<Pick<EntSelection, 'id'>>(query);
-
-    return await this.get({ id: reified.rows[0].id as EntityId });
+  async create(
+    actor: Actor,
+    data: EntCreation,
+  ): Promise<Ent> {
+    const reifiedId = await createEntity<EntCreation, EntTable>(
+      this.db,
+      this.table,
+      this.kind,
+      actor,
+      data,
+    );
+    return await this.get(reifiedId);
   }
 
   async update(
+    actor: Actor,
     ent: EntityAddressable,
     changes: PgUpdateSetSource<EntTable>,
   ): Promise<void> {
-    if (!await this.requireActor().mayEdit(ent)) {
+    if (!await actor.mayEdit(ent)) {
       throw new ActorError(
         `This user is not permitted to alter this entity`,
       );
@@ -206,33 +92,35 @@ export abstract class EntityRepository<
   }
 
   async get(ent: EntityAddressable): Promise<Ent> {
-    return this.mapJoinedToCombined(
-      await this
-        .db
-        .select({
-          entity: entityTable,
-          parts: this.table,
-        })
-        .from(entityTable)
-        .innerJoin(
-          this.table as AnyPgTable,
-          eq(entityTable.id, this.table.id),
-        )
-        .where(matchOnAddressable(ent))
-        .limit(1)
-        .then(([r]) => {
-          if (!r) {
-            throw new Error(
-              `The database did not resolve an entity for ${ent} (${typeof ent})`,
-            );
-          }
-          return r;
-        }),
-    );
+    return await this
+      .db
+      .select({
+        ...getTableColumns(schema.entity),
+        ...getTableColumns(this.table),
+      })
+      .from(entityTable)
+      .innerJoin(
+        this.table as AnyPgTable,
+        eq(entityTable.id, this.table.id),
+      )
+      .where(matchOnAddressable(ent))
+      .limit(1)
+      .then(([r]) => {
+        if (!r) {
+          throw new Error(
+            `The database did not resolve an entity for ${ent} (${typeof ent})`,
+          );
+        }
+        return r as Ent;
+      });
   }
 
-  async setLock(ent: EntityAddressable, locked: boolean): Promise<void> {
-    if (!await this.requireActor().maySetLock(ent)) {
+  async setLock(
+    actor: Actor,
+    ent: EntityAddressable,
+    locked: boolean,
+  ): Promise<void> {
+    if (!await actor.maySetLock(ent)) {
       throw new ActorError(
         `This user is not permitted to set lock-state of entity`,
       );
@@ -242,6 +130,7 @@ export abstract class EntityRepository<
   }
 
   async setParent(
+    actor: Actor,
     ent: EntityAddressable,
     parent: EntityAddressable,
   ): Promise<void> {
@@ -270,7 +159,7 @@ export abstract class EntityRepository<
       .where(
         eq(
           schema.entityAncestors.ancestorId,
-          await this.collapseAddressable(ent),
+          await collapseAddressable(this.db, ent),
         ),
       )
       .groupBy(schema.media.id)

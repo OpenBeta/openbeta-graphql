@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 import { faker } from '@faker-js/faker';
 import * as schema from '@schema';
-import { feature, polygon } from '@turf/turf';
 import * as turf from '@turf/turf';
 import { range } from '__tests__/faker';
 import { initializeGradeSystemsInDatabase } from '__tests__/faker/seed';
@@ -88,7 +87,7 @@ async function addMedia(
 
 async function addContent(forEntity: EntityId, node: GraphNode) {
   let user = choose(users);
-  const desc = await new ContentRepo(db, user).create({
+  const desc = await new ContentRepo(db).create(user, {
     parent: forEntity,
     name: 'description',
     text: faker.lorem.paragraph(),
@@ -103,7 +102,7 @@ async function addContent(forEntity: EntityId, node: GraphNode) {
   });
 
   if (Math.random() > 0.5) {
-    const location = await new ContentRepo(db, user).create({
+    const location = await new ContentRepo(db).create(user, {
       parent: forEntity,
       name: 'location',
       text: faker.lorem.paragraph(),
@@ -119,7 +118,7 @@ async function addContent(forEntity: EntityId, node: GraphNode) {
   }
 
   if (Math.random() > 0.5) {
-    const protection = await new ContentRepo(db, user).create({
+    const protection = await new ContentRepo(db).create(user, {
       parent: forEntity,
       name: 'protection',
       text: faker.lorem.paragraph(),
@@ -209,7 +208,7 @@ async function buildAreaTree(
 
     for (const subRegion of subdivisions) {
       const user = choose(users);
-      const repo = new AreaRepo(db, user);
+      const repo = new AreaRepo(db);
       if (from.location === null) throw new Error('MISSING LOCATION ON PARENT');
       const nextLocation = generateRandomPointsInPolygon(subRegion, 1)
         .features
@@ -222,7 +221,7 @@ async function buildAreaTree(
       if (!nextLocation) continue;
 
       await repo
-        .create({
+        .create(user, {
           name: faker.food.adjective() + ' ' + faker.food.ingredient(),
           parent: from.id,
           location: { x: nextLocation[0], y: nextLocation[1] },
@@ -282,11 +281,11 @@ async function addClimbs(
 ) {
   for (const _ in range(1 + (Math.random() * argv.bredth))) {
     let user = choose(users);
-    let repo = new ClimbRepo(db, user);
+    let repo = new ClimbRepo(db);
     let climbType = choose(schema.enums.Discipline.enumValues);
 
     await repo
-      .create({
+      .create(user, {
         parent: area,
         name: faker.animal.petName(),
         fa: faker.person.fullName(),

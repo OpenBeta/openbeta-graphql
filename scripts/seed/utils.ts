@@ -9,7 +9,7 @@ import {
 } from '@turf/turf';
 import { range } from '__tests__/faker';
 import { Actor } from 'beta/actor';
-import { EntityAddressable } from 'beta/entity_model';
+import { EntityAddressable, EntityStructure } from 'beta/entity_model';
 import { countries, TCountryCode } from 'countries-list';
 import { InferSelectModel } from 'drizzle-orm';
 import { Feature, FeatureCollection, Polygon } from 'geojson';
@@ -216,6 +216,9 @@ class SeedingActor implements Actor {
     return true;
   }
   async maySetLock(ent: EntityAddressable) {
+    return true;
+  }
+  async mayCreate(ent: EntityStructure) {
     return true;
   }
 }

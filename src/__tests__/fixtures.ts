@@ -27,8 +27,8 @@ export const test = base.extend<TestFixtures>({
       db,
       actor: testActor,
       repo: {
-        area: new AreaRepo(db, testActor),
-        climb: new ClimbRepo(db, testActor),
+        area: new AreaRepo(db),
+        climb: new ClimbRepo(db),
       },
     };
     await use(testContext);
@@ -43,7 +43,7 @@ export const test = base.extend<TestFixtures>({
   },
 
   areaRepo: async ({ db, testContext }, use) => {
-    await use(new AreaRepo(db, null));
+    await use(new AreaRepo(db));
   },
 });
 
