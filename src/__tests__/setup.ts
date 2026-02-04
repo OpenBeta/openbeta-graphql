@@ -1,11 +1,11 @@
 import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
 import * as schema from '@schema';
 import { Database } from '@schema';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
 
 // Single pool for test connections
-const testDatabaseUrl = process.env.TEST_DATABASE_URL 
+const testDatabaseUrl = process.env.TEST_DATABASE_URL
   || process.env.DATABASE_URL;
 
 if (!testDatabaseUrl) {

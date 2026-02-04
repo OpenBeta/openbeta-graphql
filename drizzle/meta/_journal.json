@@ -64,6 +64,13 @@
       "when": 1770228819626,
       "tag": "0008_goofy_monster_badoon",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1770233555180,
+      "tag": "0009_polite_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }

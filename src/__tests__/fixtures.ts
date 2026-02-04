@@ -36,7 +36,7 @@ export const test = base.extend<TestFixtures>({
         email: faker.internet.email(),
       })
       .returning();
-    
+
     await use(new TestActor(testUser));
   },
 
@@ -72,23 +72,23 @@ export const test = base.extend<TestFixtures>({
     const countryName = faker.location.country();
     const [entityRow] = await db
       .insert(schema.entity)
-      .values({ 
-        entityType: 'area', 
-        name: countryName 
+      .values({
+        entityType: 'area',
+        name: countryName,
       })
       .returning();
 
     const [areaRow] = await db
       .insert(schema.area)
-      .values({ 
-        id: entityRow.id, 
-        name: countryName
+      .values({
+        id: entityRow.id,
+        name: countryName,
       })
       .returning();
 
-    const fullCountry = { 
-      ...entityRow, 
-      ...areaRow 
+    const fullCountry = {
+      ...entityRow,
+      ...areaRow,
     } as AreaPrimitive;
 
     await use(fullCountry);

@@ -1,8 +1,8 @@
 import 'dotenv/config';
-import { Pool } from 'pg';
+import * as schema from '@schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-import * as schema from '@schema';
+import { Pool } from 'pg';
 import { initializeGradeSystemsInDatabase } from './faker/seed';
 
 export async function setup() {
@@ -18,7 +18,7 @@ export async function setup() {
 
   // Create a new database connection pool
   const pool = new Pool({
-    connectionString: testDatabaseUrl
+    connectionString: testDatabaseUrl,
   });
 
   try {

@@ -1,5 +1,5 @@
-import { test, expect } from '../fixtures';
 import { faker } from '@faker-js/faker';
+import { expect, test } from '../fixtures';
 
 test('Climb Repository: Create', async ({ climbRepo, actor, country }) => {
   const newClimb = {
@@ -13,12 +13,12 @@ test('Climb Repository: Create', async ({ climbRepo, actor, country }) => {
     safety: 'PG' as const,
     location: {
       x: faker.location.latitude(),
-      y: faker.location.longitude()
-    }
+      y: faker.location.longitude(),
+    },
   };
 
   const createdClimb = await climbRepo.create(actor, {
-    name: newClimb.name, 
+    name: newClimb.name,
     parent: newClimb.parent,
     type: newClimb.type,
     length: newClimb.length,
@@ -26,7 +26,7 @@ test('Climb Repository: Create', async ({ climbRepo, actor, country }) => {
     boltsCount: newClimb.boltsCount,
     fa: newClimb.fa,
     safety: newClimb.safety,
-    location: newClimb.location
+    location: newClimb.location,
   });
 
   expect(createdClimb).toBeDefined();
@@ -46,12 +46,12 @@ test('Climb Repository: Read', async ({ climbRepo, actor, country }) => {
     safety: 'PG' as const,
     location: {
       x: faker.location.latitude(),
-      y: faker.location.longitude()
-    }
+      y: faker.location.longitude(),
+    },
   };
 
   const createdClimb = await climbRepo.create(actor, {
-    name: newClimb.name, 
+    name: newClimb.name,
     parent: newClimb.parent,
     type: newClimb.type,
     length: newClimb.length,
@@ -59,7 +59,7 @@ test('Climb Repository: Read', async ({ climbRepo, actor, country }) => {
     boltsCount: newClimb.boltsCount,
     fa: newClimb.fa,
     safety: newClimb.safety,
-    location: newClimb.location
+    location: newClimb.location,
   });
 
   const foundClimb = await climbRepo.get(createdClimb);
@@ -79,12 +79,12 @@ test('Climb Repository: Update', async ({ climbRepo, actor, country }) => {
     safety: 'PG' as const,
     location: {
       x: faker.location.latitude(),
-      y: faker.location.longitude()
-    }
+      y: faker.location.longitude(),
+    },
   };
 
   const createdClimb = await climbRepo.create(actor, {
-    name: newClimb.name, 
+    name: newClimb.name,
     parent: newClimb.parent,
     type: newClimb.type,
     length: newClimb.length,
@@ -92,7 +92,7 @@ test('Climb Repository: Update', async ({ climbRepo, actor, country }) => {
     boltsCount: newClimb.boltsCount,
     fa: newClimb.fa,
     safety: newClimb.safety,
-    location: newClimb.location
+    location: newClimb.location,
   });
 
   const updatedClimbName = faker.lorem.word();
@@ -113,12 +113,12 @@ test('Climb Repository: Soft Delete', async ({ climbRepo, actor, country }) => {
     safety: 'PG' as const,
     location: {
       x: faker.location.latitude(),
-      y: faker.location.longitude()
-    }
+      y: faker.location.longitude(),
+    },
   };
 
   const createdClimb = await climbRepo.create(actor, {
-    name: newClimb.name, 
+    name: newClimb.name,
     parent: newClimb.parent,
     type: newClimb.type,
     length: newClimb.length,
@@ -126,7 +126,7 @@ test('Climb Repository: Soft Delete', async ({ climbRepo, actor, country }) => {
     boltsCount: newClimb.boltsCount,
     fa: newClimb.fa,
     safety: newClimb.safety,
-    location: newClimb.location
+    location: newClimb.location,
   });
 
   await climbRepo.softDelete(actor, createdClimb);
@@ -146,12 +146,12 @@ test('Climb Repository: Undelete', async ({ climbRepo, actor, country }) => {
     safety: 'PG' as const,
     location: {
       x: faker.location.latitude(),
-      y: faker.location.longitude()
-    }
+      y: faker.location.longitude(),
+    },
   };
 
   const createdClimb = await climbRepo.create(actor, {
-    name: newClimb.name, 
+    name: newClimb.name,
     parent: newClimb.parent,
     type: newClimb.type,
     length: newClimb.length,
@@ -159,7 +159,7 @@ test('Climb Repository: Undelete', async ({ climbRepo, actor, country }) => {
     boltsCount: newClimb.boltsCount,
     fa: newClimb.fa,
     safety: newClimb.safety,
-    location: newClimb.location
+    location: newClimb.location,
   });
 
   await climbRepo.softDelete(actor, createdClimb);
