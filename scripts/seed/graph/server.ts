@@ -8,21 +8,19 @@ export type GraphNode = {
 };
 
 export function graphServer(port: number, graph: GraphNode) {
-  // @ts-ignore
   Bun.serve({
     port: port,
-    // @ts-ignore
     fetch(request) {
       const url = new URL(request.url);
 
       if (url.pathname === '/') {
-        // @ts-ignore
         return new Response(Bun.file('./scripts/seed/graph/index.html'));
       }
 
       if (url.pathname === '/seed-graph-client.js') {
-        // @ts-ignore
-        return new Response(Bun.file('./scripts/seed/seed-graph-client.js'));
+        return new Response(
+          Bun.file('./scripts/seed/graph/seed-graph-client.js'),
+        );
       }
 
       if (url.pathname === '/graph-data') {

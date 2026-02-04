@@ -15,6 +15,7 @@ let typeData = {
   'area': { charge: -1000, color: '#ee5253', size: 7 },
   'climb': { charge: -500, color: '#f368e0', size: 5 },
   'media': { charge: -500, color: '#00d2d3', size: 3 },
+  'content': { charge: -500, color: '#ecf0f1', size: 3 },
   'user': { charge: -200, color: '#54a0ff', size: 7 },
   'world': { charge: -20_000, color: '#1dd1a1', size: 15 },
 };
@@ -150,7 +151,7 @@ function updateGraph(graphData) {
         const sourceNodeType = nodeTypeMap.get(d.source.id);
         const targetNodeType = nodeTypeMap.get(d.target.id);
         if (sourceNodeType === 'user' || targetNodeType === 'user') {
-          return 0.01;
+          return 0.05;
         } else if (sourceNodeType === 'world' || targetNodeType === 'world') {
           return 0.35; // Weaker strength for world connections
         }

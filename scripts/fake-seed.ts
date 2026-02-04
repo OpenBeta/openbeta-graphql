@@ -86,25 +86,50 @@ async function addMedia(
   }
 }
 
-async function addContent(forEntity: EntityId) {
-  new ContentRepo(db, choose(users)).create({
+async function addContent(forEntity: EntityId, node: GraphNode) {
+  let user = choose(users);
+  const desc = await new ContentRepo(db, user).create({
     parent: forEntity,
-    name: 'Description',
+    name: 'description',
     text: faker.lorem.paragraph(),
   });
+
+  node.children.push({
+    id: desc.id,
+    type: 'content',
+    author: user.id,
+    name: 'content',
+    children: [],
+  });
+
   if (Math.random() > 0.5) {
-    new ContentRepo(db, choose(users)).create({
+    const location = await new ContentRepo(db, user).create({
       parent: forEntity,
-      name: 'Location',
+      name: 'location',
       text: faker.lorem.paragraph(),
+    });
+
+    node.children.push({
+      id: location.id,
+      type: 'content',
+      author: user.id,
+      name: 'location',
+      children: [],
     });
   }
 
   if (Math.random() > 0.5) {
-    new ContentRepo(db, choose(users)).create({
+    const protection = await new ContentRepo(db, user).create({
       parent: forEntity,
-      name: 'Protection',
+      name: 'protection',
       text: faker.lorem.paragraph(),
+    });
+    node.children.push({
+      id: protection.id,
+      type: 'content',
+      author: user.id,
+      name: 'protection',
+      children: [],
     });
   }
 }
@@ -172,7 +197,7 @@ async function buildAreaTree(
   const [country, countryNode] = await prepCountry(countryData, countryCode);
 
   async function branch(
-    node: GraphNode,
+    fromNode: GraphNode,
     from: AreaSelect,
     currentDepth: number,
     locationIn: Polygon,
@@ -204,35 +229,40 @@ async function buildAreaTree(
         })
         .then(async (child) => {
           log(`⛰️ Created area: ${child.name} with parent ${from.name}`);
-          const nextNode: GraphNode = {
+          const childNode: GraphNode = {
             author: user.id,
             id: child.id,
             name: child.name,
             children: [],
             type: 'area',
           };
-          node.children.push(nextNode);
+          fromNode.children.push(childNode);
           if (Math.random() > argv.randomness / 2) {
-            await addMedia(child.id, 'area', node);
+            await addMedia(child.id, 'area', childNode);
           }
 
-          if (Math.random() > 0.5) {
-            await addContent(child.id);
+          if (Math.random() > 0.2) {
+            await addContent(child.id, childNode);
           }
 
           // to create depths of various depths, we include some randomness
           // here in terms of early-exit
-          if (Math.random() > argv.randomness) return;
+          if (Math.random() > 0.2) {
+            return await addClimbs(childNode, child.id, {
+              x: nextLocation[0],
+              y: nextLocation[1],
+            });
+          }
 
           if (turf.area(subRegion) > 1000 && currentDepth < argv.depth) {
             await branch(
-              nextNode,
+              childNode,
               child,
               currentDepth + 1,
               subRegion,
             );
           } else {
-            return await addClimbs(nextNode, child.id, {
+            return await addClimbs(childNode, child.id, {
               x: nextLocation[0],
               y: nextLocation[1],
             });
@@ -250,10 +280,11 @@ async function addClimbs(
   area: EntityId,
   location: { x: number; y: number },
 ) {
-  for (const _ in range(Math.random() * argv.bredth)) {
+  for (const _ in range(1 + (Math.random() * argv.bredth))) {
     let user = choose(users);
     let repo = new ClimbRepo(db, user);
     let climbType = choose(schema.enums.Discipline.enumValues);
+
     await repo
       .create({
         parent: area,
@@ -272,16 +303,16 @@ async function addClimbs(
       })
       .then(async (climb) => {
         log(`🧗 Created climb: ${climb.name} in area ${area}`);
-        const nextNode: GraphNode = {
+        const childNode: GraphNode = {
           ...climb,
           author: user.id,
           name: climb.name,
           children: [],
           type: 'climb',
         };
-        node.children.push(nextNode);
-        await addContent(climb.id);
-        await addMedia(climb.id, 'climb', nextNode);
+        node.children.push(childNode);
+        await addContent(climb.id, childNode);
+        await addMedia(climb.id, 'climb', childNode);
       })
       .catch(console.error);
   }
