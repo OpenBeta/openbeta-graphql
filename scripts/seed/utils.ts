@@ -74,7 +74,7 @@ export const argv = yargs(hideBin(process.argv))
   .option('initial-scatter-radius', {
     describe: 'Initial scatter radius for area generation (km)',
     type: 'number',
-    default: 100,
+    default: 10,
     alias: 's',
   })
   .help('help')
@@ -136,10 +136,14 @@ export function getPointNearby(
       Math.cos(r) - Math.sin(lat1) * Math.sin(lat2),
     );
 
-  return {
+  const res = {
     x: (lon2 * 180) / Math.PI,
     y: (lat2 * 180) / Math.PI,
   };
+
+  if (!res.x || !res.y) throw new Error('Bad nearby point');
+
+  return res;
 }
 
 /**
@@ -156,7 +160,7 @@ export async function ensureCentroids(
   for (const feature of data.features) {
     if (feature.properties.iso_a3) {
       const center = turf.centerOfMass(feature);
-      countryCentroids[feature.properties.iso_a3] = {
+      countryCentroids[feature.properties.iso_a2] = {
         x: center.geometry.coordinates[0],
         y: center.geometry.coordinates[1],
       };

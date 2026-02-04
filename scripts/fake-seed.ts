@@ -1,12 +1,8 @@
 #!/usr/bin/env bun
 import { faker } from '@faker-js/faker';
 import * as schema from '@schema';
-import * as turf from '@turf/turf';
 import { range } from '__tests__/faker';
-import {
-  initializeGradeSystemsInDatabase,
-  TestActor,
-} from '__tests__/faker/seed';
+import { initializeGradeSystemsInDatabase } from '__tests__/faker/seed';
 import { EntityId } from 'beta/entity_model';
 import { AreaRepo } from 'beta/repo/area';
 import { ClimbRepo } from 'beta/repo/climb';
@@ -14,10 +10,9 @@ import { ContentRepo } from 'beta/repo/content';
 import { countries, ICountry, TCountryCode } from 'countries-list';
 import { InferSelectModel } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { readFile } from 'node:fs/promises';
 import ora from 'ora';
-import { GraphNode, graphServer } from '../srcipts/seed/graph/server';
-import { mapServer } from '../srcipts/seed/map/server';
+import { GraphNode, graphServer } from './seed/graph/server';
+import { mapServer } from './seed/map/server';
 import {
   argv,
   choose,
@@ -26,7 +21,7 @@ import {
   log,
   makeUsers,
 } from './seed/utils';
-let countryCentroids: Record<string, { x: number; y: number }> = {};
+
 // in open-tacos the UI seems hardcoded to reach out to the USA as default,
 // for now, we will set this up for at least one country
 let arbitraryHardCoding: string | undefined =
@@ -107,7 +102,10 @@ async function addContent(forEntity: EntityId) {
   }
 }
 
-async function buildAreaTree(countryData: ICountry, countryCode: string) {
+async function buildAreaTree(
+  countryData: ICountry & { location: { x: number; y: number } },
+  countryCode: string,
+) {
   type AreaSelect = InferSelectModel<typeof schema.area>;
   const maxDepth = argv.depth;
   if (skipCountries.includes(countryData.name)) {
@@ -120,7 +118,8 @@ async function buildAreaTree(countryData: ICountry, countryCode: string) {
     arbitraryHardCoding = undefined;
   }
 
-  const startLoc = countryCentroids[countryCode] || countryCentroids['US'];
+  if (!countryData.location) throw new Error('Country is missing a centroid');
+
   async function entityReify(entityType: schema.EntityKind, name?: string) {
     return await db
       .insert(schema.entity)
@@ -139,18 +138,21 @@ async function buildAreaTree(countryData: ICountry, countryCode: string) {
     .values({
       name: countryData.name,
       id: await entityReify('area', countryData.name),
-      location: startLoc,
+      location: countryData.location,
       ...extra,
     })
     .returning();
+
   const countryNode: GraphNode = {
     ...country,
     author: -1,
     children: [],
     type: 'area',
   };
+
   graph.children.push(countryNode);
   log(`Added country node: ${country.name}`);
+
   async function branch(
     node: GraphNode,
     from: AreaSelect,
@@ -160,17 +162,18 @@ async function buildAreaTree(countryData: ICountry, countryCode: string) {
     for (const _ in range(Math.floor(Math.random() * argv.bredth))) {
       const user = choose(users);
       const repo = new AreaRepo(db, user);
-      const parentLoc = from.location as { x: number; y: number } | null;
-      const myLoc = parentLoc
-        ? (currentDepth === 0
-          ? getPointNearby(parentLoc, 1, argv['initial-scatter-radius'])
-          : getPointNearby(parentLoc, 1, 10))
-        : { x: 0, y: 0 };
+      if (from.location === null) throw new Error('MISSING LOCATION ON PARENT');
+      const nextLocation = getPointNearby(
+        from.location,
+        1,
+        argv['initial-scatter-radius'],
+      );
+
       await repo
         .create({
           name: faker.food.adjective() + ' ' + faker.food.ingredient(),
           parent: from.id,
-          location: myLoc,
+          location: nextLocation,
         })
         .then(async (child) => {
           log(`⛰️ Created area: ${child.name} with parent ${from.name}`);
@@ -195,7 +198,7 @@ async function buildAreaTree(countryData: ICountry, countryCode: string) {
           if (Math.random() > argv.randomness) return;
           // always stop if we exceed the max depth
           if (currentDepth >= argv.depth) {
-            await addClimbs(nextNode, child.id, myLoc);
+            await addClimbs(nextNode, child.id, nextLocation);
             return;
           }
 
@@ -258,7 +261,8 @@ async function addClimbs(
 async function main() {
   await initializeGradeSystemsInDatabase(db);
   log('Initialized grade systems in database.');
-  await ensureCentroids();
+  const countryCentroids = await ensureCentroids();
+
   if (argv.graph) {
     graphServer(argv.port, graph);
   } else if (argv.map) {
@@ -283,7 +287,11 @@ async function main() {
     const country = countries[countryCode as TCountryCode];
     log(`Building area tree for country: ${country.name}`);
     const spinner = ora(`🌱 Seeding ${country.name}...`).start();
-    await buildAreaTree(country, countryCode)
+
+    await buildAreaTree(
+      { ...country, location: countryCentroids[countryCode] },
+      countryCode,
+    )
       .then(() =>
         spinner.succeed(
           `Finished ${country.name} ${choose(['🌳', '🌲', '🪴', '🌿', '🌵'])}`,
