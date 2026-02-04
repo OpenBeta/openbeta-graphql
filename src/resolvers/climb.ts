@@ -1,4 +1,5 @@
 import { Resolvers } from '@gql';
+import { resolveContent } from 'beta/contentResolvers';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
 import { ClimbPrimitive } from 'beta/repo/climb';
 
@@ -14,14 +15,6 @@ export const climbResolvers: Resolvers['Climb'] = {
       climb_id: parent.uuid,
     };
   },
-  content: async (parent, _, context) => {
-    return {
-      description: '',
-      location: '',
-      protection: '',
-    };
-  },
-  media: async (parent, _, context) => context.repo.area.media(parent),
   ancestors: async (parent, _, context) =>
     await requireAncestry(parent, context).then((d) =>
       d.map((o) => String(o.uuid))
@@ -33,6 +26,8 @@ export const climbResolvers: Resolvers['Climb'] = {
     ),
 
   parent: async (parent, _, context) => context.repo.area.get(parent.parent!),
+  content: resolveContent('Content'),
+  media: async (parent, _, context) => context.repo.area.media(parent),
 
   authorMetadata: async () => {
     // Author metadata will have common implementation for all entities

@@ -1,6 +1,9 @@
 import * as schema from '@schema';
 import { and, eq, inArray } from 'drizzle-orm';
-import { EntityId } from './entity_model';
+import { GraphQLResolveInfo } from 'graphql';
+import { parseResolveInfo } from 'graphql-parse-resolve-info';
+import { Context } from 'server/context';
+import { EntityId, EntityIdentifiable } from './entity_model';
 
 export async function contentByTag(
   db: schema.Database,
@@ -30,4 +33,27 @@ export async function contentByTag(
     );
 
   return simpleContentMap;
+}
+
+export function resolveContent<T extends EntityIdentifiable>(field: string) {
+  async function resolver(
+    parent: T,
+    _: unknown,
+    context: Context,
+    info: GraphQLResolveInfo,
+  ) {
+    const selection = parseResolveInfo(info);
+    // The user may have requested multiple content types
+    // and we'll selectively resolve them.
+    const requestedFields = selection?.fieldsByTypeName[field];
+    if (!requestedFields) return {};
+
+    return await contentByTag(
+      context.db,
+      parent.id,
+      Object.keys(requestedFields),
+    );
+  }
+
+  return resolver;
 }

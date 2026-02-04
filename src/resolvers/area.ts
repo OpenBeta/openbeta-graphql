@@ -1,6 +1,6 @@
 import { QueryResolvers, Resolvers } from '@gql';
 import * as schema from '@schema';
-import { contentByTag } from 'beta/contentResolvers';
+import { contentByTag, resolveContent } from 'beta/contentResolvers';
 import { EntityId } from 'beta/entity_model';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
 import { AreaPrimitive } from 'beta/repo/area';
@@ -147,17 +147,5 @@ export const areaResolvers: Resolvers['Area'] = {
       )
       .then((d) => d[0].count),
 
-  content: async (parent, _, context, info) => {
-    const selection = parseResolveInfo(info);
-    // The user may have requested multiple content types
-    // and we'll selectively resolve them.
-    const requestedFields = selection?.fieldsByTypeName.AreaContent;
-    if (!requestedFields) return {};
-
-    return await contentByTag(
-      context.db,
-      parent.id,
-      Object.keys(requestedFields),
-    );
-  },
+  content: resolveContent('AreaContent'),
 };

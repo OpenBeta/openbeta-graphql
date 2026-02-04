@@ -276,7 +276,7 @@ async function buildAreaTree(
 }
 
 async function addClimbs(
-  node: GraphNode,
+  areaNode: GraphNode,
   area: EntityId,
   location: { x: number; y: number },
 ) {
@@ -310,7 +310,7 @@ async function addClimbs(
           children: [],
           type: 'climb',
         };
-        node.children.push(childNode);
+        areaNode.children.push(childNode);
         await addContent(climb.id, childNode);
         await addMedia(climb.id, 'climb', childNode);
       })
