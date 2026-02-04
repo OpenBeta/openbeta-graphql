@@ -1,11 +1,20 @@
-import { QueryResolvers, Resolvers } from '@gql';
+import { AuthorMetadata, QueryResolvers, Resolvers } from '@gql';
 import * as schema from '@schema';
+import { authorMetadata } from 'beta/authorMetadataResolver';
 import { contentByTag, resolveContent } from 'beta/contentResolvers';
 import { EntityId } from 'beta/entity_model';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
 import { AreaPrimitive } from 'beta/repo/area';
 import { ancestors } from 'beta/repo/entity_cte';
-import { and, count, eq, exists, getTableColumns, not } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  exists,
+  getTableColumns,
+  not,
+} from 'drizzle-orm';
 import { parseResolveInfo } from 'graphql-parse-resolve-info';
 import { Context } from 'server/context';
 import { UUIDTypes } from 'uuid';
@@ -108,10 +117,6 @@ export const areaResolvers: Resolvers['Area'] = {
     throw 'not implemented';
   },
 
-  authorMetadata: async () => {
-    return {};
-  },
-
   imageByteSum: async () => {
     throw 'not implemented';
   },
@@ -148,4 +153,5 @@ export const areaResolvers: Resolvers['Area'] = {
       .then((d) => d[0].count),
 
   content: resolveContent('AreaContent'),
+  authorMetadata,
 };

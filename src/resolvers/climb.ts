@@ -1,4 +1,5 @@
 import { Resolvers } from '@gql';
+import { authorMetadata } from 'beta/authorMetadataResolver';
 import { resolveContent } from 'beta/contentResolvers';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
 import { ClimbPrimitive } from 'beta/repo/climb';
@@ -28,9 +29,5 @@ export const climbResolvers: Resolvers['Climb'] = {
   parent: async (parent, _, context) => context.repo.area.get(parent.parent!),
   content: resolveContent('Content'),
   media: async (parent, _, context) => context.repo.area.media(parent),
-
-  authorMetadata: async () => {
-    // Author metadata will have common implementation for all entities
-    return {};
-  },
+  authorMetadata,
 };
