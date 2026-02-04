@@ -57,6 +57,13 @@
       "when": 1770136619640,
       "tag": "0007_happy_senator_kelly",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1770228819626,
+      "tag": "0008_goofy_monster_badoon",
+      "breakpoints": true
     }
   ]
 }

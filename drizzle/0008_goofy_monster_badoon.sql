@@ -1,0 +1,3 @@
+CREATE TYPE "public"."history_event_type" AS ENUM('ENTITY_CREATED', 'ENTITY_EDITED', 'ENTITY_DELETED', 'ENTITY_RESTORED', 'ENTITY_LOCKED', 'ENTITY_UNLOCKED', 'ENTITY_PARENT_CHANGED');--> statement-breakpoint
+ALTER TABLE "entity_history" ADD COLUMN "event_type" "history_event_type";--> statement-breakpoint
+CREATE INDEX "entity_history_event_type_index" ON "entity_history" USING btree ("event_type");

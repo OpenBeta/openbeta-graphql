@@ -1,4 +1,4 @@
-import { Database, entity, EntityKind, Transaction } from '@schema';
+import { Database, entity, EntityKind, history, Transaction } from '@schema';
 import * as schema from '@schema';
 import { EntityCompBaseTable, entityTable } from 'db/schema/entitiy';
 import {
@@ -57,21 +57,40 @@ export abstract class EntityRepository<
   async create(
     actor: Actor,
     data: EntCreation,
+    commitMessage?: string,
   ): Promise<Ent> {
-    const reifiedId = await createEntity<EntCreation, EntTable>(
-      this.db,
-      this.table,
-      this.kind,
-      actor,
-      data,
-    );
-    return await this.get(reifiedId);
+    return await this.db.transaction(async (tx) => {
+      const reifiedId = await createEntity<EntCreation, EntTable>(
+        tx,
+        this.table,
+        this.kind,
+        actor,
+        data,
+      );
+
+      // Get the newly created entity
+      const createdEntity = await this.get(reifiedId, tx);
+
+      // Record creation in history
+      await tx
+        .insert(history)
+        .values({
+          author: actor.id,
+          entity: createdEntity.id,
+          before: null, // No previous state for new entity
+          after: JSON.parse(JSON.stringify(createdEntity)),
+          commitMessage: commitMessage || 'Entity Created',
+        });
+
+      return createdEntity;
+    });
   }
 
   async update(
     actor: Actor,
     ent: EntityAddressable,
     changes: PgUpdateSetSource<EntTable>,
+    commitMessage?: string,
   ): Promise<void> {
     if (!await actor.mayEdit(ent)) {
       throw new ActorError(
@@ -79,21 +98,28 @@ export abstract class EntityRepository<
       );
     }
 
-    // This is where document history would be taken care of.
-    // because we are inside a transaction the order is not super
-    // important because exceptions anywhere in the stack
-    // would cause rollback.
+    await this.db.transaction(async (tx) => {
+      const currentEntity = await this.get(ent);
 
-    await this
-      .db
-      .update(this.table)
-      .set(changes)
-      .where(matchOnAddressable(ent));
+      await tx
+        .update(this.table)
+        .set(changes)
+        .where(matchOnAddressable(ent));
+
+      await tx
+        .insert(history)
+        .values({
+          author: actor.id,
+          entity: currentEntity.id,
+          before: JSON.parse(JSON.stringify(currentEntity)),
+          after: JSON.parse(JSON.stringify({ ...currentEntity, ...changes })),
+          commitMessage: commitMessage || null,
+        });
+    });
   }
 
-  async get(ent: EntityAddressable): Promise<Ent> {
-    return await this
-      .db
+  async get(ent: EntityAddressable, tx?: Transaction): Promise<Ent> {
+    return await (tx || this.db)
       .select({
         ...getTableColumns(schema.entity),
         ...getTableColumns(this.table),

@@ -1,5 +1,4 @@
 import { Database, entity, EntityKind, Transaction } from '@schema';
-import * as schema from '@schema';
 import { EntityCompBaseTable } from 'db/schema/entitiy';
 import {
   getTableColumns,
@@ -8,7 +7,7 @@ import {
   SQLChunk,
 } from 'drizzle-orm';
 import { Actor } from '../actor';
-import { EntityId, EntityIdentifiable, EntityRecord } from '../entity_model';
+import { EntityId, EntityIdentifiable } from '../entity_model';
 
 export async function createEntity<
   EntCreation extends
