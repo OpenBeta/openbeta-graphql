@@ -12,7 +12,7 @@ import {
 } from './entitiy';
 import { entityAncestorsTable } from './entityAncestors';
 import { disciplineEnum, gradeSystemTable, gradeTable } from './gradeTable';
-import { historyTable } from './history';
+import { historyEventEnum, historyTable } from './history';
 import { mediaTable } from './mediaTable';
 import { organizationTable } from './organizationTable';
 import { tagTable } from './tagTable';
@@ -48,6 +48,7 @@ export {
   enums,
   gradeSystemTable as gradeSystem,
   gradeTable as grade,
+  historyEventEnum,
   historyTable as history,
   mediaTable as media,
   organizationTable as organization,

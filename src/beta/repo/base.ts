@@ -1,4 +1,11 @@
-import { Database, entity, EntityKind, history, Transaction } from '@schema';
+import {
+  Database,
+  entity,
+  EntityKind,
+  history,
+  historyEventEnum,
+  Transaction,
+} from '@schema';
 import * as schema from '@schema';
 import { EntityCompBaseTable, entityTable } from 'db/schema/entitiy';
 import {
@@ -77,6 +84,7 @@ export abstract class EntityRepository<
         .values({
           author: actor.id,
           entity: createdEntity.id,
+          eventType: 'ENTITY_CREATED',
           before: null, // No previous state for new entity
           after: JSON.parse(JSON.stringify(createdEntity)),
           commitMessage: commitMessage || 'Entity Created',
@@ -111,6 +119,7 @@ export abstract class EntityRepository<
         .values({
           author: actor.id,
           entity: currentEntity.id,
+          eventType: 'ENTITY_EDITED',
           before: JSON.parse(JSON.stringify(currentEntity)),
           after: JSON.parse(JSON.stringify({ ...currentEntity, ...changes })),
           commitMessage: commitMessage || null,
@@ -152,7 +161,30 @@ export abstract class EntityRepository<
       );
     }
 
-    throw new Error('Not Implemented');
+    await this.db.transaction(async (tx) => {
+      const currentEntity = await this.get(ent);
+
+      // Use type assertion to bypass type check
+      const updateSet = { locked: locked } as unknown as PgUpdateSetSource<
+        EntTable
+      >;
+
+      await tx
+        .update(this.table)
+        .set(updateSet)
+        .where(matchOnAddressable(ent));
+
+      await tx
+        .insert(history)
+        .values({
+          author: actor.id,
+          entity: currentEntity.id,
+          eventType: locked ? 'ENTITY_LOCKED' : 'ENTITY_UNLOCKED',
+          before: JSON.parse(JSON.stringify(currentEntity)),
+          after: JSON.parse(JSON.stringify({ ...currentEntity, locked })),
+          commitMessage: locked ? 'Entity Locked' : 'Entity Unlocked',
+        });
+    });
   }
 
   async setParent(
@@ -160,15 +192,103 @@ export abstract class EntityRepository<
     ent: EntityAddressable,
     parent: EntityAddressable,
   ): Promise<void> {
-    throw new Error('Not Implemented');
+    await this.db.transaction(async (tx) => {
+      const currentEntity = await this.get(ent);
+
+      // Collapse addressables to get actual IDs
+      const parentId = await collapseAddressable(tx, parent);
+
+      // Use type assertion to bypass type check
+      const updateSet = { parentId } as unknown as PgUpdateSetSource<EntTable>;
+
+      await tx
+        .update(this.table)
+        .set(updateSet)
+        .where(matchOnAddressable(ent));
+
+      await tx
+        .insert(history)
+        .values({
+          author: actor.id,
+          entity: currentEntity.id,
+          eventType: 'ENTITY_PARENT_CHANGED',
+          before: JSON.parse(JSON.stringify(currentEntity)),
+          after: JSON.parse(JSON.stringify({ ...currentEntity, parentId })),
+          commitMessage: 'Parent Entity Changed',
+        });
+    });
   }
 
-  async softDelete(ent: EntityAddressable): Promise<void> {
-    throw new Error('Not Implemented');
+  async softDelete(
+    actor: Actor,
+    ent: EntityAddressable,
+    commitMessage?: string,
+  ): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const currentEntity = await this.get(ent);
+
+      // Use type assertion to bypass type check
+      const updateSet = {
+        deletedAt: new Date(),
+        isDeleted: true,
+      } as unknown as PgUpdateSetSource<EntTable>;
+
+      await tx
+        .update(this.table)
+        .set(updateSet)
+        .where(matchOnAddressable(ent));
+
+      await tx
+        .insert(history)
+        .values({
+          author: actor.id,
+          entity: currentEntity.id,
+          eventType: 'ENTITY_DELETED',
+          before: JSON.parse(JSON.stringify(currentEntity)),
+          after: JSON.parse(JSON.stringify({
+            ...currentEntity,
+            deletedAt: new Date(),
+            isDeleted: true,
+          })),
+          commitMessage: commitMessage || 'Entity Soft Deleted',
+        });
+    });
   }
 
-  async unDelete(ent: EntityAddressable): Promise<void> {
-    throw new Error('Not Implemented');
+  async unDelete(
+    actor: Actor,
+    ent: EntityAddressable,
+    commitMessage?: string,
+  ): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const currentEntity = await this.get(ent);
+
+      // Use type assertion to bypass type check
+      const updateSet = {
+        deletedAt: null,
+        isDeleted: false,
+      } as unknown as PgUpdateSetSource<EntTable>;
+
+      await tx
+        .update(this.table)
+        .set(updateSet)
+        .where(matchOnAddressable(ent));
+
+      await tx
+        .insert(history)
+        .values({
+          author: actor.id,
+          entity: currentEntity.id,
+          eventType: 'ENTITY_RESTORED',
+          before: JSON.parse(JSON.stringify(currentEntity)),
+          after: JSON.parse(JSON.stringify({
+            ...currentEntity,
+            deletedAt: null,
+            isDeleted: false,
+          })),
+          commitMessage: commitMessage || 'Entity Restored',
+        });
+    });
   }
 
   async media(ent: EntityAddressable): Promise<MediaRecord[]> {
