@@ -1,19 +1,25 @@
 import { ApolloServer } from '@apollo/server';
+import { faker } from '@faker-js/faker';
 import { Database } from '@schema';
+import * as schema from '@schema';
 import { ClimbRepo } from 'beta/repo/climb';
 import { test as base } from 'vitest';
 import { Actor } from '../beta/actor';
-import { AreaRepo } from '../beta/repo/area';
+import { AreaPrimitive, AreaRepo } from '../beta/repo/area';
 import typeDefs from '../gql';
 import { resolvers } from '../resolvers';
-import { Context, context } from '../server/context';
+import { Context } from '../server/context';
 import { testDb } from './setup';
+import { TestActor } from './testActor';
 
 interface TestFixtures {
   db: Database;
   server: ApolloServer<Context>;
   testContext: Context;
   areaRepo: AreaRepo;
+  climbRepo: ClimbRepo;
+  country: AreaPrimitive;
+  actor: Actor;
 }
 
 export const test = base.extend<TestFixtures>({
@@ -21,11 +27,23 @@ export const test = base.extend<TestFixtures>({
     await use(testDb);
   },
 
-  testContext: async ({ db }, use) => {
-    const testActor: Actor | null = null; // No auth for now
+  actor: async ({ db }, use) => {
+    const [testUser] = await db
+      .insert(schema.user)
+      .values({
+        username: faker.internet.username(),
+        displayName: faker.internet.displayName(),
+        email: faker.internet.email(),
+      })
+      .returning();
+    
+    await use(new TestActor(testUser));
+  },
+
+  testContext: async ({ db, actor }, use) => {
     const testContext: Context = {
       db,
-      actor: testActor,
+      actor,
       repo: {
         area: new AreaRepo(db),
         climb: new ClimbRepo(db),
@@ -42,8 +60,38 @@ export const test = base.extend<TestFixtures>({
     await use(server);
   },
 
-  areaRepo: async ({ db, testContext }, use) => {
+  areaRepo: async ({ db }, use) => {
     await use(new AreaRepo(db));
+  },
+
+  climbRepo: async ({ db }, use) => {
+    await use(new ClimbRepo(db));
+  },
+
+  country: async ({ db }, use) => {
+    const countryName = faker.location.country();
+    const [entityRow] = await db
+      .insert(schema.entity)
+      .values({ 
+        entityType: 'area', 
+        name: countryName 
+      })
+      .returning();
+
+    const [areaRow] = await db
+      .insert(schema.area)
+      .values({ 
+        id: entityRow.id, 
+        name: countryName
+      })
+      .returning();
+
+    const fullCountry = { 
+      ...entityRow, 
+      ...areaRow 
+    } as AreaPrimitive;
+
+    await use(fullCountry);
   },
 });
 

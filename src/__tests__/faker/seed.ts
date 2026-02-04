@@ -1,10 +1,6 @@
 import { Database } from '@schema';
 import * as schema from '@schema';
 import { GradeDisiplineMap, GradeSystemName } from '__tests__/faker';
-import { Actor } from 'beta/actor';
-import { EntityAddressable } from 'beta/entity_model';
-import { InferSelectModel } from 'drizzle-orm';
-import { UUIDTypes } from 'uuid';
 
 export async function initializeGradeSystemsInDatabase(db: Database) {
   for (const discipline of schema.enums.Discipline.enumValues) {

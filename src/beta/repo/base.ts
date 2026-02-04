@@ -109,10 +109,12 @@ export abstract class EntityRepository<
     await this.db.transaction(async (tx) => {
       const currentEntity = await this.get(ent);
 
+      const entityId = await collapseAddressable(tx, ent);
+      
       await tx
         .update(this.table)
         .set(changes)
-        .where(matchOnAddressable(ent));
+        .where(eq(this.table.id, entityId));
 
       await tx
         .insert(history)
@@ -164,6 +166,8 @@ export abstract class EntityRepository<
     await this.db.transaction(async (tx) => {
       const currentEntity = await this.get(ent);
 
+      const entityId = await collapseAddressable(tx, ent);
+
       // Use type assertion to bypass type check
       const updateSet = { locked: locked } as unknown as PgUpdateSetSource<
         EntTable
@@ -172,7 +176,7 @@ export abstract class EntityRepository<
       await tx
         .update(this.table)
         .set(updateSet)
-        .where(matchOnAddressable(ent));
+        .where(eq(this.table.id, entityId));
 
       await tx
         .insert(history)
@@ -196,6 +200,7 @@ export abstract class EntityRepository<
       const currentEntity = await this.get(ent);
 
       // Collapse addressables to get actual IDs
+      const entityId = await collapseAddressable(tx, ent);
       const parentId = await collapseAddressable(tx, parent);
 
       // Use type assertion to bypass type check
@@ -204,7 +209,7 @@ export abstract class EntityRepository<
       await tx
         .update(this.table)
         .set(updateSet)
-        .where(matchOnAddressable(ent));
+        .where(eq(this.table.id, entityId));
 
       await tx
         .insert(history)
@@ -227,16 +232,13 @@ export abstract class EntityRepository<
     await this.db.transaction(async (tx) => {
       const currentEntity = await this.get(ent);
 
-      // Use type assertion to bypass type check
-      const updateSet = {
-        deletedAt: new Date(),
-        isDeleted: true,
-      } as unknown as PgUpdateSetSource<EntTable>;
+      const entityId = await collapseAddressable(tx, ent);
 
+      // Update the entity table's deleted flag
       await tx
-        .update(this.table)
-        .set(updateSet)
-        .where(matchOnAddressable(ent));
+        .update(entity)
+        .set({ deleted: true })
+        .where(eq(entity.id, entityId));
 
       await tx
         .insert(history)
@@ -247,8 +249,7 @@ export abstract class EntityRepository<
           before: JSON.parse(JSON.stringify(currentEntity)),
           after: JSON.parse(JSON.stringify({
             ...currentEntity,
-            deletedAt: new Date(),
-            isDeleted: true,
+            deleted: true,
           })),
           commitMessage: commitMessage || 'Entity Soft Deleted',
         });
@@ -263,16 +264,13 @@ export abstract class EntityRepository<
     await this.db.transaction(async (tx) => {
       const currentEntity = await this.get(ent);
 
-      // Use type assertion to bypass type check
-      const updateSet = {
-        deletedAt: null,
-        isDeleted: false,
-      } as unknown as PgUpdateSetSource<EntTable>;
+      const entityId = await collapseAddressable(tx, ent);
 
+      // Update the entity table's deleted flag
       await tx
-        .update(this.table)
-        .set(updateSet)
-        .where(matchOnAddressable(ent));
+        .update(entity)
+        .set({ deleted: false })
+        .where(eq(entity.id, entityId));
 
       await tx
         .insert(history)
@@ -283,8 +281,7 @@ export abstract class EntityRepository<
           before: JSON.parse(JSON.stringify(currentEntity)),
           after: JSON.parse(JSON.stringify({
             ...currentEntity,
-            deletedAt: null,
-            isDeleted: false,
+            deleted: false,
           })),
           commitMessage: commitMessage || 'Entity Restored',
         });

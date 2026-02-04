@@ -1,31 +1,20 @@
 import 'dotenv/config';
-import { Database } from '@schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { afterAll, beforeAll } from 'vitest';
+import { Pool } from 'pg';
+import * as schema from '@schema';
+import { Database } from '@schema';
 
-// Test database setup
-let testDb: Database;
+// Single pool for test connections
+const testDatabaseUrl = process.env.TEST_DATABASE_URL 
+  || process.env.DATABASE_URL;
 
-beforeAll(async () => {
-  // Use test database URL from environment or fallback to default
-  const testDatabaseUrl = process.env.TEST_DATABASE_URL
-    || process.env.DATABASE_URL;
+if (!testDatabaseUrl) {
+  throw new Error(
+    'Database URL not provided. Set DATABASE_URL or TEST_DATABASE_URL environment variable.',
+  );
+}
 
-  if (!testDatabaseUrl) {
-    throw new Error(
-      'Database URL not provided. Set DATABASE_URL or TEST_DATABASE_URL environment variable.',
-    );
-  }
+const pool = new Pool({ connectionString: testDatabaseUrl });
 
-  testDb = drizzle(testDatabaseUrl);
-
-  // Setup test data here if needed
-  console.log('Test database connected');
-});
-
-afterAll(async () => {
-  // Cleanup test data here if needed
-  console.log('Test database cleanup complete');
-});
-
-export { testDb };
+// Export the test database connection
+export const testDb: Database = drizzle(pool, { schema });
