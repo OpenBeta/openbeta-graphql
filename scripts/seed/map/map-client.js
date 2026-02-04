@@ -26,26 +26,26 @@ async function loadWorldMap() {
 
     context.globalAlpha = 1;
     context.clearRect(0, 0, width, height);
-    context.fillStyle = "#e55039"; // Background color
+    context.fillStyle = "#6F1E51"; // Background color
     context.fillRect(0, 0, width, height);
 
     context.beginPath();
     path(worldData);
-    context.fillStyle = "#b71540"; // Fill color for countries
-    context.strokeStyle = "#e55039"; // Border color for countries
+    context.fillStyle = "#B53471"; // Fill color for countries
+    context.strokeStyle = "#833471"; // Border color for countries
     context.lineWidth = 0.5;
     context.fill();
     context.stroke();
 
 
-    for (const point of await fetch('/centroids').then(r => r.json()).then(d => Object.values(d))) {
-      const [lon, lat] = projection([point.x, point.y]);
-        context.beginPath();
-        context.arc(lon, lat, 2, 0, 2 * Math.PI);
-        context.fillStyle = "#0c2461";
-        context.globalAlpha = 0.5;
-        context.fill();
-    }
+    // for (const point of await fetch('/centroids').then(r => r.json()).then(d => Object.values(d))) {
+    //   const [lon, lat] = projection([point.x, point.y]);
+    //     context.beginPath();
+    //     context.arc(lon, lat, 2, 0, 2 * Math.PI);
+    //     context.fillStyle = "#0c2461";
+    //     context.globalAlpha = 0.5;
+    //     context.fill();
+    // }
 
   } catch (error) {
     console.error("Error loading the world map data:", error);
@@ -53,9 +53,9 @@ async function loadWorldMap() {
   }
 }
 
-function drawNewEntities(newEntities) {
-  const colors = ["#f6b93b", "#e58e26", "#fa983a", "#b8e994", "#78e08f", "#38ada9", "#f8c291"];
-  newEntities.forEach(entity => {
+async function drawNewEntities(newEntities) {
+  const colors = ["#F79F1F"];
+  for (const entity of newEntities) {
     if (entity.location) {
       const [x, y] = [entity.location.x, entity.location.y];
       const [lon, lat] = projection([x, y]);
@@ -70,9 +70,10 @@ function drawNewEntities(newEntities) {
         context.fillStyle = colors[entity.id % colors.length]
         context.globalAlpha = 0.3;
         context.fill();
+        await new Promise((res, _) => res())
       }
     }
-  });
+  }
 }
 
 async function fetchMapData() {

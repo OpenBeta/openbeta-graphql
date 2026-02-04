@@ -1,6 +1,8 @@
 #!/usr/bin/env bun
 import { faker } from '@faker-js/faker';
 import * as schema from '@schema';
+import { feature, polygon } from '@turf/turf';
+import * as turf from '@turf/turf';
 import { range } from '__tests__/faker';
 import { initializeGradeSystemsInDatabase } from '__tests__/faker/seed';
 import { EntityId } from 'beta/entity_model';
@@ -10,6 +12,8 @@ import { ContentRepo } from 'beta/repo/content';
 import { countries, ICountry, TCountryCode } from 'countries-list';
 import { InferSelectModel } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { Feature, Polygon } from 'geojson';
+import { readFile } from 'node:fs/promises';
 import ora from 'ora';
 import { GraphNode, graphServer } from './seed/graph/server';
 import { mapServer } from './seed/map/server';
@@ -17,15 +21,18 @@ import {
   argv,
   choose,
   ensureCentroids,
-  getPointNearby,
+  generateRandomPointsInPolygon,
+  geoFile,
+  loadCountryCodes,
   log,
   makeUsers,
+  subdividePolygonFeature,
 } from './seed/utils';
-
 // in open-tacos the UI seems hardcoded to reach out to the USA as default,
 // for now, we will set this up for at least one country
 let arbitraryHardCoding: string | undefined =
   '1db1e8ba-a40e-587c-88a4-64f5ea814b8e';
+
 const db = drizzle(process.env.DATABASE_URL!, { logger: argv.querylog });
 const users = await makeUsers(db);
 const skipCountries = ['Antarctica', 'Israel'];
@@ -102,12 +109,10 @@ async function addContent(forEntity: EntityId) {
   }
 }
 
-async function buildAreaTree(
+async function prepCountry(
   countryData: ICountry & { location: { x: number; y: number } },
   countryCode: string,
 ) {
-  type AreaSelect = InferSelectModel<typeof schema.area>;
-  const maxDepth = argv.depth;
   if (skipCountries.includes(countryData.name)) {
     throw new Error('Skipped country');
   }
@@ -152,28 +157,50 @@ async function buildAreaTree(
 
   graph.children.push(countryNode);
   log(`Added country node: ${country.name}`);
+  return [country, countryNode] as const;
+}
+
+async function buildAreaTree(
+  countryData: ICountry & {
+    location: { x: number; y: number };
+    feature: Polygon;
+  },
+  countryCode: string,
+) {
+  type AreaSelect = InferSelectModel<typeof schema.area>;
+  const maxDepth = argv.depth;
+  const [country, countryNode] = await prepCountry(countryData, countryCode);
 
   async function branch(
     node: GraphNode,
     from: AreaSelect,
     currentDepth: number,
-    initialScatterRadius: number,
+    locationIn: Polygon,
   ) {
-    for (const _ in range(Math.floor(Math.random() * argv.bredth))) {
+    const subdivisions: Polygon[] = subdividePolygonFeature(
+      locationIn,
+      faker.number.int({ max: argv.bredth }),
+    );
+
+    for (const subRegion of subdivisions) {
       const user = choose(users);
       const repo = new AreaRepo(db, user);
       if (from.location === null) throw new Error('MISSING LOCATION ON PARENT');
-      const nextLocation = getPointNearby(
-        from.location,
-        1,
-        argv['initial-scatter-radius'],
-      );
+      const nextLocation = generateRandomPointsInPolygon(subRegion, 1)
+        .features
+        .map((i) => i.geometry)
+        ?.[0]
+        ?.coordinates;
+
+      // This likely suggests the polygon is basically a line in terms
+      // of our limited floating point precision
+      if (!nextLocation) continue;
 
       await repo
         .create({
           name: faker.food.adjective() + ' ' + faker.food.ingredient(),
           parent: from.id,
-          location: nextLocation,
+          location: { x: nextLocation[0], y: nextLocation[1] },
         })
         .then(async (child) => {
           log(`⛰️ Created area: ${child.name} with parent ${from.name}`);
@@ -196,24 +223,26 @@ async function buildAreaTree(
           // to create depths of various depths, we include some randomness
           // here in terms of early-exit
           if (Math.random() > argv.randomness) return;
-          // always stop if we exceed the max depth
-          if (currentDepth >= argv.depth) {
-            await addClimbs(nextNode, child.id, nextLocation);
-            return;
-          }
 
-          await branch(
-            nextNode,
-            child,
-            currentDepth + 1,
-            argv['initial-scatter-radius'],
-          );
+          if (turf.area(subRegion) > 1000 && currentDepth < argv.depth) {
+            await branch(
+              nextNode,
+              child,
+              currentDepth + 1,
+              subRegion,
+            );
+          } else {
+            return await addClimbs(nextNode, child.id, {
+              x: nextLocation[0],
+              y: nextLocation[1],
+            });
+          }
         })
         .catch(console.error);
     }
   }
 
-  await branch(countryNode, country, 0, argv['initial-scatter-radius']);
+  await branch(countryNode, country, 0, countryData.feature);
 }
 
 async function addClimbs(
@@ -239,7 +268,7 @@ async function addClimbs(
         type: climbType,
         safety: null,
         canonicalGrade: null,
-        location: getPointNearby(location, 1, 2),
+        location,
       })
       .then(async (climb) => {
         log(`🧗 Created climb: ${climb.name} in area ${area}`);
@@ -262,6 +291,9 @@ async function main() {
   await initializeGradeSystemsInDatabase(db);
   log('Initialized grade systems in database.');
   const countryCentroids = await ensureCentroids();
+  const data = JSON.parse(
+    await readFile(geoFile, 'utf-8'),
+  );
 
   if (argv.graph) {
     graphServer(argv.port, graph);
@@ -269,27 +301,19 @@ async function main() {
     mapServer(argv.port, db);
   }
 
-  let countryCodes = Object.keys(countries) as TCountryCode[];
-  if (argv.alphabetical) {
-    countryCodes.sort((a, b) =>
-      countries[a].name.localeCompare(countries[b].name)
-    );
-  } else {
-    // Randomize if not alphabetical
-    countryCodes = countryCodes.sort(() => Math.random() - 0.5);
-  }
-
-  if (argv.countries !== null) {
-    countryCodes = countryCodes.slice(0, argv.countries);
-  }
-
-  for (const countryCode of countryCodes) {
+  for (const countryCode of loadCountryCodes()) {
     const country = countries[countryCode as TCountryCode];
     log(`Building area tree for country: ${country.name}`);
     const spinner = ora(`🌱 Seeding ${country.name}...`).start();
 
     await buildAreaTree(
-      { ...country, location: countryCentroids[countryCode] },
+      {
+        ...country,
+        location: countryCentroids[countryCode],
+        feature: data.features.find((i: Feature) =>
+          i.properties?.iso_a2 == countryCode
+        ),
+      },
       countryCode,
     )
       .then(() =>

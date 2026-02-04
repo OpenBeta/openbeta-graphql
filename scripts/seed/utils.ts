@@ -1,15 +1,27 @@
 import { faker } from '@faker-js/faker';
 import { Database, user } from '@schema';
 import * as turf from '@turf/turf';
+import {
+  bbox,
+  booleanPointInPolygon,
+  featureCollection,
+  randomPoint,
+} from '@turf/turf';
 import { range } from '__tests__/faker';
 import { Actor } from 'beta/actor';
 import { EntityAddressable } from 'beta/entity_model';
+import { countries, TCountryCode } from 'countries-list';
 import { InferSelectModel } from 'drizzle-orm';
-import { readFile } from 'node:fs/promises';
+import { Feature, FeatureCollection, Polygon } from 'geojson';
+import { exists, readFile } from 'node:fs/promises';
 import process from 'process';
 import { UUIDTypes } from 'uuid';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+
+const big = './scripts/seed/map/big.geo.json';
+const small = './scripts/seed/map/world.geo.json';
+export const geoFile = await exists(big) ? big : small;
 
 export const argv = yargs(hideBin(process.argv))
   .scriptName('seed')
@@ -89,6 +101,57 @@ if (argv.graph && argv.map) {
   process.exit(1);
 }
 
+export function loadCountryCodes() {
+  let countryCodes = Object.keys(countries) as TCountryCode[];
+  if (argv.alphabetical) {
+    countryCodes.sort((a, b) =>
+      countries[a].name.localeCompare(countries[b].name)
+    );
+  } else {
+    // Randomize if not alphabetical
+    countryCodes = countryCodes.sort(() => Math.random() - 0.5);
+  }
+
+  if (argv.countries !== null) {
+    countryCodes = countryCodes.slice(0, argv.countries);
+  }
+  return countryCodes;
+}
+
+export function generateRandomPointsInPolygon(polygon: Polygon, count: number) {
+  const box = bbox(polygon);
+  const points = [];
+  let attempts = 0;
+
+  while (points.length < count && attempts < count * 10) {
+    // Generate a random point within the bbox
+    const randomPt = randomPoint(1, { bbox: box }).features[0];
+    if (booleanPointInPolygon(randomPt, polygon)) {
+      points.push(randomPt);
+    }
+    attempts++;
+  }
+
+  return featureCollection(points);
+}
+
+export function subdividePolygonFeature(
+  polygon: Polygon,
+  numSubfeatures: number,
+): Polygon[] {
+  // Validate input
+  if (numSubfeatures < 1) {
+    return [polygon];
+  }
+  const randomPoints = generateRandomPointsInPolygon(polygon, numSubfeatures);
+  // Create Voronoi polygons from these points, clipped to the original feature
+  const voronoi = turf.voronoi(randomPoints, {
+    bbox: turf.bbox(polygon),
+  });
+  // Map Voronoi polygons
+  return voronoi.features.map((subPolygon) => subPolygon.geometry);
+}
+
 /**
  * Choose a random element from an array
  * @param from The array to choose from
@@ -109,56 +172,18 @@ export function log(message: string) {
 }
 
 /**
- * Calculate a point near the given center within a specified distance range
- * @param center The center point with x (longitude) and y (latitude)
- * @param minKm Minimum distance from the center
- * @param maxKm Maximum distance from the center
- * @returns A new point near the center
- */
-export function getPointNearby(
-  center: { x: number; y: number },
-  minKm: number,
-  maxKm: number,
-) {
-  const R = 6371; // Earth Radius in km
-  const r = (minKm + Math.random() * (maxKm - minKm)) / R; // Angular distance in radians
-  const t = Math.random() * 2 * Math.PI; // Random bearing
-
-  const lat1 = (center.y * Math.PI) / 180;
-  const lon1 = (center.x * Math.PI) / 180;
-
-  const lat2 = Math.asin(
-    Math.sin(lat1) * Math.cos(r) + Math.cos(lat1) * Math.sin(r) * Math.cos(t),
-  );
-  const lon2 = lon1
-    + Math.atan2(
-      Math.sin(t) * Math.sin(r) * Math.cos(lat1),
-      Math.cos(r) - Math.sin(lat1) * Math.sin(lat2),
-    );
-
-  const res = {
-    x: (lon2 * 180) / Math.PI,
-    y: (lat2 * 180) / Math.PI,
-  };
-
-  if (!res.x || !res.y) throw new Error('Bad nearby point');
-
-  return res;
-}
-
-/**
  * Ensure country centroids are calculated and cached
  * @param worldGeoPath Path to the world geography JSON file
  * @returns A record of country centroids
  */
 export async function ensureCentroids(
-  worldGeoPath = './scripts/seed/map/world.geo.json',
+  worldGeoPath = geoFile,
 ): Promise<Record<string, { x: number; y: number }>> {
   const data = JSON.parse(await readFile(worldGeoPath, 'utf-8'));
   const countryCentroids: Record<string, { x: number; y: number }> = {};
 
   for (const feature of data.features) {
-    if (feature.properties.iso_a3) {
+    if (feature.properties.iso_a2) {
       const center = turf.centerOfMass(feature);
       countryCentroids[feature.properties.iso_a2] = {
         x: center.geometry.coordinates[0],

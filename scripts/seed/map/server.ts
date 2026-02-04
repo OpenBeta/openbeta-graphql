@@ -1,7 +1,7 @@
 import { area, climb, Database, entity } from '@schema';
 import { EntityId } from 'beta/entity_model';
 import { and, eq, gt, or, sql } from 'drizzle-orm';
-import { ensureCentroids } from '../utils';
+import { ensureCentroids, geoFile } from '../utils';
 
 export function mapServer(port: number, db: Database) {
   Bun.serve({
@@ -26,7 +26,7 @@ export function mapServer(port: number, db: Database) {
       }
 
       if (url.pathname === '/scripts/seed/map/world.geo.json') {
-        return new Response(Bun.file('./scripts/seed/map/world.geo.json'));
+        return new Response(Bun.file(geoFile));
       }
 
       if (url.pathname === '/map-data') {
@@ -51,7 +51,7 @@ export function mapServer(port: number, db: Database) {
               ),
             ),
           )
-          .limit(200);
+          .limit(500);
 
         return new Response(JSON.stringify(data), {
           headers: {
