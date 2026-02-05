@@ -110,7 +110,7 @@ export abstract class EntityRepository<
       const currentEntity = await this.get(ent);
 
       const entityId = await collapseAddressable(tx, ent);
-      
+
       await tx
         .update(this.table)
         .set(changes)

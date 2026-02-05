@@ -63,9 +63,9 @@ const query: Resolvers['Query'] = {
         }
 
         if (!(fieldName in areaColumns)) {
-           throw new Error(`Field ${fieldName} is not valid for filtering`);
+          throw new Error(`Field ${fieldName} is not valid for filtering`);
         }
-        
+
         // @ts-ignore
         const col = areaColumns[fieldName];
 

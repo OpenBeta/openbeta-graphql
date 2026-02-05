@@ -50,7 +50,7 @@ function renderCheckboxes() {
 }
 
 function userid(node) {
-  return `user-${node.author}`
+  return `user-${node.author}`;
 }
 
 // Function to convert GraphNode to D3 Data format
@@ -60,7 +60,7 @@ function convertToD3Data(graphNode) {
 
   const traverse = (node) => {
     if (node.name == 'world') {
-      node.type = 'world'
+      node.type = 'world';
     }
 
     if (!nodeMap.has(userid(node))) {
@@ -96,7 +96,7 @@ function convertToD3Data(graphNode) {
       links.push({
         source: node.id.toString(),
         target: child.id.toString(),
-        type: 'entity'
+        type: 'entity',
       });
       traverse(child);
     });
@@ -123,20 +123,33 @@ function updateGraph(graphData) {
   const nodeTypeMap = new Map(d3Nodes.map((node) => [node.id, node.type]));
 
   const currentFilteredNodes = d3Nodes.filter((node) =>
-    enabledNodeTypes.has(node.type),
+    enabledNodeTypes.has(node.type)
   );
   const currentFilteredEdges = d3Edges.filter(
     (link) =>
-      enabledNodeTypes.has(nodeTypeMap.get(link.source)) &&
-      enabledNodeTypes.has(nodeTypeMap.get(link.target)),
+      enabledNodeTypes.has(nodeTypeMap.get(link.source))
+      && enabledNodeTypes.has(nodeTypeMap.get(link.target)),
   );
 
   if (!simulation) {
     simulation = d3
       .forceSimulation(currentFilteredNodes)
-      .force('link', d3.forceLink(currentFilteredEdges).id((d) => d.id).distance(100))
-      .force('charge', d3.forceManyBody().strength((node) => typeData[node.type].charge))
-      .force('collide', d3.forceCollide().radius((node) => node.type === 'area' ? typeData[node.type].size * 2 : typeData[node.type].size))
+      .force(
+        'link',
+        d3.forceLink(currentFilteredEdges).id((d) => d.id).distance(100),
+      )
+      .force(
+        'charge',
+        d3.forceManyBody().strength((node) => typeData[node.type].charge),
+      )
+      .force(
+        'collide',
+        d3.forceCollide().radius((node) =>
+          node.type === 'area'
+            ? typeData[node.type].size * 2
+            : typeData[node.type].size
+        ),
+      )
       .force(
         'center',
         d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2),
@@ -145,7 +158,8 @@ function updateGraph(graphData) {
   } else {
     // Update simulation with new data
     simulation.nodes(currentFilteredNodes);
-    simulation.force('link')
+    simulation
+      .force('link')
       .links(currentFilteredEdges)
       .strength((d) => {
         const sourceNodeType = nodeTypeMap.get(d.source.id);
@@ -157,26 +171,31 @@ function updateGraph(graphData) {
         }
         return 0.7;
       });
-    simulation.force('charge')
+    simulation
+      .force('charge')
       .strength((node) => typeData[node.type].charge);
-    simulation.force('collide')
-      .radius((node) => node.type === 'area' ? typeData[node.type].size * 2 : typeData[node.type].size);
+    simulation
+      .force('collide')
+      .radius((node) =>
+        node.type === 'area'
+          ? typeData[node.type].size * 2
+          : typeData[node.type].size
+      );
 
     simulation.alpha(1).restart(); // Reheat simulation
   }
-
 }
 
 function ticked() {
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
   const filteredNodes = d3Nodes.filter((node) =>
-    enabledNodeTypes.has(node.type),
+    enabledNodeTypes.has(node.type)
   );
   const filteredEdges = d3Edges.filter(
     (link) =>
-      enabledNodeTypes.has(link.source.type) &&
-      enabledNodeTypes.has(link.target.type),
+      enabledNodeTypes.has(link.source.type)
+      && enabledNodeTypes.has(link.target.type),
   );
 
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;

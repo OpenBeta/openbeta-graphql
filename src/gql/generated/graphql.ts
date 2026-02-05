@@ -1,28 +1,45 @@
-import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import {
+  GraphQLResolveInfo,
+  GraphQLScalarType,
+  GraphQLScalarTypeConfig,
+} from 'graphql';
+import { MediaRecord } from '../../beta/repo/media';
 import { PartiallyResolvedArea } from '../../resolvers/area';
 import { PartiallyResolvedClimb } from '../../resolvers/climb';
-import { MediaRecord } from '../../beta/repo/media';
 import { EntityTagRecord } from '../../resolvers/tag';
 import { Context } from '../../server/context';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> =
+  & Omit<T, K>
+  & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> =
+  & Omit<T, K>
+  & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> =
+  { [_ in K]?: never };
+export type Incremental<T> =
+  | T
+  | {
+    [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
+  };
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
+export type RequireFields<T, K extends keyof T> =
+  & Omit<T, K>
+  & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
-  Date: { input: any; output: any; }
-  JSONObject: { input: any; output: any; }
-  UUID: { input: any; output: any; }
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
+  Date: { input: any; output: any };
+  JSONObject: { input: any; output: any };
+  UUID: { input: any; output: any };
 };
 
 export type AddOrganizationInput = {
@@ -153,7 +170,6 @@ export type Area = {
   /** We use UUID for identification of areas. The id field is used in internal database relations. */
   uuid: Scalars['ID']['output'];
 };
-
 
 /** A climbing area, wall or crag */
 export type AreaMediaPaginationArgs = {
@@ -438,7 +454,6 @@ export type Climb = {
   yds?: Maybe<Scalars['String']['output']>;
 };
 
-
 /** A climbing route or a boulder problem */
 export type ClimbMediaPaginationArgs = {
   input?: InputMaybe<EmbeddedClimbMediaInput>;
@@ -510,7 +525,7 @@ export type ClimbType = {
 export enum CompareType {
   Eq = 'eq',
   Gt = 'gt',
-  Lt = 'lt'
+  Lt = 'lt',
 }
 
 export type ComparisonFilter = {
@@ -709,7 +724,7 @@ export type ExperimentalAuthorType = {
 
 export enum Field {
   Density = 'density',
-  TotalClimbs = 'totalClimbs'
+  TotalClimbs = 'totalClimbs',
 }
 
 export type Filter = {
@@ -968,106 +983,85 @@ export type Mutation = {
   updateUserProfile?: Maybe<Scalars['Boolean']['output']>;
 };
 
-
 export type MutationAddAreaArgs = {
   input?: InputMaybe<AreaInput>;
 };
-
 
 export type MutationAddEntityTagArgs = {
   input?: InputMaybe<MediaEntityTagInput>;
 };
 
-
 export type MutationAddMediaObjectsArgs = {
   input?: InputMaybe<Array<InputMaybe<NewMediaObjectInput>>>;
 };
-
 
 export type MutationAddOrganizationArgs = {
   input?: InputMaybe<AddOrganizationInput>;
 };
 
-
 export type MutationAddTickArgs = {
   input?: InputMaybe<Tick>;
 };
-
 
 export type MutationBulkImportAreasArgs = {
   input?: InputMaybe<BulkImportInput>;
 };
 
-
 export type MutationDeleteAllTicksArgs = {
   userId?: InputMaybe<Scalars['String']['input']>;
 };
-
 
 export type MutationDeleteClimbsArgs = {
   input?: InputMaybe<DeleteManyClimbsInput>;
 };
 
-
 export type MutationDeleteMediaObjectArgs = {
   input: MediaDeleteInput;
 };
-
 
 export type MutationDeleteTickArgs = {
   _id?: InputMaybe<Scalars['ID']['input']>;
 };
 
-
 export type MutationEditTickArgs = {
   input?: InputMaybe<TickFilter>;
 };
-
 
 export type MutationImportTicksArgs = {
   input?: InputMaybe<Array<InputMaybe<Tick>>>;
 };
 
-
 export type MutationRemoveAreaArgs = {
   input?: InputMaybe<RemoveAreaInput>;
 };
-
 
 export type MutationRemoveEntityTagArgs = {
   input: EntityTagDeleteInput;
 };
 
-
 export type MutationSetDestinationFlagArgs = {
   input?: InputMaybe<DestinationFlagInput>;
 };
-
 
 export type MutationUpdateAreaArgs = {
   input?: InputMaybe<AreEditableFieldsInput>;
 };
 
-
 export type MutationUpdateAreasSortingOrderArgs = {
   input?: InputMaybe<Array<InputMaybe<AreaSortingInput>>>;
 };
-
 
 export type MutationUpdateClimbArgs = {
   input: SingleClimbInput;
 };
 
-
 export type MutationUpdateClimbsArgs = {
   input?: InputMaybe<UpdateClimbsInput>;
 };
 
-
 export type MutationUpdateOrganizationArgs = {
   input?: InputMaybe<OrganizationEditableFieldsInput>;
 };
-
 
 export type MutationUpdateUserProfileArgs = {
   input?: InputMaybe<UserProfileInput>;
@@ -1248,16 +1242,13 @@ export type Query = {
   usernameExists?: Maybe<Scalars['Boolean']['output']>;
 };
 
-
 export type QueryAreaArgs = {
   uuid?: InputMaybe<Scalars['ID']['input']>;
 };
 
-
 export type QueryAreaMediaPaginationArgs = {
   input?: InputMaybe<AreaMediaInput>;
 };
-
 
 export type QueryAreasArgs = {
   filter?: InputMaybe<Filter>;
@@ -1266,23 +1257,19 @@ export type QueryAreasArgs = {
   sort?: InputMaybe<Sort>;
 };
 
-
 export type QueryBulkAreasArgs = {
   ancestors: Array<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
 };
 
-
 export type QueryClimbArgs = {
   uuid?: InputMaybe<Scalars['ID']['input']>;
 };
 
-
 export type QueryClimbMediaPaginationArgs = {
   input?: InputMaybe<ClimbMediaInput>;
 };
-
 
 export type QueryCragsNearArgs = {
   includeCrags?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1292,76 +1279,61 @@ export type QueryCragsNearArgs = {
   placeId?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryCragsWithinArgs = {
   filter?: InputMaybe<SearchWithinFilter>;
 };
-
 
 export type QueryGetAreaHistoryArgs = {
   filter?: InputMaybe<AreaHistoryFilter>;
 };
 
-
 export type QueryGetChangeHistoryArgs = {
   filter?: InputMaybe<AllHistoryFilter>;
 };
-
 
 export type QueryGetMediaForFeedArgs = {
   input?: InputMaybe<MediaForFeedInput>;
 };
 
-
 export type QueryGetOrganizationHistoryArgs = {
   filter?: InputMaybe<OrganizationHistoryFilter>;
 };
-
 
 export type QueryGetTagsArgs = {
   input?: InputMaybe<GetTagInput>;
 };
 
-
 export type QueryGetTagsLeaderboardArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
-
 
 export type QueryGetUserMediaArgs = {
   input?: InputMaybe<UserMediaInput>;
 };
 
-
 export type QueryGetUserMediaPaginationArgs = {
   input?: InputMaybe<UserMediaInput>;
 };
-
 
 export type QueryGetUserPublicPageArgs = {
   input: UsernameInput;
 };
 
-
 export type QueryGetUserPublicProfileByUuidArgs = {
   input: UserIdInput;
 };
-
 
 export type QueryGetUsernameArgs = {
   input: UserIdInput;
 };
 
-
 export type QueryMediaArgs = {
   input?: InputMaybe<MediaInput>;
 };
 
-
 export type QueryOrganizationArgs = {
   muuid?: InputMaybe<Scalars['UUID']['input']>;
 };
-
 
 export type QueryOrganizationsArgs = {
   filter?: InputMaybe<OrgFilter>;
@@ -1370,16 +1342,13 @@ export type QueryOrganizationsArgs = {
   sort?: InputMaybe<OrgSort>;
 };
 
-
 export type QueryUserArgs = {
   input: LocateUserBy;
 };
 
-
 export type QueryUserPageArgs = {
   input: LocateUserBy;
 };
-
 
 export type QueryUserTicksArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1388,14 +1357,12 @@ export type QueryUserTicksArgs = {
   username?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryUserTicksByClimbIdArgs = {
   climbId?: InputMaybe<Scalars['String']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   userId?: InputMaybe<Scalars['String']['input']>;
 };
-
 
 export type QueryUsernameExistsArgs = {
   input: UsernameInput;
@@ -1437,7 +1404,7 @@ export enum SafetyEnum {
    * [source](https://www.climbernews.com/what-is-a-runout-in-climbing/)
    */
   Runout = 'runout',
-  Terrain = 'terrain'
+  Terrain = 'terrain',
 }
 
 export type SearchWithinFilter = {
@@ -1558,7 +1525,7 @@ export enum TickAttemptType {
   /** Repeat */
   Repeat = 'Repeat',
   /** Send: Sending a route with no falls */
-  Send = 'Send'
+  Send = 'Send',
 }
 
 /** Takes in the MongoId and a tick object to replace the old tick object with */
@@ -1572,7 +1539,7 @@ export enum TickSource {
   /** MountainProject (imported tick) */
   Mp = 'MP',
   /** OpenBeta (native tick) */
-  Ob = 'OB'
+  Ob = 'OB',
 }
 
 export enum TickStyle {
@@ -1587,7 +1554,7 @@ export enum TickStyle {
   /** Solo */
   Solo = 'Solo',
   /** tr */
-  Tr = 'TR'
+  Tr = 'TR',
 }
 
 /**
@@ -1745,36 +1712,58 @@ export type ResolversObject<TObject> = WithIndex<TObject>;
 
 export type ResolverTypeWrapper<T> = Promise<T> | T;
 
-
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
   resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
 };
-export type Resolver<TResult, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
+export type Resolver<
+  TResult,
+  TParent = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+  TArgs = Record<PropertyKey, never>,
+> =
+  | ResolverFn<TResult, TParent, TContext, TArgs>
+  | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => Promise<TResult> | TResult;
 
 export type SubscriptionSubscribeFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => AsyncIterable<TResult> | Promise<AsyncIterable<TResult>>;
 
 export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => TResult | Promise<TResult>;
 
-export interface SubscriptionSubscriberObject<TResult, TKey extends string, TParent, TContext, TArgs> {
-  subscribe: SubscriptionSubscribeFn<{ [key in TKey]: TResult }, TParent, TContext, TArgs>;
-  resolve?: SubscriptionResolveFn<TResult, { [key in TKey]: TResult }, TContext, TArgs>;
+export interface SubscriptionSubscriberObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs,
+> {
+  subscribe: SubscriptionSubscribeFn<
+    { [key in TKey]: TResult },
+    TParent,
+    TContext,
+    TArgs
+  >;
+  resolve?: SubscriptionResolveFn<
+    TResult,
+    { [key in TKey]: TResult },
+    TContext,
+    TArgs
+  >;
 }
 
 export interface SubscriptionResolverObject<TResult, TParent, TContext, TArgs> {
@@ -1782,47 +1771,76 @@ export interface SubscriptionResolverObject<TResult, TParent, TContext, TArgs> {
   resolve: SubscriptionResolveFn<TResult, any, TContext, TArgs>;
 }
 
-export type SubscriptionObject<TResult, TKey extends string, TParent, TContext, TArgs> =
+export type SubscriptionObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs,
+> =
   | SubscriptionSubscriberObject<TResult, TKey, TParent, TContext, TArgs>
   | SubscriptionResolverObject<TResult, TParent, TContext, TArgs>;
 
-export type SubscriptionResolver<TResult, TKey extends string, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> =
-  | ((...args: any[]) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
+export type SubscriptionResolver<
+  TResult,
+  TKey extends string,
+  TParent = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+  TArgs = Record<PropertyKey, never>,
+> =
+  | ((
+    ...args: any[]
+  ) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
   | SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>;
 
-export type TypeResolveFn<TTypes, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>> = (
+export type TypeResolveFn<
+  TTypes,
+  TParent = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+> = (
   parent: TParent,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
 
-export type IsTypeOfResolverFn<T = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
+export type IsTypeOfResolverFn<
+  T = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+> = (
+  obj: T,
+  context: TContext,
+  info: GraphQLResolveInfo,
+) => boolean | Promise<boolean>;
 
 export type NextResolverFn<T> = () => Promise<T>;
 
-export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = Record<PropertyKey, never>, TContext = Record<PropertyKey, never>, TArgs = Record<PropertyKey, never>> = (
+export type DirectiveResolverFn<
+  TResult = Record<PropertyKey, never>,
+  TParent = Record<PropertyKey, never>,
+  TContext = Record<PropertyKey, never>,
+  TArgs = Record<PropertyKey, never>,
+> = (
   next: NextResolverFn<TResult>,
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => TResult | Promise<TResult>;
 
-
-
 /** Mapping of union types */
-export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = ResolversObject<{
-  Document:
-    | ( PartiallyResolvedArea )
-    | ( PartiallyResolvedClimb )
-    | ( Organization )
-  ;
-}>;
+export type ResolversUnionTypes<_RefType extends Record<string, unknown>> =
+  ResolversObject<{
+    Document:
+      | (PartiallyResolvedArea)
+      | (PartiallyResolvedClimb)
+      | (Organization);
+  }>;
 
 /** Mapping of interface types */
-export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = ResolversObject<{
-  IMediaMetadata: ( MediaRecord );
-}>;
+export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> =
+  ResolversObject<{
+    IMediaMetadata: MediaRecord;
+  }>;
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
@@ -1838,7 +1856,11 @@ export type ResolversTypes = ResolversObject<{
   AreaFilter: AreaFilter;
   AreaHistoryFilter: AreaHistoryFilter;
   AreaInput: AreaInput;
-  AreaMedia: ResolverTypeWrapper<Omit<AreaMedia, 'mediaConnection'> & { mediaConnection: ResolversTypes['MediaConnection'] }>;
+  AreaMedia: ResolverTypeWrapper<
+    Omit<AreaMedia, 'mediaConnection'> & {
+      mediaConnection: ResolversTypes['MediaConnection'];
+    }
+  >;
   AreaMediaInput: AreaMediaInput;
   AreaMetadata: ResolverTypeWrapper<AreaMetadata>;
   AreaSortingInput: AreaSortingInput;
@@ -1849,10 +1871,27 @@ export type ResolversTypes = ResolversObject<{
   BulkImportClimbInput: BulkImportClimbInput;
   BulkImportInput: BulkImportInput;
   BulkImportPitchesInput: BulkImportPitchesInput;
-  BulkImportResult: ResolverTypeWrapper<Omit<BulkImportResult, 'addedAreas' | 'addedOrUpdatedClimbs' | 'updatedAreas'> & { addedAreas?: Maybe<Array<Maybe<ResolversTypes['Area']>>>, addedOrUpdatedClimbs?: Maybe<Array<Maybe<ResolversTypes['Climb']>>>, updatedAreas?: Maybe<Array<Maybe<ResolversTypes['Area']>>> }>;
-  Change: ResolverTypeWrapper<Omit<Change, 'fullDocument'> & { fullDocument?: Maybe<ResolversTypes['Document']> }>;
+  BulkImportResult: ResolverTypeWrapper<
+    Omit<
+      BulkImportResult,
+      'addedAreas' | 'addedOrUpdatedClimbs' | 'updatedAreas'
+    > & {
+      addedAreas?: Maybe<Array<Maybe<ResolversTypes['Area']>>>;
+      addedOrUpdatedClimbs?: Maybe<Array<Maybe<ResolversTypes['Climb']>>>;
+      updatedAreas?: Maybe<Array<Maybe<ResolversTypes['Area']>>>;
+    }
+  >;
+  Change: ResolverTypeWrapper<
+    Omit<Change, 'fullDocument'> & {
+      fullDocument?: Maybe<ResolversTypes['Document']>;
+    }
+  >;
   Climb: ResolverTypeWrapper<PartiallyResolvedClimb>;
-  ClimbMedia: ResolverTypeWrapper<Omit<ClimbMedia, 'mediaConnection'> & { mediaConnection: ResolversTypes['MediaConnection'] }>;
+  ClimbMedia: ResolverTypeWrapper<
+    Omit<ClimbMedia, 'mediaConnection'> & {
+      mediaConnection: ResolversTypes['MediaConnection'];
+    }
+  >;
   ClimbMediaInput: ClimbMediaInput;
   ClimbMetadata: ResolverTypeWrapper<ClimbMetadata>;
   ClimbType: ResolverTypeWrapper<ClimbType>;
@@ -1863,7 +1902,11 @@ export type ResolversTypes = ResolversObject<{
   CountByGradeBand: ResolverTypeWrapper<CountByGradeBand>;
   CountByGroupType: ResolverTypeWrapper<CountByGroupType>;
   CountryInput: CountryInput;
-  CragsNear: ResolverTypeWrapper<Omit<CragsNear, 'crags'> & { crags?: Maybe<Array<Maybe<ResolversTypes['Area']>>> }>;
+  CragsNear: ResolverTypeWrapper<
+    Omit<CragsNear, 'crags'> & {
+      crags?: Maybe<Array<Maybe<ResolversTypes['Area']>>>;
+    }
+  >;
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   DeleteAllTickResult: ResolverTypeWrapper<DeleteAllTickResult>;
   DeleteManyClimbsInput: DeleteManyClimbsInput;
@@ -1872,7 +1915,9 @@ export type ResolversTypes = ResolversObject<{
   DisciplineStatsType: ResolverTypeWrapper<DisciplineStatsType>;
   DisciplineType: DisciplineType;
   DisplayNameFilter: DisplayNameFilter;
-  Document: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['Document']>;
+  Document: ResolverTypeWrapper<
+    ResolversUnionTypes<ResolversTypes>['Document']
+  >;
   EmbeddedAreaMediaInput: EmbeddedAreaMediaInput;
   EmbeddedClimbMediaInput: EmbeddedClimbMediaInput;
   EmbeddedEntityInput: EmbeddedEntityInput;
@@ -1887,17 +1932,33 @@ export type ResolversTypes = ResolversObject<{
   GetTagResponse: ResolverTypeWrapper<GetTagResponse>;
   GradeType: ResolverTypeWrapper<GradeType>;
   GradeTypeInput: GradeTypeInput;
-  History: ResolverTypeWrapper<Omit<History, 'changes'> & { changes?: Maybe<Array<Maybe<ResolversTypes['Change']>>> }>;
+  History: ResolverTypeWrapper<
+    Omit<History, 'changes'> & {
+      changes?: Maybe<Array<Maybe<ResolversTypes['Change']>>>;
+    }
+  >;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
-  IMediaMetadata: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['IMediaMetadata']>;
+  IMediaMetadata: ResolverTypeWrapper<
+    ResolversInterfaceTypes<ResolversTypes>['IMediaMetadata']
+  >;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   JSONObject: ResolverTypeWrapper<Scalars['JSONObject']['output']>;
   LeafFilter: LeafFilter;
   LocateUserBy: LocateUserBy;
-  MediaByUsers: ResolverTypeWrapper<Omit<MediaByUsers, 'mediaWithTags'> & { mediaWithTags?: Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>> }>;
-  MediaConnection: ResolverTypeWrapper<Omit<MediaConnection, 'edges'> & { edges: Array<ResolversTypes['MediaEdge']> }>;
+  MediaByUsers: ResolverTypeWrapper<
+    Omit<MediaByUsers, 'mediaWithTags'> & {
+      mediaWithTags?: Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>;
+    }
+  >;
+  MediaConnection: ResolverTypeWrapper<
+    Omit<MediaConnection, 'edges'> & {
+      edges: Array<ResolversTypes['MediaEdge']>;
+    }
+  >;
   MediaDeleteInput: MediaDeleteInput;
-  MediaEdge: ResolverTypeWrapper<Omit<MediaEdge, 'node'> & { node?: Maybe<ResolversTypes['MediaWithTags']> }>;
+  MediaEdge: ResolverTypeWrapper<
+    Omit<MediaEdge, 'node'> & { node?: Maybe<ResolversTypes['MediaWithTags']> }
+  >;
   MediaEntityTagInput: MediaEntityTagInput;
   MediaForFeedInput: MediaForFeedInput;
   MediaInput: MediaInput;
@@ -1934,15 +1995,25 @@ export type ResolversTypes = ResolversObject<{
   TickFilter: TickFilter;
   TickSource: TickSource;
   TickStyle: TickStyle;
-  TickType: ResolverTypeWrapper<Omit<TickType, 'climb'> & { climb?: Maybe<ResolversTypes['Climb']> }>;
+  TickType: ResolverTypeWrapper<
+    Omit<TickType, 'climb'> & { climb?: Maybe<ResolversTypes['Climb']> }
+  >;
   UUID: ResolverTypeWrapper<Scalars['UUID']['output']>;
   UpdateClimbsInput: UpdateClimbsInput;
   UpdateDescription: ResolverTypeWrapper<UpdateDescription>;
   UserIDInput: UserIdInput;
-  UserMedia: ResolverTypeWrapper<Omit<UserMedia, 'mediaConnection'> & { mediaConnection: ResolversTypes['MediaConnection'] }>;
+  UserMedia: ResolverTypeWrapper<
+    Omit<UserMedia, 'mediaConnection'> & {
+      mediaConnection: ResolversTypes['MediaConnection'];
+    }
+  >;
   UserMediaInput: UserMediaInput;
   UserProfileInput: UserProfileInput;
-  UserPublicPage: ResolverTypeWrapper<Omit<UserPublicPage, 'media'> & { media?: Maybe<ResolversTypes['UserMedia']> }>;
+  UserPublicPage: ResolverTypeWrapper<
+    Omit<UserPublicPage, 'media'> & {
+      media?: Maybe<ResolversTypes['UserMedia']>;
+    }
+  >;
   UserPublicProfile: ResolverTypeWrapper<UserPublicProfile>;
   UsernameDetail: ResolverTypeWrapper<UsernameDetail>;
   UsernameInput: UsernameInput;
@@ -1962,7 +2033,9 @@ export type ResolversParentTypes = ResolversObject<{
   AreaFilter: AreaFilter;
   AreaHistoryFilter: AreaHistoryFilter;
   AreaInput: AreaInput;
-  AreaMedia: Omit<AreaMedia, 'mediaConnection'> & { mediaConnection: ResolversParentTypes['MediaConnection'] };
+  AreaMedia: Omit<AreaMedia, 'mediaConnection'> & {
+    mediaConnection: ResolversParentTypes['MediaConnection'];
+  };
   AreaMediaInput: AreaMediaInput;
   AreaMetadata: AreaMetadata;
   AreaSortingInput: AreaSortingInput;
@@ -1973,10 +2046,23 @@ export type ResolversParentTypes = ResolversObject<{
   BulkImportClimbInput: BulkImportClimbInput;
   BulkImportInput: BulkImportInput;
   BulkImportPitchesInput: BulkImportPitchesInput;
-  BulkImportResult: Omit<BulkImportResult, 'addedAreas' | 'addedOrUpdatedClimbs' | 'updatedAreas'> & { addedAreas?: Maybe<Array<Maybe<ResolversParentTypes['Area']>>>, addedOrUpdatedClimbs?: Maybe<Array<Maybe<ResolversParentTypes['Climb']>>>, updatedAreas?: Maybe<Array<Maybe<ResolversParentTypes['Area']>>> };
-  Change: Omit<Change, 'fullDocument'> & { fullDocument?: Maybe<ResolversParentTypes['Document']> };
+  BulkImportResult:
+    & Omit<
+      BulkImportResult,
+      'addedAreas' | 'addedOrUpdatedClimbs' | 'updatedAreas'
+    >
+    & {
+      addedAreas?: Maybe<Array<Maybe<ResolversParentTypes['Area']>>>;
+      addedOrUpdatedClimbs?: Maybe<Array<Maybe<ResolversParentTypes['Climb']>>>;
+      updatedAreas?: Maybe<Array<Maybe<ResolversParentTypes['Area']>>>;
+    };
+  Change: Omit<Change, 'fullDocument'> & {
+    fullDocument?: Maybe<ResolversParentTypes['Document']>;
+  };
   Climb: PartiallyResolvedClimb;
-  ClimbMedia: Omit<ClimbMedia, 'mediaConnection'> & { mediaConnection: ResolversParentTypes['MediaConnection'] };
+  ClimbMedia: Omit<ClimbMedia, 'mediaConnection'> & {
+    mediaConnection: ResolversParentTypes['MediaConnection'];
+  };
   ClimbMediaInput: ClimbMediaInput;
   ClimbMetadata: ClimbMetadata;
   ClimbType: ClimbType;
@@ -1986,7 +2072,9 @@ export type ResolversParentTypes = ResolversObject<{
   CountByGradeBand: CountByGradeBand;
   CountByGroupType: CountByGroupType;
   CountryInput: CountryInput;
-  CragsNear: Omit<CragsNear, 'crags'> & { crags?: Maybe<Array<Maybe<ResolversParentTypes['Area']>>> };
+  CragsNear: Omit<CragsNear, 'crags'> & {
+    crags?: Maybe<Array<Maybe<ResolversParentTypes['Area']>>>;
+  };
   Date: Scalars['Date']['output'];
   DeleteAllTickResult: DeleteAllTickResult;
   DeleteManyClimbsInput: DeleteManyClimbsInput;
@@ -2009,17 +2097,27 @@ export type ResolversParentTypes = ResolversObject<{
   GetTagResponse: GetTagResponse;
   GradeType: GradeType;
   GradeTypeInput: GradeTypeInput;
-  History: Omit<History, 'changes'> & { changes?: Maybe<Array<Maybe<ResolversParentTypes['Change']>>> };
+  History: Omit<History, 'changes'> & {
+    changes?: Maybe<Array<Maybe<ResolversParentTypes['Change']>>>;
+  };
   ID: Scalars['ID']['output'];
-  IMediaMetadata: ResolversInterfaceTypes<ResolversParentTypes>['IMediaMetadata'];
+  IMediaMetadata: ResolversInterfaceTypes<
+    ResolversParentTypes
+  >['IMediaMetadata'];
   Int: Scalars['Int']['output'];
   JSONObject: Scalars['JSONObject']['output'];
   LeafFilter: LeafFilter;
   LocateUserBy: LocateUserBy;
-  MediaByUsers: Omit<MediaByUsers, 'mediaWithTags'> & { mediaWithTags?: Maybe<Array<Maybe<ResolversParentTypes['MediaWithTags']>>> };
-  MediaConnection: Omit<MediaConnection, 'edges'> & { edges: Array<ResolversParentTypes['MediaEdge']> };
+  MediaByUsers: Omit<MediaByUsers, 'mediaWithTags'> & {
+    mediaWithTags?: Maybe<Array<Maybe<ResolversParentTypes['MediaWithTags']>>>;
+  };
+  MediaConnection: Omit<MediaConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['MediaEdge']>;
+  };
   MediaDeleteInput: MediaDeleteInput;
-  MediaEdge: Omit<MediaEdge, 'node'> & { node?: Maybe<ResolversParentTypes['MediaWithTags']> };
+  MediaEdge: Omit<MediaEdge, 'node'> & {
+    node?: Maybe<ResolversParentTypes['MediaWithTags']>;
+  };
   MediaEntityTagInput: MediaEntityTagInput;
   MediaForFeedInput: MediaForFeedInput;
   MediaInput: MediaInput;
@@ -2052,151 +2150,391 @@ export type ResolversParentTypes = ResolversObject<{
   TagsLeaderboard: TagsLeaderboard;
   Tick: Tick;
   TickFilter: TickFilter;
-  TickType: Omit<TickType, 'climb'> & { climb?: Maybe<ResolversParentTypes['Climb']> };
+  TickType: Omit<TickType, 'climb'> & {
+    climb?: Maybe<ResolversParentTypes['Climb']>;
+  };
   UUID: Scalars['UUID']['output'];
   UpdateClimbsInput: UpdateClimbsInput;
   UpdateDescription: UpdateDescription;
   UserIDInput: UserIdInput;
-  UserMedia: Omit<UserMedia, 'mediaConnection'> & { mediaConnection: ResolversParentTypes['MediaConnection'] };
+  UserMedia: Omit<UserMedia, 'mediaConnection'> & {
+    mediaConnection: ResolversParentTypes['MediaConnection'];
+  };
   UserMediaInput: UserMediaInput;
   UserProfileInput: UserProfileInput;
-  UserPublicPage: Omit<UserPublicPage, 'media'> & { media?: Maybe<ResolversParentTypes['UserMedia']> };
+  UserPublicPage: Omit<UserPublicPage, 'media'> & {
+    media?: Maybe<ResolversParentTypes['UserMedia']>;
+  };
   UserPublicProfile: UserPublicProfile;
   UsernameDetail: UsernameDetail;
   UsernameInput: UsernameInput;
 }>;
 
-export type AddTagResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AddTagResponse'] = ResolversParentTypes['AddTagResponse']> = ResolversObject<{
+export type AddTagResponseResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['AddTagResponse'] =
+    ResolversParentTypes['AddTagResponse'],
+> = ResolversObject<{
   tagId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
 }>;
 
-export type AggregateTypeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AggregateType'] = ResolversParentTypes['AggregateType']> = ResolversObject<{
-  byDiscipline?: Resolver<Maybe<ResolversTypes['CountByDisciplineType']>, ParentType, ContextType>;
-  byGrade?: Resolver<Maybe<Array<Maybe<ResolversTypes['CountByGroupType']>>>, ParentType, ContextType>;
-  byGradeBand?: Resolver<Maybe<ResolversTypes['CountByGradeBand']>, ParentType, ContextType>;
+export type AggregateTypeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['AggregateType'] =
+    ResolversParentTypes['AggregateType'],
+> = ResolversObject<{
+  byDiscipline?: Resolver<
+    Maybe<ResolversTypes['CountByDisciplineType']>,
+    ParentType,
+    ContextType
+  >;
+  byGrade?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['CountByGroupType']>>>,
+    ParentType,
+    ContextType
+  >;
+  byGradeBand?: Resolver<
+    Maybe<ResolversTypes['CountByGradeBand']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type AllTimeTagsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AllTimeTags'] = ResolversParentTypes['AllTimeTags']> = ResolversObject<{
-  byUsers?: Resolver<Array<Maybe<ResolversTypes['TagsByUser']>>, ParentType, ContextType>;
+export type AllTimeTagsResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['AllTimeTags'] =
+    ResolversParentTypes['AllTimeTags'],
+> = ResolversObject<{
+  byUsers?: Resolver<
+    Array<Maybe<ResolversTypes['TagsByUser']>>,
+    ParentType,
+    ContextType
+  >;
   totalMediaWithTags?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 }>;
 
-export type AreaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Area'] = ResolversParentTypes['Area']> = ResolversObject<{
-  aggregate?: Resolver<Maybe<ResolversTypes['AggregateType']>, ParentType, ContextType>;
-  ancestors?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>;
+export type AreaResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Area'] =
+    ResolversParentTypes['Area'],
+> = ResolversObject<{
+  aggregate?: Resolver<
+    Maybe<ResolversTypes['AggregateType']>,
+    ParentType,
+    ContextType
+  >;
+  ancestors?: Resolver<
+    Array<Maybe<ResolversTypes['String']>>,
+    ParentType,
+    ContextType
+  >;
   areaName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   area_name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  authorMetadata?: Resolver<ResolversTypes['AuthorMetadata'], ParentType, ContextType>;
-  children?: Resolver<Maybe<Array<Maybe<ResolversTypes['Area']>>>, ParentType, ContextType>;
-  climbs?: Resolver<Maybe<Array<Maybe<ResolversTypes['Climb']>>>, ParentType, ContextType>;
-  content?: Resolver<Maybe<ResolversTypes['AreaContent']>, ParentType, ContextType>;
+  authorMetadata?: Resolver<
+    ResolversTypes['AuthorMetadata'],
+    ParentType,
+    ContextType
+  >;
+  children?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Area']>>>,
+    ParentType,
+    ContextType
+  >;
+  climbs?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Climb']>>>,
+    ParentType,
+    ContextType
+  >;
+  content?: Resolver<
+    Maybe<ResolversTypes['AreaContent']>,
+    ParentType,
+    ContextType
+  >;
   density?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   gradeContext?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   imageByteSum?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  media?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>, ParentType, ContextType>;
-  mediaPagination?: Resolver<Maybe<ResolversTypes['AreaMedia']>, ParentType, ContextType, Partial<AreaMediaPaginationArgs>>;
+  media?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>,
+    ParentType,
+    ContextType
+  >;
+  mediaPagination?: Resolver<
+    Maybe<ResolversTypes['AreaMedia']>,
+    ParentType,
+    ContextType,
+    Partial<AreaMediaPaginationArgs>
+  >;
   metadata?: Resolver<ResolversTypes['AreaMetadata'], ParentType, ContextType>;
-  organizations?: Resolver<Maybe<Array<Maybe<ResolversTypes['Organization']>>>, ParentType, ContextType>;
+  organizations?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Organization']>>>,
+    ParentType,
+    ContextType
+  >;
   pathHash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  pathTokens?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>;
-  shortCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  pathTokens?: Resolver<
+    Array<Maybe<ResolversTypes['String']>>,
+    ParentType,
+    ContextType
+  >;
+  shortCode?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   totalClimbs?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   uuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type AreaContentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AreaContent'] = ResolversParentTypes['AreaContent']> = ResolversObject<{
-  areaLocation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+export type AreaContentResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['AreaContent'] =
+    ResolversParentTypes['AreaContent'],
+> = ResolversObject<{
+  areaLocation?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
+  description?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type AreaMediaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AreaMedia'] = ResolversParentTypes['AreaMedia']> = ResolversObject<{
+export type AreaMediaResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['AreaMedia'] =
+    ResolversParentTypes['AreaMedia'],
+> = ResolversObject<{
   areaUuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  mediaConnection?: Resolver<ResolversTypes['MediaConnection'], ParentType, ContextType>;
+  mediaConnection?: Resolver<
+    ResolversTypes['MediaConnection'],
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type AreaMetadataResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AreaMetadata'] = ResolversParentTypes['AreaMetadata']> = ResolversObject<{
+export type AreaMetadataResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['AreaMetadata'] =
+    ResolversParentTypes['AreaMetadata'],
+> = ResolversObject<{
   areaId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   area_id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  bbox?: Resolver<Maybe<Array<Maybe<ResolversTypes['Float']>>>, ParentType, ContextType>;
-  isBoulder?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  bbox?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Float']>>>,
+    ParentType,
+    ContextType
+  >;
+  isBoulder?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >;
   isDestination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   leaf?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  leftRightIndex?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  leftRightIndex?: Resolver<
+    Maybe<ResolversTypes['Int']>,
+    ParentType,
+    ContextType
+  >;
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   mp_id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  polygon?: Resolver<Maybe<Array<Maybe<Array<Maybe<ResolversTypes['Float']>>>>>, ParentType, ContextType>;
+  polygon?: Resolver<
+    Maybe<Array<Maybe<Array<Maybe<ResolversTypes['Float']>>>>>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type AuthorMetadataResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AuthorMetadata'] = ResolversParentTypes['AuthorMetadata']> = ResolversObject<{
+export type AuthorMetadataResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['AuthorMetadata'] =
+    ResolversParentTypes['AuthorMetadata'],
+> = ResolversObject<{
   createdAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
-  createdByUser?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdByUser?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   updatedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   updatedBy?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
-  updatedByUser?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedByUser?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type BulkImportResultResolvers<ContextType = Context, ParentType extends ResolversParentTypes['BulkImportResult'] = ResolversParentTypes['BulkImportResult']> = ResolversObject<{
-  addedAreas?: Resolver<Maybe<Array<Maybe<ResolversTypes['Area']>>>, ParentType, ContextType>;
-  addedOrUpdatedClimbs?: Resolver<Maybe<Array<Maybe<ResolversTypes['Climb']>>>, ParentType, ContextType>;
-  updatedAreas?: Resolver<Maybe<Array<Maybe<ResolversTypes['Area']>>>, ParentType, ContextType>;
+export type BulkImportResultResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['BulkImportResult'] =
+    ResolversParentTypes['BulkImportResult'],
+> = ResolversObject<{
+  addedAreas?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Area']>>>,
+    ParentType,
+    ContextType
+  >;
+  addedOrUpdatedClimbs?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Climb']>>>,
+    ParentType,
+    ContextType
+  >;
+  updatedAreas?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Area']>>>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type ChangeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Change'] = ResolversParentTypes['Change']> = ResolversObject<{
+export type ChangeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Change'] =
+    ResolversParentTypes['Change'],
+> = ResolversObject<{
   changeId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   dbOp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  fullDocument?: Resolver<Maybe<ResolversTypes['Document']>, ParentType, ContextType>;
-  updateDescription?: Resolver<Maybe<ResolversTypes['UpdateDescription']>, ParentType, ContextType>;
+  fullDocument?: Resolver<
+    Maybe<ResolversTypes['Document']>,
+    ParentType,
+    ContextType
+  >;
+  updateDescription?: Resolver<
+    Maybe<ResolversTypes['UpdateDescription']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type ClimbResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Climb'] = ResolversParentTypes['Climb']> = ResolversObject<{
-  ancestors?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
-  authorMetadata?: Resolver<ResolversTypes['AuthorMetadata'], ParentType, ContextType>;
+export type ClimbResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Climb'] =
+    ResolversParentTypes['Climb'],
+> = ResolversObject<{
+  ancestors?: Resolver<
+    Maybe<Array<ResolversTypes['String']>>,
+    ParentType,
+    ContextType
+  >;
+  authorMetadata?: Resolver<
+    ResolversTypes['AuthorMetadata'],
+    ParentType,
+    ContextType
+  >;
   boltsCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   content?: Resolver<ResolversTypes['Content'], ParentType, ContextType>;
   fa?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  gradeContext?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  grades?: Resolver<Maybe<ResolversTypes['GradeType']>, ParentType, ContextType>;
+  gradeContext?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
+  grades?: Resolver<
+    Maybe<ResolversTypes['GradeType']>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   length?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  media?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>, ParentType, ContextType>;
-  mediaPagination?: Resolver<Maybe<ResolversTypes['ClimbMedia']>, ParentType, ContextType, Partial<ClimbMediaPaginationArgs>>;
+  media?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>,
+    ParentType,
+    ContextType
+  >;
+  mediaPagination?: Resolver<
+    Maybe<ResolversTypes['ClimbMedia']>,
+    ParentType,
+    ContextType,
+    Partial<ClimbMediaPaginationArgs>
+  >;
   metadata?: Resolver<ResolversTypes['ClimbMetadata'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   parent?: Resolver<ResolversTypes['Area'], ParentType, ContextType>;
-  pathTokens?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
-  pitches?: Resolver<Maybe<Array<Maybe<ResolversTypes['Pitch']>>>, ParentType, ContextType>;
-  safety?: Resolver<Maybe<ResolversTypes['SafetyEnum']>, ParentType, ContextType>;
-  ticks?: Resolver<Maybe<Array<Maybe<ResolversTypes['TickType']>>>, ParentType, ContextType>;
+  pathTokens?: Resolver<
+    Maybe<Array<ResolversTypes['String']>>,
+    ParentType,
+    ContextType
+  >;
+  pitches?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Pitch']>>>,
+    ParentType,
+    ContextType
+  >;
+  safety?: Resolver<
+    Maybe<ResolversTypes['SafetyEnum']>,
+    ParentType,
+    ContextType
+  >;
+  ticks?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['TickType']>>>,
+    ParentType,
+    ContextType
+  >;
   type?: Resolver<ResolversTypes['ClimbType'], ParentType, ContextType>;
   uuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   yds?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ClimbMediaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ClimbMedia'] = ResolversParentTypes['ClimbMedia']> = ResolversObject<{
+export type ClimbMediaResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['ClimbMedia'] =
+    ResolversParentTypes['ClimbMedia'],
+> = ResolversObject<{
   climbUuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  mediaConnection?: Resolver<ResolversTypes['MediaConnection'], ParentType, ContextType>;
+  mediaConnection?: Resolver<
+    ResolversTypes['MediaConnection'],
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type ClimbMetadataResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ClimbMetadata'] = ResolversParentTypes['ClimbMetadata']> = ResolversObject<{
+export type ClimbMetadataResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['ClimbMetadata'] =
+    ResolversParentTypes['ClimbMetadata'],
+> = ResolversObject<{
   climbId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   climb_id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lat?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
-  leftRightIndex?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  left_right_index?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  leftRightIndex?: Resolver<
+    Maybe<ResolversTypes['Int']>,
+    ParentType,
+    ContextType
+  >;
+  left_right_index?: Resolver<
+    Maybe<ResolversTypes['Int']>,
+    ParentType,
+    ContextType
+  >;
   lng?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   mp_id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export type ClimbTypeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ClimbType'] = ResolversParentTypes['ClimbType']> = ResolversObject<{
+export type ClimbTypeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['ClimbType'] =
+    ResolversParentTypes['ClimbType'],
+> = ResolversObject<{
   aid?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   alpine?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  bouldering?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  deepwatersolo?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  bouldering?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >;
+  deepwatersolo?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >;
   ice?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   mixed?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   snow?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -2205,87 +2543,221 @@ export type ClimbTypeResolvers<ContextType = Context, ParentType extends Resolve
   trad?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
 }>;
 
-export type ContentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Content'] = ResolversParentTypes['Content']> = ResolversObject<{
-  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+export type ContentResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Content'] =
+    ResolversParentTypes['Content'],
+> = ResolversObject<{
+  description?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  protection?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  protection?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type CountByDisciplineTypeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CountByDisciplineType'] = ResolversParentTypes['CountByDisciplineType']> = ResolversObject<{
-  aid?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  alpine?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  boulder?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  bouldering?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  deepwatersolo?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  ice?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  mixed?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  snow?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  sport?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  tr?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
-  trad?: Resolver<Maybe<ResolversTypes['DisciplineStatsType']>, ParentType, ContextType>;
+export type CountByDisciplineTypeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['CountByDisciplineType'] =
+    ResolversParentTypes['CountByDisciplineType'],
+> = ResolversObject<{
+  aid?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  alpine?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  boulder?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  bouldering?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  deepwatersolo?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  ice?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  mixed?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  snow?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  sport?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  tr?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
+  trad?: Resolver<
+    Maybe<ResolversTypes['DisciplineStatsType']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type CountByGradeBandResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CountByGradeBand'] = ResolversParentTypes['CountByGradeBand']> = ResolversObject<{
+export type CountByGradeBandResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['CountByGradeBand'] =
+    ResolversParentTypes['CountByGradeBand'],
+> = ResolversObject<{
   advanced?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   beginner?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   expert?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  intermediate?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  intermediate?: Resolver<
+    Maybe<ResolversTypes['Int']>,
+    ParentType,
+    ContextType
+  >;
   unknown?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
 }>;
 
-export type CountByGroupTypeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CountByGroupType'] = ResolversParentTypes['CountByGroupType']> = ResolversObject<{
+export type CountByGroupTypeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['CountByGroupType'] =
+    ResolversParentTypes['CountByGroupType'],
+> = ResolversObject<{
   count?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   label?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export type CragsNearResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CragsNear'] = ResolversParentTypes['CragsNear']> = ResolversObject<{
+export type CragsNearResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['CragsNear'] =
+    ResolversParentTypes['CragsNear'],
+> = ResolversObject<{
   _id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  crags?: Resolver<Maybe<Array<Maybe<ResolversTypes['Area']>>>, ParentType, ContextType>;
+  crags?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Area']>>>,
+    ParentType,
+    ContextType
+  >;
   placeId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 }>;
 
-export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+export interface DateScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any>
+{
   name: 'Date';
 }
 
-export type DeleteAllTickResultResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DeleteAllTickResult'] = ResolversParentTypes['DeleteAllTickResult']> = ResolversObject<{
-  deletedCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+export type DeleteAllTickResultResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['DeleteAllTickResult'] =
+    ResolversParentTypes['DeleteAllTickResult'],
+> = ResolversObject<{
+  deletedCount?: Resolver<
+    Maybe<ResolversTypes['Int']>,
+    ParentType,
+    ContextType
+  >;
   removed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 }>;
 
-export type DeleteSingleTickResultResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DeleteSingleTickResult'] = ResolversParentTypes['DeleteSingleTickResult']> = ResolversObject<{
+export type DeleteSingleTickResultResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['DeleteSingleTickResult'] =
+    ResolversParentTypes['DeleteSingleTickResult'],
+> = ResolversObject<{
   _id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   removed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
 }>;
 
-export type DisciplineStatsTypeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DisciplineStatsType'] = ResolversParentTypes['DisciplineStatsType']> = ResolversObject<{
+export type DisciplineStatsTypeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['DisciplineStatsType'] =
+    ResolversParentTypes['DisciplineStatsType'],
+> = ResolversObject<{
   bands?: Resolver<ResolversTypes['CountByGradeBand'], ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 }>;
 
-export type DocumentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Document'] = ResolversParentTypes['Document']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'Area' | 'Climb' | 'Organization', ParentType, ContextType>;
+export type DocumentResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Document'] =
+    ResolversParentTypes['Document'],
+> = ResolversObject<{
+  __resolveType: TypeResolveFn<
+    'Area' | 'Climb' | 'Organization',
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type EntityTagResolvers<ContextType = Context, ParentType extends ResolversParentTypes['EntityTag'] = ResolversParentTypes['EntityTag']> = ResolversObject<{
+export type EntityTagResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['EntityTag'] =
+    ResolversParentTypes['EntityTag'],
+> = ResolversObject<{
   ancestors?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   areaName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  climbName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  climbName?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lat?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   lng?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   targetId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  topoData?: Resolver<Maybe<ResolversTypes['JSONObject']>, ParentType, ContextType>;
+  topoData?: Resolver<
+    Maybe<ResolversTypes['JSONObject']>,
+    ParentType,
+    ContextType
+  >;
   type?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 }>;
 
-export type GetTagResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GetTagResponse'] = ResolversParentTypes['GetTagResponse']> = ResolversObject<{
-  tag?: Resolver<Maybe<Array<Maybe<ResolversTypes['Tag']>>>, ParentType, ContextType>;
+export type GetTagResponseResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['GetTagResponse'] =
+    ResolversParentTypes['GetTagResponse'],
+> = ResolversObject<{
+  tag?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Tag']>>>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type GradeTypeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GradeType'] = ResolversParentTypes['GradeType']> = ResolversObject<{
-  brazilianCrux?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+export type GradeTypeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['GradeType'] =
+    ResolversParentTypes['GradeType'],
+> = ResolversObject<{
+  brazilianCrux?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   ewbank?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   font?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   french?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2295,84 +2767,259 @@ export type GradeTypeResolvers<ContextType = Context, ParentType extends Resolve
   yds?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export type HistoryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['History'] = ResolversParentTypes['History']> = ResolversObject<{
-  changes?: Resolver<Maybe<Array<Maybe<ResolversTypes['Change']>>>, ParentType, ContextType>;
+export type HistoryResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['History'] =
+    ResolversParentTypes['History'],
+> = ResolversObject<{
+  changes?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Change']>>>,
+    ParentType,
+    ContextType
+  >;
   createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   editedBy?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  editedByUser?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  editedByUser?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   operation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 }>;
 
-export type IMediaMetadataResolvers<ContextType = Context, ParentType extends ResolversParentTypes['IMediaMetadata'] = ResolversParentTypes['IMediaMetadata']> = ResolversObject<{
+export type IMediaMetadataResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['IMediaMetadata'] =
+    ResolversParentTypes['IMediaMetadata'],
+> = ResolversObject<{
   __resolveType: TypeResolveFn<'MediaWithTags', ParentType, ContextType>;
 }>;
 
-export interface JsonObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['JSONObject'], any> {
+export interface JsonObjectScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['JSONObject'], any>
+{
   name: 'JSONObject';
 }
 
-export type MediaByUsersResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaByUsers'] = ResolversParentTypes['MediaByUsers']> = ResolversObject<{
-  mediaWithTags?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>, ParentType, ContextType>;
+export type MediaByUsersResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['MediaByUsers'] =
+    ResolversParentTypes['MediaByUsers'],
+> = ResolversObject<{
+  mediaWithTags?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>,
+    ParentType,
+    ContextType
+  >;
   userUuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   username?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export type MediaConnectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaConnection'] = ResolversParentTypes['MediaConnection']> = ResolversObject<{
+export type MediaConnectionResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['MediaConnection'] =
+    ResolversParentTypes['MediaConnection'],
+> = ResolversObject<{
   edges?: Resolver<Array<ResolversTypes['MediaEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
 }>;
 
-export type MediaEdgeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaEdge'] = ResolversParentTypes['MediaEdge']> = ResolversObject<{
+export type MediaEdgeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['MediaEdge'] =
+    ResolversParentTypes['MediaEdge'],
+> = ResolversObject<{
   cursor?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  node?: Resolver<Maybe<ResolversTypes['MediaWithTags']>, ParentType, ContextType>;
+  node?: Resolver<
+    Maybe<ResolversTypes['MediaWithTags']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type MediaWithTagsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MediaWithTags'] = ResolversParentTypes['MediaWithTags']> = ResolversObject<{
-  entityTags?: Resolver<Maybe<Array<Maybe<ResolversTypes['EntityTag']>>>, ParentType, ContextType>;
+export type MediaWithTagsResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['MediaWithTags'] =
+    ResolversParentTypes['MediaWithTags'],
+> = ResolversObject<{
+  entityTags?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['EntityTag']>>>,
+    ParentType,
+    ContextType
+  >;
   format?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   height?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   mediaUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   uploadTime?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['UserPublicProfile']>, ParentType, ContextType>;
+  user?: Resolver<
+    Maybe<ResolversTypes['UserPublicProfile']>,
+    ParentType,
+    ContextType
+  >;
   username?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   width?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  addArea?: Resolver<Maybe<ResolversTypes['Area']>, ParentType, ContextType, Partial<MutationAddAreaArgs>>;
-  addEntityTag?: Resolver<ResolversTypes['EntityTag'], ParentType, ContextType, Partial<MutationAddEntityTagArgs>>;
-  addMediaObjects?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>, ParentType, ContextType, Partial<MutationAddMediaObjectsArgs>>;
-  addOrganization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, Partial<MutationAddOrganizationArgs>>;
-  addTick?: Resolver<Maybe<ResolversTypes['TickType']>, ParentType, ContextType, Partial<MutationAddTickArgs>>;
-  bulkImportAreas?: Resolver<Maybe<ResolversTypes['BulkImportResult']>, ParentType, ContextType, Partial<MutationBulkImportAreasArgs>>;
-  deleteAllTicks?: Resolver<Maybe<ResolversTypes['DeleteAllTickResult']>, ParentType, ContextType, Partial<MutationDeleteAllTicksArgs>>;
-  deleteClimbs?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType, Partial<MutationDeleteClimbsArgs>>;
-  deleteMediaObject?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteMediaObjectArgs, 'input'>>;
-  deleteTick?: Resolver<Maybe<ResolversTypes['DeleteSingleTickResult']>, ParentType, ContextType, Partial<MutationDeleteTickArgs>>;
-  editTick?: Resolver<Maybe<ResolversTypes['TickType']>, ParentType, ContextType, Partial<MutationEditTickArgs>>;
-  importTicks?: Resolver<Maybe<Array<Maybe<ResolversTypes['TickType']>>>, ParentType, ContextType, Partial<MutationImportTicksArgs>>;
-  removeArea?: Resolver<Maybe<ResolversTypes['Area']>, ParentType, ContextType, Partial<MutationRemoveAreaArgs>>;
-  removeEntityTag?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEntityTagArgs, 'input'>>;
-  setDestinationFlag?: Resolver<Maybe<ResolversTypes['Area']>, ParentType, ContextType, Partial<MutationSetDestinationFlagArgs>>;
-  updateArea?: Resolver<Maybe<ResolversTypes['Area']>, ParentType, ContextType, Partial<MutationUpdateAreaArgs>>;
-  updateAreasSortingOrder?: Resolver<Maybe<Array<Maybe<ResolversTypes['ID']>>>, ParentType, ContextType, Partial<MutationUpdateAreasSortingOrderArgs>>;
-  updateClimb?: Resolver<Maybe<ResolversTypes['Climb']>, ParentType, ContextType, RequireFields<MutationUpdateClimbArgs, 'input'>>;
-  updateClimbs?: Resolver<Maybe<Array<Maybe<ResolversTypes['ID']>>>, ParentType, ContextType, Partial<MutationUpdateClimbsArgs>>;
-  updateOrganization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, Partial<MutationUpdateOrganizationArgs>>;
-  updateUserProfile?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationUpdateUserProfileArgs>>;
+export type MutationResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Mutation'] =
+    ResolversParentTypes['Mutation'],
+> = ResolversObject<{
+  addArea?: Resolver<
+    Maybe<ResolversTypes['Area']>,
+    ParentType,
+    ContextType,
+    Partial<MutationAddAreaArgs>
+  >;
+  addEntityTag?: Resolver<
+    ResolversTypes['EntityTag'],
+    ParentType,
+    ContextType,
+    Partial<MutationAddEntityTagArgs>
+  >;
+  addMediaObjects?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>,
+    ParentType,
+    ContextType,
+    Partial<MutationAddMediaObjectsArgs>
+  >;
+  addOrganization?: Resolver<
+    Maybe<ResolversTypes['Organization']>,
+    ParentType,
+    ContextType,
+    Partial<MutationAddOrganizationArgs>
+  >;
+  addTick?: Resolver<
+    Maybe<ResolversTypes['TickType']>,
+    ParentType,
+    ContextType,
+    Partial<MutationAddTickArgs>
+  >;
+  bulkImportAreas?: Resolver<
+    Maybe<ResolversTypes['BulkImportResult']>,
+    ParentType,
+    ContextType,
+    Partial<MutationBulkImportAreasArgs>
+  >;
+  deleteAllTicks?: Resolver<
+    Maybe<ResolversTypes['DeleteAllTickResult']>,
+    ParentType,
+    ContextType,
+    Partial<MutationDeleteAllTicksArgs>
+  >;
+  deleteClimbs?: Resolver<
+    Maybe<ResolversTypes['Int']>,
+    ParentType,
+    ContextType,
+    Partial<MutationDeleteClimbsArgs>
+  >;
+  deleteMediaObject?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationDeleteMediaObjectArgs, 'input'>
+  >;
+  deleteTick?: Resolver<
+    Maybe<ResolversTypes['DeleteSingleTickResult']>,
+    ParentType,
+    ContextType,
+    Partial<MutationDeleteTickArgs>
+  >;
+  editTick?: Resolver<
+    Maybe<ResolversTypes['TickType']>,
+    ParentType,
+    ContextType,
+    Partial<MutationEditTickArgs>
+  >;
+  importTicks?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['TickType']>>>,
+    ParentType,
+    ContextType,
+    Partial<MutationImportTicksArgs>
+  >;
+  removeArea?: Resolver<
+    Maybe<ResolversTypes['Area']>,
+    ParentType,
+    ContextType,
+    Partial<MutationRemoveAreaArgs>
+  >;
+  removeEntityTag?: Resolver<
+    ResolversTypes['Boolean'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationRemoveEntityTagArgs, 'input'>
+  >;
+  setDestinationFlag?: Resolver<
+    Maybe<ResolversTypes['Area']>,
+    ParentType,
+    ContextType,
+    Partial<MutationSetDestinationFlagArgs>
+  >;
+  updateArea?: Resolver<
+    Maybe<ResolversTypes['Area']>,
+    ParentType,
+    ContextType,
+    Partial<MutationUpdateAreaArgs>
+  >;
+  updateAreasSortingOrder?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['ID']>>>,
+    ParentType,
+    ContextType,
+    Partial<MutationUpdateAreasSortingOrderArgs>
+  >;
+  updateClimb?: Resolver<
+    Maybe<ResolversTypes['Climb']>,
+    ParentType,
+    ContextType,
+    RequireFields<MutationUpdateClimbArgs, 'input'>
+  >;
+  updateClimbs?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['ID']>>>,
+    ParentType,
+    ContextType,
+    Partial<MutationUpdateClimbsArgs>
+  >;
+  updateOrganization?: Resolver<
+    Maybe<ResolversTypes['Organization']>,
+    ParentType,
+    ContextType,
+    Partial<MutationUpdateOrganizationArgs>
+  >;
+  updateUserProfile?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    Partial<MutationUpdateUserProfileArgs>
+  >;
 }>;
 
-export type OrganizationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Organization'] = ResolversParentTypes['Organization']> = ResolversObject<{
-  associatedAreaIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['UUID']>>>, ParentType, ContextType>;
-  content?: Resolver<Maybe<ResolversTypes['OrganizationContent']>, ParentType, ContextType>;
+export type OrganizationResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Organization'] =
+    ResolversParentTypes['Organization'],
+> = ResolversObject<{
+  associatedAreaIds?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['UUID']>>>,
+    ParentType,
+    ContextType
+  >;
+  content?: Resolver<
+    Maybe<ResolversTypes['OrganizationContent']>,
+    ParentType,
+    ContextType
+  >;
   createdAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['UUID']>, ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  excludedAreaIds?: Resolver<Maybe<Array<Maybe<ResolversTypes['UUID']>>>, ParentType, ContextType>;
+  excludedAreaIds?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['UUID']>>>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   orgId?: Resolver<ResolversTypes['UUID'], ParentType, ContextType>;
   orgType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2381,26 +3028,70 @@ export type OrganizationResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type OrganizationContentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['OrganizationContent'] = ResolversParentTypes['OrganizationContent']> = ResolversObject<{
-  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  donationLink?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+export type OrganizationContentResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['OrganizationContent'] =
+    ResolversParentTypes['OrganizationContent'],
+> = ResolversObject<{
+  description?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
+  donationLink?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  facebookLink?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  hardwareReportLink?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  instagramLink?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  facebookLink?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
+  hardwareReportLink?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
+  instagramLink?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export type PageInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = ResolversObject<{
-  endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+export type PageInfoResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['PageInfo'] =
+    ResolversParentTypes['PageInfo'],
+> = ResolversObject<{
+  endCursor?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   totalItems?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 }>;
 
-export type PitchResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Pitch'] = ResolversParentTypes['Pitch']> = ResolversObject<{
+export type PitchResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Pitch'] =
+    ResolversParentTypes['Pitch'],
+> = ResolversObject<{
   boltsCount?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  grades?: Resolver<Maybe<ResolversTypes['GradeType']>, ParentType, ContextType>;
+  description?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
+  grades?: Resolver<
+    Maybe<ResolversTypes['GradeType']>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   length?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   parentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -2408,48 +3099,209 @@ export type PitchResolvers<ContextType = Context, ParentType extends ResolversPa
   type?: Resolver<Maybe<ResolversTypes['ClimbType']>, ParentType, ContextType>;
 }>;
 
-export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  area?: Resolver<Maybe<ResolversTypes['Area']>, ParentType, ContextType, Partial<QueryAreaArgs>>;
-  areaMediaPagination?: Resolver<Maybe<ResolversTypes['AreaMedia']>, ParentType, ContextType, Partial<QueryAreaMediaPaginationArgs>>;
-  areas?: Resolver<Maybe<Array<Maybe<ResolversTypes['Area']>>>, ParentType, ContextType, Partial<QueryAreasArgs>>;
-  bulkAreas?: Resolver<Maybe<Array<Maybe<ResolversTypes['Area']>>>, ParentType, ContextType, RequireFields<QueryBulkAreasArgs, 'ancestors'>>;
-  climb?: Resolver<Maybe<ResolversTypes['Climb']>, ParentType, ContextType, Partial<QueryClimbArgs>>;
-  climbMediaPagination?: Resolver<Maybe<ResolversTypes['ClimbMedia']>, ParentType, ContextType, Partial<QueryClimbMediaPaginationArgs>>;
-  countries?: Resolver<Maybe<Array<Maybe<ResolversTypes['Area']>>>, ParentType, ContextType>;
-  cragsNear?: Resolver<Maybe<Array<Maybe<ResolversTypes['CragsNear']>>>, ParentType, ContextType, RequireFields<QueryCragsNearArgs, 'includeCrags' | 'maxDistance' | 'minDistance'>>;
-  cragsWithin?: Resolver<Maybe<Array<Maybe<ResolversTypes['Area']>>>, ParentType, ContextType, Partial<QueryCragsWithinArgs>>;
-  getAreaHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['History']>>>, ParentType, ContextType, Partial<QueryGetAreaHistoryArgs>>;
-  getChangeHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['History']>>>, ParentType, ContextType, Partial<QueryGetChangeHistoryArgs>>;
-  getMediaForFeed?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaByUsers']>>>, ParentType, ContextType, Partial<QueryGetMediaForFeedArgs>>;
-  getOrganizationHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['History']>>>, ParentType, ContextType, Partial<QueryGetOrganizationHistoryArgs>>;
-  getTags?: Resolver<Maybe<ResolversTypes['GetTagResponse']>, ParentType, ContextType, Partial<QueryGetTagsArgs>>;
-  getTagsLeaderboard?: Resolver<Maybe<ResolversTypes['TagsLeaderboard']>, ParentType, ContextType, Partial<QueryGetTagsLeaderboardArgs>>;
-  getUserMedia?: Resolver<Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>, ParentType, ContextType, Partial<QueryGetUserMediaArgs>>;
-  getUserMediaPagination?: Resolver<Maybe<ResolversTypes['UserMedia']>, ParentType, ContextType, Partial<QueryGetUserMediaPaginationArgs>>;
-  getUserPublicPage?: Resolver<Maybe<ResolversTypes['UserPublicPage']>, ParentType, ContextType, RequireFields<QueryGetUserPublicPageArgs, 'input'>>;
-  getUserPublicProfileByUuid?: Resolver<Maybe<ResolversTypes['UserPublicProfile']>, ParentType, ContextType, RequireFields<QueryGetUserPublicProfileByUuidArgs, 'input'>>;
-  getUsername?: Resolver<Maybe<ResolversTypes['UsernameDetail']>, ParentType, ContextType, RequireFields<QueryGetUsernameArgs, 'input'>>;
-  media?: Resolver<Maybe<ResolversTypes['MediaWithTags']>, ParentType, ContextType, Partial<QueryMediaArgs>>;
-  organization?: Resolver<Maybe<ResolversTypes['Organization']>, ParentType, ContextType, Partial<QueryOrganizationArgs>>;
-  organizations?: Resolver<Maybe<Array<Maybe<ResolversTypes['Organization']>>>, ParentType, ContextType, Partial<QueryOrganizationsArgs>>;
+export type QueryResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Query'] =
+    ResolversParentTypes['Query'],
+> = ResolversObject<{
+  area?: Resolver<
+    Maybe<ResolversTypes['Area']>,
+    ParentType,
+    ContextType,
+    Partial<QueryAreaArgs>
+  >;
+  areaMediaPagination?: Resolver<
+    Maybe<ResolversTypes['AreaMedia']>,
+    ParentType,
+    ContextType,
+    Partial<QueryAreaMediaPaginationArgs>
+  >;
+  areas?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Area']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryAreasArgs>
+  >;
+  bulkAreas?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Area']>>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryBulkAreasArgs, 'ancestors'>
+  >;
+  climb?: Resolver<
+    Maybe<ResolversTypes['Climb']>,
+    ParentType,
+    ContextType,
+    Partial<QueryClimbArgs>
+  >;
+  climbMediaPagination?: Resolver<
+    Maybe<ResolversTypes['ClimbMedia']>,
+    ParentType,
+    ContextType,
+    Partial<QueryClimbMediaPaginationArgs>
+  >;
+  countries?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Area']>>>,
+    ParentType,
+    ContextType
+  >;
+  cragsNear?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['CragsNear']>>>,
+    ParentType,
+    ContextType,
+    RequireFields<
+      QueryCragsNearArgs,
+      'includeCrags' | 'maxDistance' | 'minDistance'
+    >
+  >;
+  cragsWithin?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Area']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryCragsWithinArgs>
+  >;
+  getAreaHistory?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['History']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryGetAreaHistoryArgs>
+  >;
+  getChangeHistory?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['History']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryGetChangeHistoryArgs>
+  >;
+  getMediaForFeed?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['MediaByUsers']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryGetMediaForFeedArgs>
+  >;
+  getOrganizationHistory?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['History']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryGetOrganizationHistoryArgs>
+  >;
+  getTags?: Resolver<
+    Maybe<ResolversTypes['GetTagResponse']>,
+    ParentType,
+    ContextType,
+    Partial<QueryGetTagsArgs>
+  >;
+  getTagsLeaderboard?: Resolver<
+    Maybe<ResolversTypes['TagsLeaderboard']>,
+    ParentType,
+    ContextType,
+    Partial<QueryGetTagsLeaderboardArgs>
+  >;
+  getUserMedia?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['MediaWithTags']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryGetUserMediaArgs>
+  >;
+  getUserMediaPagination?: Resolver<
+    Maybe<ResolversTypes['UserMedia']>,
+    ParentType,
+    ContextType,
+    Partial<QueryGetUserMediaPaginationArgs>
+  >;
+  getUserPublicPage?: Resolver<
+    Maybe<ResolversTypes['UserPublicPage']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryGetUserPublicPageArgs, 'input'>
+  >;
+  getUserPublicProfileByUuid?: Resolver<
+    Maybe<ResolversTypes['UserPublicProfile']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryGetUserPublicProfileByUuidArgs, 'input'>
+  >;
+  getUsername?: Resolver<
+    Maybe<ResolversTypes['UsernameDetail']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryGetUsernameArgs, 'input'>
+  >;
+  media?: Resolver<
+    Maybe<ResolversTypes['MediaWithTags']>,
+    ParentType,
+    ContextType,
+    Partial<QueryMediaArgs>
+  >;
+  organization?: Resolver<
+    Maybe<ResolversTypes['Organization']>,
+    ParentType,
+    ContextType,
+    Partial<QueryOrganizationArgs>
+  >;
+  organizations?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Organization']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryOrganizationsArgs>
+  >;
   stats?: Resolver<Maybe<ResolversTypes['Stats']>, ParentType, ContextType>;
-  user?: Resolver<ResolversTypes['UserPublicProfile'], ParentType, ContextType, RequireFields<QueryUserArgs, 'input'>>;
-  userPage?: Resolver<ResolversTypes['UserPublicPage'], ParentType, ContextType, RequireFields<QueryUserPageArgs, 'input'>>;
-  userTicks?: Resolver<Maybe<Array<Maybe<ResolversTypes['TickType']>>>, ParentType, ContextType, Partial<QueryUserTicksArgs>>;
-  userTicksByClimbId?: Resolver<Maybe<Array<Maybe<ResolversTypes['TickType']>>>, ParentType, ContextType, Partial<QueryUserTicksByClimbIdArgs>>;
-  usernameExists?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryUsernameExistsArgs, 'input'>>;
+  user?: Resolver<
+    ResolversTypes['UserPublicProfile'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryUserArgs, 'input'>
+  >;
+  userPage?: Resolver<
+    ResolversTypes['UserPublicPage'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryUserPageArgs, 'input'>
+  >;
+  userTicks?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['TickType']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryUserTicksArgs>
+  >;
+  userTicksByClimbId?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['TickType']>>>,
+    ParentType,
+    ContextType,
+    Partial<QueryUserTicksByClimbIdArgs>
+  >;
+  usernameExists?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryUsernameExistsArgs, 'input'>
+  >;
 }>;
 
-export type RemoveTagResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RemoveTagResponse'] = ResolversParentTypes['RemoveTagResponse']> = ResolversObject<{
-  numDeleted?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+export type RemoveTagResponseResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['RemoveTagResponse'] =
+    ResolversParentTypes['RemoveTagResponse'],
+> = ResolversObject<{
+  numDeleted?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type StatsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Stats'] = ResolversParentTypes['Stats']> = ResolversObject<{
+export type StatsResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Stats'] =
+    ResolversParentTypes['Stats'],
+> = ResolversObject<{
   totalClimbs?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   totalCrags?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 }>;
 
-export type TagResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Tag'] = ResolversParentTypes['Tag']> = ResolversObject<{
+export type TagResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['Tag'] = ResolversParentTypes['Tag'],
+> = ResolversObject<{
   _id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   destinationId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   destinationType?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -2457,60 +3309,130 @@ export type TagResolvers<ContextType = Context, ParentType extends ResolversPare
   mediaUuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
-export type TagsByUserResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TagsByUser'] = ResolversParentTypes['TagsByUser']> = ResolversObject<{
+export type TagsByUserResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['TagsByUser'] =
+    ResolversParentTypes['TagsByUser'],
+> = ResolversObject<{
   total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   userUuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   username?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export type TagsLeaderboardResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TagsLeaderboard'] = ResolversParentTypes['TagsLeaderboard']> = ResolversObject<{
-  allTime?: Resolver<Maybe<ResolversTypes['AllTimeTags']>, ParentType, ContextType>;
+export type TagsLeaderboardResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['TagsLeaderboard'] =
+    ResolversParentTypes['TagsLeaderboard'],
+> = ResolversObject<{
+  allTime?: Resolver<
+    Maybe<ResolversTypes['AllTimeTags']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type TickTypeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TickType'] = ResolversParentTypes['TickType']> = ResolversObject<{
+export type TickTypeResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['TickType'] =
+    ResolversParentTypes['TickType'],
+> = ResolversObject<{
   _id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
-  attemptType?: Resolver<Maybe<ResolversTypes['TickAttemptType']>, ParentType, ContextType>;
+  attemptType?: Resolver<
+    Maybe<ResolversTypes['TickAttemptType']>,
+    ParentType,
+    ContextType
+  >;
   climb?: Resolver<Maybe<ResolversTypes['Climb']>, ParentType, ContextType>;
   climbId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  dateClimbed?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  dateClimbed?: Resolver<
+    Maybe<ResolversTypes['Date']>,
+    ParentType,
+    ContextType
+  >;
   grade?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  source?: Resolver<Maybe<ResolversTypes['TickSource']>, ParentType, ContextType>;
+  source?: Resolver<
+    Maybe<ResolversTypes['TickSource']>,
+    ParentType,
+    ContextType
+  >;
   style?: Resolver<Maybe<ResolversTypes['TickStyle']>, ParentType, ContextType>;
   user?: Resolver<ResolversTypes['UserPublicProfile'], ParentType, ContextType>;
   userId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export interface UuidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['UUID'], any> {
+export interface UuidScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['UUID'], any>
+{
   name: 'UUID';
 }
 
-export type UpdateDescriptionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UpdateDescription'] = ResolversParentTypes['UpdateDescription']> = ResolversObject<{
-  updatedFields?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+export type UpdateDescriptionResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['UpdateDescription'] =
+    ResolversParentTypes['UpdateDescription'],
+> = ResolversObject<{
+  updatedFields?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['String']>>>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type UserMediaResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserMedia'] = ResolversParentTypes['UserMedia']> = ResolversObject<{
-  mediaConnection?: Resolver<ResolversTypes['MediaConnection'], ParentType, ContextType>;
+export type UserMediaResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['UserMedia'] =
+    ResolversParentTypes['UserMedia'],
+> = ResolversObject<{
+  mediaConnection?: Resolver<
+    ResolversTypes['MediaConnection'],
+    ParentType,
+    ContextType
+  >;
   userUuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
-export type UserPublicPageResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserPublicPage'] = ResolversParentTypes['UserPublicPage']> = ResolversObject<{
+export type UserPublicPageResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['UserPublicPage'] =
+    ResolversParentTypes['UserPublicPage'],
+> = ResolversObject<{
   media?: Resolver<Maybe<ResolversTypes['UserMedia']>, ParentType, ContextType>;
-  profile?: Resolver<Maybe<ResolversTypes['UserPublicProfile']>, ParentType, ContextType>;
+  profile?: Resolver<
+    Maybe<ResolversTypes['UserPublicProfile']>,
+    ParentType,
+    ContextType
+  >;
 }>;
 
-export type UserPublicProfileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserPublicProfile'] = ResolversParentTypes['UserPublicProfile']> = ResolversObject<{
+export type UserPublicProfileResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['UserPublicProfile'] =
+    ResolversParentTypes['UserPublicProfile'],
+> = ResolversObject<{
   avatar?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   bio?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  displayName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  displayName?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >;
   userUuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
 
-export type UsernameDetailResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UsernameDetail'] = ResolversParentTypes['UsernameDetail']> = ResolversObject<{
-  lastUpdated?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+export type UsernameDetailResolvers<
+  ContextType = Context,
+  ParentType extends ResolversParentTypes['UsernameDetail'] =
+    ResolversParentTypes['UsernameDetail'],
+> = ResolversObject<{
+  lastUpdated?: Resolver<
+    Maybe<ResolversTypes['Date']>,
+    ParentType,
+    ContextType
+  >;
   userUuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   username?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 }>;
@@ -2569,4 +3491,3 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   UserPublicProfile?: UserPublicProfileResolvers<ContextType>;
   UsernameDetail?: UsernameDetailResolvers<ContextType>;
 }>;
-
