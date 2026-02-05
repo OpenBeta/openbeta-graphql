@@ -1,5 +1,13 @@
 import { Resolvers } from '@gql';
 
 export const aggregateTypeResolvers: Resolvers['AggregateType'] = {
-  // AggregateType field resolvers will be implemented here
+  byGrade: async (parent) => {
+    throw new Error('Not implemented');
+  },
+  byDiscipline: async (parent) => {
+    throw new Error('Not implemented');
+  },
+  byGradeBand: async (parent) => {
+    throw new Error('Not implemented');
+  },
 };

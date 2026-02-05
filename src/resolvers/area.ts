@@ -111,6 +111,10 @@ export const areaResolvers: Resolvers['Area'] = {
   pathTokens: async (parent, _, context) =>
     await requireAncestry(parent, context).then((d) => d.map((o) => o.name)),
 
+  pathHash: async () => {
+    throw new Error('Not implemented');
+  },
+
   gradeContext: async (parent, _, context) => 'OOPS',
 
   mediaPagination: async () => {

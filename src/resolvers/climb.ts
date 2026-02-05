@@ -27,6 +27,39 @@ export const climbResolvers: Resolvers['Climb'] = {
     ),
 
   parent: async (parent, _, context) => context.repo.area.get(parent.parent!),
+
+  pitches: async () => {
+    throw new Error('Not implemented');
+  },
+
+  grades: async () => {
+    throw new Error('Not implemented');
+  },
+
+  gradeContext: async () => {
+    throw new Error('Not implemented');
+  },
+
+  type: async () => {
+    throw new Error('Not implemented');
+  },
+
+  safety: async () => {
+    throw new Error('Not implemented');
+  },
+
+  mediaPagination: async () => {
+    throw new Error('Not implemented');
+  },
+
+  yds: async () => {
+    throw new Error('Not implemented');
+  },
+
+  ticks: async () => {
+    throw new Error('Not implemented');
+  },
+
   content: resolveContent('Content'),
   media: async (parent, _, context) => context.repo.area.media(parent),
   authorMetadata,

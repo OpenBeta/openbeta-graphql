@@ -13,4 +13,7 @@ export const mediaResolvers: Resolvers['MediaWithTags'] = {
       .where(
         eq(schema.tag.mediaId, parent.id),
       ),
+  user: async () => {
+    throw new Error('Not implemented');
+  },
 };

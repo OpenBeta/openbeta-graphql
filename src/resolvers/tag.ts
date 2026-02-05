@@ -62,6 +62,18 @@ export const entityTagResolvers: Resolvers['EntityTag'] = {
   },
 
   ancestors: async (parent) => {
-    return 'no ancestor data';
+    throw new Error('Not implemented');
+  },
+
+  lng: async () => {
+    throw new Error('Not implemented');
+  },
+
+  lat: async () => {
+    throw new Error('Not implemented');
+  },
+
+  topoData: async () => {
+    throw new Error('Not implemented');
   },
 };
