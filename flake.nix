@@ -22,6 +22,7 @@
           buildInputs = with pkgs; [
             bun
             duckdb
+            mongodb-tools
           ];
 
           shellHook = ''
