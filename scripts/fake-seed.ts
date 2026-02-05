@@ -353,9 +353,10 @@ async function main() {
   );
 
   if (argv.graph) {
-    graphServer(argv.port, graph);
-  } else if (argv.map) {
-    mapServer(argv.port, db);
+    graphServer(argv.port, db);
+  }
+  if (argv.map) {
+    mapServer(argv.port + 1, db);
   }
 
   for (const countryCode of loadCountryCodes()) {

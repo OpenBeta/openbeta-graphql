@@ -38,6 +38,7 @@ export function mapServer(port: number, db: Database) {
             location:
               sql`json_build_object('x', ST_X(coalesce(${area.location}, ${climb.location})), 'y', ST_Y(coalesce(${area.location}, ${climb.location})))`,
             id: entity.id,
+            parent: entity.parent,
           })
           .from(entity)
           .leftJoin(area, eq(entity.id, area.id))

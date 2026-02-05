@@ -14,6 +14,11 @@ export const argv = yargs(hideBin(process.argv))
     type: 'boolean',
     default: false,
   })
+  .option('onlyserver', {
+    describe: 'Skip actual seeding',
+    type: 'boolean',
+    default: false,
+  })
   .option('verbose', {
     describe: 'Enable verbose logging',
     type: 'boolean',

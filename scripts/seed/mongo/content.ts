@@ -13,7 +13,9 @@ export async function seedContent(db: schema.Database) {
       const entityUuid = collection === 'areas'
         ? (row.metadata?.area_id || row._id)
         : row._id;
+
       const parentId = uuidToId.get(entityUuid);
+
       if (!parentId || !row.content) return;
 
       for (const [key, text] of Object.entries(row.content)) {

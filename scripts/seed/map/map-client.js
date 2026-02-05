@@ -22,6 +22,7 @@ const path = d3
   .context(context);
 
 let lastProcessedId = 0;
+const entityMap = new Map();
 
 async function loadWorldMap() {
   try {
@@ -29,25 +30,16 @@ async function loadWorldMap() {
 
     context.globalAlpha = 1;
     context.clearRect(0, 0, width, height);
-    context.fillStyle = '#6F1E51'; // Background color
+    context.fillStyle = '#1e272e'; // Darker background
     context.fillRect(0, 0, width, height);
 
     context.beginPath();
     path(worldData);
-    context.fillStyle = '#B53471'; // Fill color for countries
-    context.strokeStyle = '#833471'; // Border color for countries
+    context.fillStyle = '#2f3542'; // Darker countries
+    context.strokeStyle = '#57606f'; // Muted borders
     context.lineWidth = 0.5;
     context.fill();
     context.stroke();
-
-    // for (const point of await fetch('/centroids').then(r => r.json()).then(d => Object.values(d))) {
-    //   const [lon, lat] = projection([point.x, point.y]);
-    //     context.beginPath();
-    //     context.arc(lon, lat, 2, 0, 2 * Math.PI);
-    //     context.fillStyle = "#0c2461";
-    //     context.globalAlpha = 0.5;
-    //     context.fill();
-    // }
   } catch (error) {
     console.error('Error loading the world map data:', error);
     document.getElementById('map-canvas').innerText =
@@ -56,18 +48,54 @@ async function loadWorldMap() {
 }
 
 async function drawNewEntities(newEntities) {
-  const colors = ['#F79F1F'];
+  const colors = {
+    area: '#e67e22',
+    climb: '#f1c40f',
+    default: '#F79F1F',
+  };
+
   for (const entity of newEntities) {
     const loc = entity.location;
     if (loc && typeof loc.x === 'number' && typeof loc.y === 'number') {
-      const pos = projection([loc.x, loc.y]);
+      let [lon, lat] = projection([loc.x, loc.y]);
 
-      if (pos && isFinite(pos[0]) && isFinite(pos[1])) {
-        const [lon, lat] = pos;
+      if (isFinite(lon) && isFinite(lat)) {
+        entityMap.set(String(entity.id), entity);
+
+        // Radial Spread: If multiple entities are at the same spot or have the same parent,
+        // we add a radial offset to prevent overlap.
+        if (entity.parent && entityMap.has(String(entity.parent))) {
+          const parent = entityMap.get(String(entity.parent));
+          parent.childCount = (parent.childCount || 0) + 1;
+
+          // Fibonacci spiral for better distribution
+          const phi = (Math.sqrt(5) + 1) / 2 - 1; // golden ratio
+          const angle = parent.childCount * phi * 2 * Math.PI;
+          const radius = Math.sqrt(parent.childCount) * 4; // Increased radius for better separation
+          lon += Math.cos(angle) * radius;
+          lat += Math.sin(angle) * radius;
+        }
+
+        entity.screenPos = [lon, lat];
+
+        // Draw edge to parent with very high transparency
+        if (entity.parent && entityMap.has(String(entity.parent))) {
+          const parent = entityMap.get(String(entity.parent));
+          if (parent.screenPos) {
+            context.beginPath();
+            context.moveTo(lon, lat);
+            context.lineTo(parent.screenPos[0], parent.screenPos[1]);
+            context.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            context.lineWidth = 0.3;
+            context.stroke();
+          }
+        }
+
+        // Draw entity node - smaller and more transparent
         context.beginPath();
-        context.arc(lon, lat, 1, 0, 2 * Math.PI);
-        context.fillStyle = colors[entity.id % colors.length];
-        context.globalAlpha = 0.3;
+        context.arc(lon, lat, 0.6, 0, 2 * Math.PI);
+        context.fillStyle = colors.default;
+        context.globalAlpha = 0.2;
         context.fill();
       }
     }

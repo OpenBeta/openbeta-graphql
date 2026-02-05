@@ -1,4 +1,7 @@
+import * as schema from '@schema';
+import { Database } from '@schema';
 import { EntityId } from 'beta/entity_model';
+import { and, eq, gt, ne } from 'drizzle-orm';
 export type GraphNode = {
   author: EntityId;
   id: EntityId | string;
@@ -7,10 +10,10 @@ export type GraphNode = {
   children: GraphNode[];
 };
 
-export function graphServer(port: number, graph: GraphNode) {
+export function graphServer(port: number, db: Database) {
   Bun.serve({
     port: port,
-    fetch(request) {
+    async fetch(request) {
       const url = new URL(request.url);
 
       if (url.pathname === '/') {
@@ -24,12 +27,38 @@ export function graphServer(port: number, graph: GraphNode) {
       }
 
       if (url.pathname === '/graph-data') {
+        const lastProcessedId = parseInt(
+          url.searchParams.get('lastProcessedId') || '0',
+        );
         // Serve the graph data as JSON
-        return new Response(JSON.stringify(graph), {
-          headers: {
-            'Content-Type': 'application/json',
+        return new Response(
+          JSON.stringify(
+            await db
+              .select({
+                id: schema.entity.id,
+                parent: schema.entity.parent,
+                name: schema.entity.name,
+                type: schema.entity.entityType,
+              })
+              .from(schema.entity)
+              .where(
+                and(
+                  gt(
+                    schema
+                      .entity
+                      .id,
+                    lastProcessedId,
+                  ),
+                  ne(schema.entity.entityType, 'content'),
+                ),
+              ),
+          ),
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
           },
-        });
+        );
       }
 
       return new Response('Not Found', { status: 404 });

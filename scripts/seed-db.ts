@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import ora from 'ora';
 import pg from 'pg';
+import { graphServer } from './seed/graph/server';
 import { mapServer } from './seed/map/server';
 import { seedAreas } from './seed/mongo/area';
 import { argv } from './seed/mongo/args';
@@ -36,24 +37,26 @@ async function main() {
     if (argv.map) {
       mapServer(argv.port, db);
     }
+    if (argv.graph) {
+      graphServer(argv.port, db);
+    }
 
-    const spinner = ora('Starting seeding...').start();
-    await initializeGrades();
-    spinner.stop();
+    if (!argv.onlyserver) {
+      await initializeGrades();
+      await seedUsers(db);
+      await seedAreas(db);
+      await seedClimbs(db);
+      await seedContent(db);
+      await seedTicks(db);
+      await seedMedia(db);
+      await seedOrganizations(db);
 
-    await seedUsers(db);
-    await seedAreas(db);
-    await seedClimbs(db);
-    await seedContent(db);
-    await seedTicks(db);
-    await seedMedia(db);
-    await seedOrganizations(db);
-
-    spinner.succeed('Seeding complete!');
+      console.log('Seeding complete!!');
+    }
   } catch (e) {
     console.error('Seeding failed:', e);
   } finally {
-    if (!argv.map) {
+    if (!argv.map && !argv.graph) {
       await pool.end();
     }
   }
