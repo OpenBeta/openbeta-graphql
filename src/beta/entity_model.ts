@@ -27,6 +27,16 @@ export interface EntityStructure extends EntityIdentifiable {
   parent: EntityId | null;
 }
 
+export interface EntityWithParent extends EntityStructure {
+  parent: EntityId;
+}
+
+export function validateParent(
+  x: any,
+): x is EntityWithParent {
+  return typeof x.parent == 'number';
+}
+
 export interface Entity
   extends EntityIdentifiable, InferSelectModel<typeof entity>
 {}

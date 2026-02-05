@@ -1,5 +1,12 @@
 import { climb } from '@schema';
-import { Entity, EntityRecord, EntityStructure } from 'beta/entity_model';
+import {
+  Entity,
+  EntityError,
+  EntityRecord,
+  EntityStructure,
+  EntityWithParent,
+  validateParent,
+} from 'beta/entity_model';
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 import { EntityRepository } from './base';
 
@@ -8,7 +15,7 @@ type ClimbSelect = InferSelectModel<ClimbTable>;
 export type ClimbPrimitive =
   & InferSelectModel<ClimbTable>
   & Entity
-  & EntityStructure;
+  & EntityWithParent;
 
 type ClimbCreation = Pick<
   ClimbPrimitive,
@@ -38,6 +45,10 @@ export class ClimbRepo extends EntityRepository<
       parts: ClimbSelect;
     },
   ): ClimbPrimitive {
+    if (!validateParent(entity)) {
+      throw new EntityError('Climbs MUST have parents');
+    }
+
     return { ...entity, ...parts };
   }
 }

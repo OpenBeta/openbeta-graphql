@@ -5,6 +5,7 @@ import { contentByTag, resolveContent } from 'beta/contentResolvers';
 import { EntityId } from 'beta/entity_model';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
 import { AreaPrimitive } from 'beta/repo/area';
+import { ClimbPrimitive } from 'beta/repo/climb';
 import { ancestors } from 'beta/repo/entity_cte';
 import { mediaConnection } from 'beta/repo/media';
 import {
@@ -102,7 +103,7 @@ export const areaResolvers: Resolvers['Area'] = {
               .deleted,
           ),
         ),
-      ),
+      ) as Promise<ClimbPrimitive[]>,
 
   ancestors: async (parent, _, context) =>
     await requireAncestry(parent, context).then((d) =>
@@ -112,8 +113,12 @@ export const areaResolvers: Resolvers['Area'] = {
   pathTokens: async (parent, _, context) =>
     await requireAncestry(parent, context).then((d) => d.map((o) => o.name)),
 
-  pathHash: async () => {
-    throw new Error('Not implemented');
+  pathHash: async (parent, _, context) => {
+    // TODO: What hashing should we actually be doing?
+    const path = await requireAncestry(parent, context).then((d) =>
+      d.map((o) => o.name)
+    );
+    return path.join('#');
   },
 
   gradeContext: async (parent, _, context) => {
