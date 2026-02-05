@@ -1,4 +1,4 @@
-import { Resolvers } from '@gql';
+import { Resolvers, SafetyEnum } from '@gql';
 import { authorMetadata } from 'beta/authorMetadataResolver';
 import { resolveContent } from 'beta/contentResolvers';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
@@ -41,14 +41,18 @@ export const climbResolvers: Resolvers['Climb'] = {
     throw new Error('Not implemented');
   },
 
-  type: async () => {
-    throw new Error('Not implemented');
+  type: async (parent) => {
+    // in mongodb it sometimes makes sense to have these kinds of complex
+    // indecies but it makes little sense in postgres - so we map the type
+    // with its flag to a simple 'true'
+    return { [parent.type]: true };
   },
 
-  safety: async () => {
-    throw new Error('Not implemented');
+  safety: async (parent) => {
+    return parent.safety as SafetyEnum;
   },
 
+  media: async (parent, _, context) => context.repo.area.media(parent),
   mediaPagination: async (parent, { input }, context) => {
     const connection = await mediaConnection(context.db, parent, {
       first: input?.first,
@@ -69,6 +73,5 @@ export const climbResolvers: Resolvers['Climb'] = {
   },
 
   content: resolveContent('Content'),
-  media: async (parent, _, context) => context.repo.area.media(parent),
   authorMetadata,
 };

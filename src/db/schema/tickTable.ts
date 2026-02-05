@@ -6,6 +6,9 @@ import {
   timestamp,
   varchar,
 } from 'drizzle-orm/pg-core';
+import { onTestFailed } from 'vitest';
+import { climbTable } from './climbTable';
+import { gradeSystemTable } from './gradeTable';
 import { userTable } from './userTable';
 
 export const tickSourceEnum = pgEnum('tick_source', [
@@ -39,12 +42,16 @@ export const tickTable = pgTable('tick', {
     onDelete: 'cascade',
   }),
   name: varchar({ length: 255 }).notNull(),
-  notes: text(),
   climbId: varchar({ length: 255 }).notNull(),
+  climb: integer().references(() => climbTable.id, { onDelete: 'set null' }),
+  grade: integer().references(() => gradeSystemTable.id, {
+    onDelete: 'set null',
+  }),
   style: tickStyleEnum(),
+  notes: text(),
   attemptType: tickAttemptTypeEnum(),
   dateClimbed: timestamp().notNull(),
-  grade: varchar({ length: 50 }),
+  freeformGrade: varchar({ length: 50 }),
   source: tickSourceEnum().notNull().default('OB'),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp().notNull().defaultNow(),

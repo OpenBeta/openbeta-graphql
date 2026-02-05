@@ -1,0 +1,2 @@
+ALTER TABLE "tick" ADD COLUMN "grade" integer;--> statement-breakpoint
+ALTER TABLE "tick" ADD CONSTRAINT "tick_grade_grade_system_id_fk" FOREIGN KEY ("grade") REFERENCES "public"."grade_system"("id") ON DELETE set null ON UPDATE no action;

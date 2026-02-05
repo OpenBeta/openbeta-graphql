@@ -1,0 +1,1 @@
+ALTER TABLE "tick" RENAME COLUMN "grade" TO "freeformGrade";
