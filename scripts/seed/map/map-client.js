@@ -58,21 +58,17 @@ async function loadWorldMap() {
 async function drawNewEntities(newEntities) {
   const colors = ['#F79F1F'];
   for (const entity of newEntities) {
-    if (entity.location) {
-      const [x, y] = [entity.location.x, entity.location.y];
-      const [lon, lat] = projection([x, y]);
+    const loc = entity.location;
+    if (loc && typeof loc.x === 'number' && typeof loc.y === 'number') {
+      const pos = projection([loc.x, loc.y]);
 
-      if (!x || !y || !lat || !lon) {
-        console.error('MISSING COORDS', { entity, x, y, lon, lat });
-      }
-
-      if (lon && lat) {
+      if (pos && isFinite(pos[0]) && isFinite(pos[1])) {
+        const [lon, lat] = pos;
         context.beginPath();
         context.arc(lon, lat, 1, 0, 2 * Math.PI);
         context.fillStyle = colors[entity.id % colors.length];
         context.globalAlpha = 0.3;
         context.fill();
-        await new Promise((res, _) => res());
       }
     }
   }
