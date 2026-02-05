@@ -133,6 +133,32 @@ async function addContent(forEntity: EntityId, node: GraphNode) {
   }
 }
 
+async function addTicks(climb: any) {
+  const numTicks = faker.number.int({ min: 0, max: 100 });
+  if (numTicks === 0) return;
+
+  const ticks = range(numTicks).map((_) => {
+    const user = choose(users);
+    const dateClimbed = faker.date.past();
+    const notes = Math.random() > 0.8 ? faker.lorem.sentence() : null;
+    const style = choose(schema.enums.TickStyle.enumValues);
+    const attemptType = choose(schema.enums.TickAttemptType.enumValues);
+
+    return {
+      userId: user.id,
+      name: climb.name,
+      climbId: climb.uuid,
+      climb: climb.id,
+      style,
+      notes,
+      attemptType,
+      dateClimbed,
+    };
+  });
+
+  await db.insert(schema.tick).values(ticks);
+}
+
 async function prepCountry(
   countryData: ICountry & { location: { x: number; y: number } },
   countryCode: string,
@@ -312,6 +338,7 @@ async function addClimbs(
         areaNode.children.push(childNode);
         await addContent(climb.id, childNode);
         await addMedia(climb.id, 'climb', childNode);
+        await addTicks(climb);
       })
       .catch(console.error);
   }
