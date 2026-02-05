@@ -9,8 +9,11 @@ import {
 import * as schema from '@schema';
 import { EntityCompBaseTable, entityTable } from 'db/schema/entitiy';
 import {
+  and,
+  count,
   eq,
   getTableColumns,
+  gt,
   type InferInsertModel,
   InferSelectModel,
   sql,

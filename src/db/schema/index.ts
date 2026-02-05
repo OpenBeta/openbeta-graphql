@@ -1,7 +1,7 @@
 import { InferSelectModel, Table } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { PgTransaction } from 'drizzle-orm/pg-core';
-import { areaTable } from './areaTable';
+import { areaGradeContext, areaTable } from './areaTable';
 import { climbTable, safetyEnum } from './climbTable';
 import { contentTable } from './content';
 import {
@@ -14,7 +14,11 @@ import { entityAncestorsTable } from './entityAncestors';
 import { disciplineEnum, gradeSystemTable, gradeTable } from './gradeTable';
 import { historyEventEnum, historyTable } from './history';
 import { mediaTable } from './mediaTable';
-import { organizationTable } from './organizationTable';
+import {
+  organizationAreaTable,
+  organizationMemberTable,
+  organizationTable,
+} from './organizationTable';
 import { tagTable } from './tagTable';
 import {
   tickAttemptTypeEnum,
@@ -40,6 +44,7 @@ type Transaction = Parameters<
 type Discipline = (typeof disciplineEnum.enumValues)[number];
 
 export {
+  areaGradeContext,
   areaTable as area,
   climbTable as climb,
   contentTable as content,
@@ -51,6 +56,8 @@ export {
   historyEventEnum,
   historyTable as history,
   mediaTable as media,
+  organizationAreaTable as organizationArea,
+  organizationMemberTable as organizationMember,
   organizationTable as organization,
   tagTable as tag,
   tickTable as tick,

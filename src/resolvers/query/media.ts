@@ -1,5 +1,6 @@
 import { Resolvers } from '@gql';
 import * as schema from '@schema';
+import { mediaConnection } from 'beta/repo/media';
 import { desc, eq } from 'drizzle-orm';
 
 const query: Resolvers['Query'] = {
@@ -41,11 +42,33 @@ const query: Resolvers['Query'] = {
   },
 
   areaMediaPagination: async (parent, args, context, info) => {
-    throw new Error('Not implemented');
+    if (!args.input?.areaUuid) {
+      throw new Error('areaUuid is required');
+    }
+    const area = await context.repo.area.get(args.input.areaUuid);
+    const connection = await mediaConnection(context.db, area, {
+      first: args.input.first,
+      after: args.input.after,
+    });
+    return {
+      areaUuid: area.uuid,
+      mediaConnection: connection,
+    };
   },
 
   climbMediaPagination: async (parent, args, context, info) => {
-    throw new Error('Not implemented');
+    if (!args.input?.climbUuid) {
+      throw new Error('climbUuid is required');
+    }
+    const climb = await context.repo.climb.get(args.input.climbUuid);
+    const connection = await mediaConnection(context.db, climb, {
+      first: args.input.first,
+      after: args.input.after,
+    });
+    return {
+      climbUuid: climb.uuid,
+      mediaConnection: connection,
+    };
   },
 
   getTagsLeaderboard: async (parent, args, context, info) => {

@@ -30,6 +30,7 @@ export const entityKind = pgEnum('entity_type', [
   'climb',
   'pitch',
   'content',
+  'organization',
 ]);
 
 export type EntityKind = InferSelectModel<typeof entityTable>['entityType'];

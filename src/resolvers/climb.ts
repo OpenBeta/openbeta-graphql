@@ -3,6 +3,7 @@ import { authorMetadata } from 'beta/authorMetadataResolver';
 import { resolveContent } from 'beta/contentResolvers';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
 import { ClimbPrimitive } from 'beta/repo/climb';
+import { mediaConnection } from 'beta/repo/media';
 
 export type PartiallyResolvedClimb =
   & ClimbPrimitive
@@ -48,8 +49,15 @@ export const climbResolvers: Resolvers['Climb'] = {
     throw new Error('Not implemented');
   },
 
-  mediaPagination: async () => {
-    throw new Error('Not implemented');
+  mediaPagination: async (parent, { input }, context) => {
+    const connection = await mediaConnection(context.db, parent, {
+      first: input?.first,
+      after: input?.after,
+    });
+    return {
+      climbUuid: parent.uuid,
+      mediaConnection: connection,
+    };
   },
 
   yds: async () => {

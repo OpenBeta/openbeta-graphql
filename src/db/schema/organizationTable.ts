@@ -1,23 +1,44 @@
 import {
+  boolean,
   integer,
-  jsonb,
   pgTable,
-  text,
+  primaryKey,
   timestamp,
-  uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
+import { areaTable } from './areaTable';
+import { entityCompositionColumns } from './entitiy';
+import { userTable } from './userTable';
 
 export const organizationTable = pgTable('organization', {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  orgId: uuid().notNull().defaultRandom().unique(),
+  ...entityCompositionColumns,
   orgType: varchar({ length: 50 }).notNull(),
-  associatedAreaIds: uuid(),
-  excludedAreaIds: uuid(),
   displayName: varchar({ length: 255 }).notNull(),
-  content: jsonb(),
   createdAt: timestamp().notNull().defaultNow(),
-  createdBy: uuid(),
-  updatedAt: timestamp().notNull().defaultNow(),
-  updatedBy: uuid(),
 });
+
+export const organizationMemberTable = pgTable('organization_member', {
+  organizationId: integer('organization_id')
+    .notNull()
+    .references(() => organizationTable.id, { onDelete: 'cascade' }),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => userTable.id, { onDelete: 'cascade' }),
+  role: varchar({ length: 50 }).notNull().default('member'),
+  createdAt: timestamp().notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.organizationId, table.userId] }),
+]);
+
+export const organizationAreaTable = pgTable('organization_area', {
+  organizationId: integer('organization_id')
+    .notNull()
+    .references(() => organizationTable.id, { onDelete: 'cascade' }),
+  areaId: integer('area_id')
+    .notNull()
+    .references(() => areaTable.id, { onDelete: 'cascade' }),
+  isExclusion: boolean('is_exclusion').notNull().default(false),
+  createdAt: timestamp().notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.organizationId, table.areaId] }),
+]);

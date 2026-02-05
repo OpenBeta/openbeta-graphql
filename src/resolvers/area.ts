@@ -6,6 +6,7 @@ import { EntityId } from 'beta/entity_model';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
 import { AreaPrimitive } from 'beta/repo/area';
 import { ancestors } from 'beta/repo/entity_cte';
+import { mediaConnection } from 'beta/repo/media';
 import {
   and,
   count,
@@ -115,14 +116,40 @@ export const areaResolvers: Resolvers['Area'] = {
     throw new Error('Not implemented');
   },
 
-  gradeContext: async (parent, _, context) => 'OOPS',
-
-  mediaPagination: async () => {
-    throw 'not implemented';
+  gradeContext: async (parent, _, context) => {
+    return await context
+      .db
+      .select({ name: schema.gradeSystem.name })
+      .from(schema.areaGradeContext)
+      .innerJoin(
+        schema.gradeSystem,
+        eq(schema.areaGradeContext.context, schema.gradeSystem.id),
+      )
+      .where(eq(schema.areaGradeContext.area, parent.id))
+      .limit(1)
+      .then((
+        [{ name }],
+      ) => name);
   },
 
-  imageByteSum: async () => {
-    throw 'not implemented';
+  mediaPagination: async (parent, { input }, context) => {
+    const connection = await mediaConnection(context.db, parent, {
+      first: input?.first,
+      after: input?.after,
+    });
+
+    return {
+      areaUuid: parent.uuid,
+      mediaConnection: connection,
+    };
+  },
+
+  imageByteSum: async (parent) => {
+    // TODO: The complexity of keeping this image byte
+    // sum denomalized field up to date is definitely a pain.
+    // It may well be easier and just as fast to simply query a sum of image
+    // sizes for a given area since we have a solid index for descendants.
+    return parent.imageByteSum;
   },
 
   organizations: async () => {
