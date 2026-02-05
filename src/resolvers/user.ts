@@ -1,22 +1,9 @@
 import { Resolvers } from '@gql';
+import * as schema from '@schema';
+import { InferSelectModel } from 'drizzle-orm';
+
+export type UserRecord = InferSelectModel<typeof schema.user>;
 
 export const userResolvers: Resolvers['UserPublicProfile'] = {
-  userUuid: async (parent) => {
-    throw new Error('Not implemented');
-  },
-  username: async (parent) => {
-    throw new Error('Not implemented');
-  },
-  displayName: async (parent) => {
-    throw new Error('Not implemented');
-  },
-  bio: async (parent) => {
-    throw new Error('Not implemented');
-  },
-  website: async (parent) => {
-    throw new Error('Not implemented');
-  },
-  avatar: async (parent) => {
-    throw new Error('Not implemented');
-  },
+  userUuid: async (parent) => parent.uuid,
 };

@@ -223,14 +223,21 @@ class SeedingActor implements Actor {
   }
 }
 
+function flip<T>(maybe: T) {
+  if (Math.random() > 0.5) return maybe;
+}
+
 export async function makeUsers(db: Database) {
   return await db
     .insert(user)
     .values(
-      range(20).map((_) => ({
+      range(50).map((_) => ({
         username: faker.internet.username(),
-        displayName: faker.internet.displayName(),
         email: faker.internet.email(),
+        displayName: flip(faker.internet.displayName()),
+        website: flip(faker.internet.url()),
+        bio: flip(faker.lorem.paragraph()),
+        avatar: flip(faker.image.avatar()),
       })),
     )
     .returning()

@@ -7,6 +7,8 @@ import { MediaRecord } from '../../beta/repo/media';
 import { PartiallyResolvedArea } from '../../resolvers/area';
 import { PartiallyResolvedClimb } from '../../resolvers/climb';
 import { EntityTagRecord } from '../../resolvers/tag';
+import { TickRecord } from '../../resolvers/tick';
+import { UserRecord } from '../../resolvers/user';
 import { Context } from '../../server/context';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -1995,9 +1997,7 @@ export type ResolversTypes = ResolversObject<{
   TickFilter: TickFilter;
   TickSource: TickSource;
   TickStyle: TickStyle;
-  TickType: ResolverTypeWrapper<
-    Omit<TickType, 'climb'> & { climb?: Maybe<ResolversTypes['Climb']> }
-  >;
+  TickType: ResolverTypeWrapper<TickRecord>;
   UUID: ResolverTypeWrapper<Scalars['UUID']['output']>;
   UpdateClimbsInput: UpdateClimbsInput;
   UpdateDescription: ResolverTypeWrapper<UpdateDescription>;
@@ -2010,11 +2010,12 @@ export type ResolversTypes = ResolversObject<{
   UserMediaInput: UserMediaInput;
   UserProfileInput: UserProfileInput;
   UserPublicPage: ResolverTypeWrapper<
-    Omit<UserPublicPage, 'media'> & {
+    Omit<UserPublicPage, 'media' | 'profile'> & {
       media?: Maybe<ResolversTypes['UserMedia']>;
+      profile?: Maybe<ResolversTypes['UserPublicProfile']>;
     }
   >;
-  UserPublicProfile: ResolverTypeWrapper<UserPublicProfile>;
+  UserPublicProfile: ResolverTypeWrapper<UserRecord>;
   UsernameDetail: ResolverTypeWrapper<UsernameDetail>;
   UsernameInput: UsernameInput;
 }>;
@@ -2150,9 +2151,7 @@ export type ResolversParentTypes = ResolversObject<{
   TagsLeaderboard: TagsLeaderboard;
   Tick: Tick;
   TickFilter: TickFilter;
-  TickType: Omit<TickType, 'climb'> & {
-    climb?: Maybe<ResolversParentTypes['Climb']>;
-  };
+  TickType: TickRecord;
   UUID: Scalars['UUID']['output'];
   UpdateClimbsInput: UpdateClimbsInput;
   UpdateDescription: UpdateDescription;
@@ -2162,10 +2161,11 @@ export type ResolversParentTypes = ResolversObject<{
   };
   UserMediaInput: UserMediaInput;
   UserProfileInput: UserProfileInput;
-  UserPublicPage: Omit<UserPublicPage, 'media'> & {
+  UserPublicPage: Omit<UserPublicPage, 'media' | 'profile'> & {
     media?: Maybe<ResolversParentTypes['UserMedia']>;
+    profile?: Maybe<ResolversParentTypes['UserPublicProfile']>;
   };
-  UserPublicProfile: UserPublicProfile;
+  UserPublicProfile: UserRecord;
   UsernameDetail: UsernameDetail;
   UsernameInput: UsernameInput;
 }>;

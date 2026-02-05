@@ -1,4 +1,5 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
+import { resolve } from 'bun';
 
 const config: CodegenConfig = {
   overwrite: true,
@@ -14,6 +15,8 @@ const config: CodegenConfig = {
           Climb: '../../resolvers/climb#PartiallyResolvedClimb',
           MediaWithTags: '../../beta/repo/media#MediaRecord',
           EntityTag: '../../resolvers/tag#EntityTagRecord',
+          TickType: '../../resolvers/tick#TickRecord',
+          UserPublicProfile: '../../resolvers/user#UserRecord',
         },
       },
     },

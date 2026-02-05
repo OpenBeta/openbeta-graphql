@@ -38,7 +38,7 @@ export const tickStyleEnum = pgEnum('tick_style', [
 
 export const tickTable = pgTable('tick', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  userId: integer().references(() => userTable.id, {
+  userId: integer().notNull().references(() => userTable.id, {
     onDelete: 'cascade',
   }),
   name: varchar({ length: 255 }).notNull(),
