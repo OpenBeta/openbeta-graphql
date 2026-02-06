@@ -4,10 +4,10 @@
  * Dependencies are loaded via importmap in index.html.
  */
 
-import { Sigma } from 'https://esm.sh/sigma@3.0.2';
-import Graph from 'https://esm.sh/graphology@0.26.0';
 import forceAtlas2 from 'https://esm.sh/graphology-layout-forceatlas2@0.10.1';
 import FA2Layout from 'https://esm.sh/graphology-layout-forceatlas2@0.10.1/worker';
+import Graph from 'https://esm.sh/graphology@0.26.0';
+import { Sigma } from 'https://esm.sh/sigma@3.0.2';
 
 let lastProcessedId = 0;
 const graph = new Graph();
@@ -47,7 +47,7 @@ async function fetchAllData(statusEl) {
       data.forEach((item) => {
         const id = String(item.id);
         if (item.id > lastProcessedId) lastProcessedId = item.id;
-        
+
         if (!graph.hasNode(id)) {
           let size = 2;
           if (item.type === 'area') size = 6;
@@ -60,7 +60,7 @@ async function fetchAllData(statusEl) {
             y: Math.random() * 2000 - 1000,
             size: size,
             color: COLORS[item.type] || COLORS.default,
-            itemType: item.type
+            itemType: item.type,
           });
           newNodesCount++;
         }
@@ -69,7 +69,10 @@ async function fetchAllData(statusEl) {
       // Track edges
       data.forEach((item) => {
         if (item.parent !== null && item.parent !== undefined) {
-          pendingEdges.push({ source: String(item.parent), target: String(item.id) });
+          pendingEdges.push({
+            source: String(item.parent),
+            target: String(item.id),
+          });
         }
       });
 
@@ -84,7 +87,8 @@ async function fetchAllData(statusEl) {
         }
       }
 
-      statusEl.innerText = `Loading: ${graph.order} nodes, ${graph.size} edges, ${pendingEdges.length} pending edges...`;
+      statusEl.innerText =
+        `Loading: ${graph.order} nodes, ${graph.size} edges, ${pendingEdges.length} pending edges...`;
 
       if (data.length < 5000) {
         hasMore = false;
@@ -110,20 +114,20 @@ async function fetchAllData(statusEl) {
  * Initializes the Sigma.js renderer and ForceAtlas2 layout.
  */
 function initSigma() {
-  const container = document.getElementById("sigma-container");
- 
+  const container = document.getElementById('sigma-container');
+
   renderer = new Sigma(graph, container, {
     renderEdgeLabels: false,
     labelThreshold: 10,
     labelSize: 12,
     labelWeight: 'bold',
     defaultEdgeColor: '#555',
-    labelColor: { color: '#ffffff' }
+    labelColor: { color: '#ffffff' },
   });
 
   // Setup ForceAtlas2 layout
   const settings = forceAtlas2.inferSettings(graph);
-  fa2Layout = new FA2Layout(graph, { 
+  fa2Layout = new FA2Layout(graph, {
     settings: {
       ...settings,
       gravity: 0.01,
@@ -132,10 +136,10 @@ function initSigma() {
       barnesHutTheta: 1.2,
       strongGravityMode: false,
       adjustSizes: false,
-      slowDown: 1
-    } 
+      slowDown: 1,
+    },
   });
-  
+
   fa2Layout.start();
 }
 
@@ -149,12 +153,18 @@ async function init() {
     searchInput.oninput = () => {
       const query = searchInput.value.toLowerCase();
       if (query.length > 2) {
-        const node = graph.nodes().find(n => 
-          (graph.getNodeAttribute(n, 'label') || '').toLowerCase().includes(query)
+        const node = graph.nodes().find((n) =>
+          (graph.getNodeAttribute(n, 'label') || '').toLowerCase().includes(
+            query,
+          )
         );
         if (node) {
           const nodeData = renderer.getNodeDisplayData(node);
-          renderer.getCamera().animate({ x: nodeData.x, y: nodeData.y, ratio: 0.1 }, { duration: 500 });
+          renderer.getCamera().animate({
+            x: nodeData.x,
+            y: nodeData.y,
+            ratio: 0.1,
+          }, { duration: 500 });
         }
       }
     };

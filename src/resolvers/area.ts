@@ -132,9 +132,7 @@ export const areaResolvers: Resolvers['Area'] = {
       )
       .where(eq(schema.areaGradeContext.area, parent.id))
       .limit(1)
-      .then((
-        [{ name }],
-      ) => name);
+      .then((row) => String(row[0]?.name || 'YDS'));
   },
 
   mediaPagination: async (parent, { input }, context) => {
@@ -169,7 +167,7 @@ export const areaResolvers: Resolvers['Area'] = {
     };
   },
 
-  totalClimbs: async (parent, _, context) =>
+  totalClimbs: async (areaNode, _, context) =>
     context
       .db
       .select({ count: count() })
@@ -177,14 +175,16 @@ export const areaResolvers: Resolvers['Area'] = {
       .innerJoin(
         schema.entity,
         eq(
-          schema
-            .entity
-            .id,
+          schema.entity.id,
           schema.entityAncestors.entityId,
         ),
       )
       .where(
-        and(not(schema.entity.deleted), eq(schema.entity.entityType, 'climb')),
+        and(
+          not(schema.entity.deleted),
+          eq(schema.entity.entityType, 'climb'),
+          eq(schema.entityAncestors.ancestorId, areaNode.id),
+        ),
       )
       .then((d) => d[0].count),
 

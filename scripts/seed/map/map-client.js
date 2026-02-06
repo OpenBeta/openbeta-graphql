@@ -61,21 +61,6 @@ async function drawNewEntities(newEntities) {
 
       if (isFinite(lon) && isFinite(lat)) {
         entityMap.set(String(entity.id), entity);
-
-        // Radial Spread: If multiple entities are at the same spot or have the same parent,
-        // we add a radial offset to prevent overlap.
-        if (entity.parent && entityMap.has(String(entity.parent))) {
-          const parent = entityMap.get(String(entity.parent));
-          parent.childCount = (parent.childCount || 0) + 1;
-
-          // Fibonacci spiral for better distribution
-          const phi = (Math.sqrt(5) + 1) / 2 - 1; // golden ratio
-          const angle = parent.childCount * phi * 2 * Math.PI;
-          const radius = Math.sqrt(parent.childCount) * 4; // Increased radius for better separation
-          lon += Math.cos(angle) * radius;
-          lat += Math.sin(angle) * radius;
-        }
-
         entity.screenPos = [lon, lat];
 
         // Draw edge to parent with very high transparency

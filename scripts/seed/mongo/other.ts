@@ -150,14 +150,23 @@ export async function seedMedia(db: schema.Database) {
           })
           .returning({ id: schema.media.id });
 
-        for (const tag of m._tags) {
-          const targetId = uuidToId.get(tag.entityUuid);
-          if (targetId) {
-            tagBatch.push({
-              mediaId: inserted.id,
-              targetId: targetId,
-              targetEntityKind: tag.entityType.toLowerCase() as any,
-            });
+        if (inserted) {
+          for (const tag of m._tags) {
+            const targetId = uuidToId.get(tag.targetId);
+            if (targetId) {
+              const kind = tag.type === 0
+                ? 'climb'
+                : tag.type === 1
+                ? 'area'
+                : null;
+              if (kind) {
+                tagBatch.push({
+                  mediaId: inserted.id,
+                  targetId: targetId,
+                  targetEntityKind: kind,
+                });
+              }
+            }
           }
         }
       }
@@ -186,13 +195,20 @@ export async function seedMedia(db: schema.Database) {
         .returning({ id: schema.media.id });
 
       for (const tag of m._tags) {
-        const targetId = uuidToId.get(tag.entityUuid);
+        const targetId = uuidToId.get(tag.targetId);
         if (targetId) {
-          tagBatch.push({
-            mediaId: inserted.id,
-            targetId: targetId,
-            targetEntityKind: tag.entityType.toLowerCase() as any,
-          });
+          const kind = tag.type === 0
+            ? 'climb'
+            : tag.type === 1
+            ? 'area'
+            : null;
+          if (kind) {
+            tagBatch.push({
+              mediaId: inserted.id,
+              targetId: targetId,
+              targetEntityKind: kind,
+            });
+          }
         }
       }
     }

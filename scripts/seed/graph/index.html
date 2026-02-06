@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8">
-  <title>Openbeta Seed Graph Visualizer</title>
-  <style>
+  <head>
+    <meta charset="UTF-8">
+    <title>Openbeta Seed Graph Visualizer</title>
+    <style>
     body,
     html {
       margin: 0;
@@ -85,38 +84,41 @@
       margin-bottom: 10px;
       color: #ff9f43;
     }
-  </style>
-</head>
+    </style>
+  </head>
 
-<body>
-  <div id="controls">
-    <h3>Seed Graph</h3>
-    <div id="legend">
-      <div class="legend-item">
-        <div class="color-box" style="background: #e67e22"></div> Area
+  <body>
+    <div id="controls">
+      <h3>Seed Graph</h3>
+      <div id="legend">
+        <div class="legend-item">
+          <div class="color-box" style="background: #e67e22"></div> Area
+        </div>
+        <div class="legend-item">
+          <div class="color-box" style="background: #f1c40f"></div> Climb
+        </div>
+        <div class="legend-item">
+          <div class="color-box" style="background: #3498db"></div> Pitch
+        </div>
+        <div class="legend-item">
+          <div class="color-box" style="background: #2980b9"></div> Content
+        </div>
+        <div class="legend-item">
+          <div class="color-box" style="background: #9b59b6"></div> Organization
+        </div>
       </div>
-      <div class="legend-item">
-        <div class="color-box" style="background: #f1c40f"></div> Climb
+      <div id="search-container" style="margin-top: 10px">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search node..."
+          style="width: 100%; padding: 5px; background: #333; color: white; border: 1px solid #555; border-radius: 4px"
+        >
       </div>
-      <div class="legend-item">
-        <div class="color-box" style="background: #3498db"></div> Pitch
-      </div>
-      <div class="legend-item">
-        <div class="color-box" style="background: #2980b9"></div> Content
-      </div>
-      <div class="legend-item">
-        <div class="color-box" style="background: #9b59b6"></div> Organization
-      </div>
+      <div id="status">Loading data...</div>
     </div>
-    <div id="search-container" style="margin-top: 10px;">
-      <input type="text" id="search-input" placeholder="Search node..."
-        style="width: 100%; padding: 5px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
-    </div>
-    <div id="status">Loading data...</div>
-  </div>
-  <div id="sigma-container"></div>
+    <div id="sigma-container"></div>
 
-  <script type="module" src="/seed-graph-client.js"></script>
-</body>
-
+    <script type="module" src="/seed-graph-client.js"></script>
+  </body>
 </html>

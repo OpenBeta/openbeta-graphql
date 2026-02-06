@@ -1,7 +1,7 @@
 import { Resolvers } from '@gql';
 import * as schema from '@schema';
 import { mediaConnection } from 'beta/repo/media';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, getTableColumns } from 'drizzle-orm';
 
 const query: Resolvers['Query'] = {
   media: async (_, args, context) => {
@@ -23,14 +23,21 @@ const query: Resolvers['Query'] = {
 
   getMediaForFeed: async (parent, args, context, info) => {
     const { maxUsers, maxFiles } = args.input || {};
-    const users = await context
+
+    return await context
       .db
       .select()
       .from(schema.media)
+      .innerJoin(schema.user, eq(schema.user.id, schema.media.author))
       .orderBy(desc(schema.media.createdAt))
-      .limit(maxUsers || 10);
-
-    return [];
+      .limit(maxFiles || 100)
+      .then((rows) =>
+        rows.map((item) => ({
+          userUuid: item.user.uuid,
+          username: item.user.username,
+          mediaWithTags: [item.media],
+        }))
+      );
   },
 
   getUserMedia: async (parent, args, context, info) => {
