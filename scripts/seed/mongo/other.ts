@@ -1,11 +1,9 @@
 import * as schema from '@schema';
-import { eq } from 'drizzle-orm';
-import ora from 'ora';
+import { eq, InferInsertModel } from 'drizzle-orm';
 import { argv } from './args';
-import { forEachRow, uuidToId } from './utils';
+import { forEachRow, uuidToPsql } from './utils';
 
 export async function seedOrganizations(db: schema.Database) {
-  const spinner = ora('Seeding organizations...').start();
   let count = 0;
   await forEachRow<any>('organizations', async (row) => {
     const orgUuid = row.orgId;
@@ -29,7 +27,7 @@ export async function seedOrganizations(db: schema.Database) {
       orgId = existing?.id;
     }
     if (!orgId) return;
-    uuidToId.set(orgUuid, orgId);
+    uuidToPsql.set(orgUuid, orgId);
 
     await db
       .insert(schema.organization)
@@ -43,7 +41,7 @@ export async function seedOrganizations(db: schema.Database) {
 
     if (row.associatedAreaIds) {
       for (const areaUuid of row.associatedAreaIds) {
-        const areaId = uuidToId.get(areaUuid);
+        const areaId = uuidToPsql.get(areaUuid);
         if (areaId) {
           await db
             .insert(schema.organizationArea)
@@ -58,7 +56,7 @@ export async function seedOrganizations(db: schema.Database) {
     }
     if (row.excludedAreaIds) {
       for (const areaUuid of row.excludedAreaIds) {
-        const areaId = uuidToId.get(areaUuid);
+        const areaId = uuidToPsql.get(areaUuid);
         if (areaId) {
           await db
             .insert(schema.organizationArea)
@@ -72,149 +70,86 @@ export async function seedOrganizations(db: schema.Database) {
       }
     }
     count++;
-  }, spinner);
-  spinner.succeed(`Finished organizations. Total: ${count}`);
+  });
 }
 
 export async function seedTicks(db: schema.Database) {
-  const spinner = ora('Seeding ticks...').start();
-  let batch: any[] = [];
   const validStyles = schema.enums.TickStyle.enumValues;
   const validAttemptTypes = schema.enums.TickAttemptType.enumValues;
+  let failedTicks = 0;
 
-  const count = await forEachRow<any>('ticks', async (row) => {
-    const userId = uuidToId.get(row.userId);
-    const climbId = uuidToId.get(row.climbId);
+  await forEachRow<any>('ticks', async (row) => {
+    const userId = uuidToPsql.get(row.userId);
+    const climbId = uuidToPsql.get(row.climbId);
 
-    batch.push({
-      userId: userId,
-      name: row.name,
-      climbId: row.climbId,
-      climb: climbId,
-      style: validStyles.includes(row.style) ? row.style : 'Lead', // Default to Lead style
-      notes: row.notes,
-      attemptType: validAttemptTypes.includes(row.attemptType)
-        ? row.attemptType
-        : 'Attempt', // Default to Attempt
-      dateClimbed: row.dateClimbed,
-      source: row.source || 'OB',
-      createdAt: row.createdAt || row.dateClimbed,
-      updatedAt: row.updatedAt || row.dateClimbed,
-    });
+    if (userId === undefined) throw new Error('Missing userID for a tick');
 
-    if (batch.length >= argv.batch) {
-      await db.insert(schema.tick).values(batch).onConflictDoNothing();
-      batch = [];
-    }
-  }, spinner);
-  if (batch.length > 0) {
-    await db.insert(schema.tick).values(batch).onConflictDoNothing();
-  }
-  spinner.succeed(`Finished ticks. Total: ${count}`);
+    await db
+      .insert(schema.tick)
+      .values({
+        userId: userId,
+        name: row.name,
+        climb: climbId,
+        notes: row.notes,
+        climbId: row.climbId,
+        attemptType: validAttemptTypes.includes(row.attemptType)
+          ? row.attemptType
+          : undefined,
+        dateClimbed: row.dateClimbed,
+        source: row.source || 'OB',
+        createdAt: row.createdAt || row.dateClimbed,
+        updatedAt: row.updatedAt || row.dateClimbed,
+        style: validStyles.includes(row.style) ? row.style : undefined,
+      })
+      .catch((e) => {
+        failedTicks += 1;
+        console.log(failedTicks, row._id, e);
+      });
+  });
 }
 
 export async function seedMedia(db: schema.Database) {
-  const spinner = ora('Seeding media...').start();
-  let mediaBatch: any[] = [];
-  let tagBatch: any[] = [];
-
-  const count = await forEachRow<any>('media_objects', async (row) => {
-    const userId = uuidToId.get(row.userUuid);
+  await forEachRow<any>('media_objects', async (row) => {
+    const userId = uuidToPsql.get(row.userUuid);
     if (!userId) return;
 
-    mediaBatch.push({
-      author: userId,
-      mediaUrl: row.mediaUrl,
-      width: row.width || 0,
-      height: row.height || 0,
-      format: row.format || 'unknown',
-      size: row.size || 0,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      _tags: row.entityTags || [],
-    });
+    const [inserted] = await db
+      .insert(schema.media)
+      .values({
+        author: row.author,
+        mediaUrl: row.mediaUrl,
+        width: row.width,
+        height: row.height,
+        format: row.format,
+        size: row.size,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })
+      .returning({ id: schema.media.id });
 
-    if (mediaBatch.length >= argv.batch) {
-      for (const m of mediaBatch) {
-        const [inserted] = await db
-          .insert(schema.media)
-          .values({
-            author: m.author,
-            mediaUrl: m.mediaUrl,
-            width: m.width,
-            height: m.height,
-            format: m.format,
-            size: m.size,
-            createdAt: m.createdAt,
-            updatedAt: m.updatedAt,
-          })
-          .returning({ id: schema.media.id });
-
-        if (inserted) {
-          for (const tag of m._tags) {
-            const targetId = uuidToId.get(tag.targetId);
-            if (targetId) {
-              const kind = tag.type === 0
-                ? 'climb'
-                : tag.type === 1
-                ? 'area'
-                : null;
-              if (kind) {
-                tagBatch.push({
-                  mediaId: inserted.id,
-                  targetId: targetId,
-                  targetEntityKind: kind,
-                });
-              }
-            }
-          }
-        }
+    for (const tag of row._tags ?? []) {
+      const targetId = uuidToPsql.get(tag.targetId);
+      if (!targetId) {
+        continue;
       }
-      if (tagBatch.length > 0) {
-        await db.insert(schema.tag).values(tagBatch).onConflictDoNothing();
-        tagBatch = [];
-      }
-      mediaBatch = [];
-    }
-  }, spinner);
 
-  if (mediaBatch.length > 0) {
-    for (const m of mediaBatch) {
-      const [inserted] = await db
-        .insert(schema.media)
-        .values({
-          author: m.author,
-          mediaUrl: m.mediaUrl,
-          width: m.width,
-          height: m.height,
-          format: m.format,
-          size: m.size,
-          createdAt: m.createdAt,
-          updatedAt: m.updatedAt,
-        })
-        .returning({ id: schema.media.id });
-
-      for (const tag of m._tags) {
-        const targetId = uuidToId.get(tag.targetId);
-        if (targetId) {
-          const kind = tag.type === 0
-            ? 'climb'
-            : tag.type === 1
-            ? 'area'
-            : null;
-          if (kind) {
-            tagBatch.push({
+      const kind = tag.type === 0
+        ? 'climb'
+        : tag.type === 1
+        ? 'area'
+        : null;
+      if (kind) {
+        await db
+          .insert(schema.tag)
+          .values(
+            {
               mediaId: inserted.id,
               targetId: targetId,
               targetEntityKind: kind,
-            });
-          }
-        }
+            },
+          )
+          .onConflictDoNothing();
       }
     }
-    if (tagBatch.length > 0) {
-      await db.insert(schema.tag).values(tagBatch).onConflictDoNothing();
-    }
-  }
-  spinner.succeed(`Finished media. Total: ${count}`);
+  });
 }

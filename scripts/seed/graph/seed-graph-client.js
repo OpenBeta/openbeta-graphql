@@ -111,6 +111,94 @@ async function fetchAllData(statusEl) {
 }
 
 /**
+ * Fetches and renders the grade pegboard.
+ */
+async function fetchGrades() {
+  try {
+    const response = await fetch('/grade-data');
+    if (!response.ok) throw new Error('Failed to fetch grade data');
+    const { systems, grades } = await response.json();
+
+    const container = document.getElementById('grade-columns');
+    const gradeContainer = document.getElementById('grade-container');
+    if (!container || !gradeContainer) return;
+
+    gradeContainer.style.display = 'block';
+    container.innerHTML = '';
+
+    const gradesBySystem = {};
+    let maxPegValue = 0;
+
+    grades.forEach((g) => {
+      if (!gradesBySystem[g.system]) gradesBySystem[g.system] = [];
+      gradesBySystem[g.system].push(g);
+      if (g.pegValueLow > maxPegValue) maxPegValue = g.pegValueLow;
+    });
+
+    const SCALE = 10; // 10px per peg unit
+
+    systems.forEach((system) => {
+      const systemGrades = gradesBySystem[system.id] || [];
+      systemGrades.sort((a, b) => a.pegValueLow - b.pegValueLow);
+
+      const column = document.createElement('div');
+      column.style.flex = '1';
+      column.style.display = 'flex';
+      column.style.flexDirection = 'column';
+      column.style.minWidth = '80px';
+      column.style.borderRight = '1px solid #444';
+
+      const header = document.createElement('div');
+      header.innerText = system.name;
+      header.style.padding = '5px';
+      header.style.background = '#444';
+      header.style.textAlign = 'center';
+      header.style.fontSize = '10px';
+      header.style.fontWeight = 'bold';
+      header.style.position = 'sticky';
+      header.style.top = '0';
+      header.style.zIndex = '1';
+      column.appendChild(header);
+
+      const rowsContainer = document.createElement('div');
+      rowsContainer.style.position = 'relative';
+      rowsContainer.style.height = (maxPegValue + 10) * SCALE + 'px';
+      column.appendChild(rowsContainer);
+
+      for (let i = 0; i < systemGrades.length; i++) {
+        const grade = systemGrades[i];
+        const nextGrade = systemGrades[i + 1];
+        const pegLow = grade.pegValueLow;
+        const pegHigh = nextGrade ? nextGrade.pegValueLow : (maxPegValue + 5);
+
+        const row = document.createElement('div');
+        row.innerText = grade.value;
+        row.title =
+          `${system.name}: ${grade.value} (Peg: ${pegLow}-${pegHigh})`;
+        row.style.position = 'absolute';
+        row.style.top = (pegLow * SCALE) + 'px';
+        row.style.height = ((pegHigh - pegLow) * SCALE) + 'px';
+        row.style.width = '100%';
+        row.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.justifyContent = 'center';
+        row.style.fontSize = '9px';
+        row.style.backgroundColor = i % 2 === 0
+          ? 'rgba(255,255,255,0.03)'
+          : 'transparent';
+        row.style.overflow = 'hidden';
+
+        rowsContainer.appendChild(row);
+      }
+      container.appendChild(column);
+    });
+  } catch (error) {
+    console.error('Error fetching grades:', error);
+  }
+}
+
+/**
  * Initializes the Sigma.js renderer and ForceAtlas2 layout.
  */
 function initSigma() {
@@ -146,6 +234,7 @@ function initSigma() {
 async function init() {
   const statusEl = document.getElementById('status');
   await fetchAllData(statusEl);
+  fetchGrades();
 
   // Search functionality
   const searchInput = document.getElementById('search-input');

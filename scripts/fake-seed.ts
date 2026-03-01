@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { faker } from '@faker-js/faker';
 import * as schema from '@schema';
+import { Spinner } from '@topcli/spinner';
 import * as turf from '@turf/turf';
 import { range } from '__tests__/faker';
 import { initializeGradeSystemsInDatabase } from '__tests__/faker/seed';
@@ -13,7 +14,6 @@ import { InferSelectModel } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Feature, Polygon } from 'geojson';
 import { readFile } from 'node:fs/promises';
-import ora from 'ora';
 import { GraphNode, graphServer } from './seed/graph/server';
 import { mapServer } from './seed/map/server';
 import {
@@ -362,7 +362,7 @@ async function main() {
   for (const countryCode of loadCountryCodes()) {
     const country = countries[countryCode as TCountryCode];
     log(`Building area tree for country: ${country.name}`);
-    const spinner = ora(`🌱 Seeding ${country.name}...`).start();
+    const spinner = new Spinner().start(`🌱 Seeding ${country.name}...`);
 
     await buildAreaTree(
       {
@@ -381,7 +381,7 @@ async function main() {
       )
       .catch((err) => {
         if (argv.verbose) console.error(err);
-        spinner.fail(`${country.name} ${String(err)}`);
+        spinner.failed(`${country.name} ${String(err)}`);
       });
   }
 }

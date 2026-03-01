@@ -31,6 +31,7 @@ export const climbTable = pgTable('climb', {
   type: disciplineEnum().notNull(),
   safety: safetyEnum(),
   canonicalGrade: integer().references(() => gradeTable.id),
+  canonicalGradeUpper: integer().references(() => gradeTable.id),
   location: geometry('position', { mode: 'xy', srid: 4326 }),
 }, (table) => [
   check(

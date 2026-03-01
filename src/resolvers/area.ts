@@ -1,4 +1,11 @@
-import { AuthorMetadata, QueryResolvers, Resolvers } from '@gql';
+import {
+  AggregateType,
+  AuthorMetadata,
+  CountByDisciplineType,
+  DisciplineStatsType,
+  QueryResolvers,
+  Resolvers,
+} from '@gql';
 import * as schema from '@schema';
 import { authorMetadata } from 'beta/authorMetadataResolver';
 import { contentByTag, resolveContent } from 'beta/contentResolvers';
@@ -78,8 +85,8 @@ export const areaResolvers: Resolvers['Area'] = {
       isDestination: parent.isDestination,
       mp_id: '',
       leftRightIndex: 0,
-      lat: parent.location?.x,
-      lng: parent.location?.y,
+      lat: parent.location?.y,
+      lng: parent.location?.x,
     };
   },
 
@@ -159,12 +166,52 @@ export const areaResolvers: Resolvers['Area'] = {
     return [];
   },
 
-  aggregate: async (parent, info, context) => {
-    return {
-      byGrade: [],
-      byDiscipline: {},
-      byGradeBand: {},
-    };
+  aggregate: async (areaNode, _, context, info) => {
+    const selection = parseResolveInfo(info)?.fieldsByTypeName ?? {};
+    const data: AggregateType = {};
+
+    if ('CountByDisciplineType' in selection) {
+      // Sum climb disciplines within this area
+      data.byDiscipline = {};
+      await context
+        .db
+        .select({ discipline: schema.climb.type, sum: count() })
+        .from(schema.entityAncestors)
+        .innerJoin(
+          schema.entity,
+          eq(schema.entityAncestors.entityId, schema.entity.id),
+        )
+        .innerJoin(schema.climb, eq(schema.entity.id, schema.climb.id))
+        .where(
+          and(
+            eq(schema.entityAncestors.ancestorId, areaNode.id),
+            eq(schema.entity.entityType, 'climb'),
+            not(schema.entity.deleted),
+          ),
+        )
+        .then((rows) =>
+          rows.forEach((row) => {
+            if (row.discipline == 'top_rope') {
+              // @ts-ignore
+              row.discipline = 'tr';
+            }
+
+            // @ts-ignore
+            data.byDiscipline[row.discipline as keyof CountByDisciplineType] = {
+              total: row.sum,
+              bands: {
+                unknown: 0,
+                beginner: 0,
+                intermediate: 0,
+                advanced: 0,
+                expert: 0,
+              },
+            } satisfies DisciplineStatsType;
+          })
+        );
+    }
+
+    return data;
   },
 
   totalClimbs: async (areaNode, _, context) =>

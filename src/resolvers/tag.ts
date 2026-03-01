@@ -1,6 +1,7 @@
 import { Resolvers } from '@gql';
 import * as schema from '@schema';
 import { EntityId } from 'beta/entity_model';
+import { requireAncestry } from 'beta/lineage';
 import { AreaPrimitive } from 'beta/repo/area';
 import { ClimbPrimitive } from 'beta/repo/climb';
 import { eq, getTableColumns, InferSelectModel } from 'drizzle-orm';
@@ -61,9 +62,10 @@ export const entityTagResolvers: Resolvers['EntityTag'] = {
     return parent.__climb?.name ?? null;
   },
 
-  ancestors: async (parent) => {
-    throw new Error('Not implemented');
-  },
+  ancestors: async (parent, _, context) =>
+    await requireAncestry(parent, context).then((d) =>
+      d.map((o) => String(o.uuid)).join(',')
+    ),
 
   lng: async () => {
     throw new Error('Not implemented');
@@ -74,6 +76,7 @@ export const entityTagResolvers: Resolvers['EntityTag'] = {
   },
 
   topoData: async () => {
+    return {};
     throw new Error('Not implemented');
   },
 };

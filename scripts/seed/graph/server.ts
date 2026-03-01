@@ -1,7 +1,7 @@
 import * as schema from '@schema';
 import { Database } from '@schema';
 import { EntityId } from 'beta/entity_model';
-import { and, eq, gt, ne } from 'drizzle-orm';
+import { and, asc, eq, gt, ne } from 'drizzle-orm';
 export type GraphNode = {
   author: EntityId;
   id: EntityId | string;
@@ -59,6 +59,18 @@ export function graphServer(port: number, db: Database) {
             },
           },
         );
+      }
+
+      if (url.pathname === '/grade-data') {
+        const systems = await db.select().from(schema.gradeSystem);
+        const grades = await db.select().from(schema.grade).orderBy(
+          asc(schema.grade.pegValueLow),
+        );
+        return new Response(JSON.stringify({ systems, grades }), {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
       }
 
       return new Response('Not Found', { status: 404 });

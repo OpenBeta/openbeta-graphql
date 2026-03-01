@@ -1,5 +1,5 @@
+import { Spinner } from '@topcli/spinner';
 import { spawn } from 'child_process';
-import { Ora } from 'ora';
 import { createInterface } from 'readline';
 import { stringify as uuidStringify } from 'uuid';
 
@@ -83,7 +83,6 @@ export function transformValue(val: any): any {
 export async function forEachRow<T>(
   collection: string,
   callback: (row: T) => Promise<void>,
-  spinner?: Ora,
 ) {
   const filePath = `./db-dumps/staging/openbeta/${collection}.bson.gz`;
   const proc = spawn('sh', ['-c', `gunzip -c ${filePath} | bsondump --quiet`]);
@@ -92,19 +91,12 @@ export async function forEachRow<T>(
   let count = 0;
   for await (const line of rl) {
     if (!line.trim()) continue;
-    try {
-      const raw = JSON.parse(line);
-      const transformed = transformValue(raw);
-      await callback(transformed);
-      count++;
-      if (count % 1000 === 0 && spinner) {
-        spinner.text = `Loaded ${count} rows from ${collection}...`;
-      }
-    } catch (e) {
-      console.error(`Error parsing line in ${collection}:`, e);
-    }
+    const raw = JSON.parse(line);
+    const transformed = transformValue(raw);
+    await callback(transformed);
+    count++;
   }
   return count;
 }
 
-export const uuidToId = new Map<string, number>();
+export const uuidToPsql = new Map<string, number>();

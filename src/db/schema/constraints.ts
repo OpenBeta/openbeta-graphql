@@ -5,6 +5,8 @@ export const Constraint = {
   GradeValueDuplicate: 'grade_value_duplicate',
   BoltCountPositive: 'bolt_count_positive',
   DuplicateGradeContext: 'duplicate_grade_context',
+  GradeValuePegLow: 'grade_value_peg_low',
+  GradeValuePegHigh: 'grade_value_peg_high',
 };
 
 export const Trigger = {

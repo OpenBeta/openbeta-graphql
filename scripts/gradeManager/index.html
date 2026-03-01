@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Grade Peg Manager</title>
+    <style>
+    body {
+      font-family: sans-serif;
+      padding: 2rem;
+      background: #f4f4f9;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .header-controls {
+      padding-bottom: 2rem;
+      padding-top: 2rem;
+    }
+
+    .app {
+      height: 100%;
+    }
+
+    .table {
+      display: flex;
+      flex-direction: row;
+      gap: 0.25rem;
+      height: 100%;
+      width: 100%;
+    }
+
+    .table-column {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .grade {
+      padding: 1rem;
+      position: relative;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 1rem;
+      box-sizing: border-box;
+    }
+
+    .grade:hover .drag-handle {
+      opacity: 1;
+    }
+
+    .drag-handle {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      cursor: ns-resize;
+      opacity: 0;
+      transition: opacity 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .drag-handle::after {
+      content: "";
+      width: 20px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 1px;
+    }
+
+    .drag-handle-top {
+      top: 0;
+    }
+
+    .drag-handle-bottom {
+      bottom: 0;
+    }
+
+    .grade.dragging {
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      z-index: 10;
+      opacity: 0.9;
+    }
+    </style>
+  </head>
+
+  <body>
+    <h1>Grade Peg Manager</h1>
+    <div class="header-controls">
+      <label for="discipline-select">Discipline:</label>
+      <select id="discipline-select">
+        <option value="all">All Disciplines</option>
+      </select>
+      <button
+        id="save-btn"
+        style="margin-left: 20px; padding: 5px 15px; cursor: pointer"
+      >
+        Save All Changes
+      </button>
+    </div>
+
+    <div id="app" class="app">Loading...</div>
+    <script src="/grade-client.js"></script>
+  </body>
+</html>

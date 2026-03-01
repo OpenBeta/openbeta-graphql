@@ -36,12 +36,6 @@ export const argv = yargs(hideBin(process.argv))
     default: 3000,
     alias: 'p',
   })
-  .option('batch', {
-    describe: 'How big should we batch moving data from the bson to psql?',
-    type: 'number',
-    default: 1000,
-    alias: 'b',
-  })
   .help('help')
   .alias('help', 'h')
   .parseSync();

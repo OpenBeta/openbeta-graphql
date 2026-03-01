@@ -6,23 +6,31 @@ export function range(len: number): number[] {
 }
 
 export const gradeSystems = [
-  'VScale',
-  'Number',
-  'Font',
-  'Special Test Grade',
+  'vscale',
+  'yds',
+  'ewbank',
+  'french',
+  'brazillianCrux',
+  'font',
+  'uiaa',
+  'wi',
 ] as const;
 
 export type GradeSystemName = (typeof gradeSystems)[number];
 
 export const legalGrades: Record<GradeSystemName, string[]> = {
-  'VScale': range(15).map((i) => `V${i}`),
-  'Number': range(32 - 10).map((i) => `${10 + i}`),
-  'Font': range(5)
+  'vscale': range(15).map((i) => `V${i}`),
+  'yds': range(32 - 10).map((i) => `${10 + i}`),
+  'font': range(5)
     .map((idx) => range(3).map((le) => `${idx}${'abc'[le]}`))
     .map((collections) => collections.map((grade) => [grade, grade + '+']))
     .flatMap((x) => x)
     .flatMap((x) => x),
-  'Special Test Grade': range(6).map(() => faker.animal.dog()),
+  ewbank: [],
+  french: [],
+  brazillianCrux: [],
+  uiaa: [],
+  wi: [],
 };
 
 export const maxGradeDiscretion = Math.max(

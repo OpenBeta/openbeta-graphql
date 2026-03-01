@@ -11,7 +11,12 @@ import {
   entityTable,
 } from './entitiy';
 import { entityAncestorsTable } from './entityAncestors';
-import { disciplineEnum, gradeSystemTable, gradeTable } from './gradeTable';
+import {
+  disciplineEnum,
+  gradePegTable,
+  gradeSystemTable,
+  gradeTable,
+} from './gradeTable';
 import { historyEventEnum, historyTable } from './history';
 import { mediaTable } from './mediaTable';
 import {
@@ -51,6 +56,7 @@ export {
   entityAncestorsTable as entityAncestors,
   entityTable as entity,
   enums,
+  gradePegTable as gradePeg,
   gradeSystemTable as gradeSystem,
   gradeTable as grade,
   historyEventEnum,

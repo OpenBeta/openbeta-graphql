@@ -1,11 +1,9 @@
 import * as schema from '@schema';
-import ora from 'ora';
+import { slc } from '../utils';
 import { argv } from './args';
-import { forEachRow, uuidToId } from './utils';
+import { forEachRow, uuidToPsql } from './utils';
 
 export async function seedContent(db: schema.Database) {
-  const spinner = ora('Seeding content from areas and climbs...').start();
-
   async function processEntityContent(collection: string) {
     let entityBatch: any[] = [];
 
@@ -14,7 +12,7 @@ export async function seedContent(db: schema.Database) {
         ? (row.metadata?.area_id || row._id)
         : row._id;
 
-      const parentId = uuidToId.get(entityUuid);
+      const parentId = uuidToPsql.get(entityUuid);
 
       if (!parentId || !row.content) return;
 
@@ -41,7 +39,7 @@ export async function seedContent(db: schema.Database) {
           entityBatch = [];
         }
       }
-    }, spinner);
+    });
 
     if (entityBatch.length > 0) {
       const rows = await db
@@ -57,9 +55,6 @@ export async function seedContent(db: schema.Database) {
     return count;
   }
 
-  spinner.text = 'Seeding content from areas...';
-  await processEntityContent('areas');
-  spinner.text = 'Seeding content from climbs...';
-  await processEntityContent('climbs');
-  spinner.succeed('Finished seeding content.');
+  await slc(db, () => processEntityContent('areas'));
+  await slc(db, () => processEntityContent('climbs'));
 }

@@ -1,36 +1,35 @@
-import * as schema from '@schema';
+import * as CliProgress from 'cli-progress';
 import * as dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import ora from 'ora';
+import * as fs from 'fs';
 import pg from 'pg';
+import { seedDefaultGrades } from './gradeManager/grades';
 import { graphServer } from './seed/graph/server';
 import { mapServer } from './seed/map/server';
-import { seedAreas } from './seed/mongo/area';
+import {
+  createAreaEntities,
+  seedAreaDetailsAndParents,
+} from './seed/mongo/area';
 import { argv } from './seed/mongo/args';
-import { seedClimbs } from './seed/mongo/climbs';
+import {
+  checkGrades,
+  seedClimbDetails,
+  seedClimbEntities,
+} from './seed/mongo/climbs';
 import { seedContent } from './seed/mongo/content';
 import { seedMedia, seedOrganizations, seedTicks } from './seed/mongo/other';
 import { seedUsers } from './seed/mongo/users';
+import { slc } from './seed/utils';
 
 dotenv.config();
+
+const logFile = 'seed.log';
 
 const { Pool } = pg;
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 const db = drizzle(pool);
-
-async function initializeGrades() {
-  const existing = await db.select().from(schema.gradeSystem).limit(1);
-  if (existing.length === 0) {
-    const spinner = ora('Initializing grade systems...').start();
-    const { initializeGradeSystemsInDatabase } = await import(
-      '../src/__tests__/faker/seed'
-    );
-    await initializeGradeSystemsInDatabase(db);
-    spinner.succeed('Initialized grade systems.');
-  }
-}
 
 async function main() {
   try {
@@ -42,14 +41,54 @@ async function main() {
     }
 
     if (!argv.onlyserver) {
-      await initializeGrades();
-      await seedUsers(db);
-      await seedAreas(db);
-      await seedClimbs(db);
-      await seedContent(db);
-      await seedTicks(db);
-      await seedMedia(db);
-      await seedOrganizations(db);
+      console.log = (...varargs) => {
+        fs.appendFileSync(logFile, varargs.map(String).join(' ') + '\n');
+      };
+
+      const grades = slc(db, seedDefaultGrades);
+      const gradeCheck = slc(db, checkGrades);
+      const users = slc(db, seedUsers);
+      const areaReify = slc(db, createAreaEntities);
+      const climbReify = areaReify
+        .then(() => slc(db, seedClimbEntities));
+
+      const areaDetails = Promise
+        .all([areaReify])
+        .then(() => slc(db, seedAreaDetailsAndParents));
+
+      const climbDetails = Promise
+        .all([climbReify, grades, gradeCheck])
+        .then(() => slc(db, seedClimbEntities));
+
+      // const content = Promise
+      //   .all([climbReify, areaReify])
+      //   .then(() => slc(db, seedContent));
+
+      const ticks = Promise
+        .all([users, climbDetails])
+        .then(() => slc(db, seedTicks));
+
+      const media = Promise
+        .all([climbReify, areaReify])
+        .then(() => slc(db, seedMedia));
+
+      const orgs = Promise
+        .all([areaReify, users])
+        .then(() => slc(db, seedOrganizations));
+
+      await Promise.all([
+        grades,
+        gradeCheck,
+        users,
+        climbReify,
+        // content,
+        ticks,
+        media,
+        orgs,
+        areaDetails,
+        areaReify,
+        climbDetails,
+      ]);
 
       console.log('Seeding complete!!');
     }
