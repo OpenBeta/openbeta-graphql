@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker';
 import { Database, user } from '@schema';
-import { Spinner } from '@topcli/spinner';
 import * as turf from '@turf/turf';
 import {
   bbox,
@@ -13,12 +12,10 @@ import { Actor } from 'beta/actor';
 import { EntityAddressable, EntityStructure } from 'beta/entity_model';
 import { countries, TCountryCode } from 'countries-list';
 import { InferSelectModel } from 'drizzle-orm';
-import { Feature, FeatureCollection, Polygon } from 'geojson';
+import { Polygon } from 'geojson';
 import { exists, readFile } from 'node:fs/promises';
 import process from 'process';
 import { UUIDTypes } from 'uuid';
-import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
 import { argv } from './args';
 
 const big = './scripts/seed/map/big.geo.json';

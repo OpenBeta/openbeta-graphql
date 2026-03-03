@@ -12,7 +12,6 @@ export async function initializeGradeSystemsInDatabase(db: Database) {
         .insert(schema.gradeSystem)
         .values({
           name: gradeSystemName,
-          discipline,
         })
         .returning();
 

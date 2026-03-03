@@ -14,10 +14,10 @@ import { InferSelectModel } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Feature, Polygon } from 'geojson';
 import { readFile } from 'node:fs/promises';
+import { argv } from './seed/args';
 import { GraphNode, graphServer } from './seed/graph/server';
 import { mapServer } from './seed/map/server';
 import {
-  argv,
   choose,
   ensureCentroids,
   generateRandomPointsInPolygon,
