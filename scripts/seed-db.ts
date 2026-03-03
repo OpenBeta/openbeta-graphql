@@ -1,3 +1,4 @@
+import { Spinner } from '@topcli/spinner';
 import * as CliProgress from 'cli-progress';
 import * as dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -16,10 +17,9 @@ import {
   seedClimbDetails,
   seedClimbEntities,
 } from './seed/mongo/climbs';
-import { seedContent } from './seed/mongo/content';
+import { processEntityContent } from './seed/mongo/content';
 import { seedMedia, seedOrganizations, seedTicks } from './seed/mongo/other';
 import { seedUsers } from './seed/mongo/users';
-import { slc } from './seed/utils';
 
 dotenv.config();
 
@@ -30,6 +30,54 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 const db = drizzle(pool);
+
+function collectTasks(): Array<[string, Promise<void>]> {
+  const grades = seedDefaultGrades(db);
+  const gradeCheck = checkGrades(db);
+  const users = seedUsers(db);
+  const areaReify = createAreaEntities(db);
+  const climbReify = areaReify.then(() => seedClimbEntities(db));
+  const areaDetails = areaReify.then(() => seedAreaDetailsAndParents(db));
+
+  const climbDetails = Promise
+    .all([climbReify, grades, gradeCheck])
+    .then(() => seedClimbDetails(db));
+
+  const contentForClimbs = Promise
+    .all([climbReify])
+    .then(() => processEntityContent(db, 'climbs'));
+
+  const contentForAreas = Promise
+    .all([areaReify])
+    .then(() => processEntityContent(db, 'areas'));
+
+  const ticks = Promise
+    .all([users, climbDetails])
+    .then(() => seedTicks(db));
+
+  const media = Promise
+    .all([climbReify, areaReify])
+    .then(() => seedMedia(db));
+
+  const orgs = Promise
+    .all([areaReify, users])
+    .then(() => seedOrganizations(db));
+
+  return [
+    ['Seeding default grades', grades],
+    ['Checking mongo grade mapping', gradeCheck],
+    ['Seeding users', users],
+    ['Reify Climb Entities', climbReify],
+    ['ticks', ticks],
+    ['media', media],
+    ['organizations', orgs],
+    ['Assign area details', areaDetails],
+    ['Reify Area Entities', areaReify],
+    ['Assign climb Details', climbDetails],
+    ['Add content for climbs', contentForClimbs],
+    ['Add content for areas', contentForAreas],
+  ];
+}
 
 async function main() {
   try {
@@ -45,50 +93,18 @@ async function main() {
         fs.appendFileSync(logFile, varargs.map(String).join(' ') + '\n');
       };
 
-      const grades = slc(db, seedDefaultGrades);
-      const gradeCheck = slc(db, checkGrades);
-      const users = slc(db, seedUsers);
-      const areaReify = slc(db, createAreaEntities);
-      const climbReify = areaReify
-        .then(() => slc(db, seedClimbEntities));
+      const wrappedTasks = collectTasks()
+        .map(([name, task]) => [name, task, new Spinner().start(name)] as const)
+        .map(([name, task, spinner]) =>
+          task
+            .then(() => spinner.succeed())
+            .catch((err) => {
+              console.error(err);
+              spinner.failed(err);
+            })
+        );
 
-      const areaDetails = Promise
-        .all([areaReify])
-        .then(() => slc(db, seedAreaDetailsAndParents));
-
-      const climbDetails = Promise
-        .all([climbReify, grades, gradeCheck])
-        .then(() => slc(db, seedClimbEntities));
-
-      // const content = Promise
-      //   .all([climbReify, areaReify])
-      //   .then(() => slc(db, seedContent));
-
-      const ticks = Promise
-        .all([users, climbDetails])
-        .then(() => slc(db, seedTicks));
-
-      const media = Promise
-        .all([climbReify, areaReify])
-        .then(() => slc(db, seedMedia));
-
-      const orgs = Promise
-        .all([areaReify, users])
-        .then(() => slc(db, seedOrganizations));
-
-      await Promise.all([
-        grades,
-        gradeCheck,
-        users,
-        climbReify,
-        // content,
-        ticks,
-        media,
-        orgs,
-        areaDetails,
-        areaReify,
-        climbDetails,
-      ]);
+      await Promise.all(wrappedTasks);
 
       console.log('Seeding complete!!');
     }

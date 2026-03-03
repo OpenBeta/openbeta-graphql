@@ -175,16 +175,3 @@ export async function makeUsers(db: Database) {
     .returning()
     .then((rows) => rows.map((d) => new SeedingActor(d)));
 }
-
-export async function slc(
-  db: Database,
-  func: (db: Database) => Promise<any>,
-) {
-  let spinner = new Spinner().start(func.name);
-  return await func(db)
-    .then(() => spinner.succeed())
-    .catch((err) => {
-      spinner.failed(`${func.name}: ${err}`);
-      throw err;
-    });
-}

@@ -11,7 +11,6 @@ import {
 import { DatabaseError } from 'pg';
 import { UUIDTypes } from 'uuid';
 import { GradesWithNoPegs } from '../../gradeManager/grades';
-import { slc } from '../utils';
 import { argv } from './args';
 import { forEachRow, uuidToPsql } from './utils';
 
@@ -129,7 +128,11 @@ export async function checkGrades(db: schema.Database) {
 }
 
 export async function seedClimbEntities(db: schema.Database) {
+  var missedRefs = 0;
+  var prog = 0;
   await forEachRow<any>('climbs', async (row) => {
+    prog++;
+
     const areaUuid = row.metadata?.areaRef;
     if (!areaUuid) {
       throw new Error('Climb should ALWAYS have an area parent in mongo doc');
@@ -139,36 +142,29 @@ export async function seedClimbEntities(db: schema.Database) {
     const climbUuid: string = row._id;
 
     if (!areaId) {
+      missedRefs++;
       console.log(
-        `${climbUuid} seems to reference an area that does not exist in mongo?`
-          + ' this may indicate an improper deletion leaving this node orphaned?',
+        `${missedRefs} - ${climbUuid} seems to reference an area that`
+          + ' does not exist in mongo? this may indicate an improper'
+          + ' deletion leaving this node orphaned?',
       );
       return;
     }
 
-    try {
-      const [reified] = await db
-        .insert(schema.entity)
-        .values(
-          {
-            uuid: climbUuid,
-            entityType: 'climb',
-            name: row.name,
-            parent: areaId,
-            created: row.createdAt || new Date(),
-          },
-        )
-        .returning({ id: schema.entity.id, uuid: schema.entity.uuid });
+    const [reified] = await db
+      .insert(schema.entity)
+      .values(
+        {
+          uuid: climbUuid,
+          entityType: 'climb',
+          name: row.name,
+          parent: areaId,
+          created: row.createdAt || new Date(),
+        },
+      )
+      .returning({ id: schema.entity.id, uuid: schema.entity.uuid });
 
-      uuidToPsql.set(reified.uuid, reified.id);
-    } catch (err) {
-      const [extant] = await db.select().from(schema.entity).where(
-        eq(schema.entity.uuid, climbUuid),
-      );
-
-      if (extant.name == row.name) return;
-      throw err;
-    }
+    uuidToPsql.set(reified.uuid, reified.id);
   });
 }
 
@@ -177,7 +173,17 @@ export async function seedClimbDetails(db: schema.Database) {
     const postgresId = uuidToPsql.get(mongoClimb._id);
     if (!postgresId) return;
 
-    const band = resolveGrade(mongoClimb);
+    let band: GradeBand | { lower: undefined; upper: undefined };
+
+    try {
+      band = resolveGrade(mongoClimb);
+    } catch (err) {
+      if (err instanceof GradeMatchesExplicitUnknown) {
+        band = { lower: undefined, upper: undefined };
+      } else {
+        throw err;
+      }
+    }
     const [gradeLower, gradeUpper] = await db
       .select({ id: schema.grade.id })
       .from(schema.grade)
@@ -193,8 +199,8 @@ export async function seedClimbDetails(db: schema.Database) {
       .where(
         or(
           and(
-            eq(schema.gradeSystem.name, band.lower.system),
-            eq(schema.grade.value, band.lower.value),
+            eq(schema.gradeSystem.name, band.lower?.system ?? ''),
+            eq(schema.grade.value, band.lower?.value ?? ''),
           ),
           and(
             eq(schema.gradeSystem.name, band.upper?.system ?? ''),
@@ -203,7 +209,7 @@ export async function seedClimbDetails(db: schema.Database) {
         ),
       );
 
-    if (!gradeLower) {
+    if (!gradeLower && band.lower !== undefined) {
       console.error(mongoClimb);
       console.error({ searchedFor: Object.values(mongoClimb.grades) });
       throw new Error('This climb row did not have a valid grade');
@@ -225,7 +231,7 @@ export async function seedClimbDetails(db: schema.Database) {
           y: mongoClimb.metadata.lnglat.coordinates[1],
         }
         : null,
-      canonicalGrade: gradeLower.id,
+      canonicalGrade: gradeLower?.id,
       canonicalGradeUpper: gradeUpper?.id,
     });
   });
