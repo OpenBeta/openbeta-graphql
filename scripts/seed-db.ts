@@ -9,7 +9,8 @@ import { graphServer } from './seed/graph/server';
 import { mapServer } from './seed/map/server';
 import {
   createAreaEntities,
-  seedAreaDetailsAndParents,
+  seedAreaDetails,
+  seedAreaParents,
 } from './seed/mongo/area';
 import { argv } from './seed/mongo/args';
 import {
@@ -37,7 +38,8 @@ function collectTasks(): Array<[string, Promise<void>]> {
   const users = seedUsers(db);
   const areaReify = createAreaEntities(db);
   const climbReify = areaReify.then(() => seedClimbEntities(db));
-  const areaDetails = areaReify.then(() => seedAreaDetailsAndParents(db));
+  const areaDetails = areaReify.then(() => seedAreaDetails(db));
+  const areaParents = areaReify.then(() => seedAreaParents(db));
 
   const climbDetails = Promise
     .all([climbReify, grades, gradeCheck])
@@ -72,6 +74,7 @@ function collectTasks(): Array<[string, Promise<void>]> {
     ['media', media],
     ['organizations', orgs],
     ['Assign area details', areaDetails],
+    ['Assign area parents', areaParents],
     ['Reify Area Entities', areaReify],
     ['Assign climb Details', climbDetails],
     ['Add content for climbs', contentForClimbs],
@@ -93,19 +96,26 @@ async function main() {
         fs.appendFileSync(logFile, varargs.map(String).join(' ') + '\n');
       };
 
-      const wrappedTasks = collectTasks()
-        .map(([name, task]) => [name, task, new Spinner().start(name)] as const)
+      const tasks = collectTasks();
+      const spinners = tasks.map(() => new Spinner());
+      const wrappedTasks = tasks
+        .map(([name, task], idx) =>
+          [name, task, spinners[idx].start(name)] as const
+        )
         .map(([name, task, spinner]) =>
           task
             .then(() => spinner.succeed())
             .catch((err) => {
-              console.error(err);
+              // Silently fail all spinners so we can throw an error.
+              // There's totally a race condition that can be reached here
+              // but I don't really care, the script is dying by now anyway.
+              spinners.forEach((s) => s.failed());
               spinner.failed(err);
+              throw err;
             })
         );
 
       await Promise.all(wrappedTasks);
-
       console.log('Seeding complete!!');
     }
   } catch (e) {
