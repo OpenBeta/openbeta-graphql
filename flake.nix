@@ -23,6 +23,11 @@
             bun
             duckdb
             mongodb-tools
+            (python3.withPackages (ps: [
+              ps.pandas
+              ps.numpy
+              ps.matplotlib
+            ]))
           ];
 
           shellHook = ''

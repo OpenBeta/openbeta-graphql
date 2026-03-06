@@ -1,0 +1,1 @@
+ALTER TABLE "area" ADD COLUMN "isBoulder" boolean DEFAULT false NOT NULL;

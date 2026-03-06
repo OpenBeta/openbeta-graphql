@@ -9,6 +9,7 @@ import { AreaPrimitive, AreaRepo } from '../beta/repo/area';
 import typeDefs from '../gql';
 import { resolvers } from '../resolvers';
 import { Context } from '../server/context';
+import { performancePlugin } from '../server/performancePlugin';
 import { testDb } from './setup';
 import { TestActor } from './testActor';
 
@@ -56,6 +57,7 @@ export const test = base.extend<TestFixtures>({
     const server = new ApolloServer<Context>({
       typeDefs,
       resolvers,
+      plugins: [performancePlugin],
     });
     await use(server);
   },

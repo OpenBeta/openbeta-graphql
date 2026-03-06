@@ -21,6 +21,7 @@ export const areaTable = pgTable('area', {
   totalClimbs: integer().notNull().default(0),
   imageByteSum: integer().notNull().default(0),
   isDestination: boolean().notNull().default(false),
+  isBoulder: boolean().notNull().default(false),
   location: geometry('position', { mode: 'xy', srid: 4326 }),
 });
 

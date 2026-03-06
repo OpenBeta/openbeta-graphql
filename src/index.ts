@@ -3,13 +3,14 @@ import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { Context, context } from 'server/context';
 import { logginPlugin } from 'server/loggingPlugin';
+import { performancePlugin } from 'server/performancePlugin';
 import typeDefs from './gql';
 import { resolvers } from './resolvers';
 
 const server = new ApolloServer<Context>({
   typeDefs,
   resolvers,
-  plugins: [logginPlugin],
+  plugins: [logginPlugin, performancePlugin],
 });
 
 const { url } = await startStandaloneServer(

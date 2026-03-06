@@ -79,7 +79,8 @@ export async function seedAreaDetails(
           shortCode: mongoArea.shortCode,
           density: mongoArea.density || 0,
           totalClimbs: mongoArea.totalClimbs || 0,
-          isDestination: mongoArea.metadata?.isDestination || false,
+          isDestination: mongoArea.metadata?.isDestination,
+          isBoulder: mongoArea.metadata?.isBoulder,
           location: mongoArea.metadata?.lnglat
             ? {
               x: mongoArea.metadata.lnglat.coordinates[0],
