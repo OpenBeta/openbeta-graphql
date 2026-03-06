@@ -4,6 +4,7 @@ import * as schema from '@schema';
 import { authorMetadata } from 'beta/authorMetadataResolver';
 import { resolveContent } from 'beta/contentResolvers';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
+import { preloadAncestry, shouldLoadAncestry } from 'beta/lookahead';
 import { ClimbPrimitive } from 'beta/repo/climb';
 import { mediaConnection } from 'beta/repo/media';
 import { eq } from 'drizzle-orm';
@@ -30,7 +31,13 @@ export const climbResolvers: Resolvers['Climb'] = {
       d.map((o) => String(o.name))
     ),
 
-  parent: async (parent, _, context) => context.repo.area.get(parent.parent!),
+  parent: async (parent, _, context, info) => {
+    const res = await context.repo.area.get(parent.parent!);
+    if (res && shouldLoadAncestry(info)) {
+      await preloadAncestry(res, context);
+    }
+    return res;
+  },
 
   pitches: async () => {
     // TODO: Pitch should be an entity subordinate to climb

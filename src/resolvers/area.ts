@@ -11,6 +11,7 @@ import { authorMetadata } from 'beta/authorMetadataResolver';
 import { contentByTag, resolveContent } from 'beta/contentResolvers';
 import { EntityId } from 'beta/entity_model';
 import { HasCacheableLineage, requireAncestry } from 'beta/lineage';
+import { preloadAncestry, shouldLoadAncestry } from 'beta/lookahead';
 import { AreaPrimitive } from 'beta/repo/area';
 import { ClimbPrimitive } from 'beta/repo/climb';
 import { ancestors } from 'beta/repo/entity_cte';
@@ -36,8 +37,8 @@ export const areaResolvers: Resolvers['Area'] = {
   id: async (parent) => parent.uuid,
   area_name: async (parent) => parent.name,
   areaName: async (parent) => parent.name,
-  children: async (doc, info, context) =>
-    context
+  children: async (doc, _, context, info) => {
+    const results = await context
       .db
       .select({
         ...getTableColumns(schema.entity),
@@ -50,7 +51,13 @@ export const areaResolvers: Resolvers['Area'] = {
           eq(schema.entity.parent, doc.id),
           not(schema.entity.deleted),
         ),
-      ),
+      );
+
+    if (results.length > 0 && shouldLoadAncestry(info)) {
+      await preloadAncestry(results, context);
+    }
+    return results;
+  },
 
   metadata: async (parent, _, context, info) => {
     const selection = parseResolveInfo(info);
@@ -92,8 +99,8 @@ export const areaResolvers: Resolvers['Area'] = {
 
   media: async (parent, _, context) => context.repo.area.media(parent),
 
-  climbs: async (area, _, context) =>
-    context
+  climbs: async (area, _, context, info) => {
+    const results = await context
       .db
       .select({
         ...getTableColumns(schema.entity),
@@ -110,7 +117,13 @@ export const areaResolvers: Resolvers['Area'] = {
               .deleted,
           ),
         ),
-      ) as Promise<ClimbPrimitive[]>,
+      );
+
+    if (results.length > 0 && shouldLoadAncestry(info)) {
+      await preloadAncestry(results as any, context);
+    }
+    return results as any;
+  },
 
   ancestors: async (parent, _, context) =>
     await requireAncestry(parent, context).then((d) =>

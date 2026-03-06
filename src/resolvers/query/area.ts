@@ -1,5 +1,6 @@
 import { Area, Resolvers } from '@gql';
 import * as schema from '@schema';
+import { preloadAncestry, shouldLoadAncestry } from 'beta/lookahead';
 import { areaTable } from 'db/schema/areaTable';
 import {
   and,
@@ -35,8 +36,13 @@ const comparator: Record<string, BinaryOperator> = {
 };
 
 const query: Resolvers['Query'] = {
-  area: async (parent, args, context, info) =>
-    await context.repo.area.get(require(args.uuid)),
+  area: async (parent, args, context, info) => {
+    const res = await context.repo.area.get(require(args.uuid));
+    if (res && shouldLoadAncestry(info)) {
+      await preloadAncestry(res, context);
+    }
+    return res;
+  },
 
   areas: async (parent, args, context, info) => {
     let filters = [];
@@ -90,7 +96,7 @@ const query: Resolvers['Query'] = {
       }
     }
 
-    return context
+    const results = await context
       .db
       .select({
         ...getTableColumns(schema.entity),
@@ -110,6 +116,11 @@ const query: Resolvers['Query'] = {
         ),
       )
       .where(and(...filters));
+
+    if (results.length > 0 && shouldLoadAncestry(info)) {
+      await preloadAncestry(results as any, context);
+    }
+    return results as any;
   },
 
   bulkAreas: async (parent, args, context, info) => {
@@ -128,8 +139,8 @@ const query: Resolvers['Query'] = {
     throw new Error('Not implemented');
   },
 
-  countries: async (parent, args, context, info) =>
-    context
+  countries: async (parent, args, context, info) => {
+    const results = await context
       .db
       .select({
         ...getTableColumns(schema.entity),
@@ -142,7 +153,13 @@ const query: Resolvers['Query'] = {
           isNull(schema.entity.parent),
           not(schema.entity.deleted),
         ),
-      ),
+      );
+
+    if (results.length > 0 && shouldLoadAncestry(info)) {
+      await preloadAncestry(results, context);
+    }
+    return results;
+  },
 };
 
 export default query;
