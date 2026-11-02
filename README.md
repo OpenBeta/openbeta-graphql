@@ -163,7 +163,7 @@ These links explain the structure and key abstractions of our codebase. It's a g
 
 ### Questions?
 
-This project is under active development.  Join us on [Discord](https://discord.gg/xcWha22BhT)!
+This project is under active development.  Join us on [Discord](https://discord.com/invite/a6vuuTQxS8)!
 
 ### License
 
